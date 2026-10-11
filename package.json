@@ -1,0 +1,25 @@
+{
+  "name": "civil-game-jam",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Prompt Engineers — CIVIL GAME JAM 2026",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "dev": "vite",
+    "check": "tsc --noEmit",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource-variable/jetbrains-mono": "5.3.0",
+    "@fontsource-variable/rubik": "5.3.0",
+    "phaser": "3.90.0"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2",
+    "vite": "8.3.4"
+  }
+}

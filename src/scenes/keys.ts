@@ -1,0 +1,14 @@
+export const SCENES = {
+  Boot: 'Boot',
+  Preload: 'Preload',
+  Gate: 'Gate',
+  Splash: 'Splash',
+  Menu: 'Menu',
+  Game: 'Game',
+  Result: 'Result',
+  Credits: 'Credits',
+  Playground: 'Playground',
+  Pause: 'Pause',
+  Settings: 'Settings',
+  Debug: 'Debug',
+} as const;
