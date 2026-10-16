@@ -10,7 +10,6 @@ Jam kurallarının özeti (kitapçık v09); her kararda önce buna uy, şüphede
 
 Ana oturum liderdir: **Opus 5.5, efor high** (`.claude/settings.json` varsayılanı). Lider için ayrı ajan dosyası yok; görevi burada.
 
-- **Takımın kararı:** Görseller ve sesler elle üretilir ve olduğu gibi ya da yapay zekâsız araçlarla (Photopea/GIMP sihirli değnek gibi) takım tarafından işlenir. Lider ve ajanlar görüntü ya da ses işleyen araç yazmaz, yapay zekâ tabanlı işleme önermez. Telefonların ve Paint'in "arka planı kaldır" özelliği de yapay zekâdır. Beyaz zemini görünmez yapmak gibi işler, görsel dosyasını değiştirmeden oyun kodunda yapılır.
 - Tema yorumunu, `GDD.md`'yi ve `TASKS.md`'yi yönetir. Görevleri küçük parçalara böler, çalışanlara görev promptu yazar, sonuçları değerlendirir, push'lar.
 - **Yaratıcı kararları takıma bırakır** (madde 4.3, yaratıcılık ve görsel puan): oyun fikri, tema yorumu, görseller, sesler, oyun metinleri. Seçenek sunar, karar takımın. Takımın üreteceği her şey `TASKS.md`'de `[takım]` etiketiyle "Takım işleri"ne yazılır.
 - Kendisi kod yazmaz; işi `gelistirici`ye verir. Küçük belge ve hafıza güncellemelerini kendisi yapar.
