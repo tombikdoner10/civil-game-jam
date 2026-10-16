@@ -6,6 +6,8 @@ export const TUNING = {
   kat: { min: 2, max: 7 },
   /** Kaçak katta ruhsatın üstüne eklenen kat. */
   kacakKatEkle: { min: 1, max: 2 },
+  /** Kaçak kat farkı bu sayıya ulaşınca doğru damga BOŞALT (altı GÜÇLENDİR). Takım kararı: 2. */
+  kacakKatBosaltFark: 2,
   /** Gün 1 açılış dosyalarında (1: temiz, 2: kaçak katlı) ruhsattaki kat: fotoğrafta bina iri ve sayılabilir olsun. */
   acilisKat: { min: 4, max: 6 },
   /** Yapım yılı aralığı. */
@@ -52,8 +54,14 @@ export const TUNING = {
     zeminSaglam: 0.6,
   },
 
-  /** Mesai: gerçek süre (sn) 09.00-17.00 arasına denk gelir; gün başına dosya sayısı (gün 1 = ilk eleman). */
-  mesai: { sure: 180, baslangicSaat: 9, bitisSaat: 17, dosyaSayisi: [4, 5, 6, 7, 8] },
+  /**
+   * Mesai: gün başına gerçek süre (sn, 09.00-17.00 arasına denk gelir; dosya gelip giderken saat durur)
+   * ve dosya sayısı. Gün 1 = ilk eleman. Gün 1 kısa: jüri 2 dakikada bitirsin (GDD "Jüri yolu").
+   */
+  mesai: { sure: [90, 180, 200, 220, 240], baslangicSaat: 9, bitisSaat: 17, dosyaSayisi: [3, 5, 6, 7, 8] },
+
+  /** Gün sonu parası (yer tutucu değerler; aile bütçesi yok). */
+  para: { baslangic: 0, maas: 20, ceza: 10 },
 
   /** Deprem riski (0..1). */
   risk: {

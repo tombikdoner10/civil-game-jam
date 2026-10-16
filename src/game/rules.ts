@@ -52,9 +52,17 @@ export const KUSUR_BILGI: Record<KusurId, Omit<Kusur, 'id'>> = {
 
 export const KUSUR_IDLERI = Object.keys(KUSUR_BILGI) as KusurId[];
 
-/** Kural kitabı (gün planı, GDD). Metinler yer tutucu. */
+/**
+ * Kural kitabı (gün planı, GDD). Metinler yer tutucu; takım yazacak. Gün 4'te saha kuralları ayrı
+ * satırlar: inceleme modunda tek alanlı kusur, alan + kendi kural satırıyla kanıtlanır.
+ */
 export const KURALLAR: Kural[] = [
-  { id: 'kat', ilkGun: 1, kusurlar: ['kacakKat'], metin: '[Kural: ruhsattaki kat sayısı gerçekle aynı olmalı]' },
+  {
+    id: 'kat',
+    ilkGun: 1,
+    kusurlar: ['kacakKat'],
+    metin: `[Kural: ruhsattaki kat sayısı (zemin dahil) fotoğraftakiyle aynı olmalı. 1 fazla kat: GÜÇLENDİR, ${TUNING.kacakKatBosaltFark}+: BOŞALT]`,
+  },
   {
     id: 'kolon',
     ilkGun: 2,
@@ -62,33 +70,46 @@ export const KURALLAR: Kural[] = [
     metin: '[Kural: zemin katta kolon kesilmemiş, gövdede çapraz çatlak olmamalı]',
   },
   { id: 'beton', ilkGun: 3, kusurlar: ['dusukBeton'], metin: `[Kural: beton dayanımı en az ${TUNING.betonEsikMpa} MPa]` },
-  {
-    id: 'saha',
-    ilkGun: 4,
-    kusurlar: ['dereyeYakin', 'fayaYakin', 'zeminEtuduYok', 'sivilasma'],
-    metin: `[Kural: dereye en az ${TUNING.dereMinM} m, faya en az ${TUNING.fayMinM} m; zemin etüdü olmalı, sıvılaşma olmamalı]`,
-  },
+  { id: 'dere', ilkGun: 4, kusurlar: ['dereyeYakin'], metin: `[Kural: dere yatağına en az ${TUNING.dereMinM} m]` },
+  { id: 'fay', ilkGun: 4, kusurlar: ['fayaYakin'], metin: `[Kural: fay hattına en az ${TUNING.fayMinM} m]` },
+  { id: 'zeminEtudu', ilkGun: 4, kusurlar: ['zeminEtuduYok'], metin: '[Kural: dosyada zemin etüdü olmalı]' },
+  { id: 'sivilasma', ilkGun: 4, kusurlar: ['sivilasma'], metin: '[Kural: zeminde sıvılaşma riski olmamalı]' },
   { id: 'belge', ilkGun: 5, kusurlar: ['sahteBelge'], metin: '[Kural: belge tarihleri ve mühür tutarlı olmalı]' },
 ];
+
+/** Gün 1 kural notunun ilk satırı: oyunun hedefi (yer tutucu, takım yazacak). */
+export const GOREV_NOTU = '[Görev: belgeleri karşılaştır, kurala uymayanı damgala]';
 
 function kusur(id: KusurId): Kusur {
   return { id, ...KUSUR_BILGI[id] };
 }
 
+/** Kaçak kat: ciddiyet fazla kat sayısına bağlı (1: GÜÇLENDİR, TUNING.kacakKatBosaltFark ve üstü: BOŞALT). */
+export function kacakKatKusuru(fark: number): Kusur {
+  const n = Math.abs(fark);
+  return {
+    ...kusur('kacakKat'),
+    etiket: `${KUSUR_BILGI.kacakKat.etiket} (+${n})`,
+    ciddiyet: n >= TUNING.kacakKatBosaltFark ? 'bosalt' : 'guclendir',
+  };
+}
+
 /** Kurallardan bağımsız: binadaki bütün gerçek kusurlar. */
 export function gercekKusurlar(b: Bina): Kusur[] {
   const g = b.gercek;
-  const out: KusurId[] = [];
-  if (g.kat !== b.belgeler.ruhsat.kat) out.push('kacakKat');
-  if (g.kesikKolonlar.length > 0) out.push('kesikKolon');
-  if (g.betonMpa < TUNING.betonEsikMpa) out.push('dusukBeton');
-  if (g.dereMesafeM < TUNING.dereMinM) out.push('dereyeYakin');
-  if (g.fayMesafeM < TUNING.fayMinM) out.push('fayaYakin');
-  if (b.belgeler.zemin === null) out.push('zeminEtuduYok');
-  if (g.zemin === 'sivilasma') out.push('sivilasma');
-  if (g.catlak === 'capraz') out.push('caprazCatlak');
-  if (g.ruhsatSahte) out.push('sahteBelge');
-  return out.map(kusur);
+  const out: Kusur[] = [];
+  const fark = g.kat - b.belgeler.ruhsat.kat;
+  if (fark !== 0) out.push(kacakKatKusuru(fark));
+  const ids: KusurId[] = [];
+  if (g.kesikKolonlar.length > 0) ids.push('kesikKolon');
+  if (g.betonMpa < TUNING.betonEsikMpa) ids.push('dusukBeton');
+  if (g.dereMesafeM < TUNING.dereMinM) ids.push('dereyeYakin');
+  if (g.fayMesafeM < TUNING.fayMinM) ids.push('fayaYakin');
+  if (b.belgeler.zemin === null) ids.push('zeminEtuduYok');
+  if (g.zemin === 'sivilasma') ids.push('sivilasma');
+  if (g.catlak === 'capraz') ids.push('caprazCatlak');
+  if (g.ruhsatSahte) ids.push('sahteBelge');
+  return out.concat(ids.map(kusur));
 }
 
 export function aktifKurallar(gun: number): Kural[] {

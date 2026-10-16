@@ -1,5 +1,6 @@
 import type { Bina, Damga, Kusur, KusurId } from './building';
 import { gunDosyalari } from './building';
+import { gunAyar, type GunAyar } from './days';
 import { dogruDamga, gorunenKusurlar, seciminKusuru, type SecimRef } from './rules';
 import { TUNING } from './tuning';
 
@@ -14,6 +15,12 @@ export interface Karar {
   bulunan: KusurId[];
 }
 
+/** Bitmiş bir günün kaydı (günler arasında taşınır; sokak ve deprem günü için). */
+export interface GunKaydi {
+  gun: number;
+  kararlar: Karar[];
+}
+
 export interface IncelemeSonucu {
   kusur: Kusur;
   /** Bu dosyada ilk kez mi bulundu. */
@@ -21,14 +28,43 @@ export interface IncelemeSonucu {
 }
 
 export function gunDosyaSayisi(gun: number): number {
-  const liste = TUNING.mesai.dosyaSayisi;
-  return liste[Math.min(Math.max(gun, 1), liste.length) - 1];
+  return gunAyar(gun).dosyaSayisi;
+}
+
+/** Damga sonucu (uyarı fişi için). */
+export interface DamgaSonucu {
+  dogru: boolean;
+  dogruDamga: Damga;
+  kusurlar: KusurId[];
+  /** Kusurların fişte görünen etiketleri (kaçak katta fazla kat sayısıyla). */
+  etiketler: string[];
+}
+
+/** Gün sonu hesabı (yer tutucu para: doğru başına maaş, yanlış başına ceza). */
+export interface GunHesabi {
+  dogru: number;
+  yanlis: number;
+  /** Mesai bittiği için damgalanmayan dosyalar. */
+  islenmeyen: number;
+  maas: number;
+  ceza: number;
+  toplam: number;
+}
+
+export function gunHesabi(kararlar: readonly Karar[], dosyaSayisi: number): GunHesabi {
+  const P = TUNING.para;
+  const dogru = kararlar.filter((k) => k.dogru).length;
+  const yanlis = kararlar.length - dogru;
+  const maas = dogru * P.maas;
+  const ceza = yanlis * P.ceza;
+  return { dogru, yanlis, islenmeyen: Math.max(0, dosyaSayisi - kararlar.length), maas, ceza, toplam: maas - ceza };
 }
 
 /** Bir günün oturumu: dosyalar, sıradaki dosya, kararlar ve mesai saati. Saf TS, Phaser yok. */
 export class GunOturumu {
   readonly dosyalar: Bina[];
   readonly kararlar: Karar[] = [];
+  readonly ayar: GunAyar;
   private idx = 0;
   private gecenSn = 0;
   /** Mevcut dosyada bulunan kusurlar (bulunma sırasıyla). Dosya damgalanınca sıfırlanır. */
@@ -38,7 +74,8 @@ export class GunOturumu {
     readonly gun: number,
     readonly tohum: number,
   ) {
-    this.dosyalar = gunDosyalari(tohum, gun, gunDosyaSayisi(gun));
+    this.ayar = gunAyar(gun);
+    this.dosyalar = gunDosyalari(tohum, gun, this.ayar.dosyaSayisi);
   }
 
   get mevcut(): Bina | undefined {
@@ -55,7 +92,7 @@ export class GunOturumu {
     return this.kararlar.filter((k) => k.dogru).length;
   }
   get mesaiBitti(): boolean {
-    return this.gecenSn >= TUNING.mesai.sure;
+    return this.gecenSn >= this.ayar.sure;
   }
   get bitti(): boolean {
     return this.idx >= this.dosyalar.length || this.mesaiBitti;
@@ -88,18 +125,23 @@ export class GunOturumu {
   /** "09:12" gibi oyun saati. */
   saatMetni(): string {
     const m = TUNING.mesai;
-    const oran = Math.min(1, this.gecenSn / m.sure);
+    const oran = Math.min(1, this.gecenSn / this.ayar.sure);
     const dk = Math.floor(oran * (m.bitisSaat - m.baslangicSaat) * 60);
     const toplam = m.baslangicSaat * 60 + dk;
     return `${String(Math.floor(toplam / 60)).padStart(2, '0')}:${String(toplam % 60).padStart(2, '0')}`;
   }
 
-  damgala(damga: Damga): { dogru: boolean; dogruDamga: Damga; kusurlar: KusurId[] } | null {
+  get hesap(): GunHesabi {
+    return gunHesabi(this.kararlar, this.toplam);
+  }
+
+  damgala(damga: Damga): DamgaSonucu | null {
     const b = this.mevcut;
     if (!b || this.bitti) return null;
     const dogru = dogruDamga(b, this.gun);
-    const kusurlar = gorunenKusurlar(b, this.gun).map((k) => k.id);
-    const sonuc = { dogru: dogru === damga, dogruDamga: dogru, kusurlar };
+    const gorunen = gorunenKusurlar(b, this.gun);
+    const kusurlar = gorunen.map((k) => k.id);
+    const sonuc: DamgaSonucu = { dogru: dogru === damga, dogruDamga: dogru, kusurlar, etiketler: gorunen.map((k) => k.etiket) };
     this.kararlar.push({ dosyaId: b.id, damga, dogruDamga: dogru, dogru: sonuc.dogru, kusurlar, bulunan: this.bulunan.slice() });
     this.bulunan = [];
     this.idx++;

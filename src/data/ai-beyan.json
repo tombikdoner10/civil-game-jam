@@ -7,7 +7,8 @@
       "yer": [
         "Menüler, arayüz ve efektler (jam öncesi şablon)",
         "src/desk/documents.ts, src/desk/tiles.ts, src/desk/StampTray.ts, src/desk/props.ts",
-        "src/desk/ (11 dosya)"
+        "src/desk/ (12 dosya)",
+        "src/scenes/DayEndScene.ts"
       ]
     },
     "audio": {
@@ -26,9 +27,10 @@
         "Jam öncesi şablonun bütün kodu",
         "src/game/, src/desk/DocumentCard.ts, src/scenes/, src/ui/, scripts/smoke.mjs",
         "src/scenes/GameScene.ts, src/game/rules.ts, src/game/session.ts, src/desk/documents.ts, src/desk/StampTray.ts",
-        "src/game/ (4 dosya)",
+        "src/game/ (5 dosya)",
         "src/scenes/GameScene.ts",
-        "scripts/smoke.mjs"
+        "scripts/smoke.mjs",
+        "src/desk/yerlesim.ts"
       ]
     },
     "text": {

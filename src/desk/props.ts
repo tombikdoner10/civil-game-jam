@@ -72,36 +72,41 @@ export function kuralKitabi(scene: Phaser.Scene, x: number, y: number): Phaser.G
 }
 
 /**
- * Uyarı fişi (yer tutucu geri bildirim): damgadan sonra gişeden masaya düşer.
- * Doğruysa yeşilimsi, yanlışsa pembe kâğıt. Yanlış kararda üç satır: başlık, doğru damga, kusurlar.
+ * Uyarı fişi (yer tutucu geri bildirim). Doğruysa yeşilimsi, yanlışsa pembe kâğıt. Yanlış kararda satırlar:
+ * başlık, doğru damga, kusurlar. Boyu metne göre; kap.width / kap.height ile okunur. Yerini GameScene
+ * seçer (masanın boş yeri), sonra fisDusur ile düşürülür.
  */
-export function fisDusur(scene: Phaser.Scene, dogru: boolean, metin: string, x: number, y: number): Phaser.GameObjects.Container {
-  const W = dogru ? 72 : 96;
-  const H = dogru ? 30 : 44;
+export function fisKur(scene: Phaser.Scene, dogru: boolean, metin: string): Phaser.GameObjects.Container {
+  const yazi = scene.add
+    .text(0, 4, metin, { fontFamily: FONT, fontSize: dogru ? '36px' : '30px', color: PAL.murekkep, align: 'center', lineSpacing: 4 })
+    .setOrigin(0.5);
+  const W = Math.max(dogru ? 72 : 96, Math.ceil((yazi.width + 48) / PX));
+  const H = Math.max(dogru ? 30 : 44, Math.ceil((yazi.height + 44) / PX));
   const t = new Tuval(scene, W, H + 2, 'fis');
   const renk = dogru ? PAL.fisYesil : PAL.fisKirmizi;
   const koyu = dogru ? '#9faa8a' : '#b8958a';
   t.rect(1, 2, W - 1, H, '#00000055');
   t.rect(0, 0, W - 1, H, renk);
-  t.benek(0, 0, W - 1, H, koyu, 0.04, rastgele(x + y));
+  t.benek(0, 0, W - 1, H, koyu, 0.04, rastgele(W * 31 + H));
   // Delikli üst kenar
   for (let xx = 0; xx < W - 1; xx += 2) t.ctx.clearRect(xx, 0, 1, 1);
   t.rect(0, 1, W - 1, 1, koyu);
   t.rect(3, 5, W - 7, 1, koyu);
   t.rect(3, H - 4, W - 7, 1, koyu);
   t.rect(3, 3, 4, 1, dogru ? PAL.damgaGuvenli : PAL.damgaBosalt);
-  const kap = scene.add.container(snap(x), -200);
+  const kap = scene.add.container(0, -400);
   kap.add(t.goruntu(0, 0));
-  kap.add(
-    scene.add
-      .text(0, 4, metin, { fontFamily: FONT, fontSize: dogru ? '36px' : '30px', color: PAL.murekkep, align: 'center', lineSpacing: 4 })
-      .setOrigin(0.5),
-  );
-  kap.setDepth(ustKatman());
-  kap.y = y - 140;
+  kap.add(yazi);
+  kap.setSize(W * PX, (H + 2) * PX);
   kap.setAlpha(0);
-  scene.tweens.add({ targets: kap, y: snap(y), alpha: 1, duration: 420, ease: 'Bounce.easeOut' });
   return kap;
+}
+
+/** Fişi (x, y) ortasına düşürür. derinlik verilmezse masadaki en üst katman. */
+export function fisDusur(scene: Phaser.Scene, kap: Phaser.GameObjects.Container, x: number, y: number, derinlik?: number): void {
+  kap.setDepth(derinlik ?? ustKatman());
+  kap.setPosition(snap(x), snap(y) - 140);
+  scene.tweens.add({ targets: kap, y: snap(y), alpha: 1, duration: 420, ease: 'Bounce.easeOut' });
 }
 
 /** Fişi masadan kaldırır: aşağı, masa çekmecesine kayar ve silinir. */

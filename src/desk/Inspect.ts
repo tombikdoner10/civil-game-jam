@@ -35,6 +35,11 @@ interface Bulunan {
   kusur: Kusur;
   ogeler: SecimNesne[];
   etiket: Phaser.GameObjects.Container;
+  /** Etiketin boyu (yer seçimi için). */
+  w: number;
+  h: number;
+  /** Son seçilen aday (yer değişmezse etiket zıplamasın). */
+  aday: number;
 }
 
 const D = { ortuMasa: 7, ortuBant: 3010, dugme: 3020, serit: 8000, cizim: 9000, etiket: 9001 };
@@ -56,6 +61,14 @@ function gorunur(n: Phaser.GameObjects.GameObject): boolean {
 }
 
 const ayni = (a: SecimRef, b: SecimRef): boolean => a.belge === b.belge && a.alan === b.alan;
+
+/** Öğenin ortası, kendi yüzeyinden daha üstteki bir yüzeyin (belge, not, açık kitap) altında mı? */
+function ortulu(o: SecimNesne, yuzeyler: readonly Yuzey[]): boolean {
+  const kendi = yuzeyler.find((y) => y.alanlar.some((a) => a.nesne === o.nesne));
+  if (!kendi) return false;
+  const r = sinir(o.nesne);
+  return yuzeyler.some((y) => y !== kendi && y.derinlik > kendi.derinlik && y.sinir.contains(r.centerX, r.centerY));
+}
 
 /**
  * İnceleme modu (Papers, Please gibi): Space ya da İNCELE düğmesiyle açılır. Açıkken masa soluklaşır,
@@ -217,7 +230,8 @@ export class Inspect extends Phaser.Events.EventEmitter {
         this.scene.tweens.add({ targets: eski.etiket, scale: 1.15, duration: 90, yoyo: true });
       } else {
         const etiket = this.etiketKur(sonuc.kusur.etiket);
-        this.bulunanlar.push({ kusur: sonuc.kusur, ogeler, etiket });
+        const r = etiket.getBounds();
+        this.bulunanlar.push({ kusur: sonuc.kusur, ogeler, etiket, w: snap(r.width), h: snap(r.height), aday: -1 });
         etiket.setScale(0.4);
         this.scene.tweens.add({ targets: etiket, scale: 1, duration: 200, ease: 'Back.easeOut' });
       }
@@ -282,14 +296,21 @@ export class Inspect extends Phaser.Events.EventEmitter {
   private ciz(): void {
     const g = this.g;
     g.clear();
-    // Bulunan kusurlar: kırmızı çerçeve, kırmızı kesikli çizgi, ortada etiket.
+    // Bulunan kusurlar: kırmızı çerçeve, kırmızı kesikli çizgi; etiket alanın kenarında, değerleri örtmeyen yerde.
+    // Üstüne başka belge ya da açık kitap çekilmiş alanın işareti çizilmez (etiket kitabın üstünde kalmasın).
+    const yuzeyler = this.bulunanlar.length > 0 ? this.ayar.yuzeyler() : [];
+    const engeller = this.bulunanlar.length > 0 ? this.alanSinirlari(yuzeyler) : [];
+    const etiketler: Phaser.Geom.Rectangle[] = [];
     for (const b of this.bulunanlar) {
-      const gor = b.ogeler.filter((o) => gorunur(o.nesne)).map((o) => sinir(o.nesne));
+      const gor = b.ogeler.filter((o) => gorunur(o.nesne) && !ortulu(o, yuzeyler)).map((o) => sinir(o.nesne));
       gor.forEach((r) => this.cerceve(r, KIRMIZI));
       if (gor.length === 2) this.kesikli(gor[0], gor[1], KIRMIZI);
       b.etiket.setVisible(gor.length > 0);
-      if (gor.length === 2) b.etiket.setPosition(snap((gor[0].centerX + gor[1].centerX) / 2), snap((gor[0].centerY + gor[1].centerY) / 2));
-      else if (gor.length === 1) b.etiket.setPosition(snap(gor[0].centerX), snap(gor[0].top - 36));
+      if (gor.length > 0) {
+        const r = this.etiketYeri(b, gor, engeller.concat(etiketler));
+        b.etiket.setPosition(r.centerX, r.centerY);
+        etiketler.push(r);
+      }
     }
     // Seçim: sarı çerçeve, iki seçimde sarı kesikli çizgi.
     const sec = this.secili.filter((o) => gorunur(o.nesne));
@@ -303,6 +324,56 @@ export class Inspect extends Phaser.Events.EventEmitter {
       const h = this.bul(w.x, w.y);
       if (h && !sec.some((s) => ayni(s, h))) this.cerceve(sinir(h.nesne), 0xe3d8b8, true);
     }
+  }
+
+  /** Masadaki bütün görünen alanların (belge değerleri, kural satırları) sınırları. */
+  private alanSinirlari(yuzeyler: Yuzey[]): Phaser.Geom.Rectangle[] {
+    const out: Phaser.Geom.Rectangle[] = [];
+    for (const yz of yuzeyler) for (const a of yz.alanlar) if (gorunur(a.nesne)) out.push(sinir(a.nesne));
+    return out;
+  }
+
+  /**
+   * Etiketin yeri: kanıt alanlarının üstü, altı, sağı, solu ve en son ikisinin ortası adaylar; alanlarla
+   * (belge değerleri) en az örtüşen seçilir. Masa dışına taşan aday masaya çekilir. Eşitlikte önceki aday
+   * korunur (etiket zıplamasın), yoksa sıradaki ilk.
+   */
+  private etiketYeri(b: Bulunan, gor: Phaser.Geom.Rectangle[], engeller: Phaser.Geom.Rectangle[]): Phaser.Geom.Rectangle {
+    const { w, h } = b;
+    const bosluk = 16;
+    const adaylar: [number, number][] = [];
+    for (const r of gor) {
+      adaylar.push([r.centerX, r.top - bosluk - h / 2]);
+      adaylar.push([r.centerX, r.bottom + bosluk + h / 2]);
+      adaylar.push([r.right + bosluk + w / 2, r.centerY]);
+      adaylar.push([r.left - bosluk - w / 2, r.centerY]);
+    }
+    if (gor.length === 2) adaylar.push([(gor[0].centerX + gor[1].centerX) / 2, (gor[0].centerY + gor[1].centerY) / 2]);
+    const kesisim = (a: Phaser.Geom.Rectangle, c: Phaser.Geom.Rectangle): number => {
+      const x = Math.min(a.right, c.right) - Math.max(a.left, c.left);
+      const y = Math.min(a.bottom, c.bottom) - Math.max(a.top, c.top);
+      return x > 0 && y > 0 ? x * y : 0;
+    };
+    let en = -1;
+    let enPuan = Infinity;
+    let enR = new Phaser.Geom.Rectangle();
+    adaylar.forEach(([cx, cy], i) => {
+      const x = snap(Phaser.Math.Clamp(cx, w / 2 + 8, 1920 - w / 2 - 8));
+      const y = snap(Phaser.Math.Clamp(cy, MASA_Y + h / 2 + 8, 1080 - h / 2 - 8));
+      const r = new Phaser.Geom.Rectangle(x - w / 2, y - h / 2, w, h);
+      let puan = 0;
+      for (const e of engeller) puan += kesisim(r, e);
+      // Kanıt alanından uzaklaşan (masaya çekilen) adaylar biraz geride kalsın.
+      puan += (Math.abs(x - cx) + Math.abs(y - cy)) * 2;
+      const daha = puan < enPuan || (puan === enPuan && i === b.aday);
+      if (daha) {
+        en = i;
+        enPuan = puan;
+        enR = r;
+      }
+    });
+    b.aday = en;
+    return enR;
   }
 
   /** Piksel ızgarasına oturan çerçeve (koyu dış kenar + renk). */

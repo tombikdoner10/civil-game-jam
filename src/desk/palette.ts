@@ -38,6 +38,9 @@ export const PAL = {
   fotoKenar: '#e0ddd2',
   fotoKenarKoyu: '#c4c0b2',
   fisKirmizi: '#d4b2a6',
+  /** Kural notu (küçük sarımsı kâğıt). */
+  not: '#d8cf9e',
+  notKoyu: '#bcb282',
   fisYesil: '#bfc9a9',
 
   // Mürekkep ve yazı

@@ -14,6 +14,16 @@ export interface AlanNesne extends AlanRef {
  */
 export const MASA = { x: 0, y: 464, w: 1880, h: 616 };
 
+/** Ortası (x, y), boyu w×h olan nesneyi masa sınırının içine sıkıştırır (ızgaraya oturtur). */
+export function masayaSikistir(x: number, y: number, w: number, h: number): [number, number] {
+  const yw = w / 2;
+  const yh = h / 2;
+  return [
+    snap(Phaser.Math.Clamp(x, MASA.x + yw, Math.max(MASA.x + yw, MASA.x + MASA.w - yw))),
+    snap(Phaser.Math.Clamp(y, MASA.y + yh, Math.max(MASA.y + yh, MASA.y + MASA.h - yh))),
+  ];
+}
+
 let enUst = 10;
 /** Masadaki bir sonraki üst katman (fiş gibi başka nesneler de kullanır). */
 export function ustKatman(): number {
@@ -52,12 +62,12 @@ export class DocumentCard extends Phaser.GameObjects.Container {
 
   /** Verilen konumu masa sınırına (kartın tamamı masada, damga çubuğunun dışında) sıkıştırır. */
   masadaKonum(x: number, y: number): [number, number] {
-    const yw = this.genislik / 2;
-    const yh = this.yukseklik / 2;
-    return [
-      snap(Phaser.Math.Clamp(x, MASA.x + yw, Math.max(MASA.x + yw, MASA.x + MASA.w - yw))),
-      snap(Phaser.Math.Clamp(y, MASA.y + yh, Math.max(MASA.y + yh, MASA.y + MASA.h - yh))),
-    ];
+    return masayaSikistir(x, y, this.genislik, this.yukseklik);
+  }
+
+  /** Kartın ekrandaki dikdörtgeni. */
+  sinir(): Phaser.Geom.Rectangle {
+    return new Phaser.Geom.Rectangle(this.x - this.genislik / 2, this.y - this.yukseklik / 2, this.genislik, this.yukseklik);
   }
 
   /** Kâğıt tuvalini kartın zemini yap (gölgenin hemen üstü). */

@@ -7,6 +7,7 @@ import * as Phaser from 'phaser';
 import { COLORS, HEIGHT, TEAM, TITLE, WIDTH } from './config';
 import { BootScene } from './scenes/BootScene';
 import { CreditsScene } from './scenes/CreditsScene';
+import { DayEndScene } from './scenes/DayEndScene';
 import { DebugScene } from './scenes/DebugScene';
 import { GameScene } from './scenes/GameScene';
 import { GateScene } from './scenes/GateScene';
@@ -38,6 +39,7 @@ const game = new Phaser.Game({
     SplashScene,
     MenuScene,
     GameScene,
+    DayEndScene,
     ResultScene,
     CreditsScene,
     PlaygroundScene,

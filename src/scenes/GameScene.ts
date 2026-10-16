@@ -2,39 +2,37 @@ import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
 import { DEV, FONT } from '../config';
 import { DocumentCard, MASA, ustKatman } from '../desk/DocumentCard';
-import { belgeKur, BOY, SIRA } from '../desk/documents';
+import { belgeKur, BOY } from '../desk/documents';
 import { snap } from '../desk/pixel';
 import { DUGME, Inspect, type Yuzey } from '../desk/Inspect';
 import { PAL } from '../desk/palette';
-import { fisDusur, fisKaldir, masaCiz } from '../desk/props';
+import { fisDusur, fisKaldir, fisKur, masaCiz } from '../desk/props';
 import { RuleBook } from '../desk/RuleBook';
+import { RuleNote } from '../desk/RuleNote';
 import { DAMGA_ADI, damgaIzi, StampTray, TEPSI_SOL } from '../desk/StampTray';
 import { GOZ, MASA_Y, Pencere } from '../desk/Window';
-import type { BelgeTuru, Damga } from '../game/building';
-import { KUSUR_BILGI } from '../game/rules';
-import { GunOturumu } from '../game/session';
+import { yerlesim, type Yerlesim } from '../desk/yerlesim';
+import type { Damga, Kural } from '../game/building';
+import { GunOturumu, type GunKaydi } from '../game/session';
+import { TUNING } from '../game/tuning';
+import type { DayEndData } from './DayEndScene';
 import { Controls } from '../systems/controls';
 import { punch } from '../systems/fx';
 import { fadeIn, goTo } from '../systems/transition';
 import { SCENES } from './keys';
 
+/** Günler arasında taşınan oyun durumu. Menüden boş gelir (gün 1, yeni tohum). */
 export interface GameData {
   gun?: number;
   tohum?: number;
+  /** Birikmiş para (önceki günlerin toplamı). */
+  para?: number;
+  /** Önceki günlerin kararları (sokak ve deprem günü için; G4b/G5). */
+  kayitlar?: GunKaydi[];
 }
 
-/** Masadaki yerleşim (kart ortası, ekran). Biraz dağınık ama okunur. */
-const YER: Record<BelgeTuru, [number, number]> = {
-  foto: [196, 700],
-  ruhsat: [572, 628],
-  proje: [580, 920],
-  vaziyet: [984, 636],
-  karot: [968, 936],
-  zemin: [1352, 920],
-};
-const KITAP: [number, number] = [1388, 640];
-/** Uyarı fişinin düştüğü yer: kural kitabının solunda (kitabı örtmez). */
-const FIS: [number, number] = [1080, 612];
+/** Masada boş yer yoksa uyarı fişi gişe camının altına düşer (belgeleri örtmez). */
+const FIS_GISE = { x: 1568, alt: 384, derinlik: 3500 };
 
 /** Masa sahnesi: üstte belediye penceresi ve gişe, altta masa, belgeler ve damga çubuğu. */
 export class GameScene extends Phaser.Scene {
@@ -42,7 +40,13 @@ export class GameScene extends Phaser.Scene {
   private oturum!: GunOturumu;
   private gun = 1;
   private tohum = 0;
+  private para = 0;
+  private kayitlar: GunKaydi[] = [];
+  private yer!: Yerlesim;
+  private not?: RuleNote;
   private kartlar: DocumentCard[] = [];
+  /** Damgalanmış dosyanın masadan kalkmakta olan belgeleri (fiş yeri ve kusur işaretleri için hâlâ masada). */
+  private giden: DocumentCard[] = [];
   private mesgul = true;
   private bitirildi = false;
   private pencere!: Pencere;
@@ -50,7 +54,7 @@ export class GameScene extends Phaser.Scene {
   private fis?: Phaser.GameObjects.Container;
   private ilkDosya = true;
   private inceleme!: Inspect;
-  private kitap!: RuleBook;
+  private kitap?: RuleBook;
   private ipucu?: Phaser.GameObjects.Text;
 
   constructor() {
@@ -60,7 +64,10 @@ export class GameScene extends Phaser.Scene {
   init(data: GameData): void {
     this.gun = data?.gun ?? 1;
     this.tohum = data?.tohum ?? Math.floor(Math.random() * 1_000_000_000);
-    if (DEV) {
+    this.para = data?.para ?? TUNING.para.baslangic;
+    this.kayitlar = data?.kayitlar ?? [];
+    // ?dev&gun=N&tohum=M yalnızca ilk girişte (menüden); sonraki günler veriden gelir.
+    if (DEV && data?.gun === undefined) {
       const q = new URLSearchParams(location.search);
       const g = Number(q.get('gun'));
       const t = q.get('tohum');
@@ -68,11 +75,14 @@ export class GameScene extends Phaser.Scene {
       if (t !== null && Number.isFinite(Number(t))) this.tohum = Number(t);
     }
     this.kartlar = [];
+    this.giden = [];
     this.mesgul = true;
     this.bitirildi = false;
     this.fis = undefined;
     this.ilkDosya = true;
     this.ipucu = undefined;
+    this.not = undefined;
+    this.kitap = undefined;
   }
 
   create(): void {
@@ -80,6 +90,8 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setRoundPixels(true);
     this.controls = new Controls(this);
     this.oturum = new GunOturumu(this.gun, this.tohum);
+    const ayar = this.oturum.ayar;
+    this.yer = yerlesim(this.gun);
     if (DEV) this.input.keyboard?.on('keydown-ENTER', () => this.bitir());
 
     MASA.x = 0;
@@ -87,13 +99,16 @@ export class GameScene extends Phaser.Scene {
     MASA.w = TEPSI_SOL.kapali;
     MASA.h = 1080 - MASA_Y;
     masaCiz(this, MASA_Y);
-    this.kitap = new RuleBook(this, KITAP[0], KITAP[1], this.gun, () => this.inceleme.acik);
+    // Kural kitabı gün 2'den; gün 1'de masada yalnızca kural notu (hedef ve tek kural).
+    if (ayar.kitap) this.kitap = new RuleBook(this, this.yer.kitap[0], this.yer.kitap[1], this.gun);
+    if (ayar.not) this.notGetir(ayar.not.gorev, ayar.not.kurallar);
     this.pencere = new Pencere(this, this.gun);
     this.tepsi = new StampTray(this, (d) => this.damgala(d));
     // Masa sınırı damga çubuğunun sol kenarında biter; çubuk açılınca altında kalan belgeler dışarı itilir.
     this.tepsi.on('ac', () => {
       MASA.w = TEPSI_SOL.acik;
       this.kartlariMasayaIt();
+      this.kitap?.masayaIt();
     });
     this.tepsi.on('kapa', () => {
       MASA.w = TEPSI_SOL.kapali;
@@ -134,14 +149,13 @@ export class GameScene extends Phaser.Scene {
   private incelemeKur(): void {
     this.inceleme = new Inspect(this, {
       yuzeyler: () => {
-        const out: Yuzey[] = this.kartlar
-          .filter((k) => k.active)
-          .map((k) => ({
-            derinlik: k.depth,
-            sinir: new Phaser.Geom.Rectangle(k.x - k.genislik / 2, k.y - k.yukseklik / 2, k.genislik, k.yukseklik),
-            alanlar: k.alanlar(),
-          }));
-        const kitap = this.kitap.yuzey();
+        const out: Yuzey[] = this.masadakiKartlar().map((k) => ({
+          derinlik: k.depth,
+          sinir: k.sinir(),
+          alanlar: k.alanlar(),
+        }));
+        if (this.not?.active) out.push(this.not.yuzey());
+        const kitap = this.kitap?.yuzey();
         if (kitap) out.push(kitap);
         return out;
       },
@@ -150,6 +164,8 @@ export class GameScene extends Phaser.Scene {
     });
     this.inceleme.on('ac', () => {
       for (const k of this.kartlar) k.disableInteractive(true);
+      this.not?.disableInteractive(true);
+      this.kitap?.kilitle(true);
       this.tepsi.kilitle(true);
       if (this.ipucu) {
         this.tweens.killTweensOf(this.ipucu);
@@ -159,6 +175,8 @@ export class GameScene extends Phaser.Scene {
     });
     this.inceleme.on('kapa', () => {
       for (const k of this.kartlar) if (k.active) k.setInteractive();
+      this.not?.setInteractive();
+      this.kitap?.kilitle(false);
       this.tepsi.kilitle(false);
     });
     // Gün 1 ipucu (yer tutucu metin): inceleme modu bir kez açılınca kaybolur.
@@ -173,12 +191,55 @@ export class GameScene extends Phaser.Scene {
 
   /** Masa sınırının dışında kalan belgeleri (ör. açılan damga çubuğunun altındakileri) içeri kaydırır. */
   private kartlariMasayaIt(): void {
-    for (const k of this.kartlar) {
+    const liste: (DocumentCard | RuleNote)[] = [...this.kartlar];
+    if (this.not) liste.push(this.not);
+    for (const k of liste) {
       if (!k.active || !k.input?.enabled) continue;
       const [x, y] = k.masadaKonum(k.x, k.y);
       if (x === k.x && y === k.y) continue;
       this.tweens.add({ targets: k, x, y, duration: 220, ease: 'Cubic.easeOut' });
     }
+  }
+
+  /** Masadaki belgeler: mevcut dosyanınkiler ve damgalanıp henüz kalkmamış olanlar. */
+  private masadakiKartlar(): DocumentCard[] {
+    return [...this.kartlar, ...this.giden].filter((k) => k.active);
+  }
+
+  /** Gün 1 kural notu: gişeden masaya kayar ve gün boyu masada kalır. */
+  private notGetir(gorev: string, kurallar: Kural[]): void {
+    const not = new RuleNote(this, GOZ.x, GOZ.y, this.gun, gorev, kurallar);
+    not.setDepth(ustKatman()).setAlpha(0);
+    const [x, y] = not.masadaKonum(this.yer.not[0], this.yer.not[1]);
+    this.tweens.add({ targets: not, alpha: 1, duration: 120, delay: 150 });
+    this.tweens.add({ targets: not, x, y, duration: 460, delay: 150, ease: 'Cubic.easeOut', onStart: () => sfx.play('whoosh') });
+    this.not = not;
+  }
+
+  /**
+   * Uyarı fişi için masada boş yer (belge, not ve kitapla örtüşmeyen; birden çoksa gişeye en yakın).
+   * Hiç boş yer yoksa null (fiş gişe camına düşer).
+   */
+  private bosYer(w: number, h: number): [number, number] | null {
+    const engel: Phaser.Geom.Rectangle[] = this.masadakiKartlar().map((k) => k.sinir());
+    if (this.not?.active) engel.push(this.not.sinir());
+    if (this.kitap) engel.push(this.kitap.sinir);
+    engel.forEach((r) => Phaser.Geom.Rectangle.Inflate(r, 12, 12));
+    let en: [number, number] | null = null;
+    let enPuan = Infinity;
+    const adim = 16;
+    for (let y = MASA.y + h / 2 + 8; y <= MASA.y + MASA.h - h / 2 - 8; y += adim)
+      for (let x = MASA.x + w / 2 + 8; x <= MASA.x + MASA.w - w / 2 - 8; x += adim) {
+        const r = new Phaser.Geom.Rectangle(x - w / 2, y - h / 2, w, h);
+        const ortu = engel.some((e) => Phaser.Geom.Intersects.RectangleToRectangle(r, e));
+        if (ortu) continue;
+        const puan = Math.hypot(x - GOZ.x, y - MASA.y);
+        if (puan < enPuan) {
+          enPuan = puan;
+          en = [x, y];
+        }
+      }
+    return en;
   }
 
   /** Sıradaki dosya: siluet gişeye gelir, bina pencerede görünür, belgeler gişe gözünden masaya kayar. */
@@ -194,8 +255,9 @@ export class GameScene extends Phaser.Scene {
     this.pencere.binaGoster(bina);
     this.pencere.siluetGelsin(this.tohum + this.oturum.no * 7919);
     const gecikme = 350;
-    this.kartlar = SIRA.map((tur, i) => {
-      const [hx, hy] = YER[tur];
+    const belgeler = this.oturum.ayar.belgeler;
+    this.kartlar = belgeler.map((tur, i) => {
+      const [hx, hy] = this.yer.belge[tur];
       const k = belgeKur(this, tur, bina, GOZ.x, GOZ.y - BOY[tur][1] / 2);
       k.setDepth(ustKatman()).setAlpha(0);
       this.tweens.add({ targets: k, alpha: 1, duration: 120, delay: gecikme + i * 80 });
@@ -210,7 +272,7 @@ export class GameScene extends Phaser.Scene {
       });
       return k;
     });
-    this.time.delayedCall(gecikme + 420 + SIRA.length * 80, () => {
+    this.time.delayedCall(gecikme + 420 + belgeler.length * 80, () => {
       this.mesgul = false;
       if (this.ilkDosya) {
         this.ilkDosya = false;
@@ -243,15 +305,21 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(450, () => {
       if (this.fis) fisKaldir(this, this.fis);
       // Yanlış kararda doğrusu ve dosyadaki kusurlar (atlanan ya da olmadığı halde görülen).
-      const kusurlar = sonuc.kusurlar.map((id) => KUSUR_BILGI[id].etiket).join(' · ') || 'Kusur yok';
+      const kusurlar = sonuc.etiketler.join('\n') || 'Kusur yok';
       const metin = sonuc.dogru ? 'Doğru karar' : `Yanlış karar\nDoğrusu: ${DAMGA_ADI[sonuc.dogruDamga]}\n${kusurlar}`;
-      this.fis = fisDusur(this, sonuc.dogru, metin, FIS[0], FIS[1]);
+      const fis = fisKur(this, sonuc.dogru, metin);
+      // Masanın boş yerine; yer yoksa gişe camının altına (belge değerlerini örtmesin).
+      const yer = this.bosYer(fis.width, fis.height);
+      if (yer) fisDusur(this, fis, yer[0], yer[1]);
+      else fisDusur(this, fis, FIS_GISE.x, FIS_GISE.alt - fis.height / 2, FIS_GISE.derinlik);
+      this.fis = fis;
       sfx.play(sonuc.dogru ? 'confirm' : 'error');
     });
 
     // Belgeler toplanıp gişeden geri verilir, mal sahibi ayrılır.
     const eski = this.kartlar;
     this.kartlar = [];
+    this.giden = eski;
     const topla = 1300;
     this.time.delayedCall(topla, () => {
       this.inceleme.dosyaBitti();
@@ -277,22 +345,38 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  /** Gün bitti (dosyalar ya da mesai): öncü sarsıntı kancası, sonra gün sonu ekranı. */
   private bitir(): void {
     if (this.bitirildi) return;
     this.bitirildi = true;
     this.mesgul = true;
-    const dogru = this.oturum.dogruSayisi;
-    const kararSayisi = this.oturum.kararlar.length;
-    const oran = kararSayisi > 0 ? dogru / this.oturum.toplam : 0;
-    this.endGame(dogru, oran >= 0.5);
+    if (this.inceleme.acik) this.inceleme.kapa();
+    this.gunSonuOncesi(() => this.gunSonu());
+  }
+
+  /**
+   * G4b kancası: gün sonu ekranından önceki adım (öncü sarsıntı; `oturum.ayar.oncuSarsinti` gün 1'de true).
+   * Şimdilik boş: 'gunSonuOncesi' olayını yayar ve hemen devam eder. Doldururken sarsıntı bitince devam() çağır.
+   */
+  private gunSonuOncesi(devam: () => void): void {
+    this.events.emit('gunSonuOncesi', this.oturum.ayar);
+    devam();
+  }
+
+  private gunSonu(): void {
+    const data: DayEndData = {
+      gun: this.gun,
+      tohum: this.tohum,
+      paraOnce: this.para,
+      kararlar: this.oturum.kararlar.slice(),
+      dosyalar: this.oturum.dosyalar.map((b) => ({ id: b.id, adres: b.adres })),
+      kayitlar: this.kayitlar,
+    };
+    goTo(this, SCENES.DayEnd, data);
   }
 
   pauseGame(): void {
     this.scene.launch(SCENES.Pause, { from: SCENES.Game });
     this.scene.pause();
-  }
-
-  endGame(score: number, won: boolean): void {
-    goTo(this, SCENES.Result, { score, won, title: 'Gün bitti' });
   }
 }
