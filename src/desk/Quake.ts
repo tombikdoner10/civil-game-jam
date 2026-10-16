@@ -297,7 +297,9 @@ export class Quake {
       });
       if (binalar.length > 0)
         scene.time.delayedCall(BUYUK.genis * T, () => {
-          this.sokak.odakla(ilkYer, sonYer, 1600, undefined, 0.5, 0.05);
+          // Özel gruplarda (G21) kenarlarda birer parsel pay: baştaki binaların etiketleri ekrandan taşmasın.
+          const pay = ozel ? 1 : 0;
+          this.sokak.odakla(ilkYer - pay, sonYer + pay, 1600, undefined, 0.5, 0.05);
           // Bütün sokak küçülünce arkadaki şehir binaları gölgede kalsın: göz sokağa gitsin.
           this.sokak.uzakSoldur(0.2, 1600);
         });

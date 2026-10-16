@@ -117,6 +117,7 @@ export const SENIN_DAMGAN = '[SENİN DAMGAN]';
 
 /** Depremde oyuncunun binasının sonucu (etiket). */
 export function sonucEtiketi(b: DepremBinaSonucu): string {
+  if (b.bos && b.coktu) return '[ÇÖKTÜ · İÇİ BOŞTU]';
   return b.coktu ? '[ÇÖKTÜ]' : b.durum === 'agirHasar' ? '[AĞIR HASAR]' : b.durum === 'hasarli' ? '[HASARLI]' : '[AYAKTA]';
 }
 

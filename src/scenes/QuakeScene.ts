@@ -34,6 +34,12 @@ export interface KisaYol {
 }
 
 const SOKAK_D = 10;
+
+/** Oyuncunun binasının deprem sonucunun rengi: içinde insan varken ağır sonuç kırmızı, boş binada gri. */
+export function sonucRengi(s: DepremBinaSonucu): string {
+  if (s.coktu || s.durum === 'agirHasar') return s.bos ? PAL.damgaIade : PAL.damgaBosalt;
+  return s.durum === 'hasarli' ? PAL.damgaGuclendir : PAL.damgaGuvenli;
+}
 /** Sahne zamanlaması (ms): saat yazısı, perdenin açılması, depremin başlaması, gazeteye geçiş. */
 const ZAMAN = { saatGel: 400, saatGit: 2600, perde: 3000, perdeSure: 1600, deprem: 5200, sonra: 2400 };
 
@@ -167,9 +173,7 @@ export class QuakeScene extends Phaser.Scene {
     };
     const damga = cip(-44, DAMGA_ADI[b.damga], DAMGA_RENK[b.damga], '#f0e6cc', 40);
     const ust = cip(-104, SENIN_DAMGAN, PAL.kremAcik, '#1d1a18', 36);
-    const kotu = s.coktu || s.durum === 'agirHasar';
-    const renk = kotu ? PAL.damgaBosalt : s.durum === 'hasarli' ? PAL.damgaGuclendir : PAL.damgaGuvenli;
-    const sonuc = cip(-168, sonucEtiketi(s), renk, '#f0e6cc', 44).setAlpha(0);
+    const sonuc = cip(-168, sonucEtiketi(s), sonucRengi(s), '#f0e6cc', 44).setAlpha(0);
     // Etiketten binaya inen kısa çubuk.
     kap.add(this.add.rectangle(0, -12, 4, 24, 0x0e0d10, 0.9));
     kap.add([damga, ust, sonuc]);

@@ -13,6 +13,7 @@ import { fadeIn, goTo } from '../systems/transition';
 import type { GameData } from './GameScene';
 import { SCENES } from './keys';
 import type { NewspaperData } from './NewspaperScene';
+import { sonucRengi } from './QuakeScene';
 
 /** Sonuç ekranına gelen veri: beş günün kayıtları, birikmiş para ve büyük depremin sonuçları. */
 export type ResultData = NewspaperData;
@@ -131,7 +132,7 @@ export class ResultScene extends Phaser.Scene {
       zarfAdet += h.zarfKabul;
       zarfTL += h.zarf;
     }
-    const zarf = zarfOzeti(zarfAdet, zarfTL, v.sonuclar);
+    const zarf = zarfOzeti(zarfAdet, zarfTL, kisa ? juriSonuc : v.sonuclar);
     if (zarf) toplamlar.push(this.sigdir(yaz(L + SUTUN.gun, topY + 52, zarf, 32, PAL.damgaBosalt), 760));
     for (const o of toplamlar) gorun(o, 200 + gercek.length * 90 + 80);
 
@@ -143,6 +144,7 @@ export class ResultScene extends Phaser.Scene {
       gorun(yaz(L + 40, jy + 16, KISA_SONUC.senin, 34, PAL.etiket), dGec - 200);
       gorun(this.sigdir(yaz(L + KAGIT.w - 40, jy + 16, seninBinalarin(depremOzeti(juriSonuc)), 34, PAL.murekkep, 1), 760), dGec - 200);
       const sw = (KAGIT.w - 80) / 3;
+      const satirlar: { kap: Phaser.GameObjects.Container; w: number }[] = [];
       juriSonuc.slice(0, 3).forEach((s, i) => {
         const x = L + 40 + i * sw;
         const kap = this.add.container(snap(x), snap(jy + 76));
@@ -161,12 +163,13 @@ export class ResultScene extends Phaser.Scene {
         const ok = this.add.text(cx, 0, '→', { fontFamily: FONT, fontSize: '32px', color: PAL.murekkepSoluk }).setOrigin(0, 0.5);
         kap.add(ok);
         cx += snap(ok.width + 8);
-        const kotu = s.coktu || s.durum === 'agirHasar';
-        cip(sonucEtiketi(s), kotu ? PAL.damgaBosalt : s.durum === 'hasarli' ? PAL.damgaGuclendir : PAL.damgaGuvenli);
-        // Sütuna sığmazsa küçült.
-        if (cx > sw - 16) kap.setScale((sw - 16) / cx);
+        cip(sonucEtiketi(s), sonucRengi(s));
+        satirlar.push({ kap, w: cx });
         gorun(kap, dGec - 100 + i * 120);
       });
+      // Sütuna sığmayan varsa hepsi aynı oranda küçülür.
+      const olcek = Math.min(1, ...satirlar.map((r) => (sw - 16) / r.w));
+      for (const r of satirlar) r.kap.setScale(olcek);
     }
 
     // Deprem özeti: dört kutu
