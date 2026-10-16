@@ -55,9 +55,23 @@ _Bizim yorumumuz (takımın kararı):_ Afete hazırlığın en kritik ama görü
 - Kırılma: son gün masana kendi apartmanının dosyası gelir.
 - Deprem günü: üstten şehir haritası, damgalanan binalar, sarsıntı, ertesi sabah gazete manşetleri.
 
-### Papers, Please'ten ayrışma
+### Papers, Please'ten ayrışma (ara test sonrası takım kararı, 16 Ekim 23.53)
 
-Cetvelle ölçme (vaziyet planı), büyüteç (kılcal sıva çatlağı ile çapraz kesme çatlağı farkı), karot numunesini prese sürükleme, deprem günü sonucu, kendi binan kırılması. Sunumda ilham kaynağı açıkça söylenir.
+Ara testte takım oyunu fazla Papers, Please'e benzer buldu. Seçilenlerin hepsi yapılacak:
+
+1. **Gişede insan ve sorgu (takımın fikri):** Siluet yerine piksel portreli mal sahibi. İnceleme modunda bulunan tutarsızlıkta "SOR": kişi bahane bulur, itiraf eder ya da zarf uzatır. Eksik belgede "İSTE": kişi gerçek belgeyi getirir, sahte belge getirir ya da getiremez.
+2. **Belge hileleri:** Elle düzeltilmiş rakam (tipp-ex, üstü çizili), başka binanın belgesi (ada/parsel uyuşmazlığı), boş alan ya da eksik imza, sahte rapor.
+3. **Fiziksel kaşe ve yönetmelik klasörü:** Kayan damga çubuğu yerine masadaki kaşeler; kaşeyi al, ıstampaya bastır, belgeye vur. Yeşil kitap yerine halkalı yönetmelik klasörü.
+4. **Saha testi:** Masadan çıkıp binayı ölçmek. Schmidt çekici (beton yüzey sertliği, karot yerine) ve el burgusu (zemin, etüt yerine) mini oyunları; günde sınırlı hak.
+5. **Takip denetimi:** Önceki günlerde GÜÇLENDİR damgası vurulan binalar yeniden gelir; güçlendirme gerçekten yapıldı mı, iskele kurulup bırakıldı mı?
+6. Ayrıca: kalıcı sokak, öncü sarsıntı, büyük deprem ve gazete (Papers, Please'te yok). Sunumda ilham kaynağı açıkça söylenir.
+
+### Kurallar netleşti (takım kararı, 16 Ekim 23.53)
+
+- Kural kitabındaki her kural satırı vurulacak damgayı açıkça yazar (ör. "→ BOŞALT").
+- **4. damga İADE:** Dosya eksik ve tamamlanamıyorsa geri çevrilir. Bedeli: bina denetlenmeden, içinde insanlarla kalır; depremde gerçek durumuna göre sonuç alır.
+- **Eksik belge (karot ya da zemin etüdü yok):** Önce gişedeki kişiden İSTE. Getirirse belgeyi değerlendir (sahte olabilir). Getiremezse SAHA TESTİ yap (hak varsa) ve sonuca göre damgala ya da İADE et.
+- **Dereye yakın:** Karar zemin etüdüne bağlı. Zemin sağlam ya da orta: GÜÇLENDİR; sıvılaşma riski: BOŞALT; etüt yok: eksik belge kuralı.
 
 ## İlk 30 saniye
 

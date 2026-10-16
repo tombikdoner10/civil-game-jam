@@ -9,6 +9,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G16 [teknik] Kurallar netleşsin + İADE: kural kitabında her satır damgasını yazsın; 4. damga İADE (sonucu: bina denetimsiz, depremde gerçek durumuyla); eksik karot/zemin etüdü akışı (iste → değerlendir → saha testi ya da İADE için kanca); dereye/faya yakın karar zemin etüdüne bağlı; doğru damga, fiş, gün sonu, adalet betiği buna uysun.
 
 ## Sırada
 
@@ -18,7 +19,14 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 - [ ] G5b [teknik] G5 test bulguları: gazete "Çöken (boşaltılmış: N)" ile sonuçtaki "Boşaltılmış" kutusu farklı şeyleri sayıyor (etiket netleşsin); gazete fotoğrafı sokağın daha geniş bir karesini göstersin; öne çıkan binalar örnek kararlarda hep aynı numara (dev yoluna özgü, düşük); inceleme modunda kapalı kitabın üstündeki belgeye tıklayınca kitap açılıyor; kullanılmayan Rubik ve JetBrains Mono importları ve beyanları kaldırılsın (ZIP küçülür).
 
-Araçlar ve derinlik
+Ara test sonrası (takım kararı 23.53; sıra: G16 → G17 → G18 → G19 → G20)
+
+- [ ] G17 [teknik] Gişede insan ve sorgu: kodla piksel portreli mal sahibi (siluet yerine); SOR (bulunan tutarsızlıkta: bahane / itiraf / zarf) ve İSTE (eksik belgede: gerçek / sahte / yok); belge hileleri (elle düzeltilmiş rakam, ada/parsel uyuşmazlığı, eksik imza/boş alan, sahte rapor) ve kuralları; diyalog metinleri yer tutucu, takım yazacak.
+- [ ] G18 [teknik] Fiziksel kaşe ve yönetmelik klasörü: kayan damga çubuğu yerine masadaki kaşeler (GÜVENLİ / GÜÇLENDİR / BOŞALT / İADE): al, ıstampaya bastır, belgeye vur; yeşil kural kitabı yerine halkalı yönetmelik klasörü; jüri 30 saniyede bulsun.
+- [ ] G19 [teknik] Saha testi: SAHA düğmesi (günde sınırlı hak, zaman harcar); Schmidt çekici mini oyunu (beton yüzeyine vur, geri tepme değeri → dayanım) ve el burgusu (zemin katmanları); sonuç masaya "saha notu" olarak düşer ve kanıt sayılır.
+- [ ] G20 [teknik] Takip denetimi: gün 3'ten itibaren önceki GÜÇLENDİR binalarından biri geri gelir; fotoğraf ve güçlendirme raporu; yapıldı mı, iskele kurulup bırakıldı mı; kural ve damga.
+
+Araçlar ve derinlik (ara test sonrası saha testi bunların yerini alıyor; düşük öncelik)
 
 - [ ] G6 [teknik] Büyüteç: fotoğrafı büyütünce gizli kusur görünür (çapraz çatlak, pas, deniz kabuğu; yer tutucu çizimler).
 - [ ] G7 [teknik] (araçlardan yalnızca biri yapılacak: büyüteç ya da cetvel; eleştirmen) Cetvel: vaziyet planında sürükleyerek mesafe ölçme; kurala bağlı.
@@ -46,6 +54,7 @@ Bulutta yapılabilecekler
 - [ ] T14 [takım] Öncü sarsıntı: doğru BOŞALT damgalanan zayıf bina da "boş" olarak çatlıyor; böyle mi kalsın, yoksa boşaltılanlar sağlam mı görünsün? Öncü şiddeti/süresi (TUNING.oncu). İskele, şerit, çatlak çizimleri onayı. Tavanda sallanan lamba istenir mi?
 - [ ] T15 [takım] Büyük deprem ağırlığı: örnek oyunda 29 binadan 14'ü çöktü (10'u boşaltılmıştı). Doğru BOŞALT damgalı ağır kusurlu binalar çöksün mü, ağır hasarlı mı kalsın (TUNING.buyukDeprem.kademe.bosaltKusur 3 → 2)? Gazete ve sonuç metinleri src/game/gazete.ts (T4 ile).
 - [ ] T16 [takım] Jüri büyük depremi normal yolla göremiyor (5 gün ~8–10 dk). Seçenekler: menüde "Depremi göster" düğmesi, kısa mod, ya da yalnızca sunum/video için ?dev&deprem adresi. Karar takımın (tema ve yaratıcılık puanı).
+- [ ] T17 [takım] Diyalog metinleri: mal sahiplerinin bahaneleri, itirafları, zarf teklifleri, belge getirme/getirememe cümleleri (G17 yer tutucuları). Kural kitabı satırlarının son metni (G16).
 - [ ] T11 [takım] Pencere sokağı, gişedeki siluet ve renk paleti onayı; uyarı fişi metinleri ("Doğru karar" / "Yanlış karar: doğrusu X" yer tutucu).
 - [ ] T6 [takım] Sesleri ara testte dinle; Claude'un seçtiği Kenney adaylarını onayla ya da değiştir.
 - [ ] T7 [takım] Kararlar: imar affı belgesi olacak mı. (Deprem günü ve kaçak kat 21.49'da karara bağlandı.)

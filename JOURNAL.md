@@ -5,7 +5,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 ## Durum
 
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
-- Kontrol 2 (ara oyun testi): SÜRÜYOR (16 Ekim 23.25, takım oynuyor)
+- Kontrol 2 (ara oyun testi): TAMAM (16 Ekim 23.53, geri bildirim işlendi)
 - Kontrol 3 (son teslim): BEKLİYOR
 - Son eleştirmen: 2026-10-16T21:23+03:00
 - Kullanım düzeyi: normal
@@ -48,3 +48,6 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 23:37 · 328cec4 canlıda (tam oyun: 5 gün, öncü, büyük deprem, gazete, sonuç), smoke hatasız, son-saglam taşındı · Sıradaki: takım geri bildirimi, G4c+G13 sonucu
 - 23:43 · G4c + G13 bitti (79eef37, Opus/high): gün başına belge yerleşimi (kırpılma yok), dolu sokak turu ve yarım ölçek pencere, gün 5 öncesi mühür = yapım yılı, etiket/fiş örtmüyor, saat belgeler oturunca başlıyor, açılıştan menüye ~1,8 sn, menü/ayarlar/duraklatma/Emeği Geçenler masa tarzında · Karar: yayına (ekranlar lider tarafından incelendi; ayrı test bir sonraki tura) · Sıradaki: takım geri bildirimi
 - 23:45 · 19a9e0d canlıda (G4c + G13; menüde sürüm yazısıyla doğrulandı), smoke hatasız, son-saglam taşındı. Not: ilk denemede yayın kuyruktaydı, smoke eski sürümü test etti; yeniden doğrulandı · Sıradaki: takım geri bildirimi (Kontrol 2)
+- 23:50 · Kontrol 2 geri bildirimi (takım): (1) karot raporu olmayan binada ne yapılacağı belirsiz, (2) zemin etüdü olmayan binada belirsiz, (3) dereye yakın binada belirsiz, (4) fazla Papers, Please'e benziyor, özgünleştirme fikri istendi, (5) gelen insanlara diyalog; sahte, yanlış ya da elle düzenlenmiş belgeler; uyuşmazlık, eksik veya yanlış bilgide gişedeki kişiyle etkileşim · Sıradaki: seçenekler ve takım kararı
+- 23:53 · Karar: Eksik belge = önce kişiden İSTE, getiremezse SAHA TESTİ ya da 4. damga İADE; dereye yakın = zemin etüdüne bağlı; her kural satırı damgasını yazar · Neden: ara testte üç kural belirsizdi (takım seçti)
+- 23:53 · Karar: Özgünleştirme için dördü birden: gişede insan + sorgu ve belge hileleri, fiziksel kaşe + yönetmelik klasörü, saha testi (Schmidt çekici, burgu), takip denetimi · Neden: takım Papers, Please benzerliğini azaltmak istedi; 1. madde takımın fikri · Sıradaki: G16 → G17 → G18 → G19 → G20
