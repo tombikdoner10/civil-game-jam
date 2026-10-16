@@ -1,3 +1,4 @@
+// @beyan görsel
 import * as Phaser from 'phaser';
 import { COLORS, HEIGHT, WIDTH } from '../config';
 import { TEX } from '../systems/textures';

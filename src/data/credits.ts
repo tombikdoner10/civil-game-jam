@@ -1,3 +1,5 @@
+import aiBeyan from './ai-beyan.json';
+
 /**
  * Beyanlar: oyun içi Emeği Geçenler ekranı ve teslim formu için tek kaynak. README'deki tablolarla aynı tutulmalı.
  *
@@ -41,29 +43,16 @@ export const MEMBERS: Member[] = [
   { name: 'Takım üyesi 2', role: 'Test, video, sunum' },
 ];
 
-const CLAUDE = 'Claude (Anthropic), Claude Code üzerinden';
-
-/** Yapay zekâ kullanımı. Jam sırasında her yeni kullanımı hemen ilgili kategoriye ekle. */
-export const AI: Record<Category, AiCredit[]> = {
-  visual: [
-    {
-      tool: CLAUDE,
-      purpose: 'Arayüz görsellerini (butonlar, menü efektleri, parçacıklar) kodla çizen kodu yazdı',
-      where: 'Menüler, arayüz ve efektler',
-    },
-  ],
-  audio: [
-    {
-      tool: CLAUDE,
-      purpose: 'Ses efektlerini ve müziği kodla üreten sentezleyiciyi ve ses ayarlarını yazdı',
-      where: 'Bütün ses efektleri ve müzik',
-    },
-  ],
-  code: [{ tool: CLAUDE, purpose: 'Oyunun kodunu yazdı', where: 'Oyunun bütün kodu' }],
-  text: [{ tool: CLAUDE, purpose: 'Arayüz metinlerini ve belgeleri yazdı', where: 'Menü ve ayar yazıları, README' }],
-  // Jam'de fikir ya da tasarım önerisi alınırsa buraya ekle.
-  other: [],
-};
+/**
+ * Yapay zekâ kullanımı: elle yazılmaz. `scripts/beyan.mjs`, Claude Code kancasının otomatik kaydından
+ * (docs/ai-kayit.jsonl) ve elle eklenenlerden (docs/ai-elle.json) ai-beyan.json'u üretir; her commit'te yenilenir.
+ */
+export const AI = Object.fromEntries(
+  CATEGORIES.map(({ id }) => {
+    const c = aiBeyan.kategoriler[id];
+    return [id, c.kullanildi ? [{ tool: c.arac, purpose: c.amac, where: c.yer.join(', ') }] : []];
+  }),
+) as Record<Category, AiCredit[]>;
 
 /** Hazır kaynaklar: başkasının üretip kullanıma açtığı her şey. */
 export const ASSETS: Record<Category, AssetCredit[]> = {

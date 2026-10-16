@@ -1,3 +1,4 @@
+// @beyan görsel
 import * as Phaser from 'phaser';
 import { COLORS, css, FONT } from '../config';
 import { settings } from './settings';

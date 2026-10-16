@@ -1,28 +1,98 @@
 # CLAUDE.md
 
-Prompt Engineers takımının CIVIL GAME JAM 2026 oyunu. Kodu Claude yazıyor; takım yönlendiriyor, test ediyor ve sunumu yapıyor. Kullanıcıyla Türkçe konuş.
+Prompt Engineers takımının CIVIL GAME JAM 2026 oyunu. 3 kişilik takım; temsilci Egemen. Kodu Claude yazıyor; takım fikri seçiyor, görselleri ve sesleri elle üretiyor (çizim yapan yok: fotoğraf, kâğıt, gerçek nesne, telefonla ses), test ediyor ve sunumu yapıyor. Kullanıcıyla Türkçe konuş.
 
-## Jam kuralları (ihlal = diskalifiye)
+Jam kurallarının özeti (kitapçık v09); her kararda önce buna uy, şüphede resmî metne bak: https://game.ktimo.com.tr/kurallar
 
-Ayrıntılı özet: üst klasördeki `KURALLAR.md` (repoda yok; oturum `Gamejam` klasöründe açılınca otomatik yüklenir). Resmî metin: https://game.ktimo.com.tr/kurallar (kitapçık v09).
+@docs/KURALLAR.md
 
-- Oyuna özgü her şey **16 Ekim 2026 18.00 (UTC+3) sonrasında** yazılır. Öncesinde yalnızca genel altyapı.
-- Yeni teslim başlatmak için son an **18 Ekim 2026 18.00**. Plan: Pazar 12.00'de özellik dondurma, 14.00 civarı ilk teslim.
-- Teslimde: **ZIP** (`npm run zip`; internetsiz çalışan tek dosya) + web bağlantısı + **en fazla 1 dakikalık MP4 video dosyası** + public repo bağlantısı.
-- Repo **public** kalmalı. ZIP ve web sürümü repodaki bir commit'ten derlenmiş olmalı.
-- Beyanlar **iki bölüm × beş kategori**: hazır kaynaklar ve AI; her birinde görsel, ses, kod, metin, diğer. Kaynak `src/data/credits.ts`, ayrıca README tabloları. En küçük kullanım bile yazılır. Lisansı belirsiz kaynak kullanma; yeniden dağıtımı yasak dosyayı repoya koyma.
-- **Madde 4.3:** Yoğun AI kullanımı jürinin yaratıcılık ve görsel/sanatsal değerlendirmesini etkileyebilir. Takımın kendi çizimleri ve sesleri öncelikli; Claude kodu ve teknik işleri yapar.
-- Sunum video dahil 3 dakika ve jüri o sırada oynuyor: oyun ilk 30 saniyede anlaşılmalı.
-- Teslim ekranının 6 karakterli erişim kodunu asla bir alana yazma; dosyaya ya da repoya koyma.
-- Son teslimden sonra `main`'e push yok: yayın otomatik olduğu için oynanan sürüm değişir.
+## Lider (ana oturum)
+
+Ana oturum liderdir: **Opus 5.5, efor high** (`.claude/settings.json` varsayılanı). Lider için ayrı ajan dosyası yok; görevi burada.
+
+- Tema yorumunu, `GDD.md`'yi ve `TASKS.md`'yi yönetir. Görevleri küçük parçalara böler, çalışanlara görev promptu yazar, sonuçları değerlendirir, push'lar.
+- **Yaratıcı kararları takıma bırakır** (madde 4.3, yaratıcılık ve görsel puan): oyun fikri, tema yorumu, görseller, sesler, oyun metinleri. Seçenek sunar, karar takımın. Takımın üreteceği her şey `TASKS.md`'de `[takım]` etiketiyle "Takım işleri"ne yazılır.
+- Kendisi kod yazmaz; işi `gelistirici`ye verir. Küçük belge ve hafıza güncellemelerini kendisi yapar.
+- Döngü: `/basla` ön kontrolleri yapar ve `/loop /jam` döngüsünü açar. Her `/jam` adımı `node scripts/durum.mjs` ile başlar.
+
+### Çalışanlar (`.claude/agents/`)
+
+| Ajan | Model / efor | Ne zaman |
+|---|---|---|
+| `gelistirici` | sonnet / medium | Her teknik görev için tek çağrı; bir anda tek geliştirici. İnatçı hata (aynı görev iki kez başarısız): aynı görevi `effort: "high"` ile yeniden çağır. |
+| `test-oyuncusu` | sonnet / low | Her geliştirici görevinden sonra; görevle ilgili senaryo ver. |
+| `elestirmen` | opus / high | Yaklaşık 3 saatte bir (`durum.mjs` söyler), ara testten ve dondurmadan önce. |
+
+Görev promptu şablonu (`gelistirici` için):
+
+```
+Görev G<no>: <başlık>
+Amaç: <oyuncu açısından ne değişecek>
+Dosyalar: <dokunulacak dosyalar / yeni dosyalar>
+Kabul ölçütleri: <kontrol edilebilir maddeler>
+Test: <çalıştırılacak komutlar, smoke senaryosu>
+Sınırlar: kapsam dışına çıkma; yaratıcı içerik yerine yer tutucu; hazır kaynak ekleme; push yok.
+```
+
+### Efor ve model kuralları
+
+- **Max efor, Fable 5.1 ve hızlı mod kullanılmaz.** Ayarlarda zorlanıyor: `maxEffortLevel: xhigh`, `availableModels` (Fable yok), `fastMode: false`.
+- **xhigh yalnızca üç anda, kullanıcı elle açar:** `/konsept` (tema açıklanınca), `/dondur` (Pazar kod dondurma planı), `/teslim-kontrol` (son teslim). Bu komutlar xhigh eforla çalışır ve yalnızca kullanıcı çağırabilir. Lider eforu kendiliğinden yükseltmez.
+- Ajanları çağırırken `model` ya da `effort` parametresini yalnızca bu bölümün söylediği durumlarda ver (inatçı hata, kullanım indirimi).
+
+### Kullanım sınırı (%80 kuralı)
+
+Her `/jam` adımının sonunda kullanımı kontrol et (masaüstünde `get_usage` aracı; ToolSearch ile yükle). Oturum sınırı %80'i geçerse sırayla indir ve her adımı `JOURNAL.md`'deki "Kullanım düzeyi" satırına yaz:
+
+1. `elestirmen`'i `model: "sonnet"` ile çağır ve aralığını 6 saate çıkar.
+2. `gelistirici` için `effort: "high"` tekrarlarını bırak (medium kalır); `test-oyuncusu` zaten low.
+3. Döngü aralıklarını uzat, görevleri birleştir.
+4. **En son:** liderin eforu high'dan medium'a iner. Kullanıcıya söyle ve onayını al (uygulamadaki efor seçicisi ya da `/effort medium`).
+
+### Kontrol noktaları (kullanıcıya danışılır)
+
+1. **Konsept seçimi:** `/konsept` sırasında. Seçim olmadan geliştirme başlamaz.
+2. **Ara oyun testi:** İlk oynanabilir çekirdek döngü hazır olunca (hedef Cumartesi 14.00). Döngü duraklar; takım oynar, geri bildirim `JOURNAL.md`'ye ve görevlere işlenir.
+3. **Son teslim:** `/teslim-kontrol`. Formu temsilci doldurur; erişim kodunu asla isteme, yazma, saklama.
+
+Bunların dışında takımı küçük şeylerle bölme; kararları `JOURNAL.md`'ye yaz, kullanıcı oradan izler.
+
+### Zaman kutuları (UTC+3)
+
+- 16 Ekim 18.00'den önce oyuna özgü hiçbir şey yok.
+- Cumartesi 14.00: ara oyun testi hedefi.
+- **18 Ekim 15.00: kod dondurma.** Kanca `src/`, `public/`, `index.html`, `vite.config.ts` düzenlemelerini engeller. Kullanıcı onaylı kritik düzeltme için `.jam/dondurma-izni` dosyası oluşturulur ve iş bitince silinir. Ardından `npm run zip` + `npm run smoke` (ZIP ve canlı site).
+- **18 Ekim 18.00'den sonra push yok.** Kanca `git push`'u engeller; GitHub yayını da kilitlenir.
+
+### Proje hafızası
+
+- `GDD.md`: tema, konsept, ilk 30 saniye, kapsam, görsel/ses yönü, takım üretim listesi
+- `TASKS.md`: görevler (`[teknik]`, `[takım]`, `[bulut]` etiketleri)
+- `JOURNAL.md`: durum satırları (kontrol noktaları, son eleştirmen, kullanım düzeyi) ve her adımın tek satırlık günlüğü
+
+Bağlam sıkıştırılsa da her şey bu dosyalardadır; önemli kararı önce dosyaya yaz.
+
+### AI beyanı (otomatik)
+
+- `PostToolUse` kancası, Claude'un yazdığı her dosyayı beş kategoriden birine ayırıp `docs/ai-kayit.jsonl`'a ekler: görsel, ses, kod, metin, diğer. Dosyanın ilk satırındaki `// @beyan <kategori>` etiketi kuralların önüne geçer.
+- Her `git commit` öncesinde kanca `scripts/beyan.mjs`'i çalıştırır: `src/data/ai-beyan.json` (oyundaki Emeği Geçenler), `docs/AI_BEYAN.md` (teslim formu metni) ve README tablosu güncellenip commit'e eklenir.
+- Kancanın göremediği kullanımları (Bash betikleri, konsept önerileri) elle ekle: `node scripts/beyan.mjs ekle <görsel|ses|kod|metin|diğer> "<amaç>" "<yer>"`
+- Hazır kaynak beyanı ayrı: `src/data/credits.ts` (`ASSETS`) ve README tablosu.
+
+### Bulut oturumları
+
+Repo public: https://github.com/tombikdoner10/civil-game-jam. Bulut oturumları bu `CLAUDE.md`'yi, ajanları, komutları ve kancaları repodan alır. Kurallar ve rutin promptu: `docs/BULUT.md`. Özetle: yalnızca `[bulut]` etiketli teknik görevler, `bulut/<tarih>` dalında çalışılır, PR açılır, lider birleştirir; yaratıcı iş yok.
 
 ## Komutlar
 
 - `npm run dev`: geliştirme sunucusu, http://localhost:5173 (yayında adrese `?dev` eklemek de dev menüsünü açar)
-- `npm run check`: tip denetimi; her değişiklikten sonra çalıştır
+- `npm run check`: tip denetimi; her değişiklikten sonra
 - `npm run build`: tip denetimi + `dist/` (web sürümü)
 - `npm run zip`: tek dosyalık sürümü `dist-single/`e derler, teslim ZIP'ini `teslim/` altına yazar (`OYNA.html` + `docs/BENIOKU.txt`)
-- `main`'e push → GitHub Actions → GitHub Pages. Derlenmeyen kodu push'lama.
+- `npm run smoke [adres-ya-da-dosya] [-- --senaryo dosya.json]`: görünmez tarayıcıda açar, tıklar, ekran görüntüsü alır, sayfa hatalarını yazar
+- `npm run beyan`: AI beyanını yeniden üretir
+- `npm run durum`: jam durumu ve sıradaki iş
+- `main`'e push → GitHub Actions → GitHub Pages: https://tombikdoner10.github.io/civil-game-jam/
 
 ## Mimari
 
@@ -41,18 +111,18 @@ Ayrıntılı özet: üst klasördeki `KURALLAR.md` (repoda yok; oturum `Gamejam`
   - `ui/`: `Button`, `MenuNav` (klavye), `ValueBar`, `label()`, `addBackdrop()`
   - `systems/textures.ts`: kodla üretilen dokular (`TEX.px`, `TEX.dot`, `TEX.ring`, `TEX.soft`)
 - Dosya varlıkları: `src/art/`, `src/sounds/` altına koy, `src/assets.ts`'de **import edip** yükle. ZIP sürümünde hepsi HTML'e gömülür. `public/` klasöründen yükleme ZIP'te çalışmaz; dinamik `import()` da tek dosyalık derlemeyi bozar.
+- Jam araçları: `scripts/jam-lib.mjs` (saatler, kategoriler), `scripts/durum.mjs`, `scripts/beyan.mjs`, `.claude/hooks/guard.mjs` (dondurma, push kilidi, commit öncesi beyan), `.claude/hooks/ai-log.mjs` (AI kaydı).
 
 ## Doğrulama
 
-- Değişiklikten sonra `npm run check`. Görsel değişiklikte oyunu tarayıcıda açıp ekran görüntüsü al ve konsol hatalarına bak.
-- `npm run smoke [adres-ya-da-dosya]`: görünmez Edge'de oyunu açar, açılışa ve "Oyna"ya tıklar, `teslim/smoke/` altına ekran görüntüsü alır ve sayfa hatalarını yazar. Varsayılan hedef `dist-single/index.html` (ZIP sürümü); canlı site için `npm run smoke https://tombikdoner10.github.io/civil-game-jam/`. Yayın sürümünde `window.game` olmadığı için yayın/ZIP testi bununla yapılır.
-- Claude masaüstü uygulamasının tarayıcı paneli gizliyken `requestAnimationFrame` durur ve oyun ilerlemez. Testte döngüyü elle sür:
-  `setInterval(() => game.step(performance.now(), 1000 / 60), 1000 / 60)` (`window.game` yalnızca dev sunucusunda var).
+- Değişiklikten sonra `npm run check`. Görsel değişiklikte ekran görüntüsü al ve hatalara bak.
+- Yayın ve ZIP sürümünde `window.game` yok; onları `npm run smoke` ile test et. Varsayılan hedef `dist-single/index.html`.
+- Claude masaüstü uygulamasının tarayıcı paneli gizliyken `requestAnimationFrame` durur ve oyun ilerlemez. Geliştirme sunucusunda döngüyü elle sür: `setInterval(() => game.step(performance.now(), 1000 / 60), 1000 / 60)`. Panel görünürken tarayıcının kendi döngüsü de çalışır ve oyun iki kat hızlanır.
 - Ekran görüntüsü almak birkaç saniye sürer; kısa animasyonları görmek için sahneyi `game.scene.pause(key)` ile dondur.
 - Test aracının tuş basışları bas-bırak'ı aynı anda gönderir; fare tekerleği olayları sayfaya ulaşmaz (tuvale `WheelEvent` gönder).
 
 ## Çalışma düzeni
 
-- Küçük ve sık commit; her commit derlenebilir olsun.
-- Kapsamı dar tut: önce oynanabilir çekirdek döngü, sonra içerik, en son cila.
+- Küçük ve sık commit; her commit derlenebilir olsun. Commit mesajları Türkçe; son satırda modeli belirten `Co-Authored-By: Claude ... <noreply@anthropic.com>`.
+- Kapsamı dar tut: önce oynanabilir çekirdek döngü (gri kutularla), sonra takımın görselleri ve sesleri, en son cila.
 - Arayüz metinleri Türkçe.

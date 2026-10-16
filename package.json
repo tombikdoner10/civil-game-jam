@@ -14,6 +14,8 @@
     "build:single": "tsc --noEmit && vite build --mode single",
     "zip": "npm run build:single && node scripts/zip.mjs",
     "smoke": "node scripts/smoke.mjs",
+    "beyan": "node scripts/beyan.mjs",
+    "durum": "node scripts/durum.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

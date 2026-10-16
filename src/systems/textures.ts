@@ -1,3 +1,4 @@
+// @beyan görsel
 import type * as Phaser from 'phaser';
 
 /** Kodla üretilen temel dokular (beyaz; tint ile renklendir). Görsel dosyası gerekmeden prototip ve parçacıklar için. */

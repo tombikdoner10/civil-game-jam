@@ -1,3 +1,4 @@
+// @beyan görsel
 import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
 import { COLORS, css, FONT } from '../config';

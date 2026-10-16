@@ -1,0 +1,26 @@
+[
+  {
+    "kategori": "visual",
+    "amac": "Arayüz görsellerini (butonlar, menü efektleri, parçacıklar) kodla çizen kodu yazdı",
+    "yer": "Menüler, arayüz ve efektler (jam öncesi şablon)",
+    "model": "Claude Opus 5.5"
+  },
+  {
+    "kategori": "audio",
+    "amac": "Ses efektlerini ve müziği kodla üreten sentezleyiciyi ve ses ayarlarını yazdı",
+    "yer": "Ses efektleri ve müzik altyapısı (jam öncesi şablon)",
+    "model": "Claude Opus 5.5"
+  },
+  {
+    "kategori": "code",
+    "amac": "Oyunun kodunu yazdı",
+    "yer": "Jam öncesi şablonun bütün kodu",
+    "model": "Claude Opus 5.5"
+  },
+  {
+    "kategori": "text",
+    "amac": "Arayüz metinlerini, README'yi ve BENIOKU'yu yazdı",
+    "yer": "Menü ve ayar yazıları, README, BENIOKU",
+    "model": "Claude Opus 5.5"
+  }
+]

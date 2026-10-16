@@ -1,0 +1,42 @@
+{
+  "kategoriler": {
+    "visual": {
+      "kullanildi": true,
+      "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)",
+      "amac": "Arayüz görsellerini (butonlar, menü efektleri, parçacıklar) kodla çizen kodu yazdı",
+      "yer": [
+        "Menüler, arayüz ve efektler (jam öncesi şablon)"
+      ]
+    },
+    "audio": {
+      "kullanildi": true,
+      "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)",
+      "amac": "Ses efektlerini ve müziği kodla üreten sentezleyiciyi ve ses ayarlarını yazdı",
+      "yer": [
+        "Ses efektleri ve müzik altyapısı (jam öncesi şablon)"
+      ]
+    },
+    "code": {
+      "kullanildi": true,
+      "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)",
+      "amac": "Oyunun kodunu yazdı",
+      "yer": [
+        "Jam öncesi şablonun bütün kodu"
+      ]
+    },
+    "text": {
+      "kullanildi": true,
+      "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)",
+      "amac": "Arayüz metinlerini, README'yi ve BENIOKU'yu yazdı",
+      "yer": [
+        "Menü ve ayar yazıları, README, BENIOKU"
+      ]
+    },
+    "other": {
+      "kullanildi": false,
+      "arac": "Claude (Anthropic), Claude Code üzerinden",
+      "amac": "",
+      "yer": []
+    }
+  }
+}

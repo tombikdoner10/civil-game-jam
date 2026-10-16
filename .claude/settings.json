@@ -1,0 +1,46 @@
+{
+  "model": "opus",
+  "effortLevel": "high",
+  "maxEffortLevel": "xhigh",
+  "availableModels": ["opus", "sonnet", "haiku", "claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"],
+  "fastMode": false,
+  "fastModePerSessionOptIn": true,
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npm install*)",
+      "Bash(npm ci*)",
+      "Bash(node scripts/*)",
+      "Bash(npx tsc*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git pull*)",
+      "Bash(git fetch*)",
+      "Bash(git push*)",
+      "Bash(git switch *)",
+      "Bash(git checkout *)",
+      "Bash(git merge *)",
+      "Bash(git rev-parse*)",
+      "Bash(gh run *)",
+      "Bash(gh pr *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.mjs\"" }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/ai-log.mjs\"" }]
+      }
+    ]
+  }
+}
