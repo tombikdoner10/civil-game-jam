@@ -35,3 +35,5 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 21:49 · Karar: Gün 1 kısa (3 dosya, ~90 sn) + sonunda öncü sarsıntı; büyük deprem 5. gün sonu · Neden: jüri 2 dk'da kararlarının bedelini görsün (takım seçti)
 - 21:49 · Karar: Pencere sokağa dönüşür, damgalanan binalar kalıcı (iskele/şerit), depremler bu sokakta · Neden: hazırlık görünür olsun, Papers, Please'ten ayrışma (takım seçti)
 - 21:49 · Karar: Kaçak kat 1 kat GÜÇLENDİR, 2+ BOŞALT; sesleri Claude Kenney'den seçer, takım ara testte onaylar · Neden: takım seçti · Sıradaki: yayın (cf78f50), G4
+- 21:53 · e63d172 canlıda (G3 inceleme modu dahil), smoke hatasız, son-saglam taşındı; G4 Opus/high geliştiricide · Sıradaki: G4 → G4b → G12 → G5 → G13
+- 22:20 · G4 bitti (be33cc4, Opus/high): days.ts, gün 1 = 3 dosya/90 sn/ruhsat+foto+kural notu, kademeli belgeler, kaçak kat +1 GÜÇLENDİR/+2 BOŞALT, gün sonu raporu (maaş/ceza), 5 gün akışı, sürüklenebilir sayfalı kural kitabı, gün 4 kuralları ayrı, örtme düzeltmeleri · Karar: G4 test-oyuncusu G4b ile birlikte · Neden: geliştirici 5 senaryoyu HD smoke ile doğruladı, lider ekranları inceledi · Sıradaki: yayın, G4b

@@ -9,13 +9,12 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G4 [teknik] Gün yapısı ve gün sonu: gün yapılandırması veriden (kurallar, belgeler, dosya sayısı, süre); gün 1 kısa (3 dosya, ~90 sn), yalnızca ruhsat + fotoğraf + açık kural notu, belgeler kuralları geldikçe gelir; kaçak kat 1 kat GÜÇLENDİR / 2+ BOŞALT; gün sonu ekranı (doğru/yanlış, bulunan kusurlar, maaş/ceza); 5 gün akışı; kural kitabı damga çubuğunu örtmesin, sürüklenebilir; ilk dosyalarda temiz/kusurlu karışımı çeşitli; fiş ve kusur etiketleri belge değerlerini örtmesin.
+- [ ] G4b [teknik] Sokak ve öncü sarsıntı: pencere sokağı damgalanan binalarla kalıcı dolar (güçlendirilene iskele, boşaltılana şerit); gün 1 sonunda ~10 sn öncü sarsıntı (sokak sallanır, zayıf onaylanmış binalar çatlar, toz); gün sonu ekranına bağlanır.
 
 ## Sırada
 
 Çekirdek döngü (hedef: Cumartesi 14.00 ara test; sıra: G4 → G4b → G12 → G5 → G13)
 
-- [ ] G4b [teknik] Sokak ve öncü sarsıntı: pencere sokağı damgalanan binalarla kalıcı dolar (güçlendirilene iskele, boşaltılana şerit); gün 1 sonunda ~10 sn öncü sarsıntı (sokak sallanır, zayıf onaylanmış binalar çatlar, toz); gün sonu ekranına bağlanır.
 - [ ] G12 [teknik] Sesler (ara testten önce): Kenney CC0 paketlerinden aday seç ve bağla (damga tokmağı, kâğıt, inceleme bulma/yok, gişe, saat/gün sonu, sarsıntı); src/sounds/, credits.ts, README.
 - [ ] G5 [teknik] Büyük deprem günü ve gazete: 5. gün sonunda aynı sokakta büyük deprem; damgaların sonucu (ayakta / hasarlı / ağır hasar, boşaltılan boş); gazete ekranı (yer tutucu manşetler); Result.
 
@@ -44,6 +43,7 @@ Bulutta yapılabilecekler
 - [ ] T3 [takım] 6–8 hikâye binası: kısa dosya metni, mal sahibinin bir cümlesi, gizli kusur.
 - [ ] T4 [takım] Gazete manşetleri ve sonlar (ton: kurban yok, sayı yok, odak önleme).
 - [ ] T10 [takım] Kaçak katlar fotoğrafta farklı malzemeyle (sıvalıysa tuğla, tuğlaysa beton) çiziliyor; ipucu kalsın mı, kapansın mı? (src/desk/tiles.ts ekKat)
+- [ ] T13 [takım] Ara testte ayarla: maaş/ceza değerleri ve para birimi (şu an doğru 20, yanlış 10 TL), gün süreleri (90/180/200/220/240 sn), dosya sayıları (3/5/6/7/8); karot "Rapor yok" kusur sayılsın mı?
 - [ ] T11 [takım] Pencere sokağı, gişedeki siluet ve renk paleti onayı; uyarı fişi metinleri ("Doğru karar" / "Yanlış karar: doğrusu X" yer tutucu).
 - [ ] T6 [takım] Sesleri ara testte dinle; Claude'un seçtiği Kenney adaylarını onayla ya da değiştir.
 - [ ] T7 [takım] Kararlar: imar affı belgesi olacak mı. (Deprem günü ve kaçak kat 21.49'da karara bağlandı.)
@@ -60,3 +60,4 @@ Bulutta yapılabilecekler
 - [x] G2b [teknik] Papers, Please görsel yönü: piksel çizim, solgun palet, pencere (sokak + gişe) ve masa düzeni, belge kâğıtları, kayan damga çubuğu ve mürekkep izi, Pixelify Sans + VT323, Tiny Town cepheleri; G2 işlevleri bozulmadan. (4c96a95, Opus; test geçti 20.55)
 - [x] G2c [teknik] G2b düzeltmeleri: okunurluk (Z/2, B/G, C/G, 5/S), kat sayımı (zemin dahil, sayılabilir pencere sıraları), gün 1 ilk dosya temiz + ikinci kaçak kat, masa sınırı damga çubuğunda bitsin, kesik kolon fotoğrafta kolon eksik görünsün, fiş yeni dosyada kalksın ve kusur adını göstersin, kart genişliği 0 hatası, smoke.mjs arka plan bayrakları. (c82bcab, Opus/high)
 - [x] G3 [teknik] İnceleme modu: Space ile aç/kapat; iki belge alanına tıklanınca tutarsızlık varsa işaret ve etiket ("Kaçak kat" gibi, metinler yer tutucu), yoksa "tutarsızlık yok". (cf78f50, Opus/high; en küçük kural kitabı dahil)
+- [x] G4 [teknik] Gün yapısı ve gün sonu: gün yapılandırması veriden (kurallar, belgeler, dosya sayısı, süre); gün 1 kısa (3 dosya, ~90 sn), yalnızca ruhsat + fotoğraf + açık kural notu, belgeler kuralları geldikçe gelir; kaçak kat 1 kat GÜÇLENDİR / 2+ BOŞALT; gün sonu ekranı (doğru/yanlış, bulunan kusurlar, maaş/ceza); 5 gün akışı; kural kitabı damga çubuğunu örtmesin, sürüklenebilir; ilk dosyalarda temiz/kusurlu karışımı çeşitli; fiş ve kusur etiketleri belge değerlerini örtmesin. (be33cc4, Opus/high)
