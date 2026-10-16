@@ -50,6 +50,9 @@ export const TUNING = {
     zeminSaglam: 0.6,
   },
 
+  /** Mesai: gerçek süre (sn) 09.00-17.00 arasına denk gelir; gün başına dosya sayısı (gün 1 = ilk eleman). */
+  mesai: { sure: 180, baslangicSaat: 9, bitisSaat: 17, dosyaSayisi: [4, 5, 6, 7, 8] },
+
   /** Deprem riski (0..1). */
   risk: {
     taban: 0.05,

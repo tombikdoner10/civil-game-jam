@@ -69,9 +69,9 @@ Tema açıklanmadan önceki son commit: _tema açıklanınca eklenecek_
 <!-- AI-BEYAN:BASLA -->
 | Kategori | Durum | Araç | Amaç | Kullanıldığı yer |
 |---|---|---|---|---|
-| Görsel | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5) | Arayüz görsellerini (butonlar, menü efektleri, parçacıklar) kodla çizen kodu yazdı | Menüler, arayüz ve efektler (jam öncesi şablon) |
+| Görsel | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5) | Arayüz görsellerini (butonlar, menü efektleri, parçacıklar) kodla çizen kodu yazdı | Menüler, arayüz ve efektler (jam öncesi şablon), src/desk/ (3 dosya) |
 | Ses | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5) | Ses efektlerini ve müziği kodla üreten sentezleyiciyi ve ses ayarlarını yazdı | Ses efektleri ve müzik altyapısı (jam öncesi şablon) |
-| Kod | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5) | Oyunun kodunu yazdı | Jam öncesi şablonun bütün kodu, src/game/ (3 dosya) |
+| Kod | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5) | Oyunun kodunu yazdı | Jam öncesi şablonun bütün kodu, src/game/ (4 dosya), src/scenes/GameScene.ts |
 | Metin | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5) | Arayüz metinlerini, README'yi ve BENIOKU'yu yazdı | Menü ve ayar yazıları, README, BENIOKU |
 | Diğer | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5) | Tema yorumu için konsept seçenekleri önerdi; seçim ve özgün dokunuş takımın | Oyun fikri aşaması |
 <!-- AI-BEYAN:BITIR -->

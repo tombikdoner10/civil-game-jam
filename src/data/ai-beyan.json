@@ -2,10 +2,11 @@
   "kategoriler": {
     "visual": {
       "kullanildi": true,
-      "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)",
+      "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5)",
       "amac": "Arayüz görsellerini (butonlar, menü efektleri, parçacıklar) kodla çizen kodu yazdı",
       "yer": [
-        "Menüler, arayüz ve efektler (jam öncesi şablon)"
+        "Menüler, arayüz ve efektler (jam öncesi şablon)",
+        "src/desk/ (3 dosya)"
       ]
     },
     "audio": {
@@ -22,7 +23,8 @@
       "amac": "Oyunun kodunu yazdı",
       "yer": [
         "Jam öncesi şablonun bütün kodu",
-        "src/game/ (3 dosya)"
+        "src/game/ (4 dosya)",
+        "src/scenes/GameScene.ts"
       ]
     },
     "text": {
