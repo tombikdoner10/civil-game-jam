@@ -70,7 +70,11 @@ Bunların dışında takımı küçük şeylerle bölme; kararları `JOURNAL.md`
 - `TASKS.md`: görevler (`[teknik]`, `[takım]`, `[bulut]` etiketleri)
 - `JOURNAL.md`: durum satırları (kontrol noktaları, son eleştirmen, kullanım düzeyi) ve her adımın tek satırlık günlüğü
 
-Bağlam sıkıştırılsa da her şey bu dosyalardadır; önemli kararı önce dosyaya yaz.
+Bağlam sıkıştırılsa da her şey bu dosyalardadır; önemli kararı önce dosyaya yaz. Karar satırları `Karar: … · Neden: …` biçiminde olsun.
+
+### Jam paneli (kullanıcının izleme ekranı)
+
+`npm run panel` → http://localhost:5180. Faz ve geri sayım, kontrol noktaları, liderin sıradaki işi, görev panosu, ajanların canlı aktivitesi (`.jam/aktivite.jsonl`, her araç çağrısında bir kanca yazar), liderin günlüğü ve kararları, commit'ler ve hangi modelin yaptığı, bulut PR'ları, yayın durumu ve AI beyanı. Kullanıcı panelden izler; bu yüzden günlüğü güncel tut.
 
 ### AI beyanı (otomatik)
 

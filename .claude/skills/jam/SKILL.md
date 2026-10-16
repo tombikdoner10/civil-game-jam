@@ -25,5 +25,5 @@ Jam döngüsünün bir adımını yürüt. Lider sensin; kurallar `CLAUDE.md`'de
 
 ## 3. Her adımın sonunda
 - Kullanım kontrolü (masaüstünde `get_usage`): %80'i geçtiyse `CLAUDE.md`'deki indirme sırasını uygula ve `JOURNAL.md`'ye yaz.
-- `JOURNAL.md`'ye tek satırlık girdi: saat, ne yapıldı, sonuç, sıradaki.
+- `JOURNAL.md`'nin "Günlük" bölümüne tek satır ekle. Karar verdiysen: `- <SS:DD> · Karar: <ne> · Neden: <kısa gerekçe> · Sıradaki: <iş>`; yoksa: `- <SS:DD> · <ne yapıldı> · <sonuç> · Sıradaki: <iş>`. Jam paneli "Karar:" satırlarını vurgular; kullanıcı liderin düşüncesini oradan izler.
 - Kontrol noktasında kullanıcıyı bekliyorsan uzun aralık seç; ajan çalışıyorsa bildirim gelince devam edersin, kısa aralıkla yoklama yapma.

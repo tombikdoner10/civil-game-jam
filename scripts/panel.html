@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Jam Paneli · Prompt Engineers</title>
+<style>
+  :root {
+    --bg: #0f1116; --panel: #181b23; --panel2: #1f2330; --line: #2a2f3d;
+    --text: #eef1f6; --muted: #8a93a6; --faint: #5d6577;
+    --orange: #ffb020; --blue: #4cc9f0; --green: #06d6a0; --purple: #b388ff; --red: #ef476f;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, "Segoe UI", sans-serif; }
+  main { max-width: 1500px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
+  header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+  h1 { margin: 0; font-size: 20px; letter-spacing: .2px; }
+  h1 small { display: block; color: var(--muted); font-weight: 400; font-size: 13px; }
+  h2 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .clock { font: 600 22px var(--mono); }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--panel2); border: 1px solid var(--line); }
+  .phase { font-size: 14px; padding: 6px 14px; background: color-mix(in srgb, var(--orange) 18%, transparent); border-color: var(--orange); color: var(--orange); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; min-width: 0; }
+  .grid { display: grid; gap: 14px; }
+  .g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .g3 { grid-template-columns: 1.05fr 1.25fr 1fr; }
+  .g3b { grid-template-columns: 1fr 1.2fr 1fr; }
+  @media (max-width: 1100px) { .g3, .g3b { grid-template-columns: 1fr; } .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .g4 { grid-template-columns: 1fr; } }
+
+  .timeline { position: relative; height: 12px; background: var(--panel2); border-radius: 6px; overflow: hidden; margin: 6px 0 8px; }
+  .timeline .fill { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--blue), var(--orange)); }
+  .timeline .freeze { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--red); }
+  .ticks { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; }
+  .counts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .counts span { font-family: var(--mono); background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; }
+
+  .kp .val { font-weight: 700; font-size: 15px; }
+  .ok { color: var(--green); } .wait { color: var(--orange); }
+  ul { list-style: none; margin: 0; padding: 0; }
+  .todo li { padding: 6px 0; border-top: 1px solid var(--line); } .todo li:first-child { border-top: 0; }
+
+  .col h3 { margin: 12px 0 6px; font-size: 12px; color: var(--muted); font-weight: 600; } .col h3:first-child { margin-top: 0; }
+  .task { padding: 7px 9px; border-radius: 8px; background: var(--panel2); margin-bottom: 6px; font-size: 13px; }
+  .task.done { opacity: .55; text-decoration: line-through; }
+  .tag { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 5px; margin-right: 4px; }
+  .tag.teknik { background: color-mix(in srgb, var(--blue) 22%, transparent); color: var(--blue); }
+  .tag.takim { background: color-mix(in srgb, var(--orange) 22%, transparent); color: var(--orange); }
+  .tag.bulut { background: color-mix(in srgb, var(--purple) 22%, transparent); color: var(--purple); }
+  .empty { color: var(--faint); font-size: 13px; }
+
+  .feed { max-height: 560px; overflow: auto; }
+  .ev { display: grid; grid-template-columns: 62px 92px 1fr; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .ev time { color: var(--faint); font-family: var(--mono); font-size: 12px; }
+  .who { font-size: 11px; font-weight: 700; border-radius: 6px; padding: 2px 6px; text-align: center; align-self: start; }
+  .who.lider { background: color-mix(in srgb, var(--orange) 22%, transparent); color: var(--orange); }
+  .who.gelistirici { background: color-mix(in srgb, var(--blue) 22%, transparent); color: var(--blue); }
+  .who.test-oyuncusu { background: color-mix(in srgb, var(--green) 22%, transparent); color: var(--green); }
+  .who.elestirmen { background: color-mix(in srgb, var(--purple) 22%, transparent); color: var(--purple); }
+  .who.diger { background: var(--panel2); color: var(--muted); }
+  .ev .what b { font-weight: 600; } .ev .what span { color: var(--muted); word-break: break-word; }
+  .filters { display: flex; gap: 4px; flex-wrap: wrap; }
+  .filters button { background: var(--panel2); color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; font-size: 11px; cursor: pointer; }
+  .filters button.on { color: var(--text); border-color: var(--muted); }
+
+  .journal { max-height: 560px; overflow: auto; }
+  .journal li { padding: 7px 0; border-top: 1px solid var(--line); font-size: 13px; } .journal li:first-child { border-top: 0; }
+  .journal li.karar { color: var(--text); border-left: 3px solid var(--orange); padding-left: 8px; background: color-mix(in srgb, var(--orange) 7%, transparent); }
+
+  .commit { display: grid; grid-template-columns: 64px 1fr auto; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; align-items: start; }
+  .commit code { font-family: var(--mono); color: var(--blue); font-size: 12px; }
+  .model { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; } .kv dt { color: var(--muted); } .kv dd { margin: 0; }
+  .ai { display: flex; flex-wrap: wrap; gap: 6px; } .ai span { padding: 3px 9px; border-radius: 999px; font-size: 12px; border: 1px solid var(--line); }
+  .ai .on { color: var(--orange); border-color: var(--orange); }
+  a { color: var(--blue); }
+  footer { color: var(--faint); font-size: 12px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between; }
+  .err { color: var(--red); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Jam Paneli <small>Prompt Engineers · CIVIL GAME JAM 2026</small></h1>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <span class="badge phase" id="phase">…</span>
+      <span class="clock" id="clock">--:--</span>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>48 saat <span id="pct" class="badge">%0</span></h2>
+    <div class="timeline"><div class="fill" id="fill"></div><div class="freeze" id="freeze"></div></div>
+    <div class="ticks"><span>Tema · Cum 18:00</span><span>Kod dondurma · Paz 15:00</span><span>Teslim · Paz 18:00</span></div>
+    <div class="counts" id="counts"></div>
+  </section>
+
+  <section class="grid g4">
+    <div class="card kp"><h2>Kontrol 1 · Konsept</h2><div class="val" id="k1">…</div></div>
+    <div class="card kp"><h2>Kontrol 2 · Ara test</h2><div class="val" id="k2">…</div></div>
+    <div class="card kp"><h2>Kontrol 3 · Teslim</h2><div class="val" id="k3">…</div></div>
+    <div class="card kp"><h2>Eleştirmen ve kullanım</h2><div id="critic" class="val">…</div><div id="usage" class="empty"></div></div>
+  </section>
+
+  <section class="card"><h2>Liderin sıradaki işi</h2><ul class="todo" id="todo"></ul></section>
+
+  <section class="grid g3">
+    <div class="card col"><h2>Görevler <span class="badge" id="open">0 açık</span></h2><div id="tasks"></div></div>
+    <div class="card">
+      <h2>Canlı aktivite
+        <span class="filters" id="filters">
+          <button data-a="" class="on">Tümü</button><button data-a="lider">Lider</button><button data-a="gelistirici">Geliştirici</button><button data-a="test-oyuncusu">Test</button><button data-a="elestirmen">Eleştirmen</button>
+        </span>
+      </h2>
+      <div class="feed" id="feed"></div>
+    </div>
+    <div class="card"><h2>Liderin günlüğü ve kararları</h2><ul class="journal" id="journal"></ul></div>
+  </section>
+
+  <section class="grid g3b">
+    <div class="card"><h2>Konsept</h2><dl class="kv" id="gdd"></dl></div>
+    <div class="card"><h2>Son commit'ler</h2><div id="commits"></div></div>
+    <div class="card">
+      <h2>GitHub</h2>
+      <dl class="kv" id="gh"></dl>
+      <h2 style="margin-top:14px">AI beyanı</h2>
+      <div class="ai" id="ai"></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>
+      <a href="https://tombikdoner10.github.io/civil-game-jam/" target="_blank" rel="noreferrer">Canlı oyun</a> ·
+      <a href="https://github.com/tombikdoner10/civil-game-jam" target="_blank" rel="noreferrer">Repo</a> ·
+      <a href="https://claude.ai/code/routines/trig_012ypQupnGRG4bbKvXWhSnFV" target="_blank" rel="noreferrer">Bulut rutini</a>
+    </span>
+    <span id="updated">Bağlanıyor…</span>
+  </footer>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const PHASE = { 'tema-oncesi': 'Tema öncesi', konsept: 'Konsept', gelistirme: 'Geliştirme', 'dondurma-teslim': 'Dondurma ve teslim', bitti: 'Bitti' };
+const WHO = { lider: 'Lider', gelistirici: 'Geliştirici', 'test-oyuncusu': 'Test', elestirmen: 'Eleştirmen' };
+const CAT = { visual: 'Görsel', audio: 'Ses', code: 'Kod', text: 'Metin', other: 'Diğer' };
+const tm = (iso, sec = true) => new Date(iso).toLocaleTimeString('tr-TR', { timeZone: 'Europe/Istanbul', hour: '2-digit', minute: '2-digit', ...(sec ? { second: '2-digit' } : {}) });
+const left = (ms) => { const m = Math.max(0, Math.round(ms / 60000)); return `${Math.floor(m / 60)} sa ${m % 60} dk`; };
+const state = (v) => `<span class="${/TAMAM/i.test(v) ? 'ok' : 'wait'}">${esc(v)}</span>`;
+const tagged = (text) => esc(text).replace(/\[(teknik|takım|bulut)\]/g, (_, t) => `<span class="tag ${t === 'takım' ? 'takim' : t}">${t}</span>`);
+let filter = '';
+let last = null;
+
+$('filters').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  filter = b.dataset.a; for (const x of $('filters').children) x.classList.toggle('on', x === b);
+  if (last) renderFeed(last.activity);
+});
+
+function renderFeed(list) {
+  const rows = list.filter((e) => !filter || e.ajan === filter).slice(0, 80);
+  $('feed').innerHTML = rows.length ? rows.map((e) => `
+    <div class="ev"><time>${tm(e.zaman)}</time><span class="who ${WHO[e.ajan] ? e.ajan : 'diger'}">${esc(WHO[e.ajan] ?? e.ajan)}</span>
+    <div class="what"><b>${esc(e.arac)}</b> <span>${esc(e.ozet)}</span></div></div>`).join('') : '<p class="empty">Henüz aktivite yok. Lider çalışmaya başlayınca burada akar.</p>';
+}
+
+function render(d) {
+  last = d;
+  $('phase').textContent = PHASE[d.phase] ?? d.phase;
+  $('clock').textContent = d.tr;
+  const { theme, freeze, deadline } = d.times;
+  const p = Math.min(1, Math.max(0, (d.t - theme) / (deadline - theme)));
+  $('fill').style.width = `${p * 100}%`;
+  $('freeze').style.left = `${((freeze - theme) / (deadline - theme)) * 100}%`;
+  $('pct').textContent = `%${Math.round(p * 100)}`;
+  $('counts').innerHTML = [['Temaya', theme], ['Kod dondurmaya', freeze], ['Son teslime', deadline]]
+    .map(([k, v]) => `<span>${k}: ${left(v - d.t)}</span>`).join('');
+  $('k1').innerHTML = state(d.checkpoints.k1); $('k2').innerHTML = state(d.checkpoints.k2); $('k3').innerHTML = state(d.checkpoints.k3);
+  $('critic').innerHTML = esc(/YOK|\?/.test(d.critic) ? 'Henüz çalışmadı' : `Son: ${tm(d.critic, false)}`);
+  $('usage').textContent = `Kullanım düzeyi: ${d.usage}`;
+  $('todo').innerHTML = d.todo.length ? d.todo.map((t) => `<li>→ ${esc(t)}</li>`).join('') : '<li class="empty">Sırada özel bir uyarı yok; lider görev listesinden ilerliyor.</li>';
+
+  const col = (title, list) => `<h3>${title} (${list.length})</h3>` + (list.length ? list.map((t) => `<div class="task ${t.done ? 'done' : ''}">${tagged(t.text)}</div>`).join('') : '<p class="empty">—</p>');
+  $('tasks').innerHTML = col('Şimdi', d.tasks.simdi) + col('Sırada', d.tasks.sirada) + col('Takım işleri', d.tasks.takim) + col('Bitti', d.tasks.bitti.slice(-12));
+  $('open').textContent = `${d.open} açık`;
+
+  renderFeed(d.activity);
+  $('journal').innerHTML = d.journal.length ? d.journal.map((l) => `<li class="${/Karar:/i.test(l) ? 'karar' : ''}">${esc(l.replace(/^- /, ''))}</li>`).join('') : '<li class="empty">Günlük boş.</li>';
+
+  $('gdd').innerHTML = [['Tema', d.gdd.tema], ['Konsept', d.gdd.konsept], ['Çekirdek döngü', d.gdd.dongu]]
+    .map(([k, v]) => `<dt>${k}</dt><dd>${v ? esc(v) : '<span class="empty">henüz yok</span>'}</dd>`).join('');
+  $('commits').innerHTML = d.commits.slice(0, 14).map((c) => `
+    <div class="commit"><code>${esc(c.hash)}</code><span>${esc(c.subject)}<br><span class="model">${tm(c.date, false)}</span></span><span class="model">${esc(c.model)}</span></div>`).join('') || '<p class="empty">—</p>';
+  const dep = d.deploy;
+  $('gh').innerHTML = `<dt>Yayın</dt><dd>${dep ? `${dep.conclusion === 'success' ? '<span class="ok">başarılı</span>' : esc(dep.conclusion || dep.status)} · ${esc(dep.displayTitle)}` : '<span class="empty">bilgi yok</span>'}</dd>
+    <dt>Bulut PR'ları</dt><dd>${d.prs.length ? d.prs.map((p) => `<a href="${esc(p.url)}" target="_blank" rel="noreferrer">#${p.number}</a> ${esc(p.title)}`).join('<br>') : '<span class="empty">yok</span>'}</dd>`;
+  $('ai').innerHTML = Object.entries(CAT).map(([k, label]) => `<span class="${d.beyan[k]?.kullanildi ? 'on' : ''}">${label}: ${d.beyan[k]?.kullanildi ? 'Kullanıldı' : 'Kullanılmadı'}</span>`).join('');
+  $('updated').textContent = `3 saniyede bir yenilenir · son: ${tm(new Date().toISOString())}`;
+}
+
+async function tick() {
+  try {
+    const r = await fetch('/api', { cache: 'no-store' });
+    render(await r.json());
+  } catch (e) {
+    $('updated').innerHTML = `<span class="err">Panel sunucusuna ulaşılamıyor (npm run panel çalışıyor mu?)</span>`;
+  }
+}
+tick();
+setInterval(tick, 3000);
+</script>
+</body>
+</html>

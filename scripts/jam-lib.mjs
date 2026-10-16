@@ -1,6 +1,6 @@
 // Jam sisteminin ortak yardımcıları: saatler, beyan kategorileri, dosya yolları.
 // Kancalar (.claude/hooks) ve betikler (scripts) kullanır. Oyuna özgü bir şey içermez.
-import { closeSync, openSync, readSync } from 'node:fs';
+import { closeSync, openSync, readFileSync, readSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -77,6 +77,69 @@ export function categorize(rel, absPath) {
   if (/\.(md|txt)$/i.test(rel)) return 'text';
   if (/\.(ts|tsx|js|mjs|cjs|json|css|html|ya?ml)$/i.test(rel)) return 'code';
   return 'other';
+}
+
+export function readRepoFile(name) {
+  try {
+    return readFileSync(join(ROOT, name), 'utf8');
+  } catch {
+    return '';
+  }
+}
+
+/** Jam durumu: faz, kontrol noktaları, eleştirmen zamanı, açık görevler ve liderin sıradaki işleri. */
+export function jamStatus(t = now()) {
+  const gdd = readRepoFile('GDD.md');
+  const journal = readRepoFile('JOURNAL.md');
+  const tasks = readRepoFile('TASKS.md');
+  const field = (re) => re.exec(journal)?.[1]?.trim() ?? '?';
+
+  const conceptChosen = /Konsept durumu:\s*SEÇİLDİ/i.test(gdd);
+  const checkpoints = {
+    k1: field(/Kontrol 1[^:]*:\s*(.+)/),
+    k2: field(/Kontrol 2[^:]*:\s*(.+)/),
+    k3: field(/Kontrol 3[^:]*:\s*(.+)/),
+  };
+  const critic = field(/Son eleştirmen:\s*(.+)/);
+  const usage = field(/Kullanım düzeyi:\s*(.+)/);
+  const criticMs = Date.parse(critic);
+  const criticAge = Number.isNaN(criticMs) ? Infinity : (t - criticMs) / 3600000;
+
+  let phase;
+  if (t < THEME) phase = 'tema-oncesi';
+  else if (t >= DEADLINE) phase = 'bitti';
+  else if (t >= FREEZE) phase = 'dondurma-teslim';
+  else if (!conceptChosen) phase = 'konsept';
+  else phase = 'gelistirme';
+
+  const open = tasks.split('\n').filter((l) => /^\s*- \[ \]/.test(l));
+  const count = (tag) => open.filter((l) => l.includes(tag)).length;
+
+  const todo = [];
+  if (phase === 'tema-oncesi') todo.push(`Tema ${trTime(THEME)}'de açıklanacak. Oyuna özgü hiçbir şey üretme.`);
+  if (phase === 'konsept') todo.push('Kullanıcıdan temayı al; kullanıcı /konsept komutunu çalıştırmalı (xhigh). Kontrol 1 bekliyor.');
+  if (phase === 'gelistirme') {
+    if (criticAge >= 3) todo.push('Eleştirmen zamanı (son çalışma 3 saatten eski ya da hiç yok).');
+    if (/BEKLİYOR/i.test(checkpoints.k2) && t >= Date.UTC(2026, 9, 17, 11, 0)) {
+      todo.push('Ara oyun testi (Kontrol 2) Cumartesi 14.00 hedefini geçti; oynanabilir sürümü kullanıcıya göster.');
+    }
+    if (FREEZE - t < 3 * 3600000) todo.push('Kod dondurmaya 3 saatten az kaldı: yeni özellik yok, cila ve hata düzeltme.');
+  }
+  if (phase === 'dondurma-teslim') todo.push('Kod dondu. Kullanıcı /dondur (xhigh) ile planı yapmadıysa hatırlat; sonra ZIP + smoke, ardından /teslim-kontrol.');
+  if (phase === 'bitti') todo.push('Son teslim geçti. Push yok; döngüyü durdur.');
+
+  return {
+    t,
+    phase,
+    conceptChosen,
+    checkpoints,
+    critic,
+    criticAge,
+    usage,
+    open: open.length,
+    counts: { teknik: count('[teknik]'), takim: count('[takım]'), bulut: count('[bulut]') },
+    todo,
+  };
 }
 
 export async function readStdinJson() {
