@@ -17,7 +17,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 
 
-- [ ] G5b [teknik] (küçük düzeltmeler toplu) G17a testi: tezgâhta bugünün tarihi görünsün (ileri tarihli sahte rapor için); sahte rapordaki boş mühür yeri daha açık okunsun; inceleme modunda damga/zarf tıklanınca mod kendiliğinden kapansın ya da ipucu çıksın; bağlantı çizgisi etiket yazılarını örtmesin; getirilen kart eski kartın üstüne binerken öbür belgeleri örtmesin; sorulan kusurda SOR sönsün. Varsayılan smoke senaryosu oyun ekranını geçiş ortasında yakalıyor (bekleme uzasın). G16 testi: kural kitabı yeni dosyada kapansın; gün sonu Doğru/Yanlış/İade sayıları toplanabilir olsun; doğru kararda fiş kısa gerekçe yazsın; karot ve zemin "Rapor yok" aynı görünümde; İADE ve GÜÇLENDİR mürekkebi koyulaşsın; öncelik kuralı birleşik örnek versin. G5 testi: G5 test bulguları: gazete "Çöken (boşaltılmış: N)" ile sonuçtaki "Boşaltılmış" kutusu farklı şeyleri sayıyor (etiket netleşsin); gazete fotoğrafı sokağın daha geniş bir karesini göstersin; öne çıkan binalar örnek kararlarda hep aynı numara (dev yoluna özgü, düşük); inceleme modunda kapalı kitabın üstündeki belgeye tıklayınca kitap açılıyor; kullanılmayan Rubik ve JetBrains Mono importları ve beyanları kaldırılsın (ZIP küçülür).
+- [ ] G5b [teknik] (küçük düzeltmeler toplu) Eleştirmen 2: öncü sarsıntıda her binanın üstünde vurulan damganın rengi görünsün; oyunu çerçeveleyen tek cümle (gün 1 başında, yer tutucu). G17a testi: tezgâhta bugünün tarihi görünsün (ileri tarihli sahte rapor için); sahte rapordaki boş mühür yeri daha açık okunsun; inceleme modunda damga/zarf tıklanınca mod kendiliğinden kapansın ya da ipucu çıksın; bağlantı çizgisi etiket yazılarını örtmesin; getirilen kart eski kartın üstüne binerken öbür belgeleri örtmesin; sorulan kusurda SOR sönsün. Varsayılan smoke senaryosu oyun ekranını geçiş ortasında yakalıyor (bekleme uzasın). G16 testi: kural kitabı yeni dosyada kapansın; gün sonu Doğru/Yanlış/İade sayıları toplanabilir olsun; doğru kararda fiş kısa gerekçe yazsın; karot ve zemin "Rapor yok" aynı görünümde; İADE ve GÜÇLENDİR mürekkebi koyulaşsın; öncelik kuralı birleşik örnek versin. G5 testi: G5 test bulguları: gazete "Çöken (boşaltılmış: N)" ile sonuçtaki "Boşaltılmış" kutusu farklı şeyleri sayıyor (etiket netleşsin); gazete fotoğrafı sokağın daha geniş bir karesini göstersin; öne çıkan binalar örnek kararlarda hep aynı numara (dev yoluna özgü, düşük); inceleme modunda kapalı kitabın üstündeki belgeye tıklayınca kitap açılıyor; kullanılmayan Rubik ve JetBrains Mono importları ve beyanları kaldırılsın (ZIP küçülür).
 
 Ara test sonrası (takım kararı 23.53; sıra: G16 → G17 → G18 → G19 → G20)
 
@@ -62,6 +62,8 @@ Bulutta yapılabilecekler
 - [ ] T9 [takım] Pazar: 1 dakikalık video (MP4) ve 3 dakikalık sunum.
 
 ## Bitti
+
+- [x] G6, G7, G9, G10: KESİLDİ (büyüteç, cetvel, eski baskı/aile, kendi binan ayrı görevi; eleştirmen 2, 17 Ekim 01:26; zarf G9'un yerini aldı, kendi binan hikâye binası olarak var)
 
 - [x] G8 [teknik] Karot presi: KESİLDİ (eleştirmen, 16 Ekim 21.23; kapsam)
 

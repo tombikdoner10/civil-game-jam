@@ -7,7 +7,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
 - Kontrol 2 (ara oyun testi): TAMAM (16 Ekim 23.53, geri bildirim işlendi)
 - Kontrol 3 (son teslim): BEKLİYOR
-- Son eleştirmen: 2026-10-16T21:23+03:00
+- Son eleştirmen: 2026-10-17T01:26+03:00
 - Kullanım düzeyi: normal
 
 ## Günlük
@@ -59,3 +59,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 01:07 · Test (G17a, sabit kopya): 14 smoke hatasız; portreler tarza uygun, 5 ifade ayırt ediliyor, SOR üç cevap, zarf kabul/ret, İSTE üç sonuç çalışıyor. Bulgular: sahte rapor ipucu (boş mühür, ileri tarih) yeni oyuncu için zayıf ve bugünün tarihi masada yok; inceleme modunda damga/zarf kilitli olduğu sezilmiyor; rüşvet DOĞRU sayılıyor (takım kararı T19) → G5b'ye eklendi · Sıradaki: G17b
 - 01:21 · G17b bitti (27ca242, Opus/high): Ada/Parsel ve İmza alanları; elle düzeltme (daksil + kalem), başka binanın belgesi, imza yok; geçersiz belge eksik belge gibi (İSTE → gerçek/sahte/yok → İADE); SOR üç hilede; adalet 21282 denetim 0 hata · Sorun: gün 1 ruhsatında Ada/İmza ve İADE tokmağı ilk 30 saniyeye yük → G18'e eklendi · Karar: yayına; G18 Opus/high; eleştirmen (3 saati geçti) 27ca242 kopyasında paralel · Sıradaki: G18 kaşe + klasör
 - 01:22 · 87c0d51 canlıda (G17b; menüde sürüm doğrulandı), smoke hatasız, son-saglam taşındı · Sıradaki: G18 geliştiricide, eleştirmen sürüyor
+- 01:26 · Eleştirmen 2 (27ca242): ~56 → ~73/100 (oynanabilirlik 18, tema 19, yaratıcılık 12, görsel 11, teknik 13). 30 sn testi geçiyor, öncü sarsıntı görünüyor, kişi/SOR ilk 2 dk'yı ağırlaştırmıyor. Riskler: G18 kaşe çok adımlı olursa ilk 30 sn bozulur (geliştiriciye tek tıklama iletildi); zarfın bedeli yok; büyük deprem jüriye görünmüyor (T16); yer tutucu metinler; inceleme modu hâlâ PP. Öneriler: G18 küçük tut, G5b hemen sonra, öncüde binanın damga rengi görünsün, G20 küçük, G19 kes ya da tek araç, G6/G7/G9/G10 kes; metinler Cumartesi 18.00, özellik dondurma Cumartesi 24.00, video Pazar 10–12 · Karar: G6, G7, G9, G10 kesildi (iyi olur kapsamı, eleştirmen) · Sıradaki: takım kararları (G19, T16, zarf, takvim)
