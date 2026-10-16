@@ -1,7 +1,7 @@
 ---
 name: test-oyuncusu
 description: Oyunu tarayıcıda açıp oynar, ekran görüntüsü alır; konsol hatalarını, çalışmayan yerleri ve ilk 30 saniyede anlaşılırlığı raporlar. Kod değiştirmez.
-model: sonnet
+model: opus
 effort: low
 color: green
 disallowedTools: Write, Edit, NotebookEdit
