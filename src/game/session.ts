@@ -1,11 +1,27 @@
 import type { Bina, Damga, Kusur, KusurId, Zemin } from './building';
 import { gunDosyalari } from './building';
 import { gunAyar, type GunAyar } from './days';
+import type { IsteTuru } from './diyalog';
 import {
+  ipucuAlani,
+  ISTE_KUSURU,
+  isteCevabi,
+  kisiKur,
+  sorCevabi,
+  sorulabilir,
+  type GetirilenRapor,
+  type IsteCevap,
+  type Kisi,
+  type SorCevap,
+} from './kisi';
+import {
+  bilgiyleTamamla,
   buyukDepremSonucu,
   dogruDamgalar,
   fizikselKusurlar,
   gorunenKusurlar,
+  KUSUR_BILGI,
+  RAPOR_KURALI,
   seciminKusuru,
   type EdinilenBilgi,
   type HasarDurumu,
@@ -26,6 +42,12 @@ export interface DosyaBilgisi {
   kaynak: Partial<Record<BilgiAlani, BilgiKaynak>>;
 }
 
+/** Gişede teklif edilen zarf (G17). Kabul: çekmeceye kondu ya da damga vurulurken masada kaldı. */
+export interface ZarfKaydi {
+  miktar: number;
+  kabul: boolean;
+}
+
 export interface Karar {
   dosyaId: string;
   damga: Damga;
@@ -40,6 +62,10 @@ export interface Karar {
   kusurlar: KusurId[];
   /** Oyuncunun inceleme modunda bu dosyada bulduğu kusurlar (gün sonu ekranı için). */
   bulunan: KusurId[];
+  /** Gişede teklif edilen zarf (damgayı değiştirmez; kabul edilen para gün sonuna eklenir). */
+  zarf?: ZarfKaydi;
+  /** Eksik belge istendiyse kişinin cevabı. */
+  iste?: Partial<Record<BilgiAlani, IsteTuru>>;
 }
 
 /** Bir sarsıntıda tek binanın sonucu. */
@@ -103,6 +129,8 @@ export interface DepremBinaSonucu {
   dogru: boolean;
   /** Damgalandığı günün kurallarıyla fiziksel kusuru var mıydı (eksik belgenin arkasında saklananlar dahil). */
   kusurlu: boolean;
+  /** Bu dosyada zarf kabul edilmişti. */
+  zarf: boolean;
   durum: HasarDurumu;
   coktu: boolean;
   /** Boşaltılmıştı (içeride kimse yoktu). */
@@ -112,7 +140,12 @@ export interface DepremBinaSonucu {
 /** Büyük deprem: sokaktaki her bina için sonuç (sokak sırasıyla). Saf; Quake görüntüsü ve gazete bunu kullanır. */
 export function buyukDeprem(tohum: number, kayitlar: readonly GunKaydi[]): DepremBinaSonucu[] {
   const dogru = new Map<string, boolean>();
-  for (const k of kayitlar) for (const c of k.kararlar) dogru.set(c.dosyaId, c.dogru);
+  const zarf = new Set<string>();
+  for (const k of kayitlar)
+    for (const c of k.kararlar) {
+      dogru.set(c.dosyaId, c.dogru);
+      if (c.zarf?.kabul) zarf.add(c.dosyaId);
+    }
   return sokakKayitlari(tohum, kayitlar).map((s, i) => {
     const r = buyukDepremSonucu(s.bina, s.damga, s.gun, { oncuHasar: s.hasar });
     return {
@@ -122,6 +155,7 @@ export function buyukDeprem(tohum: number, kayitlar: readonly GunKaydi[]): Depre
       damga: s.damga,
       dogru: dogru.get(s.bina.id) ?? false,
       kusurlu: fizikselKusurlar(s.bina, s.gun).length > 0,
+      zarf: zarf.has(s.bina.id),
       durum: r.durum,
       coktu: r.coker,
       bos: r.bos,
@@ -226,6 +260,11 @@ export interface GunHesabi {
   islenmeyen: number;
   maas: number;
   ceza: number;
+  /** Kabul edilen zarfların toplamı (G17). */
+  zarf: number;
+  /** Teklif edilen ve kabul edilen zarf sayısı. */
+  zarfTeklif: number;
+  zarfKabul: number;
   toplam: number;
 }
 
@@ -235,7 +274,19 @@ export function gunHesabi(kararlar: readonly Karar[], dosyaSayisi: number): GunH
   const yanlis = kararlar.length - dogru;
   const maas = dogru * P.maas;
   const ceza = yanlis * P.ceza;
-  return { dogru, yanlis, islenmeyen: Math.max(0, dosyaSayisi - kararlar.length), maas, ceza, toplam: maas - ceza };
+  const kabul = kararlar.filter((k) => k.zarf?.kabul);
+  const zarf = kabul.reduce((n, k) => n + (k.zarf?.miktar ?? 0), 0);
+  return {
+    dogru,
+    yanlis,
+    islenmeyen: Math.max(0, dosyaSayisi - kararlar.length),
+    maas,
+    ceza,
+    zarf,
+    zarfTeklif: kararlar.filter((k) => k.zarf).length,
+    zarfKabul: kabul.length,
+    toplam: maas - ceza + zarf,
+  };
 }
 
 /** Bir günün oturumu: dosyalar, sıradaki dosya, kararlar ve mesai saati. Saf TS, Phaser yok. */
@@ -249,6 +300,11 @@ export class GunOturumu {
   private bulunan: KusurId[] = [];
   /** Mevcut dosyanın bilgisi (belgelerden ve başka yollardan edinilen). Dosya damgalanınca yenilenir. */
   private bilgi: DosyaBilgisi = { bilgi: {}, kaynak: {} };
+  /** Gişedeki kişi ve onunla konuşulanlar (G17); dosya damgalanınca yenilenir. */
+  private kisiBilgi?: Kisi;
+  private sorulan: KusurId[] = [];
+  private istenen: Partial<Record<BilgiAlani, IsteCevap>> = {};
+  private zarfTeklif?: { miktar: number; kabul?: boolean };
 
   constructor(
     readonly gun: number,
@@ -257,6 +313,78 @@ export class GunOturumu {
     this.ayar = gunAyar(gun);
     this.dosyalar = gunDosyalari(tohum, gun, this.ayar.dosyaSayisi);
     this.bilgiSifirla();
+  }
+
+  /** Gişedeki kişi (mevcut dosyanın sahibi). */
+  get kisi(): Kisi | undefined {
+    return this.kisiBilgi;
+  }
+
+  /** Mevcut dosyada teklif edilen zarf (kabul: henüz karar yoksa undefined). */
+  get zarf(): Readonly<{ miktar: number; kabul?: boolean }> | undefined {
+    return this.zarfTeklif;
+  }
+
+  /** Bu kusur gişedeki kişiye sorulabilir mi (bulunmuş, sorulmamış, eksik belge değil). */
+  sorulabilir(id: KusurId): boolean {
+    return !!this.mevcut && !this.bitti && this.ayar.sor && sorulabilir(id) && this.bulunan.includes(id) && !this.sorulan.includes(id);
+  }
+
+  /**
+   * SOR: bulunan tutarsızlığı kişiye sor. Cevap (bahane / itiraf / zarf) deterministik; zarf teklifinde zarf
+   * masaya kayar (zarfKarar ile kabul ya da ret; damga vurulurken masada kalırsa kabul).
+   */
+  sor(id: KusurId): SorCevap | null {
+    const b = this.mevcut;
+    const kisi = this.kisiBilgi;
+    if (!b || !kisi || !this.sorulabilir(id) || !sorulabilir(id)) return null;
+    const ciddiyet = id === 'sahteRapor' ? 'iade' : (this.gorunen(b).find((k) => k.id === id)?.ciddiyet ?? KUSUR_BILGI[id].ciddiyet);
+    const c = sorCevabi(this.tohum, b, kisi, id, ciddiyet, this.ayar, this.zarfTeklif !== undefined);
+    this.sorulan.push(id);
+    if (c.zarf !== undefined) this.zarfTeklif = { miktar: c.zarf };
+    return c;
+  }
+
+  /** Zarf kararı (bir kez): ret (gişeye geri) ya da kabul (çekmeceye). */
+  zarfKarar(kabul: boolean): void {
+    if (this.zarfTeklif && this.zarfTeklif.kabul === undefined) this.zarfTeklif.kabul = kabul;
+  }
+
+  /** Eksik belge bu dosyada istenebilir mi (belge yok, kuralı gelmiş, daha önce istenmemiş). */
+  istenebilir(alan: BilgiAlani): boolean {
+    const b = this.mevcut;
+    if (!b || this.bitti || !this.ayar.iste || b.belgeler[alan] !== null || this.istenen[alan]) return false;
+    return gorunenKusurlar(b, this.gun).some((k) => k.id === ISTE_KUSURU[alan]);
+  }
+
+  /**
+   * İSTE: eksik belgeyi kişiden iste. Gerçek rapor bilgiyi edindirir (gerçek damga da doğru olur); sahte rapor
+   * edindirmez (doğru damga İADE kalır; inceleme modunda "Sahte rapor" bulunur); getiremezse kart gelmez.
+   */
+  iste(alan: BilgiAlani): IsteCevap | null {
+    const b = this.mevcut;
+    const kisi = this.kisiBilgi;
+    if (!b || !kisi || !this.istenebilir(alan)) return null;
+    const c = isteCevabi(this.tohum, b, kisi, alan, this.ayar);
+    this.istenen[alan] = c;
+    if (c.tur === 'gercek' && c.rapor) {
+      if (alan === 'karot') this.bilgiEdin('karot', c.rapor.deger as number, 'iste');
+      else this.bilgiEdin('zemin', c.rapor.deger as Zemin, 'iste');
+    }
+    return c;
+  }
+
+  /** Bu dosyada getirilen sahte raporlar. */
+  get sahteRaporlar(): GetirilenRapor[] {
+    return Object.values(this.istenen)
+      .filter((c): c is IsteCevap => !!c && c.tur === 'sahte' && !!c.rapor)
+      .map((c) => c.rapor as GetirilenRapor);
+  }
+
+  /** O günün kurallarıyla görünen kusurlar; İSTE ile edinilen bilgi eksik belgeyi tamamlar. */
+  private gorunen(b: Bina): Kusur[] {
+    const dis = this.disBilgi();
+    return gorunenKusurlar(dis ? bilgiyleTamamla(b, dis) : b, this.gun);
   }
 
   /** Mevcut dosyada belgeden gelen bilgi ve (varsa) başka yoldan edinilen bilgi. */
@@ -278,7 +406,12 @@ export class GunOturumu {
   }
 
   private bilgiSifirla(): void {
-    const B = this.mevcut?.belgeler;
+    const b = this.mevcut;
+    this.kisiBilgi = b ? kisiKur(this.tohum, b, this.ayar) : undefined;
+    this.sorulan = [];
+    this.istenen = {};
+    this.zarfTeklif = undefined;
+    const B = b?.belgeler;
     const d: DosyaBilgisi = { bilgi: {}, kaynak: {} };
     if (B?.karot) {
       d.bilgi.karot = B.karot.mpa;
@@ -332,11 +465,32 @@ export class GunOturumu {
   incele(secim: readonly SecimRef[]): IncelemeSonucu | null {
     const b = this.mevcut;
     if (!b || this.bitti) return null;
-    const kusur = seciminKusuru(b, this.gun, secim);
+    const kusur = this.sahteKaniti(secim) ?? seciminKusuru(b, this.gun, secim) ?? this.gorunenSecim(b, secim);
     if (!kusur) return null;
     const yeni = !this.bulunan.includes(kusur.id);
     if (yeni) this.bulunan.push(kusur.id);
     return { kusur, yeni };
+  }
+
+  /** İSTE ile gerçek rapor geldiyse, raporun değeriyle bulunabilen kusur (ör. düşük beton). */
+  private gorunenSecim(b: Bina, secim: readonly SecimRef[]): Kusur | null {
+    const dis = this.disBilgi();
+    return dis ? seciminKusuru(bilgiyleTamamla(b, dis), this.gun, secim) : null;
+  }
+
+  /** Sahte raporun kanıtı: rapor kartındaki ipucu alanı ve rapor kuralı (sırası önemsiz). */
+  private sahteKaniti(secim: readonly SecimRef[]): Kusur | null {
+    if (secim.length !== 2) return null;
+    for (const r of this.sahteRaporlar) {
+      const alan = ipucuAlani(r);
+      if (!alan) continue;
+      const kanit: SecimRef[] = [
+        { belge: r.alan, alan },
+        { belge: 'kural', alan: RAPOR_KURALI },
+      ];
+      if (kanit.every((k) => secim.some((s) => s.belge === k.belge && s.alan === k.alan))) return { id: 'sahteRapor', ...KUSUR_BILGI.sahteRapor };
+    }
+    return null;
   }
 
   /** Mesai saatini ilerlet (gerçek saniye). */
@@ -363,6 +517,8 @@ export class GunOturumu {
     const dis = this.disBilgi();
     const kabul = dogruDamgalar(b, this.gun, dis);
     const gorunen = gorunenKusurlar(b, this.gun);
+    // Sahte rapor getirildiyse dosyanın kusuru sayılır (doğru damga zaten İADE ya da BOŞALT).
+    if (this.sahteRaporlar.length > 0) gorunen.push({ id: 'sahteRapor', ...KUSUR_BILGI.sahteRapor });
     const kusurlar = gorunen.map((k) => k.id);
     const dogru = kabul.includes(damga);
     const sonuc: DamgaSonucu = { dogru, dogruDamga: kabul[0], kabul, kusurlar, etiketler: gorunen.map((k) => k.etiket) };
@@ -376,6 +532,9 @@ export class GunOturumu {
       bulunan: this.bulunan.slice(),
     };
     if (dis) karar.kaynak = { ...this.bilgi.kaynak };
+    if (this.zarfTeklif) karar.zarf = { miktar: this.zarfTeklif.miktar, kabul: this.zarfTeklif.kabul ?? true };
+    const iste = Object.entries(this.istenen) as [BilgiAlani, IsteCevap][];
+    if (iste.length > 0) karar.iste = Object.fromEntries(iste.map(([a, c]) => [a, c.tur]));
     this.kararlar.push(karar);
     this.bulunan = [];
     this.idx++;

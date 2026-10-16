@@ -23,7 +23,9 @@ export type KusurId =
   | 'zeminEtuduYok'
   | 'sivilasma'
   | 'caprazCatlak'
-  | 'sahteBelge';
+  | 'sahteBelge'
+  /** Gişeden getirilen sahte rapor (G17). Binanın değil oturumun kusuru: üretici kullanmaz. */
+  | 'sahteRapor';
 
 export type BelgeTuru = 'ruhsat' | 'proje' | 'foto' | 'karot' | 'zemin' | 'vaziyet';
 

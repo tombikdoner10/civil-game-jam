@@ -2,7 +2,8 @@
 import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
 import { FONT } from '../config';
-import { aktifKurallar } from '../game/rules';
+import { tarih } from '../game/diyalog';
+import { aktifKurallar, kuralMetni } from '../game/rules';
 import { masayaSikistir, ustKatman } from './DocumentCard';
 import type { SecimNesne, Yuzey } from './Inspect';
 import { num, PAL } from './palette';
@@ -195,7 +196,7 @@ export class RuleBook {
 
     kap.add(
       s.add
-        .text(sol + 24, ust + 92, `GÜN ${this.gun} · Yürürlükteki kurallar`, { fontFamily: FONT, fontSize: '28px', color: PAL.murekkepSoluk })
+        .text(sol + 24, ust + 92, `GÜN ${this.gun} · ${tarih(this.gun)} · Kurallar`, { fontFamily: FONT, fontSize: '28px', color: PAL.murekkepSoluk })
         .setOrigin(0, 0.5),
     );
 
@@ -208,7 +209,7 @@ export class RuleBook {
     aktifKurallar(this.gun).forEach((k, i) => {
       const yeni = k.ilkGun === this.gun;
       const yazi = s.add
-        .text(sol + 64, y + 4, k.metin, {
+        .text(sol + 64, y + 4, kuralMetni(k, this.gun), {
           fontFamily: FONT,
           fontSize: '30px',
           color: PAL.murekkep,

@@ -99,5 +99,26 @@
     "yer": "src/desk, src/scenes, src/ui",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-16T20:43:02.360Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G17 gişe diyaloğu: SOR, İSTE ve zarf mantığı, oturum kaydı, gün sonu/sonuç/gazete bağlantıları ve adalet denetimi (Bash betiğiyle düzenlendi)",
+    "yer": "src/game/session.ts, rules.ts, building.ts, gazete.ts; src/scenes/GameScene.ts, DayEndScene.ts, ResultScene.ts, NewspaperScene.ts; scripts/adalet.mjs",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-16T21:49:27.969Z"
+  },
+  {
+    "kategori": "visual",
+    "amac": "G17 gişedeki kişinin kodla çizilen piksel portresi, konuşma balonu, zarf ve çekmece, SOR/İSTE düğmeleri ve getirilen rapor kartı (Bash betiğiyle düzenlendi)",
+    "yer": "src/desk/Portre.ts, Konusma.ts, Zarf.ts, Window.ts, Inspect.ts, documents.ts, RuleBook.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-16T21:49:28.025Z"
+  },
+  {
+    "kategori": "text",
+    "amac": "G17 diyalog, zarf ve rapor kuralı yer tutucu metinleri (takım yeniden yazacak)",
+    "yer": "src/game/diyalog.ts, src/game/gazete.ts, src/game/rules.ts (rapor kuralı)",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-16T21:49:28.079Z"
   }
 ]

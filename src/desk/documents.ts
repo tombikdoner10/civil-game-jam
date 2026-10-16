@@ -2,6 +2,8 @@
 import * as Phaser from 'phaser';
 import { FONT } from '../config';
 import type { Belgeler, BelgeTuru, Bina, Zemin } from '../game/building';
+import { tarih } from '../game/diyalog';
+import type { GetirilenRapor } from '../game/kisi';
 import { DocumentCard } from './DocumentCard';
 import { KONTUR, PAL } from './palette';
 import { dizgiTohum, PX, rastgele, snap, Tuval } from './pixel';
@@ -365,4 +367,90 @@ export function belgeKur(scene: Phaser.Scene, tur: BelgeTuru, bina: Bina, x: num
   CIZIM[tur]({ s: scene, c: kart, b: bina.belgeler, bina, t, rnd });
   kart.zeminEkle(t);
   return kart;
+}
+
+// ---- G17: İSTE düğmesi ve gişeden getirilen rapor ----
+
+/** Eksik belge kartındaki İSTE düğmesinin yeri (kart ortasına göre, ekran). */
+const ISTE_YERI: Partial<Record<BelgeTuru, [number, number]>> = { karot: [0, 72], zemin: [0, 72] };
+
+/**
+ * "Rapor yok" kartına İSTE düğmesi (G17): tıklanınca is() çağrılır ve düğme "İSTENDİ" olarak söner.
+ * İnceleme modunda da çalışır (alan seçimi sayılmaz).
+ */
+export function isteDugmesi(kart: DocumentCard, is: () => void): void {
+  const s = kart.scene;
+  const [x, y] = ISTE_YERI[kart.tur] ?? [0, 0];
+  const w = 136;
+  const h = 40;
+  const kutu = s.add.rectangle(x, y, w, h, 0x151413).setStrokeStyle(PX, 0x57524a);
+  const yazi = s.add.text(x, y, 'İSTE', { fontFamily: FONT, fontSize: '34px', color: PAL.saat }).setOrigin(0.5);
+  kutu.setInteractive({ useHandCursor: true }).setData('incelemeYok', true);
+  kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => kutu.setFillStyle(0x3a2f22));
+  kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => kutu.setFillStyle(0x151413));
+  kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (_p: Phaser.Input.Pointer, _x: number, _y: number, e: Phaser.Types.Input.EventData) => {
+    e.stopPropagation();
+    kutu.disableInteractive();
+    kutu.setFillStyle(0x151413);
+    yazi.setText('İSTENDİ').setColor(PAL.murekkepAcik).setFontSize(30);
+    is();
+  });
+  kart.add([kutu, yazi]);
+}
+
+/**
+ * Gişeden getirilen rapor (gerçek ya da sahte, G17). Eksik belgenin yerine masaya kayar; köşesinde ataş.
+ * Satırlar: değer, tarih, laboratuvar mührü. Sahte raporda tek bir ipucu: mühür yok, tarih bugünden ileri ya
+ * da değer elle düzeltilmiş (daksil üstüne tükenmez kalem). Alanlar: değer (karot 'mpa', zemin 'tur'), 'tarih', 'lab'.
+ */
+export function raporKur(scene: Phaser.Scene, bina: Bina, rapor: GetirilenRapor, gun: number, x: number, y: number): DocumentCard {
+  const tur: BelgeTuru = rapor.alan;
+  const [w, h] = BOY[tur];
+  const c = new DocumentCard(scene, tur, w, h, x, y);
+  const t = new Tuval(scene, w / PX, h / PX, `rapor-${tur}`);
+  const rnd = rastgele(dizgiTohum(bina.id + tur + 'getirilen'));
+  const k: Ctx = { s: scene, c, b: bina.belgeler, bina, t, rnd };
+  const karot = tur === 'karot';
+  kagit(t, karot ? PAL.lab : PAL.kirliBeyaz, karot ? PAL.labKoyu : PAL.kirliBeyazKoyu, rnd);
+  t.rect(3, 3, t.w - 9, 8, karot ? PAL.labKoyu : PAL.kirliBeyazKoyu);
+  etiket(k, 5, 7, ust(BASLIK[tur]), BOY_BASLIK, PAL.murekkep);
+  // Ataş: sonradan getirildi
+  t.rect(t.w - 16, 0, 4, 9, '#8a8478').rect(t.w - 15, 1, 2, 7, karot ? PAL.lab : PAL.kirliBeyaz).rect(t.w - 15, 0, 2, 1, '#b0aaa0');
+  // Değer
+  etiket(k, 5, 16, karot ? 'Beton dayanımı' : 'Zemin türü', 26);
+  const metin = karot ? `${rapor.deger} MPa` : ZEMIN_ADI[rapor.deger as Zemin];
+  const elle = rapor.ipucu === 'elle';
+  const d = deger(k, karot ? 6 : 5, 25, metin, 36, elle ? '#34436e' : PAL.murekkep);
+  if (elle) {
+    // Daksil lekesi: değerin altında beyaz, kenarları düzensiz; üstüne mavi kalemle yazılmış.
+    const dw = Math.ceil(d.width / PX) + 3;
+    t.rect(4, 21, dw, 8, '#efece2');
+    for (let i = 0; i < dw; i += 3) t.px(4 + i, 20, '#efece2').px(5 + i, 29, '#efece2');
+    t.rect(4 + dw, 22, 1, 5, '#efece2');
+    d.setAngle(-2);
+  }
+  k.c.remove(d);
+  k.c.alanEkle(karot ? 'mpa' : 'tur', d);
+  for (let x2 = 5; x2 < t.w - 6; x2 += 2) t.px(x2, 30, PAL.murekkepAcik);
+  // Tarih
+  etiket(k, 5, 36, 'Tarih', 26);
+  const tr = deger(k, 28, 36, tarih(gun, rapor.tarihFark), 30);
+  k.c.remove(tr);
+  k.c.alanEkle('tarih', tr);
+  // Laboratuvar mührü (sahtede yok: noktalı boş yer)
+  etiket(k, 5, 47, 'Lab mührü', 26);
+  for (let x2 = 40; x2 < t.w - 6; x2 += 2) t.px(x2, 50, PAL.murekkepAcik);
+  if (rapor.ipucu !== 'muhur') muhurLab(t, 62, 45, rnd, karot ? PAL.lab : PAL.kirliBeyaz);
+  bolge(k, 'lab', 38, 42, t.w - 42, 11);
+  c.zeminEkle(t);
+  return c;
+}
+
+/** Laboratuvar mührü: halka içinde L harfi deseni (jenerik; gerçek bir kurumun mührü değil). */
+function muhurLab(t: Tuval, cx: number, cy: number, rnd: () => number, kagitRenk: string): void {
+  const m = PAL.muhur;
+  t.daire(cx, cy, 6, m, true);
+  t.daire(cx, cy, 4, m, true);
+  t.rect(cx - 1, cy - 2, 1, 4, m).rect(cx - 1, cy + 1, 3, 1, m);
+  for (let i = 0; i < 10; i++) t.px(cx - 6 + Math.floor(rnd() * 13), cy - 6 + Math.floor(rnd() * 13), kagitRenk);
 }

@@ -23,6 +23,15 @@ export interface GunAyar {
   not: { gorev: string; kurallar: Kural[] } | null;
   /** Gün sonu ekranından önce öncü sarsıntı olacak mı (G4b dolduracak; şimdilik yalnızca işaret). */
   oncuSarsinti: boolean;
+  /** Bulunan tutarsızlığı gişedeki kişiye SOR (G17). */
+  sor: boolean;
+  /** Eksik belgeyi kişiden İSTE. */
+  iste: boolean;
+  /** İSTE'de sahte rapor gelebilir (kural kitabında rapor kuralı). */
+  sahteRapor: boolean;
+  /** SOR'da taban zarf olasılığı ve pazarlıkçı kişi payı (TUNING.kisi). */
+  zarf: number;
+  pazarlikci: number;
 }
 
 /**
@@ -61,6 +70,11 @@ export function gunAyar(gun: number): GunAyar {
     kitap: g >= 2,
     not: g === 1 ? { gorev: GOREV_NOTU, kurallar: yeni } : null,
     oncuSarsinti: g === 1,
+    sor: g >= TUNING.kisi.sorIlkGun,
+    iste: g >= TUNING.kisi.isteIlkGun,
+    sahteRapor: g >= TUNING.kisi.sahteRaporIlkGun,
+    zarf: listeden(TUNING.kisi.zarf, g),
+    pazarlikci: listeden(TUNING.kisi.kisilik.pazarlikci, g),
   };
 }
 

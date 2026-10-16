@@ -1,5 +1,9 @@
 import type { AlanRef, Bina, Ciddiyet, Damga, Kural, Kusur, KusurId, Zemin } from './building';
+import { tarih } from './diyalog';
 import { TUNING } from './tuning';
+
+/** Getirilen raporun kuralı (sahte rapor: mühür, tarih, elle düzeltme; G17). */
+export const RAPOR_KURALI = 'rapor';
 
 /** Kusur başına yer tutucu etiket, ciddiyet ve kanıt alanları. */
 export const KUSUR_BILGI: Record<KusurId, Omit<Kusur, 'id'>> = {
@@ -53,6 +57,12 @@ export const KUSUR_BILGI: Record<KusurId, Omit<Kusur, 'id'>> = {
     ciddiyet: 'guclendir',
     kanit: [{ belge: 'ruhsat', alan: 'yil' }, { belge: 'ruhsat', alan: 'muhur' }],
   },
+  // Kanıtı rapordaki ipucuna göre değişir (getirilen rapor kartındaki alan + rapor kuralı); oturum denetler.
+  sahteRapor: {
+    etiket: 'Sahte rapor',
+    ciddiyet: 'iade',
+    kanit: [{ belge: 'karot', alan: 'lab' }],
+  },
 };
 
 export const KUSUR_IDLERI = Object.keys(KUSUR_BILGI) as KusurId[];
@@ -96,6 +106,13 @@ export const KURALLAR: Kural[] = [
     metin: '[Kural: karot raporu yoksa sahibinden iste; getiremezse saha testi yap ya da → İADE]',
   },
   {
+    id: RAPOR_KURALI,
+    ilkGun: 3,
+    // Sahte rapor binanın kusuru değil (üretici seçmesin): kanıtı oturum denetler (session.incele).
+    kusurlar: [],
+    metin: '[Kural: getirilen raporda lab mührü olmalı, tarihi bugünü ({bugun}) geçmemeli, değeri elle düzeltilmemeli; değilse sahte → İADE]',
+  },
+  {
     id: 'dere',
     ilkGun: 4,
     kusurlar: ['dereyeYakin'],
@@ -111,6 +128,11 @@ export const KURALLAR: Kural[] = [
   { id: 'sivilasma', ilkGun: 4, kusurlar: ['sivilasma'], metin: '[Kural: zeminde sıvılaşma riski varsa → BOŞALT]' },
   { id: 'belge', ilkGun: 5, kusurlar: ['sahteBelge'], metin: '[Kural: mühür yılı yapım yılından sonraysa belge sahte → GÜÇLENDİR]' },
 ];
+
+/** Kural kitabında gösterilecek metin: {bugun} o günün tarihi olur. */
+export function kuralMetni(k: Kural, gun: number): string {
+  return k.metin.replace('{bugun}', tarih(gun));
+}
 
 /** Gün 1 kural notunun ilk satırı: oyunun hedefi (yer tutucu, takım yazacak). */
 export const GOREV_NOTU = '[Görev: belgeleri karşılaştır, kurala uymayanı damgala]';

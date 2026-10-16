@@ -1,4 +1,4 @@
-// Büyük deprem adalet denetimi (G5, G16): tohum 1-10 ve altı karar biçimi (dev örneği, hepsi doğru, hepsi GÜVENLİ,
+// Büyük deprem adalet denetimi (G5, G16, G17): tohum 1-10 ve altı karar biçimi (dev örneği, hepsi doğru, hepsi GÜVENLİ,
 // hepsi GÜÇLENDİR, hepsi BOŞALT, hepsi İADE) için session.buyukDeprem sonuçlarını kurallara göre denetler. Ayrıca
 // İADE ve eksik belge mantığını (doğru damgalar, bilgi edinme) ve dere/fay + zemin kuralını denetler.
 // İADE edilen kusurlu bina insanlı kalır: oyuncunun bilinçli bıraktığı risktir, adalet ihlali sayılmaz.
@@ -168,6 +168,115 @@ for (let tohum = 1; tohum <= 40; tohum++) {
     }
   }
 }
+
+// ---- G17: gişedeki kişi (SOR, İSTE, zarf) ----
+// Sahte rapora inanmak yanlış; gerçek rapor sonrası gerçek damga doğru; getiremezse İADE doğru; zarf damgayı
+// etkilemez ama parayı artırır; cevaplar deterministik.
+const K = await server.ssrLoadModule('/src/game/kisi.ts');
+const g17 = { gercek: 0, sahte: 0, yok: 0, bahane: 0, itiraf: 0, zarf: 0, sahteBulundu: 0 };
+for (let tohum = 1; tohum <= 40; tohum++) {
+  for (let g = 1; g <= 5; g++) {
+    const o = new S.GunOturumu(g, tohum);
+    const ikiz = new S.GunOturumu(g, tohum);
+    while (o.mevcut && !o.bitti) {
+      const b = o.mevcut;
+      const e = `t${tohum} g${g} ${b.id}`;
+      const ana = R.dogruDamga(b, g);
+      // İSTE
+      let kabulBeklenen = [ana];
+      let sahteVar = false;
+      for (const alan of ['karot', 'zemin']) {
+        const izin = o.istenebilir(alan);
+        bak(izin === (o.ayar.iste && b.belgeler[alan] === null && R.gorunenKusurlar(b, g).some((k) => k.id === K.ISTE_KUSURU[alan])), `${e}: istenebilir(${alan})`);
+        if (!izin) continue;
+        const c = o.iste(alan);
+        const c2 = ikiz.iste(alan);
+        bak(c && c2 && c.tur === c2.tur && c.secim === c2.secim && JSON.stringify(c.rapor) === JSON.stringify(c2.rapor), `${e}: İSTE deterministik değil`);
+        bak(o.iste(alan) === null, `${e}: ikinci İSTE`);
+        g17[c.tur]++;
+        if (c.tur === 'sahte') {
+          sahteVar = true;
+          bak(o.ayar.sahteRapor, `${e}: sahte rapor günü gelmeden sahte`);
+          bak(!!c.rapor?.ipucu, `${e}: sahte raporda ipucu yok`);
+          // Yanıltıcı yön: saklı kusur varsa sahte değer kusuru gizler.
+          if (K.sakliKusur(b, alan))
+            bak(alan === 'karot' ? c.rapor.deger >= T.betonEsikMpa : c.rapor.deger !== 'sivilasma', `${e}: sahte değer yanıltmıyor`);
+          // İnceleme: ipucu alanı + rapor kuralı → Sahte rapor
+          const r = o.incele([{ belge: alan, alan: K.ipucuAlani(c.rapor) }, { belge: 'kural', alan: R.RAPOR_KURALI }]);
+          bak(r?.kusur.id === 'sahteRapor', `${e}: sahte rapor incelemede bulunmadı`);
+          if (r?.kusur.id === 'sahteRapor') g17.sahteBulundu++;
+        } else if (c.tur === 'gercek') {
+          bak(c.rapor && c.rapor.deger === (alan === 'karot' ? b.gercek.betonMpa : b.gercek.zemin), `${e}: gerçek rapor değeri`);
+          bak(c.rapor && c.rapor.tarihFark < 0 && !c.rapor.ipucu, `${e}: gerçek raporda ipucu`);
+        } else bak(!c.rapor, `${e}: getiremediği halde rapor`);
+      }
+      // Kabul edilen damgalar: gerçek rapor geldiyse gerçek damga da.
+      const gelen = {};
+      for (const alan of ['karot', 'zemin']) if (o.edinilenBilgi.kaynak[alan] === 'iste') gelen[alan] = o.edinilenBilgi.bilgi[alan];
+      if (Object.keys(gelen).length > 0) kabulBeklenen = R.dogruDamgalar(b, g, gelen);
+      // SOR: her görünen kusur bulunur ve (sorulabilirse) sorulur.
+      for (const k of R.gorunenKusurlar(b, g)) {
+        o.incele(R.kanitOgeleri(k.id));
+        ikiz.incele(R.kanitOgeleri(k.id));
+        if (!K.sorulabilir(k.id)) {
+          bak(!o.sorulabilir(k.id), `${e}: eksik belge sorulabilir`);
+          continue;
+        }
+        const c = o.sor(k.id);
+        const c2 = ikiz.sor(k.id);
+        bak(c && c2 && c.tur === c2.tur && c.secim === c2.secim && c.zarf === c2.zarf, `${e}: SOR deterministik değil`);
+        bak(o.sor(k.id) === null, `${e}: aynı kusur iki kez soruldu`);
+        if (c) g17[c.tur]++;
+        if (c?.zarf !== undefined) {
+          bak(c.zarf > 0 && c.zarf % 10 === 0, `${e}: zarf miktarı ${c.zarf}`);
+          o.zarfKarar(tohum % 2 === 0);
+          ikiz.zarfKarar(tohum % 2 === 0);
+        }
+      }
+      const zarf = o.zarf ? { ...o.zarf } : undefined;
+      // Sahte rapora inanmak: sahte değerle tamamlanmış belgeye göre damga (İADE ya da BOŞALT değilse) yanlış.
+      if (sahteVar) {
+        const sahteler = o.sahteRaporlar;
+        const B = { ...b.belgeler };
+        for (const r of sahteler) {
+          if (r.alan === 'karot') B.karot = { mpa: r.deger };
+          else B.zemin = { tur: r.deger };
+        }
+        const inanan = R.dogruDamga({ ...b, belgeler: B }, g);
+        if (!kabulBeklenen.includes(inanan)) {
+          g17.inanan = (g17.inanan ?? 0) + 1;
+          const s1 = ikiz.damgala(inanan);
+          bak(s1 && !s1.dogru, `${e}: sahte rapora inanan damga (${inanan}) doğru sayıldı`);
+          const s2 = o.damgala(kabulBeklenen[0]);
+          bak(s2 && s2.dogru && s2.kusurlar.includes('sahteRapor'), `${e}: sahte raporlu dosyada doğru damga`);
+          continue;
+        }
+      }
+      // Doğru damgalar (zarf alınsa da) doğru; dosya eksiksizse İADE yanlış.
+      const hedef = kabulBeklenen[kabulBeklenen.length - 1];
+      const s1 = o.damgala(hedef);
+      bak(s1 && s1.dogru, `${e}: doğru damga (${hedef}) yanlış sayıldı; kabul=${kabulBeklenen.join(',')}`);
+      ikiz.damgala(hedef);
+      const kr = o.kararlar[o.kararlar.length - 1];
+      if (zarf) bak(kr.zarf && kr.zarf.miktar === zarf.miktar && kr.zarf.kabul === (zarf.kabul ?? true), `${e}: zarf kaydı`);
+      else bak(!kr.zarf, `${e}: zarfsız dosyada zarf kaydı`);
+    }
+    // Gün hesabı: zarf toplama eklenir.
+    const h = S.gunHesabi(o.kararlar, o.toplam);
+    const zarfTop = o.kararlar.reduce((n, k) => n + (k.zarf?.kabul ? k.zarf.miktar : 0), 0);
+    bak(h.zarf === zarfTop && h.toplam === h.maas - h.ceza + zarfTop, `t${tohum} g${g}: gün hesabında zarf`);
+  }
+}
+// Zarf deprem sonucunu değiştirmez (ornek kayıtlarında zarf alanı sonuçta işaretli, durum aynı kurala göre).
+for (let tohum = 1; tohum <= 10; tohum++) {
+  const k = O.ornekKayitlar(tohum, 6);
+  const zarfsiz = k.map((x) => ({ ...x, kararlar: x.kararlar.map(({ zarf: _z, ...c }) => c) }));
+  const a1 = S.buyukDeprem(tohum, k);
+  const a2 = S.buyukDeprem(tohum, zarfsiz);
+  bak(a1.every((r, i) => r.durum === a2[i].durum && r.coktu === a2[i].coktu), `t${tohum}: zarf deprem sonucunu değiştirdi`);
+  bak(a1.filter((r) => r.zarf).length === k.flatMap((x) => x.kararlar).filter((c) => c.zarf?.kabul).length, `t${tohum}: deprem sonucunda zarf işareti`);
+}
+console.log('G17 (tohum 1-40, gün 1-5):', JSON.stringify(g17));
 
 console.log(`${sayi} denetim, ${hata} hata`);
 console.log(`Kural: fay yakını = ${T.fayKurali === 'bosalt' ? 'her zaman BOŞALT' : 'zemine bağlı (dere gibi)'}`);

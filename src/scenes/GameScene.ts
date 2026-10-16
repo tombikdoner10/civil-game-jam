@@ -2,8 +2,8 @@ import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
 import { DEV, FONT } from '../config';
 import { DocumentCard, MASA, ustKatman } from '../desk/DocumentCard';
-import { belgeKur, BOY } from '../desk/documents';
-import { snap } from '../desk/pixel';
+import { belgeKur, BOY, isteDugmesi, raporKur } from '../desk/documents';
+import { PX, snap } from '../desk/pixel';
 import { DUGME, Inspect, type Yuzey } from '../desk/Inspect';
 import { PAL } from '../desk/palette';
 import { fisDusur, fisKaldir, fisKur, masaCiz } from '../desk/props';
@@ -13,7 +13,12 @@ import { DAMGA_ADI, damgaIzi, StampTray, TEPSI_SOL } from '../desk/StampTray';
 import { Quake } from '../desk/Quake';
 import { GOZ, MASA_Y, Pencere, SOKAK_DERINLIK } from '../desk/Window';
 import { yerlesim, type Yerlesim } from '../desk/yerlesim';
-import type { Damga, Kural } from '../game/building';
+import { Cekmece, Zarf, ZARF_BOY } from '../desk/Zarf';
+import { Portre, PORTRE_EKRAN } from '../desk/Portre';
+import type { Damga, KusurId, Kural } from '../game/building';
+import { DAMGA_TEPKI, ISTE_METIN, satir, SELAM, SOR_METIN, ZARF_TEPKI } from '../game/diyalog';
+import type { Ifade, RaporAlani } from '../game/kisi';
+import { KUSUR_BILGI } from '../game/rules';
 import { ornekKayitlar } from '../game/ornek';
 import { GunOturumu, sokakKayitlari, type GunKaydi, type SarsintiKaydi } from '../game/session';
 import { TUNING } from '../game/tuning';
@@ -42,6 +47,9 @@ const ONCU_YAZI = '[Öncü sarsıntı. Asıl deprem gelecek.]';
  */
 const FIS_GISE = { x: 1256, w: 160, alt: 384, derinlik: 3500 };
 
+/** Damgaya göre gişedeki kişinin yüzü. */
+const DAMGA_IFADE: Record<Damga, Ifade> = { guvenli: 'sevincli', guclendir: 'mahcup', bosalt: 'kizgin', iade: 'kizgin' };
+
 /** Masa sahnesi: üstte belediye penceresi ve gişe, altta masa, belgeler ve damga çubuğu. */
 export class GameScene extends Phaser.Scene {
   private controls!: Controls;
@@ -66,6 +74,9 @@ export class GameScene extends Phaser.Scene {
   private ipucu?: Phaser.GameObjects.Text;
   /** Bu günün öncü sarsıntı sonucu (gün sonu raporuna gider). */
   private oncu?: SarsintiKaydi;
+  /** Gişeden kayan zarf (G17) ve onu alan çekmece. */
+  private zarf?: Zarf;
+  private cekmece!: Cekmece;
 
   constructor() {
     super(SCENES.Game);
@@ -96,6 +107,7 @@ export class GameScene extends Phaser.Scene {
     this.not = undefined;
     this.kitap = undefined;
     this.oncu = undefined;
+    this.zarf = undefined;
   }
 
   create(): void {
@@ -127,8 +139,10 @@ export class GameScene extends Phaser.Scene {
       MASA.w = TEPSI_SOL.kapali;
     });
 
+    this.cekmece = new Cekmece(this);
     this.incelemeKur();
     this.dosyaGetir();
+    if (DEV && new URLSearchParams(location.search).has('portreler')) this.portreler();
 
     // Pencere odağı kaçarsa (alt-tab, başka sekme) oyunu duraklat.
     const onBlur = (): void => {
@@ -176,9 +190,16 @@ export class GameScene extends Phaser.Scene {
       },
       kontrol: (secim) => this.oturum.incele(secim),
       izin: () => !this.mesgul && !this.bitirildi,
+      sorulabilir: (id) => this.oturum.sorulabilir(id),
+    });
+    this.inceleme.on('sor', (id: KusurId) => this.sor(id));
+    // Tutarsızlık bulununca gişedeki kişi gerilir.
+    this.inceleme.on('bulundu', () => {
+      if (!this.mesgul) this.pencere.ifade('gergin');
     });
     this.inceleme.on('ac', () => {
       for (const k of this.kartlar) k.disableInteractive(true);
+      this.zarf?.disableInteractive(true);
       this.not?.disableInteractive(true);
       this.kitap?.kilitle(true);
       this.tepsi.kilitle(true);
@@ -190,6 +211,7 @@ export class GameScene extends Phaser.Scene {
     });
     this.inceleme.on('kapa', () => {
       for (const k of this.kartlar) if (k.active) k.setInteractive();
+      if (this.zarf?.active && !this.mesgul) this.zarf.setInteractive();
       this.not?.setInteractive();
       this.kitap?.kilitle(false);
       this.tepsi.kilitle(false);
@@ -276,7 +298,14 @@ export class GameScene extends Phaser.Scene {
     }
     this.pencere.setDosya(this.oturum.no, this.oturum.toplam);
     this.pencere.binaGoster(bina);
-    this.pencere.siluetGelsin(this.tohum + this.oturum.no * 7919);
+    const kisi = this.oturum.kisi;
+    if (kisi) {
+      this.pencere.kisiGelsin(kisi);
+      const id = bina.id;
+      this.time.delayedCall(TUNING.diyalog.selamGecikme, () => {
+        if (this.oturum.mevcut?.id === id && !this.bitirildi) this.pencere.soyle(satir(SELAM, kisi.selam), 'notr');
+      });
+    }
     sfx.play('siluet');
     const gecikme = 350;
     const belgeler = this.oturum.ayar.belgeler;
@@ -284,6 +313,8 @@ export class GameScene extends Phaser.Scene {
       const [hx, hy] = this.yer.belge[tur];
       const k = belgeKur(this, tur, bina, GOZ.x, GOZ.y - BOY[tur][1] / 2);
       k.setDepth(ustKatman()).setAlpha(0);
+      // Eksik belge: sahibinden İSTE (G17).
+      if ((tur === 'karot' || tur === 'zemin') && this.oturum.istenebilir(tur)) isteDugmesi(k, () => this.iste(tur, k));
       this.tweens.add({ targets: k, alpha: 1, duration: 120, delay: gecikme + i * 80 });
       this.tweens.add({
         targets: k,
@@ -316,11 +347,111 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  // ---- Gişedeki kişi (G17): SOR, İSTE, zarf ----
+
+  /** SOR: bulunan tutarsızlık kişiye sorulur; cevap balonda (bahane, itiraf ya da zarf). */
+  private sor(id: KusurId): void {
+    if (this.mesgul || this.bitirildi) return;
+    const c = this.oturum.sor(id);
+    if (!c) return;
+    const baslik = `SOR · ${KUSUR_BILGI[id].etiket.toLocaleUpperCase('tr-TR')}`;
+    this.pencere.soyle(satir(SOR_METIN[c.kusur][c.tur], c.secim, c.zarf), c.ifade, { baslik });
+    if (c.zarf !== undefined) {
+      const miktar = c.zarf;
+      const dosya = this.oturum.mevcut?.id;
+      this.time.delayedCall(700, () => {
+        if (this.oturum.mevcut?.id === dosya && !this.mesgul) this.zarfGetir(miktar);
+      });
+    }
+  }
+
+  /** Zarf gişeden masaya kayar; çekmece açılır. Gişeye geri sürüklenirse ret, çekmeceye konursa kabul. */
+  private zarfGetir(miktar: number): void {
+    this.cekmece.ac(ustKatman());
+    const z = new Zarf(this, miktar, GOZ.x, GOZ.y - 24);
+    z.setDepth(ustKatman()).setAlpha(0);
+    const yer = this.bosYer(ZARF_BOY.w, ZARF_BOY.h) ?? [GOZ.x - 300, MASA_Y + 100];
+    this.tweens.add({ targets: z, alpha: 1, duration: 120 });
+    this.tweens.add({ targets: z, x: snap(yer[0]), y: snap(yer[1]), duration: 460, ease: 'Cubic.easeOut' });
+    sfx.play('zarfKay');
+    z.on('birakildi', (x: number, y: number) => this.zarfBirakildi(z, x, y));
+    if (this.inceleme.acik) z.disableInteractive(true);
+    this.zarf = z;
+  }
+
+  private zarfBirakildi(z: Zarf, x: number, y: number): void {
+    if (this.mesgul || this.zarf !== z) return;
+    if (y < MASA_Y + 8) {
+      // Gişeye geri verildi: ret.
+      this.oturum.zarfKarar(false);
+      this.zarf = undefined;
+      z.disableInteractive();
+      this.tweens.add({ targets: z, x: GOZ.x, y: GOZ.y - 60, alpha: 0, duration: 380, ease: 'Cubic.easeIn', onComplete: () => z.destroy() });
+      sfx.play('zarfRet');
+      this.cekmece.kapa(200);
+      const t = this.oturum.kisi?.selam ?? 0;
+      this.pencere.soyle(satir(ZARF_TEPKI.ret, t), t % 2 === 0 ? 'kizgin' : 'mahcup');
+    } else if (this.cekmece.icinde(x, y)) {
+      this.oturum.zarfKarar(true);
+      this.zarfCekmeceye(z);
+      this.pencere.soyle(satir(ZARF_TEPKI.kabul, this.oturum.kisi?.selam ?? 0), 'sevincli');
+    }
+  }
+
+  /** Zarf çekmeceye kayar ve çekmece kapanır (kabul). */
+  private zarfCekmeceye(z: Zarf): void {
+    if (this.zarf === z) this.zarf = undefined;
+    z.disableInteractive();
+    const [x, y] = this.cekmece.agiz;
+    this.tweens.add({ targets: z, x, y, scale: 0.7, duration: 260, ease: 'Cubic.easeIn' });
+    this.tweens.add({ targets: z, alpha: 0, delay: 200, duration: 160, onComplete: () => z.destroy() });
+    this.cekmece.kapa(300);
+  }
+
+  /**
+   * İSTE: eksik belge kişiden istenir. Gerçek ya da sahte rapor gelirse kart gişeden kayar ve "Rapor yok"
+   * kartının yerine geçer (eski kart gişeye geri döner); getiremezse kart gelmez.
+   */
+  private iste(alan: RaporAlani, eski: DocumentCard): void {
+    if (this.mesgul || this.bitirildi) return;
+    const c = this.oturum.iste(alan);
+    const bina = this.oturum.mevcut;
+    if (!c || !bina) return;
+    const baslik = alan === 'karot' ? 'İSTE · KAROT RAPORU' : 'İSTE · ZEMİN ETÜDÜ';
+    this.pencere.soyle(satir(ISTE_METIN[c.tur], c.secim), c.ifade, { baslik });
+    const rapor = c.rapor;
+    if (!rapor) return;
+    this.time.delayedCall(TUNING.diyalog.raporGecikme, () => {
+      if (this.oturum.mevcut?.id !== bina.id || this.mesgul || this.bitirildi) return;
+      const h = BOY[alan][1];
+      const yeni = raporKur(this, bina, rapor, this.gun, GOZ.x, GOZ.y - h / 2);
+      const hedef = eski.active ? [eski.x, eski.y] : this.yer.belge[alan];
+      const [hx, hy] = yeni.masadaKonum(hedef[0], hedef[1]);
+      yeni.setDepth(ustKatman()).setAlpha(0);
+      if (this.inceleme.acik) yeni.disableInteractive(true);
+      this.tweens.add({ targets: yeni, alpha: 1, duration: 120 });
+      this.tweens.add({ targets: yeni, x: hx, y: hy, duration: 440, ease: 'Cubic.easeOut', onComplete: () => sfx.play('kagitBirak') });
+      sfx.play('kagitKay');
+      const i = this.kartlar.indexOf(eski);
+      if (i >= 0) this.kartlar.splice(i, 1, yeni);
+      else this.kartlar.push(yeni);
+      if (eski.active) {
+        this.input.setDraggable(eski, false);
+        eski.disableInteractive();
+        this.tweens.add({ targets: eski, x: GOZ.x, y: GOZ.y - h / 2 - 40, alpha: 0, duration: 360, ease: 'Cubic.easeIn', onComplete: () => eski.destroy() });
+      }
+    });
+  }
+
   private damgala(damga: Damga): void {
     if (this.mesgul || this.bitirildi) return;
     const sonuc = this.oturum.damgala(damga);
     if (!sonuc) return;
     this.mesgul = true;
+    // Masada kalan zarf kabul sayıldı (oturum kaydetti): çekmeceye kayar. Kişi damgaya tepki verir.
+    if (this.zarf) this.zarfCekmeceye(this.zarf);
+    const sira = this.oturum.kararlar.length;
+    this.time.delayedCall(260, () => this.pencere.soyle(satir(DAMGA_TEPKI[damga], sira + this.tohum), DAMGA_IFADE[damga]));
 
     // Tokmak iner, mürekkep ruhsata basılır.
     const ruhsat = this.kartlar.find((k) => k.tur === 'ruhsat');
@@ -373,7 +504,7 @@ export class GameScene extends Phaser.Scene {
     const topla = 1300;
     this.time.delayedCall(topla, () => {
       this.inceleme.dosyaBitti();
-      this.pencere.siluetGitsin();
+      this.pencere.kisiGitsin();
       sfx.play('siluet', { volume: 0.7 });
       eski.forEach((k, i) => {
         this.input.setDraggable(k, false);
@@ -440,9 +571,28 @@ export class GameScene extends Phaser.Scene {
       this.ipucu = undefined;
     }
     for (const k of this.masadakiKartlar()) k.disableInteractive(true);
+    this.zarf?.disableInteractive(true);
     this.not?.disableInteractive(true);
     this.kitap?.kilitle(true);
     this.tepsi.kilitle(true);
+  }
+
+  /** Yalnızca dev (?dev&portreler): masanın üstünde portreler ve bir portrenin beş ifadesi (görsel denetim). */
+  private portreler(): void {
+    const ifadeler: Ifade[] = ['notr', 'gergin', 'kizgin', 'mahcup', 'sevincli'];
+    const s = 0.5;
+    const adim = PORTRE_EKRAN.w * s + 8;
+    this.add.rectangle(0, MASA_Y, 1920, 1080 - MASA_Y, 0x2b2926).setOrigin(0).setDepth(7000);
+    for (let i = 0; i < 24; i++) {
+      const sira = i < 12 ? i : i - 12;
+      const p = new Portre(this, this.tohum * 31 + i * 7919, 16 + sira * adim, MASA_Y + 16 + (i < 12 ? 0 : 172));
+      p.img.setScale(PX * s).setDepth(7001);
+    }
+    for (let i = 0; i < 5; i++) {
+      const p = new Portre(this, this.tohum * 31 + 3 * 7919, 16 + i * adim, MASA_Y + 360 + 16);
+      p.img.setScale(PX * s).setDepth(7001);
+      p.setIfade(ifadeler[i]);
+    }
   }
 
   private gunSonu(): void {

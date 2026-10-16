@@ -2,7 +2,7 @@
 import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
 import { FONT } from '../config';
-import type { Kusur } from '../game/building';
+import type { Kusur, KusurId } from '../game/building';
 import type { SecimRef } from '../game/rules';
 import type { IncelemeSonucu } from '../game/session';
 import { punch } from '../systems/fx';
@@ -30,6 +30,8 @@ export interface InspectAyar {
   kontrol: (secim: SecimRef[]) => IncelemeSonucu | null;
   /** İnceleme modu şu an açılabilir mi (dosya geliyor ya da gidiyorsa hayır). */
   izin: () => boolean;
+  /** Bu kusur gişedeki kişiye sorulabilir mi (G17): etikette SOR düğmesi çıkar, tıklanınca 'sor' olayı. */
+  sorulabilir?: (id: KusurId) => boolean;
 }
 
 interface Bulunan {
@@ -230,7 +232,7 @@ export class Inspect extends Phaser.Events.EventEmitter {
         eski.ogeler = ogeler;
         this.scene.tweens.add({ targets: eski.etiket, scale: 1.15, duration: 90, yoyo: true });
       } else {
-        const etiket = this.etiketKur(sonuc.kusur.etiket);
+        const etiket = this.etiketKur(sonuc.kusur.etiket, this.ayar.sorulabilir?.(sonuc.kusur.id) ? sonuc.kusur.id : undefined);
         const r = etiket.getBounds();
         this.bulunanlar.push({ kusur: sonuc.kusur, ogeler, etiket, w: snap(r.width), h: snap(r.height), aday: -1 });
         etiket.setScale(0.4);
@@ -264,19 +266,41 @@ export class Inspect extends Phaser.Events.EventEmitter {
     });
   }
 
-  /** Kusur etiketi: kırmızı kâğıt şerit, koyu kenar. */
-  private etiketKur(metin: string): Phaser.GameObjects.Container {
+  /**
+   * Kusur etiketi: kırmızı kâğıt şerit, koyu kenar. sorId verilirse sağında SOR düğmesi (G17): tıklanınca
+   * 'sor' olayı (kusur kimliği) yayılır ve düğme sönükleşir (bir kez sorulur).
+   */
+  private etiketKur(metin: string, sorId?: KusurId): Phaser.GameObjects.Container {
     const s = this.scene;
     const yazi = s.add
       .text(0, 0, metin.toLocaleUpperCase('tr-TR'), { fontFamily: FONT, fontSize: '40px', color: '#f0e6cc' })
       .setOrigin(0.5);
-    const w = snap(yazi.width + 32);
+    const dw = sorId ? 88 : 0;
+    const w = snap(yazi.width + 32 + (sorId ? dw + 8 : 0));
     const h = 48;
     const kap = s.add.container(0, 0).setDepth(D.etiket);
     kap.add(s.add.rectangle(4, 4, w, h, 0x000000, 0.45));
     kap.add(s.add.rectangle(0, 0, w + 8, h + 8, KOYU));
     kap.add(s.add.rectangle(0, 0, w, h, KIRMIZI));
     kap.add(yazi);
+    if (sorId) {
+      yazi.setX(snap(-dw / 2 - 4));
+      const dx = snap(w / 2 - dw / 2 - 4);
+      const kutu = s.add.rectangle(dx, 0, dw, h - 12, KOYU);
+      const dyazi = s.add.text(dx, 0, 'SOR', { fontFamily: FONT, fontSize: '34px', color: PAL.saat }).setOrigin(0.5);
+      kutu.setInteractive({ useHandCursor: true }).setData('incelemeYok', true);
+      kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => kutu.setFillStyle(0x3a2f22));
+      kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => kutu.setFillStyle(KOYU));
+      kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (_p: Phaser.Input.Pointer, _x: number, _y: number, e: Phaser.Types.Input.EventData) => {
+        e.stopPropagation();
+        kutu.disableInteractive();
+        kutu.setFillStyle(KOYU);
+        dyazi.setColor(PAL.murekkepAcik);
+        sfx.play('sec');
+        this.emit('sor', sorId);
+      });
+      kap.add([kutu, dyazi]);
+    }
     return kap;
   }
 

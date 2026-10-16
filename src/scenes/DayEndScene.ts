@@ -158,13 +158,22 @@ export class DayEndScene extends Phaser.Scene {
     }
     // İADE edilen dosyalar: denetlenmeden kaldı (binalar sokakta, içleri dolu).
     const iade = v.kararlar.filter((k) => k.damga === 'iade').length;
-    if (iade > 0) yaz(sol, sy, `İade: ${iade} (denetlenmedi)`, 36, PAL.damgaIade);
+    if (iade > 0) {
+      yaz(sol, sy, `İade: ${iade} (denetlenmedi)`, 36, PAL.damgaIade);
+      sy += 48;
+    }
+    // Zarf (G17): kabul edilenler günün toplamına eklenir; ayrı satır.
+    if (hesap.zarfTeklif > 0) {
+      const ret = hesap.zarfTeklif - hesap.zarfKabul;
+      const metin = hesap.zarfKabul > 0 ? `Zarf: +${para(hesap.zarf)} (${hesap.zarfKabul} kabul${ret > 0 ? `, ${ret} ret` : ''})` : `Zarf: ${ret} ret`;
+      yaz(sol, sy, metin, 36, hesap.zarfKabul > 0 ? PAL.damgaBosalt : PAL.murekkepSoluk);
+    }
     const ad = L + 640;
     const deger = L + KAGIT.w - 40;
     const satirlar: [string, string, string][] = [
       [`Maaş (${hesap.dogru} × ${P.maas})`, `+${para(hesap.maas)}`, PAL.murekkep],
       [`Ceza (${hesap.yanlis} × ${P.ceza})`, hesap.ceza > 0 ? para(-hesap.ceza) : para(0), PAL.damgaBosalt],
-      ['Günün toplamı', para(hesap.toplam), PAL.murekkep],
+      [hesap.zarf > 0 ? 'Günün toplamı (zarf dahil)' : 'Günün toplamı', para(hesap.toplam), PAL.murekkep],
       ['Birikmiş', para(yeniPara), PAL.murekkep],
     ];
     satirlar.forEach(([a, b, renk], i) => {

@@ -3,6 +3,7 @@ import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
 import { FONT } from '../config';
 import type { Kural } from '../game/building';
+import { kuralMetni } from '../game/rules';
 import { masayaSikistir, ustKatman } from './DocumentCard';
 import type { SecimNesne, Yuzey } from './Inspect';
 import { PAL } from './palette';
@@ -36,7 +37,7 @@ export class RuleNote extends Phaser.GameObjects.Container {
 
     const baslik = yazi(`KURAL NOTU · GÜN ${gun}`, 40, PAL.murekkep);
     const gorevYazi = yazi(gorev, 30, PAL.basikSerit);
-    const kuralYazilari = kurallar.map((k) => yazi(k.metin, 30, PAL.murekkep));
+    const kuralYazilari = kurallar.map((k) => yazi(kuralMetni(k, gun), 30, PAL.murekkep));
 
     // Yükseklik içerikten: başlık, görev, ayraç, kurallar.
     let h = 20 + 44 + 8 + gorevYazi.height + 20;

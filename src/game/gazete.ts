@@ -1,5 +1,6 @@
 // @beyan metin
 import type { Damga } from './building';
+import { ZARF_GAZETE } from './diyalog';
 import type { DepremBinaSonucu, DepremOzeti } from './session';
 
 /**
@@ -80,4 +81,19 @@ export function degerlendirme(o: DepremOzeti): { metin: string; ton: 'iyi' | 'or
   if (o.doluCoken > 0) return { metin: '[Değerlendirme: onayladığın binalar çöktü]', ton: 'kotu' };
   if (o.doluAgir > 0) return { metin: '[Değerlendirme: yıkım yok ama ağır hasar var]', ton: 'orta' };
   return { metin: '[Değerlendirme: sokak depreme hazırdı]', ton: 'iyi' };
+}
+
+/**
+ * Zarf izi (G17): kabul edilen zarfın binası depremde hasar gördüyse (ya da çöktüyse) gazetede bir satır.
+ * Kabul edilmediyse ya da binalar sağlamsa null.
+ */
+export function zarfSatiri(s: readonly DepremBinaSonucu[]): string | null {
+  return s.some((b) => b.zarf && (b.coktu || b.durum !== 'ayakta')) ? ZARF_GAZETE : null;
+}
+
+/** Sonuç ekranındaki zarf satırı (kabul edilen zarf yoksa null). */
+export function zarfOzeti(adet: number, toplam: number, s: readonly DepremBinaSonucu[]): string | null {
+  if (adet === 0) return null;
+  const hasar = s.filter((b) => b.zarf && (b.coktu || b.durum !== 'ayakta')).length;
+  return `[Kabul edilen zarf: ${adet} · ${toplam} TL${hasar > 0 ? ` · zarf alınan ${hasar} bina depremde hasar gördü` : ''}]`;
 }

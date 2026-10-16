@@ -7,7 +7,7 @@ import { PX, rastgele, snap, Tuval } from '../desk/pixel';
 import { masaCiz, pikselDugme } from '../desk/props';
 import { Sokak, type SokakGirdi } from '../desk/Street';
 import { SON_GUN } from '../game/days';
-import { DOLGU_BASLIKLAR, FOTO_ALTI, GAZETE_ADI, GAZETE_TARIH, manset, oneCikanlar, sayiSatiri } from '../game/gazete';
+import { DOLGU_BASLIKLAR, FOTO_ALTI, GAZETE_ADI, GAZETE_TARIH, manset, oneCikanlar, sayiSatiri, zarfSatiri } from '../game/gazete';
 import { depremOzeti, sokakKayitlari, type DepremBinaSonucu } from '../game/session';
 import { fadeIn, goTo } from '../systems/transition';
 import { SCENES } from './keys';
@@ -93,6 +93,14 @@ export class NewspaperScene extends Phaser.Scene {
       .text(snap(sx), snap(FOTO.y), sayiSatiri(oz), { fontFamily: FONT, fontSize: '40px', color: MUREKKEP, wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
       .setOrigin(0, 0);
     let y = snap(FOTO.y + sayi.height + 16);
+    // Zarf izi (G17): kabul edilen zarfın binası hasar gördüyse.
+    const zarf = zarfSatiri(v.sonuclar);
+    if (zarf) {
+      const z = this.add
+        .text(snap(sx), y, zarf, { fontFamily: FONT, fontSize: '32px', color: '#6e2a24', wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
+        .setOrigin(0, 0);
+      y = snap(y + z.height + 12);
+    }
     cizgi(y, sx, R - 40);
     for (y += 24; y < FOTO.y + FOTO.h + 36; y += 20) this.add.rectangle(snap(sx), snap(y), snap(sw - rnd() * 24), 8, 0x6e675c, 0.55).setOrigin(0);
 

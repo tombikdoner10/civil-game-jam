@@ -6,7 +6,7 @@ import { num, PAL } from '../desk/palette';
 import { PX, rastgele, snap, Tuval } from '../desk/pixel';
 import { masaCiz, pikselDugme } from '../desk/props';
 import { gunAyar, SON_GUN } from '../game/days';
-import { degerlendirme } from '../game/gazete';
+import { degerlendirme, zarfOzeti } from '../game/gazete';
 import { depremOzeti, gunHesabi, oyunToplami } from '../game/session';
 import { fadeIn, goTo } from '../systems/transition';
 import type { GameData } from './GameScene';
@@ -115,6 +115,16 @@ export class ResultScene extends Phaser.Scene {
       yaz(L + SUTUN.para, topY, para(kazanc), 34, PAL.murekkep, 1),
       yaz(L + SUTUN.para, topY + 52, `Birikmiş para: ${para(v.para)}`, 38, PAL.murekkep, 1),
     ];
+    // Zarf (G17): kabul edilen zarflar ve hasar gören binaları (yer tutucu metin).
+    let zarfAdet = 0;
+    let zarfTL = 0;
+    for (const k of v.kayitlar) {
+      const h = gunHesabi(k.kararlar, gunAyar(k.gun).dosyaSayisi);
+      zarfAdet += h.zarfKabul;
+      zarfTL += h.zarf;
+    }
+    const zarf = zarfOzeti(zarfAdet, zarfTL, v.sonuclar);
+    if (zarf) toplamlar.push(this.sigdir(yaz(L + SUTUN.gun, topY + 52, zarf, 32, PAL.damgaBosalt), 760));
     for (const o of toplamlar) gorun(o, 200 + v.kayitlar.length * 90 + 80);
 
     // Deprem özeti: dört kutu

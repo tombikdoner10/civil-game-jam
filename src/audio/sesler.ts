@@ -101,6 +101,19 @@ export function seslerKur(): void {
     'thud',
   );
 
+  // Gişe konuşması (G17): balonda harf yazılırken kısa tık; zarf masaya kayar, çekmeceye girer, geri verilir.
+  t('konus', { dosya: ['click2'], volume: 0.14, rate: 1.9, oynama: 0.18 }, 'click');
+  t('zarfKay', { dosya: ['bookFlip2'], volume: 0.8, rate: 0.85, bas: 0.02 }, 'whoosh');
+  t(
+    'zarfCekmece',
+    [
+      { dosya: ['bookPlace2'], volume: 0.5, rate: 1.1 },
+      { dosya: ['impactWood_light_001'], volume: 0.5, rate: 0.85, gecikme: 0.1 },
+    ],
+    'thud',
+  );
+  t('zarfRet', { dosya: ['bookFlip3'], volume: 0.8, rate: 0.9, bas: 0.025 }, 'whoosh');
+
   // Deprem (Quake.ts): gürleme tabanı sfx.gurleme() (kodla), üstüne bunlar.
   t(
     'depremVurus',

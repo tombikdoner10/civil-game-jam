@@ -2,9 +2,12 @@
 import * as Phaser from 'phaser';
 import { MONO } from '../config';
 import type { Bina, Damga } from '../game/building';
+import type { Ifade, Kisi } from '../game/kisi';
 import type { SokakKaydi } from '../game/session';
+import { Konusma, type SoyleSecenek } from './Konusma';
 import { PAL } from './palette';
 import { dizgiTohum, PX, rastgele, Tuval } from './pixel';
+import { Portre, PORTRE_EKRAN } from './Portre';
 import { Sokak } from './Street';
 import { cepheSecimi } from './tiles';
 
@@ -20,7 +23,10 @@ const GISE = { x: 1248, y: 32, w: 640, h: 360 };
 export const GOZ = { x: 1568, y: BANT_H + 8 };
 
 /** Sokak (gök ve binalar) gişenin arkasında: pencereden taşan kısmı duvar ve buzlu cam örter. */
-const D = { sokak: 2990, arka: 3000, siluet: 3001, on: 3002, duvar: 3003, yazi: 3004 };
+const D = { sokak: 2990, arka: 3000, siluet: 3001, on: 3002, duvar: 3003, yazi: 3004, balon: 3015 };
+/** Gişedeki kişi camın sağ yarısında; konuşma balonu solda, cama iliştirilmiş fiş gibi. */
+const KISI = { x: GISE.x + GISE.w - PORTRE_EKRAN.w - 40, y: GISE.y + GISE.h - PORTRE_EKRAN.h };
+const BALON = { x: GISE.x + 8, y: GISE.y + 32, w: 320 };
 /** Sokaktaki tozun derinliği (Quake). */
 export const SOKAK_DERINLIK = D.sokak;
 
@@ -32,7 +38,8 @@ export function binaSecimi(bina: Bina): ReturnType<typeof cepheSecimi> {
 /** Belediye penceresi: dışarıda kalıcı sokak ve dosyanın binası, sağda buzlu camlı gişe, altta tezgâh ve paneller. */
 export class Pencere {
   readonly sokak: Sokak;
-  private siluet?: Phaser.GameObjects.Image;
+  private portre?: Portre;
+  private readonly balon: Konusma;
   private readonly saatYazi: Phaser.GameObjects.Text;
   private readonly dosyaYazi: Phaser.GameObjects.Text;
 
@@ -52,6 +59,7 @@ export class Pencere {
     yaz(96, `GÜN ${gun}`, MONO, 32, PAL.panelYazi);
     this.saatYazi = yaz(248, '09:00', MONO, 40, PAL.saat);
     this.dosyaYazi = yaz(440, '', MONO, 32, PAL.panelYazi);
+    this.balon = new Konusma(scene, BALON, D.balon);
   }
 
   setSaat(t: string): void {
@@ -135,7 +143,8 @@ export class Pencere {
 
     const on = new Tuval(this.scene, w, h, 'gise-on');
     for (let x = 4; x < w; x += 5) on.dither(x, 0, 2, h, PAL.buzluAcik, x);
-    on.goruntu(GISE.x, GISE.y).setOrigin(0).setDepth(D.on).setAlpha(0.35);
+    // Buzlu cam hafif: arkadaki portre okunsun.
+    on.goruntu(GISE.x, GISE.y).setOrigin(0).setDepth(D.on).setAlpha(0.2);
     // Konuşma deliği ve alt kayıt
     const g = new Tuval(this.scene, w, h, 'gise-delik');
     const cx = Math.floor(w / 2);
@@ -156,54 +165,39 @@ export class Pencere {
     this.sokak.damgala(damga);
   }
 
-  /** Gişeye yeni mal sahibinin silueti gelir. */
-  siluetGelsin(tohum: number): void {
-    const rnd = rastgele(tohum);
-    const W = 72;
-    const H = 76;
-    const t = new Tuval(this.scene, W, H, 'siluet');
-    const cx = 36 + Math.floor(rnd() * 5) - 2;
-    const omuz = 26 + Math.floor(rnd() * 8);
-    const basR = 10 + Math.floor(rnd() * 3);
-    const basY = 24;
-    const sapka = rnd() < 0.3;
-    const topuz = !sapka && rnd() < 0.3;
-    const icinde = (x: number, y: number): boolean => {
-      const dx = x - cx;
-      const dyB = y - basY;
-      if ((dx * dx) / (basR * basR) + (dyB * dyB) / ((basR + 2) * (basR + 2)) <= 1) return true;
-      if (topuz && (dx + 4) * (dx + 4) + (y - (basY - basR - 1)) ** 2 <= 20) return true;
-      if (sapka && y >= basY - basR - 7 && y <= basY - basR + 2 && Math.abs(dx) <= basR - 1) return true;
-      if (sapka && y >= basY - basR + 1 && y <= basY - basR + 3 && Math.abs(dx) <= basR + 6) return true;
-      if (y > basY + basR - 2 && y < basY + basR + 8 && Math.abs(dx) <= 5) return true;
-      const gy = basY + basR + 6;
-      if (y >= gy) {
-        const k = Math.min(1, (y - gy) / 14);
-        const yari = 10 + (omuz - 10) * Math.sqrt(k);
-        if (Math.abs(dx) <= yari) return true;
-      }
-      return false;
-    };
-    for (let y = 0; y < H; y++)
-      for (let x = 0; x < W; x++) {
-        if (!icinde(x, y)) continue;
-        const kenar = !icinde(x - 1, y) || !icinde(x + 1, y) || !icinde(x, y - 1);
-        if (kenar && (x + y) % 2 === 1) continue;
-        t.px(x, y, kenar ? '#3b3d40' : PAL.siluet);
-      }
-    const eski = this.siluet;
-    if (eski) eski.destroy();
-    const x = GISE.x + GISE.w / 2 - (W * PX) / 2;
-    const y = GISE.y + GISE.h - H * PX;
-    const img = t.goruntu(x + 64, y).setOrigin(0).setDepth(D.siluet).setAlpha(0);
-    this.siluet = img;
-    this.scene.tweens.add({ targets: img, x, alpha: 0.82, duration: 500, ease: 'Sine.easeOut' });
+  /** Gişeye yeni mal sahibi gelir (portre tohumdan; aynı dosya, aynı kişi). */
+  kisiGelsin(kisi: Kisi): void {
+    this.portre?.destroy();
+    this.balon.temizle();
+    const p = new Portre(this.scene, kisi.portre, KISI.x + 64, KISI.y);
+    p.img.setDepth(D.siluet).setAlpha(0);
+    this.portre = p;
+    this.scene.tweens.add({ targets: p.img, x: KISI.x, alpha: 1, duration: 500, ease: 'Sine.easeOut' });
   }
 
-  siluetGitsin(): void {
-    const img = this.siluet;
-    if (!img) return;
-    this.siluet = undefined;
-    this.scene.tweens.add({ targets: img, x: img.x - 96, alpha: 0, duration: 450, ease: 'Sine.easeIn', onComplete: () => img.destroy() });
+  kisiGitsin(): void {
+    const p = this.portre;
+    this.balon.kapat();
+    if (!p) return;
+    this.portre = undefined;
+    p.konus(false);
+    this.scene.tweens.add({ targets: p.img, x: p.img.x - 96, alpha: 0, duration: 450, ease: 'Sine.easeIn', onComplete: () => p.destroy() });
+  }
+
+  ifade(i: Ifade): void {
+    this.portre?.setIfade(i);
+  }
+
+  /** Gişedeki kişi konuşur: balonda harf harf, ağzı kıpırdar. */
+  soyle(metin: string, ifade?: Ifade, secenek: SoyleSecenek = {}): void {
+    if (ifade) this.ifade(ifade);
+    const p = this.portre;
+    this.balon.soyle(metin, {
+      ...secenek,
+      konusan: (on) => {
+        p?.konus(on);
+        secenek.konusan?.(on);
+      },
+    });
   }
 }

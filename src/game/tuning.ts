@@ -81,6 +81,46 @@ export const TUNING = {
   para: { baslangic: 0, maas: 20, ceza: 10 },
 
   /**
+   * Gişedeki kişi (G17): kişilik, SOR ve İSTE olasılıkları. Gün başına değerler dizide (gün 1 = ilk eleman).
+   * Zarf damgayı değiştirmez; kabul edilen zarf parayı artırır ve kayda girer.
+   */
+  kisi: {
+    /** Kişilik ağırlıkları; pazarlıkçı payı güne göre (gün 5'te zarf daha sık). */
+    kisilik: { durust: 0.4, kacamak: 0.4, pazarlikci: [0.25, 0.25, 0.3, 0.3, 0.6] },
+    /** SOR'da gün başına taban zarf olasılığı; kişilik çarpanı ve BOŞALT çarpanıyla (en çok 0.9). */
+    zarf: [0.3, 0.3, 0.35, 0.35, 0.6],
+    bosaltZarf: 1.3,
+    /** Kişiliğe göre: zarf çarpanı ve (zarf değilse) itiraf olasılığı; kalanı bahane. */
+    sor: {
+      durust: { zarfCarpan: 0, itiraf: 0.75 },
+      kacamak: { zarfCarpan: 0.6, itiraf: 0.25 },
+      pazarlikci: { zarfCarpan: 2, itiraf: 0.15 },
+    },
+    /** Zarftaki para (TL; maaş dosya başına 20). */
+    zarfMiktar: { guclendir: { min: 40, max: 80 }, bosalt: { min: 80, max: 160 }, adim: 10 },
+    /** Hangi günden itibaren: SOR, İSTE (eksik belgede) ve sahte rapor. */
+    sorIlkGun: 1,
+    isteIlkGun: 3,
+    sahteRaporIlkGun: 3,
+    /**
+     * İSTE: gerçek rapor / sahte rapor / getiremez ağırlıkları. Eksik belgenin arkasında gerçek kusur saklıysa
+     * sahte daha olası. Pazarlıkçıda sahte ağırlığı çarpılır, dürüstte azalır.
+     */
+    iste: {
+      sakli: { gercek: 0.25, sahte: 0.5, yok: 0.25 },
+      temiz: { gercek: 0.6, sahte: 0.15, yok: 0.25 },
+      pazarlikciSahte: 1.6,
+      durustSahte: 0.3,
+      /** Sahte raporun tarihi bugünden kaç gün ileri (ipucu "tarih"); öbür raporlar kaç gün önce. */
+      sahteTarihIleri: { min: 3, max: 25 },
+      gercekTarihOnce: { min: 2, max: 40 },
+    },
+  },
+
+  /** Konuşma balonu: harf başına yazma süresi, metin bitince kalış süresi (taban + harf başı), gecikmeler (ms). */
+  diyalog: { harfMs: 26, kalisMs: 2600, kalisHarfMs: 40, selamGecikme: 700, raporGecikme: 1000 },
+
+  /**
    * Öncü sarsıntı (gün 1 sonu): risk çarpanı, süre (ms) ve kamera sarsıntısı genliği. Öncüde yalnızca belgelerdeki
    * kusurlar sayılır ve en fazla çatlak olur. 2.5 ile: 1 kaçak katlı bina GÜVENLİ damgalıysa çatlar, GÜÇLENDİR
    * damgalıysa sağlam kalır; temiz bina sağlam kalır.

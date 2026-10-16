@@ -27,7 +27,11 @@ Kısaltmalar: **I** impact-sounds, **R** rpg-audio, **IF** interface-sounds, **U
 | Seçim bırak (`secBirak`) | `Inspect.tikla` (aynı alana ya da boşluğa) | IF `back_002` | IF `back_004` |
 | Kusur bulundu (`kusur`) | `Inspect.degerlendir` | IF `bong_001` (rate 0.8) + I `impactPlate_heavy_001` | IF `switch_003`, J `jingles_HIT03`, I `impactPlate_heavy_003` |
 | Tutarsızlık yok (`tutarsizlikYok`) | `Inspect.degerlendir` | IF `error_004` | IF `error_008`, IF `back_002` |
-| Mal sahibi gelir/gider (`siluet`) | `GameScene.dosyaGetir`, dosya bitince | R `footstep00` + R `footstep03` (iki adım) | R `footstep01-09`, I `footstep_concrete_*` |
+| Mal sahibi (portre) gelir/gider (`siluet`) | `GameScene.dosyaGetir`, dosya bitince | R `footstep00` + R `footstep03` (iki adım) | R `footstep01-09`, I `footstep_concrete_*` |
+| Konuşma balonunda harf (`konus`, G17) | `Konusma` (gişedeki kişi konuşurken, iki harfte bir) | U `click2` (çok sessiz, rate 1.9, perde oynar) | U `click1`, IF `tick_001/002` |
+| Zarf masaya kayar (`zarfKay`, G17) | `GameScene.zarfGetir` (SOR cevabı zarf olunca) | R `bookFlip2` (rate 0.85) | R `cloth2`, R `bookFlip1` |
+| Zarf çekmeceye / çekmece kapanır (`zarfCekmece`, G17) | `Cekmece.kapa` (zarf kabul ya da ret) | R `bookPlace2` + I `impactWood_light_001` | R `handleCoins` (para sesi), R `doorClose_1` |
+| Zarf gişeye geri verilir (`zarfRet`, G17) | `GameScene.zarfBirakildi` (ret) | R `bookFlip3` (rate 0.9) | R `cloth4` |
 | Öncü sarsıntı: gürleme | `Quake.oynat`, sarsıntı boyunca (zarfı izler; duraklatınca susar, bitince kapanır) | **Kodla üretilir** (`sfx.gurleme()`, kahverengi gürültü) | Havuzda uzun gürleme sesi yok |
 | Öncü sarsıntı: derin vuruş (`depremVurus`) | başta, %22 ve %38'de; tepede ara sıra | I `impactSoft_heavy_003` (rate 0.4) + I `impactPunch_heavy_*` (rate 0.35) | I `impactPlank_medium_*` (rate 0.4) |
 | Öncü sarsıntı: moloz (`moloz`) | tik başına olasılıkla, şiddetle artar | I `impactMining_000/002/004` (rate 0.85) | I `impactMining_001/003`, I `footstep_concrete_*` |
