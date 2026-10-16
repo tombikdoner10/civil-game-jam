@@ -200,9 +200,12 @@ function foto(k: Ctx): void {
     const o = s.add.rectangle(ox + x * 2, oy + y * 2, w * 2, hh * 2, 0xffffff, 0.001).setOrigin(0);
     c.alanEkle(alan, o);
   };
-  r('kat', bx, yTop, CEPHE_W, Math.max(4, d.katY1));
+  // Kat sayısı zemin dahil: kat alanı bütün cepheyi kapsar. Kolon (zemin kat bandı) ve çatlak bunun
+  // içinde kalır; inceleme modunda üst üste binen alanlardan küçük olan seçilir.
+  r('kat', bx, yTop, CEPHE_W, h);
   r('kolon', bx, yTop + d.zeminY, CEPHE_W, ZEMIN_H);
-  r('catlak', bx + d.catlak.x - 4, yTop + d.catlak.y - 3, d.catlak.w + 8, d.catlak.h + 6);
+  // Çatlak yoksa çatlak alanı da yok (boş duvara tıklayan kat alanını seçsin).
+  if (f.gorunenCatlak !== 'yok') r('catlak', bx + d.catlak.x - 4, yTop + d.catlak.y - 3, d.catlak.w + 8, d.catlak.h + 6);
 }
 
 function proje(k: Ctx): void {

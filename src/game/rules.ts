@@ -1,4 +1,4 @@
-import type { Bina, Damga, Kural, Kusur, KusurId } from './building';
+import type { AlanRef, Bina, Damga, Kural, Kusur, KusurId } from './building';
 import { TUNING } from './tuning';
 
 /** Kusur başına yer tutucu etiket, ciddiyet ve kanıt alanları. */
@@ -136,4 +136,43 @@ export function depremSonucu(b: Bina, damga: Damga, siddet = 1): DepremSonucu {
   if (damga === 'guclendir') risk *= R.guclendirCarpan;
   const durum: HasarDurumu = risk < R.hasarEsik ? 'ayakta' : risk < R.agirHasarEsik ? 'hasarli' : 'agirHasar';
   return { durum, bos: damga === 'bosalt', risk };
+}
+
+// ---- İnceleme modu (G3) ----
+
+/** İnceleme modunda seçilebilen öğe: belge alanı ya da kural kitabındaki bir kural satırı. */
+export interface SecimRef {
+  belge: AlanRef['belge'] | 'kural';
+  alan: string;
+}
+
+/** Bu kusuru kapsayan kural (kural kitabındaki satır). */
+export function kusurKurali(id: KusurId): Kural | undefined {
+  return KURALLAR.find((k) => k.kusurlar.includes(id));
+}
+
+/**
+ * Bu kusurun kanıtı için tıklanması gereken öğeler. İki alanlı kanıt olduğu gibi; tek alanlı kanıtta
+ * alan ve o kusuru kapsayan kural satırı (eşik kural kitabında).
+ */
+export function kanitOgeleri(id: KusurId): SecimRef[] {
+  const kanit: SecimRef[] = KUSUR_BILGI[id].kanit.slice();
+  if (kanit.length === 1) {
+    const kural = kusurKurali(id);
+    if (kural) kanit.push({ belge: 'kural', alan: kural.id });
+  }
+  return kanit;
+}
+
+const ayni = (a: SecimRef, b: SecimRef): boolean => a.belge === b.belge && a.alan === b.alan;
+
+/** Seçim, kusurun kanıt öğeleriyle (sırası önemsiz) aynı mı? */
+export function kanitEslesir(id: KusurId, secim: readonly SecimRef[]): boolean {
+  const kanit = kanitOgeleri(id);
+  return kanit.length === secim.length && kanit.every((k) => secim.some((s) => ayni(k, s)));
+}
+
+/** Seçimin kanıtladığı, o gün görünen (kuralı gelmiş) kusur; yoksa null. */
+export function seciminKusuru(b: Bina, gun: number, secim: readonly SecimRef[]): Kusur | null {
+  return gorunenKusurlar(b, gun).find((k) => kanitEslesir(k.id, secim)) ?? null;
 }

@@ -1,10 +1,13 @@
 import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
-import { DEV } from '../config';
+import { DEV, FONT } from '../config';
 import { DocumentCard, MASA, ustKatman } from '../desk/DocumentCard';
 import { belgeKur, BOY, SIRA } from '../desk/documents';
 import { snap } from '../desk/pixel';
-import { fisDusur, fisKaldir, kuralKitabi, masaCiz } from '../desk/props';
+import { DUGME, Inspect, type Yuzey } from '../desk/Inspect';
+import { PAL } from '../desk/palette';
+import { fisDusur, fisKaldir, masaCiz } from '../desk/props';
+import { RuleBook } from '../desk/RuleBook';
 import { DAMGA_ADI, damgaIzi, StampTray, TEPSI_SOL } from '../desk/StampTray';
 import { GOZ, MASA_Y, Pencere } from '../desk/Window';
 import type { BelgeTuru, Damga } from '../game/building';
@@ -46,6 +49,9 @@ export class GameScene extends Phaser.Scene {
   private tepsi!: StampTray;
   private fis?: Phaser.GameObjects.Container;
   private ilkDosya = true;
+  private inceleme!: Inspect;
+  private kitap!: RuleBook;
+  private ipucu?: Phaser.GameObjects.Text;
 
   constructor() {
     super(SCENES.Game);
@@ -66,6 +72,7 @@ export class GameScene extends Phaser.Scene {
     this.bitirildi = false;
     this.fis = undefined;
     this.ilkDosya = true;
+    this.ipucu = undefined;
   }
 
   create(): void {
@@ -80,7 +87,7 @@ export class GameScene extends Phaser.Scene {
     MASA.w = TEPSI_SOL.kapali;
     MASA.h = 1080 - MASA_Y;
     masaCiz(this, MASA_Y);
-    kuralKitabi(this, KITAP[0], KITAP[1]);
+    this.kitap = new RuleBook(this, KITAP[0], KITAP[1], this.gun, () => this.inceleme.acik);
     this.pencere = new Pencere(this, this.gun);
     this.tepsi = new StampTray(this, (d) => this.damgala(d));
     // Masa sınırı damga çubuğunun sol kenarında biter; çubuk açılınca altında kalan belgeler dışarı itilir.
@@ -92,6 +99,7 @@ export class GameScene extends Phaser.Scene {
       MASA.w = TEPSI_SOL.kapali;
     });
 
+    this.incelemeKur();
     this.dosyaGetir();
 
     // Pencere odağı kaçarsa (alt-tab, başka sekme) oyunu duraklat.
@@ -104,9 +112,12 @@ export class GameScene extends Phaser.Scene {
 
   update(_time: number, delta: number): void {
     if (this.controls.justDown('pause')) {
-      this.pauseGame();
+      // Esc önce inceleme modunu kapatır, kapalıyken duraklatır.
+      if (this.inceleme.acik) this.inceleme.kapa();
+      else this.pauseGame();
       return;
     }
+    if (this.controls.justDown('action')) this.inceleme.degistir();
     if (this.bitirildi) return;
     if (!this.mesgul) {
       this.oturum.ilerle(Math.min(delta, 100) / 1000);
@@ -117,6 +128,47 @@ export class GameScene extends Phaser.Scene {
       }
     }
     this.pencere.setSaat(this.oturum.saatMetni());
+  }
+
+  /** İnceleme modu: açıkken belgeler sürüklenmez, damga çubuğu kilitli. */
+  private incelemeKur(): void {
+    this.inceleme = new Inspect(this, {
+      yuzeyler: () => {
+        const out: Yuzey[] = this.kartlar
+          .filter((k) => k.active)
+          .map((k) => ({
+            derinlik: k.depth,
+            sinir: new Phaser.Geom.Rectangle(k.x - k.genislik / 2, k.y - k.yukseklik / 2, k.genislik, k.yukseklik),
+            alanlar: k.alanlar(),
+          }));
+        const kitap = this.kitap.yuzey();
+        if (kitap) out.push(kitap);
+        return out;
+      },
+      kontrol: (secim) => this.oturum.incele(secim),
+      izin: () => !this.mesgul && !this.bitirildi,
+    });
+    this.inceleme.on('ac', () => {
+      for (const k of this.kartlar) k.disableInteractive(true);
+      this.tepsi.kilitle(true);
+      if (this.ipucu) {
+        this.tweens.killTweensOf(this.ipucu);
+        this.ipucu.destroy();
+        this.ipucu = undefined;
+      }
+    });
+    this.inceleme.on('kapa', () => {
+      for (const k of this.kartlar) if (k.active) k.setInteractive();
+      this.tepsi.kilitle(false);
+    });
+    // Gün 1 ipucu (yer tutucu metin): inceleme modu bir kez açılınca kaybolur.
+    if (this.gun === 1) {
+      this.ipucu = this.add
+        .text(DUGME.x + DUGME.w / 2 + 24, DUGME.y, '< Space: İNCELE', { fontFamily: FONT, fontSize: '32px', color: PAL.saat })
+        .setOrigin(0, 0.5)
+        .setDepth(3020);
+      this.tweens.add({ targets: this.ipucu, alpha: 0.25, duration: 420, yoyo: true, repeat: -1 });
+    }
   }
 
   /** Masa sınırının dışında kalan belgeleri (ör. açılan damga çubuğunun altındakileri) içeri kaydırır. */
@@ -202,6 +254,7 @@ export class GameScene extends Phaser.Scene {
     this.kartlar = [];
     const topla = 1300;
     this.time.delayedCall(topla, () => {
+      this.inceleme.dosyaBitti();
       this.pencere.siluetGitsin();
       eski.forEach((k, i) => {
         this.input.setDraggable(k, false);

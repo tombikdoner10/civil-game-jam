@@ -7,7 +7,7 @@
       "yer": [
         "Menüler, arayüz ve efektler (jam öncesi şablon)",
         "src/desk/documents.ts, src/desk/tiles.ts, src/desk/StampTray.ts, src/desk/props.ts",
-        "src/desk/ (9 dosya)"
+        "src/desk/ (11 dosya)"
       ]
     },
     "audio": {
@@ -21,10 +21,11 @@
     "code": {
       "kullanildi": true,
       "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5)",
-      "amac": "Oyunun kodunu yazdı; Gün dosyası dengesi, masa sınırı, kart boyutu, duman testi bayrakları (betikle düzenlendi)",
+      "amac": "Oyunun kodunu yazdı; Gün dosyası dengesi, masa sınırı, kart boyutu, duman testi bayrakları (betikle düzenlendi); İnceleme modu ve kural kitabı (G3): Bash/Python betiğiyle yapılan kod düzenlemeleri",
       "yer": [
         "Jam öncesi şablonun bütün kodu",
         "src/game/, src/desk/DocumentCard.ts, src/scenes/, src/ui/, scripts/smoke.mjs",
+        "src/scenes/GameScene.ts, src/game/rules.ts, src/game/session.ts, src/desk/documents.ts, src/desk/StampTray.ts",
         "src/game/ (4 dosya)",
         "src/scenes/GameScene.ts",
         "scripts/smoke.mjs"

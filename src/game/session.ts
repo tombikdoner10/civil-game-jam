@@ -1,6 +1,6 @@
-import type { Bina, Damga, KusurId } from './building';
+import type { Bina, Damga, Kusur, KusurId } from './building';
 import { gunDosyalari } from './building';
-import { dogruDamga, gorunenKusurlar } from './rules';
+import { dogruDamga, gorunenKusurlar, seciminKusuru, type SecimRef } from './rules';
 import { TUNING } from './tuning';
 
 export interface Karar {
@@ -10,6 +10,14 @@ export interface Karar {
   dogru: boolean;
   /** O günün kurallarına göre dosyadaki kusurlar (geri bildirim fişi için). */
   kusurlar: KusurId[];
+  /** Oyuncunun inceleme modunda bu dosyada bulduğu kusurlar (gün sonu ekranı için). */
+  bulunan: KusurId[];
+}
+
+export interface IncelemeSonucu {
+  kusur: Kusur;
+  /** Bu dosyada ilk kez mi bulundu. */
+  yeni: boolean;
 }
 
 export function gunDosyaSayisi(gun: number): number {
@@ -23,6 +31,8 @@ export class GunOturumu {
   readonly kararlar: Karar[] = [];
   private idx = 0;
   private gecenSn = 0;
+  /** Mevcut dosyada bulunan kusurlar (bulunma sırasıyla). Dosya damgalanınca sıfırlanır. */
+  private bulunan: KusurId[] = [];
 
   constructor(
     readonly gun: number,
@@ -51,6 +61,25 @@ export class GunOturumu {
     return this.idx >= this.dosyalar.length || this.mesaiBitti;
   }
 
+  /** Mevcut dosyada inceleme moduyla bulunan kusurlar. */
+  get bulunanKusurlar(): readonly KusurId[] {
+    return this.bulunan;
+  }
+
+  /**
+   * İnceleme modu: seçilen iki öğe, mevcut dosyada o günün kurallarıyla görünen bir kusurun kanıtı mı?
+   * Kanıtsa kusur bu dosya için kaydedilir.
+   */
+  incele(secim: readonly SecimRef[]): IncelemeSonucu | null {
+    const b = this.mevcut;
+    if (!b || this.bitti) return null;
+    const kusur = seciminKusuru(b, this.gun, secim);
+    if (!kusur) return null;
+    const yeni = !this.bulunan.includes(kusur.id);
+    if (yeni) this.bulunan.push(kusur.id);
+    return { kusur, yeni };
+  }
+
   /** Mesai saatini ilerlet (gerçek saniye). */
   ilerle(sn: number): void {
     if (!this.mesaiBitti) this.gecenSn += sn;
@@ -71,7 +100,8 @@ export class GunOturumu {
     const dogru = dogruDamga(b, this.gun);
     const kusurlar = gorunenKusurlar(b, this.gun).map((k) => k.id);
     const sonuc = { dogru: dogru === damga, dogruDamga: dogru, kusurlar };
-    this.kararlar.push({ dosyaId: b.id, damga, dogruDamga: dogru, dogru: sonuc.dogru, kusurlar });
+    this.kararlar.push({ dosyaId: b.id, damga, dogruDamga: dogru, dogru: sonuc.dogru, kusurlar, bulunan: this.bulunan.slice() });
+    this.bulunan = [];
     this.idx++;
     return sonuc;
   }

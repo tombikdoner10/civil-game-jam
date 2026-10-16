@@ -43,5 +43,12 @@
     "yer": "src/game/, src/desk/DocumentCard.ts, src/scenes/, src/ui/, scripts/smoke.mjs",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-16T18:05:00.356Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "İnceleme modu ve kural kitabı (G3): Bash/Python betiğiyle yapılan kod düzenlemeleri",
+    "yer": "src/scenes/GameScene.ts, src/game/rules.ts, src/game/session.ts, src/desk/documents.ts, src/desk/StampTray.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-16T18:18:58.344Z"
   }
 ]

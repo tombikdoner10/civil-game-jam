@@ -24,6 +24,8 @@ export const TEPSI_SOL = { acik: TRAY.x, kapali: KAPALI_X } as const;
  */
 export class StampTray extends Phaser.GameObjects.Container {
   acik = false;
+  /** İnceleme modunda çubuk kilitli: açılıp kapanmaz, tokmaklar basmaz. */
+  kilitli = false;
   private readonly tokmaklar = new Map<Damga, Phaser.GameObjects.Container>();
   private readonly ok: Phaser.GameObjects.Image;
   private okTween?: Phaser.Tweens.Tween;
@@ -125,7 +127,7 @@ export class StampTray extends Phaser.GameObjects.Container {
     kap.setSize(240, 160);
     kap.setInteractive({ useHandCursor: true });
     kap.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => {
-      if (this.acik) this.onStamp(d);
+      if (this.acik && !this.kilitli) this.onStamp(d);
     });
     this.add(kap);
     return kap;
@@ -147,7 +149,14 @@ export class StampTray extends Phaser.GameObjects.Container {
     });
   }
 
+  /** Kilit (inceleme modu): çubuk soluklaşır, girdiye kapanır. */
+  kilitle(on: boolean): void {
+    this.kilitli = on;
+    this.setAlpha(on ? 0.55 : 1);
+  }
+
   degistir(): void {
+    if (this.kilitli) return;
     if (this.acik) this.kapa();
     else this.ac();
   }
