@@ -141,7 +141,7 @@ export class Inspect extends Phaser.Events.EventEmitter {
     this.acik = true;
     this.secili = [];
     this.beklemede = false;
-    sfx.play('click');
+    sfx.play('inceleAc');
     this.ortular.forEach((o) => o.setVisible(true));
     this.serit.setVisible(true);
     this.dugmeIsik.setVisible(true);
@@ -155,7 +155,7 @@ export class Inspect extends Phaser.Events.EventEmitter {
     this.acik = false;
     this.secili = [];
     this.beklemede = false;
-    sfx.play('back');
+    sfx.play('inceleKapa');
     this.ortular.forEach((o) => o.setVisible(false));
     this.serit.setVisible(false);
     this.dugmeIsik.setVisible(false);
@@ -204,18 +204,18 @@ export class Inspect extends Phaser.Events.EventEmitter {
     const h = this.bul(w.x, w.y);
     if (!h) {
       // Boşluğa tıklamak seçimi sıfırlar.
-      if (this.secili.length > 0) sfx.play('back');
+      if (this.secili.length > 0) sfx.play('secBirak');
       this.secili = [];
       return;
     }
     const i = this.secili.findIndex((s) => ayni(s, h));
     if (i >= 0) {
       this.secili.splice(i, 1);
-      sfx.play('back');
+      sfx.play('secBirak');
       return;
     }
     this.secili.push(h);
-    sfx.play('click');
+    sfx.play('sec');
     if (this.secili.length === 2) this.degerlendir();
   }
 
@@ -235,7 +235,7 @@ export class Inspect extends Phaser.Events.EventEmitter {
         etiket.setScale(0.4);
         this.scene.tweens.add({ targets: etiket, scale: 1, duration: 200, ease: 'Back.easeOut' });
       }
-      sfx.play('confirm');
+      sfx.play('kusur');
       punch(this.scene, 0.006, 120);
       this.emit('bulundu', sonuc);
       return;
@@ -256,7 +256,7 @@ export class Inspect extends Phaser.Events.EventEmitter {
       .setOrigin(0.5)
       .setDepth(D.etiket);
     this.scene.tweens.add({ targets: yazi, alpha: 0, y: my - 24, delay: 700, duration: 300, onComplete: () => yazi.destroy() });
-    sfx.play('error');
+    sfx.play('tutarsizlikYok');
     this.scene.time.delayedCall(450, () => {
       this.secili = [];
       this.beklemede = false;

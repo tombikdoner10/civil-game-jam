@@ -4,7 +4,8 @@ import '@fontsource/pixelify-sans/400.css';
 import '@fontsource/pixelify-sans/700.css';
 import '@fontsource/vt323/400.css';
 import * as Phaser from 'phaser';
-import { COLORS, HEIGHT, TEAM, TITLE, WIDTH } from './config';
+import { COLORS, DEV, HEIGHT, TEAM, TITLE, WIDTH } from './config';
+import { sfx } from './audio/sfx';
 import { BootScene } from './scenes/BootScene';
 import { CreditsScene } from './scenes/CreditsScene';
 import { DayEndScene } from './scenes/DayEndScene';
@@ -51,3 +52,5 @@ const game = new Phaser.Game({
 
 // Geliştirirken tarayıcı konsolundan incelemek için: window.game
 if (import.meta.env.DEV) Object.assign(window, { game });
+// Ses testleri için (yayında ve ZIP'te de ?dev ile): window.sfx.sayac efektlerin kaç kez, hangi kaynaktan çaldığını tutar.
+if (DEV) Object.assign(window, { sfx });

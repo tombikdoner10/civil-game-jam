@@ -1,5 +1,6 @@
 // @beyan görsel
 import * as Phaser from 'phaser';
+import { sfx } from '../audio/sfx';
 import { FONT } from '../config';
 import type { Damga } from '../game/building';
 import { PAL } from './palette';
@@ -165,6 +166,7 @@ export class StampTray extends Phaser.GameObjects.Container {
   ac(): void {
     if (this.acik) return;
     this.acik = true;
+    sfx.play('tepsi');
     this.emit('ac');
     this.okYanip(false);
     this.scene.tweens.killTweensOf(this);
@@ -174,6 +176,7 @@ export class StampTray extends Phaser.GameObjects.Container {
   kapa(): void {
     if (!this.acik) return;
     this.acik = false;
+    sfx.play('tepsi', { rate: 0.92 });
     this.emit('kapa');
     this.okYanip(true);
     this.scene.tweens.killTweensOf(this);

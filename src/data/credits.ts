@@ -65,7 +65,43 @@ export const ASSETS: Record<Category, AssetCredit[]> = {
       usage: 'Bina cepheleri ve sokak; renk paleti değiştirildi, karolardan cephe kuruldu',
     },
   ],
-  audio: [],
+  audio: [
+    {
+      name: 'Kenney – Impact Sounds',
+      author: 'Kenney (www.kenney.nl)',
+      url: 'https://kenney.nl/assets/impact-sounds',
+      license: 'Creative Commons CC0 1.0',
+      usage: 'Damga tokmağı, damga çubuğu, kusur bulundu sesi ve öncü sarsıntının vuruş, moloz, çatırtı, cam titremesi ve bina hasarı sesleri; çoğu yavaşlatıldı (hız ve perde değiştirildi), bazıları katmanlandı (src/sounds/kenney/impact-sounds/)',
+    },
+    {
+      name: 'Kenney – RPG Audio',
+      author: 'Kenney (www.kenney.nl)',
+      url: 'https://kenney.nl/assets/rpg-audio',
+      license: 'Creative Commons CC0 1.0',
+      usage: 'Kâğıt ve belge sesleri (kayma, alma, bırakma, toplama, fiş), kural kitabı aç/kapa ve sayfa çevirme, inceleme modu aç/kapa, gişede ayak sesleri, sarsıntıda gıcırtı; hız ve perde değiştirildi, baştaki sessizlik atlandı (src/sounds/kenney/rpg-audio/)',
+    },
+    {
+      name: 'Kenney – Interface Sounds',
+      author: 'Kenney (www.kenney.nl)',
+      url: 'https://kenney.nl/assets/interface-sounds',
+      license: 'Creative Commons CC0 1.0',
+      usage: 'Menüde geri sesi, inceleme modunda seçim bırakma, kusur bulundu, "tutarsızlık yok", doğru ve yanlış karar uyarısı; hız ve perde hafifçe değiştirildi (src/sounds/kenney/interface-sounds/)',
+    },
+    {
+      name: 'Kenney – UI Audio',
+      author: 'Kenney (www.kenney.nl)',
+      url: 'https://kenney.nl/assets/ui-audio',
+      license: 'Creative Commons CC0 1.0',
+      usage: 'Menü düğmeleri (tık, üzerine gelme) ve inceleme modunda alan seçimi; değiştirilmedi (src/sounds/kenney/ui-audio/)',
+    },
+    {
+      name: 'Kenney – Music Jingles',
+      author: 'Kenney (www.kenney.nl)',
+      url: 'https://kenney.nl/assets/music-jingles',
+      license: 'Creative Commons CC0 1.0',
+      usage: 'Gün sonu raporu: iyi gün ve kötü gün jingle\'ı (Pizzicato); değiştirilmedi (src/sounds/kenney/music-jingles/)',
+    },
+  ],
   code: [
     {
       name: 'Phaser 3.90',

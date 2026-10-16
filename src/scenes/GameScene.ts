@@ -251,7 +251,7 @@ export class GameScene extends Phaser.Scene {
     not.setDepth(ustKatman()).setAlpha(0);
     const [x, y] = not.masadaKonum(this.yer.not[0], this.yer.not[1]);
     this.tweens.add({ targets: not, alpha: 1, duration: 120, delay: 150 });
-    this.tweens.add({ targets: not, x, y, duration: 460, delay: 150, ease: 'Cubic.easeOut', onStart: () => sfx.play('whoosh') });
+    this.tweens.add({ targets: not, x, y, duration: 460, delay: 150, ease: 'Cubic.easeOut', onStart: () => sfx.play('kagitKay') });
     this.not = not;
   }
 
@@ -293,6 +293,7 @@ export class GameScene extends Phaser.Scene {
     this.pencere.setDosya(this.oturum.no, this.oturum.toplam);
     this.pencere.binaGoster(bina);
     this.pencere.siluetGelsin(this.tohum + this.oturum.no * 7919);
+    sfx.play('siluet');
     const gecikme = 350;
     const belgeler = this.oturum.ayar.belgeler;
     this.kartlar = belgeler.map((tur, i) => {
@@ -307,7 +308,11 @@ export class GameScene extends Phaser.Scene {
         duration: 420,
         delay: gecikme + i * 80,
         ease: 'Cubic.easeOut',
-        onStart: () => sfx.play('whoosh'),
+        onStart: () => sfx.play('kagitKay', { volume: 0.7 }),
+        // Son belge masaya inince kâğıt sesi.
+        onComplete: () => {
+          if (i === belgeler.length - 1) sfx.play('kagitBirak');
+        },
       });
       return k;
     });
@@ -330,7 +335,7 @@ export class GameScene extends Phaser.Scene {
     const ruhsat = this.kartlar.find((k) => k.tur === 'ruhsat');
     this.tepsi.bas(damga);
     this.time.delayedCall(70, () => {
-      sfx.play('thud');
+      sfx.play('damga');
       this.pencere.damgaVur(damga);
       punch(this, 0.01, 110);
       if (ruhsat?.active) {
@@ -353,7 +358,8 @@ export class GameScene extends Phaser.Scene {
       if (yer) fisDusur(this, fis, yer[0], yer[1]);
       else fisDusur(this, fis, FIS_GISE.x, FIS_GISE.alt - fis.height / 2, FIS_GISE.derinlik);
       this.fis = fis;
-      sfx.play(sonuc.dogru ? 'confirm' : 'error');
+      sfx.play('fis');
+      sfx.play(sonuc.dogru ? 'dogru' : 'uyari');
     });
 
     // Belgeler toplanıp gişeden geri verilir, mal sahibi ayrılır.
@@ -364,6 +370,7 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(topla, () => {
       this.inceleme.dosyaBitti();
       this.pencere.siluetGitsin();
+      sfx.play('siluet', { volume: 0.7 });
       eski.forEach((k, i) => {
         this.input.setDraggable(k, false);
         k.disableInteractive();
@@ -377,7 +384,7 @@ export class GameScene extends Phaser.Scene {
           onComplete: () => k.destroy(),
         });
       });
-      sfx.play('whoosh');
+      sfx.play('kagitTopla');
     });
     this.time.delayedCall(topla + 380 + eski.length * 50 + 120, () => {
       if (this.oturum.bitti) this.bitir();
@@ -448,7 +455,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   pauseGame(): void {
-    this.scene.launch(SCENES.Pause, { from: SCENES.Game });
+    // "Yeniden Başla" bu günü aynı tohum, para ve önceki günlerin kayıtlarıyla baştan kurar.
+    const yeniden: GameData = { gun: this.gun, tohum: this.tohum, para: this.para, kayitlar: this.kayitlar };
+    this.scene.launch(SCENES.Pause, { from: SCENES.Game, yeniden });
     this.scene.pause();
   }
 }

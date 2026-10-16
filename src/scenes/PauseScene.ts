@@ -9,13 +9,16 @@ import { SCENES } from './keys';
 /** Oyun sahnesinin üstünde açılan duraklatma katmanı. */
 export class PauseScene extends Phaser.Scene {
   private from: string = SCENES.Game;
+  /** Yeniden Başla'da sahneye verilecek veri (oyun sahnesi: aynı gün, aynı tohum ve para). */
+  private yeniden?: object;
 
   constructor() {
     super(SCENES.Pause);
   }
 
-  init(data: { from?: string }): void {
+  init(data: { from?: string; yeniden?: object }): void {
     this.from = data.from ?? SCENES.Game;
+    this.yeniden = data.yeniden;
   }
 
   create(): void {
@@ -34,7 +37,7 @@ export class PauseScene extends Phaser.Scene {
       new Button(this, WIDTH / 2, 470, 'Devam', resume),
       new Button(this, WIDTH / 2, 592, 'Yeniden Başla', () => {
         this.scene.stop(this.from);
-        this.scene.start(this.from);
+        this.scene.start(this.from, this.yeniden);
       }),
       new Button(this, WIDTH / 2, 714, 'Ayarlar', () => {
         this.scene.launch(SCENES.Settings, { from: SCENES.Pause, overlay: true });

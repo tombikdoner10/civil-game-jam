@@ -23,6 +23,11 @@ export interface SarsintiSecenek {
   cokme?: boolean;
   /** Ekranın üstünde şerit yazı (yer tutucu metin; verilmezse yok). */
   yazi?: string;
+  /**
+   * Ses gücü (1 = öncü sarsıntı). Gürleme düzeyini, moloz/çatırtı sıklığını ve vuruşların gücünü ölçekler.
+   * Verilmezse şiddetten: siddet / 2.5 (öncü 2.5 → 1; G5 büyük depremde daha yüksek şiddet daha güçlü çalar).
+   */
+  sesGucu?: number;
 }
 
 export interface QuakeSonucu extends SarsintiSonucu {
@@ -122,6 +127,8 @@ export class Quake {
 
     const yazi = secenek.yazi ? this.seritKur(secenek.yazi, 0.24 * T) : undefined;
 
+    const guc = secenek.sesGucu ?? siddet / 2.5;
+
     // Hasarlı binalar tepe anında sırayla tepki verir.
     const tepkiler = sonuclar.filter((s) => s.gorunen !== 'ayakta');
     const tepkiBas = 0.32 * T;
@@ -136,14 +143,36 @@ export class Quake {
           const y = kutu.bottom - Math.random() * (s.gorunen === 'yikik' ? kutu.height : kutu.height * 0.6);
           toz.emitParticleAt(x, y, 1);
         }
-        sfx.play('hit', { volume: 0.5, rate: 0.6 });
+        if (s.gorunen === 'yikik') sfx.play('cokus', { volume: Math.min(1.3, 0.8 * guc) });
+        else sfx.play('hasar', { volume: Math.min(1.2, (s.gorunen === 'agirHasar' ? 0.8 : 0.6) * guc) });
       });
     });
 
-    // Gürleme
-    sfx.play('explosion', { volume: 0.35, rate: 0.5 });
-    scene.time.delayedCall(0.22 * T, () => sfx.play('explosion', { volume: 0.55, rate: 0.45 }));
-    scene.time.delayedCall(0.38 * T, () => sfx.play('explosion', { volume: 0.5, rate: 0.4 }));
+    // Ses: sürekli gürleme (kodla) zarfı izler; üstüne derin vuruşlar, moloz, çatırtı ve cam titremesi (Kenney).
+    const gur = sfx.gurleme();
+    let gurDuzey = 0;
+    let durdu = false;
+    const sustur = (): void => gur.seviye(0, 0.15);
+    const surdur = (): void => gur.seviye(gurDuzey, 0.15);
+    const kapat = (sure: number): void => {
+      if (durdu) return;
+      durdu = true;
+      gur.durdur(sure);
+      scene.events.off(Phaser.Scenes.Events.PAUSE, sustur);
+      scene.events.off(Phaser.Scenes.Events.SLEEP, sustur);
+      scene.events.off(Phaser.Scenes.Events.RESUME, surdur);
+      scene.events.off(Phaser.Scenes.Events.WAKE, surdur);
+    };
+    // Duraklatınca gürleme susar, devam edince kaldığı yerden sürer; sahne kapanırsa kesilir.
+    scene.events.on(Phaser.Scenes.Events.PAUSE, sustur);
+    scene.events.on(Phaser.Scenes.Events.SLEEP, sustur);
+    scene.events.on(Phaser.Scenes.Events.RESUME, surdur);
+    scene.events.on(Phaser.Scenes.Events.WAKE, surdur);
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => kapat(0.1));
+
+    sfx.play('depremVurus', { volume: 0.4 * guc });
+    scene.time.delayedCall(0.22 * T, () => sfx.play('depremVurus', { volume: Math.min(1.4, 0.85 * guc) }));
+    scene.time.delayedCall(0.38 * T, () => sfx.play('depremVurus', { volume: Math.min(1.4, 0.75 * guc), rate: 0.9 }));
 
     const cam = scene.cameras.main;
     let t = 0;
@@ -152,7 +181,15 @@ export class Quake {
       loop: true,
       callback: () => {
         t += TIK;
-        const e = zarf(t / T);
+        const u = t / T;
+        const e = zarf(u);
+        // Gürleme sarsıntıdan biraz önce derinden başlar (u < 0.06), zarfla kabarır, durulmada söner.
+        gurDuzey = Math.min(1.5, guc * Math.max(e, u < 0.06 ? (u / 0.06) * 0.2 : 0));
+        gur.seviye(gurDuzey);
+        if (e > 0.15 && Math.random() < 0.09 * e * guc) sfx.play('moloz', { volume: 0.3 + 0.5 * e, pan: Math.random() * 1.6 - 0.8 });
+        if (e > 0.3 && Math.random() < 0.05 * e * guc) sfx.play('catirti', { volume: 0.3 + 0.5 * e, pan: Math.random() * 1.2 - 0.6 });
+        if (e > 0.3 && Math.random() < 0.14 * e) sfx.play('camTitreme', { volume: 0.5 + 0.5 * e });
+        if (e > 0.6 && Math.random() < 0.025 * guc) sfx.play('depremVurus', { volume: Math.min(1.2, 0.5 * e * guc), rate: 1.1 });
         if (e > 0 && settings.get().shake) cam.shake(TIK + 30, genlik * (0.25 + 0.75 * e), true);
         this.sokak.sallan(e > 0.05 ? 0.6 + e : 0);
         // Toz yoğunluğu sarsıntıyla artar; tepede sıva parçaları.
@@ -161,6 +198,7 @@ export class Quake {
         if (e > 0.5 && Math.random() < 0.6 * e) parca.emitParticle(1 + Math.floor(Math.random() * 2));
         if (t >= T) {
           tik.remove();
+          kapat(0.6);
           this.sokak.sallan(0);
           const bitir = (): void => {
             for (const p of [tavan, parca, toz]) p.destroy();

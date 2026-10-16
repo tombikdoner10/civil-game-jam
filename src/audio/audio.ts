@@ -3,7 +3,7 @@ import { settings, type Settings } from '../systems/settings';
 
 /**
  * Ses yolu:
- *   prosedürel efektler (sfx.ts)  → sfxBus   ─┬→ sınırlayıcı ─┐
+ *   efektler (sfx.ts; Kenney dosyaları ve sentez) → sfxBus ─┬→ sınırlayıcı ─┐
  *   prosedürel müzik (music.ts)   → musicBus ─┘                ├→ Phaser ana ses düğümü → hoparlör
  *   dosyadan yüklenen sesler      → Phaser    ─────────────────┘
  * Ana ses Phaser'ın master ses seviyesidir; müzik/efekt seviyeleri ayarlardan gelir.
@@ -46,6 +46,12 @@ class AudioSystem {
   /** Tarayıcı sesi açtı mı? (İlk tıklama/tuşa kadar kapalıdır.) */
   get running(): boolean {
     return this.ctx?.state === 'running';
+  }
+
+  /** PreloadScene'de load.audio ile yüklenip çözülmüş ses verisi (yoksa null). sfx.ts dosya seslerini bununla çalar. */
+  buffer(key: string): AudioBuffer | null {
+    const b: unknown = this.manager?.game.cache.audio.get(key);
+    return b instanceof AudioBuffer ? b : null;
   }
 
   /** PreloadScene'de load.audio ile yüklenmiş bir dosyayı efekt olarak çal. */

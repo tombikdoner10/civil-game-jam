@@ -1,5 +1,6 @@
 // @beyan görsel
 import * as Phaser from 'phaser';
+import { sfx } from '../audio/sfx';
 import type { AlanRef, BelgeTuru } from '../game/building';
 import { PX, snap, type Tuval } from './pixel';
 
@@ -53,7 +54,11 @@ export class DocumentCard extends Phaser.GameObjects.Container {
     this.setInteractive({ draggable: true, useHandCursor: true });
     scene.add.existing(this);
 
-    this.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => this.one());
+    this.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => {
+      this.one();
+      sfx.play('kagitAl');
+    });
+    this.on('dragend', () => sfx.play('kagitBirak'));
     this.on('drag', (_p: Phaser.Input.Pointer, dx: number, dy: number) => {
       const [x2, y2] = this.masadaKonum(dx, dy);
       this.setPosition(x2, y2);

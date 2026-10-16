@@ -180,7 +180,10 @@ export class DayEndScene extends Phaser.Scene {
     });
     // Rapor dolarken yanlışlıkla geçilmesin.
     this.time.delayedCall(500, () => (this.hazir = true));
-    sfx.play('whoosh');
+    sfx.play('kagitKay');
+    // Gün sonu jingle'ı: yanlış ya da işlenmeyen dosya yoksa iyi gün, varsa kötü gün.
+    const iyi = hesap.yanlis === 0 && hesap.islenmeyen === 0;
+    this.time.delayedCall(350, () => sfx.play(iyi ? 'gunIyi' : 'gunKotu'));
   }
 
   private devam(yeniPara: number): void {

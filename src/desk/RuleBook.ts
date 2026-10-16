@@ -64,7 +64,7 @@ export class RuleBook {
   ac(): void {
     if (this.acik) return;
     this.acik = true;
-    sfx.play('click');
+    sfx.play('kitapAc');
     if (this.yeniIsaret) {
       this.scene.tweens.killTweensOf(this.yeniIsaret);
       this.yeniIsaret.destroy();
@@ -85,7 +85,7 @@ export class RuleBook {
   kapa(): void {
     if (!this.acik) return;
     this.acik = false;
-    sfx.play('click');
+    sfx.play('kitapKapa');
     this.scene.tweens.killTweensOf(this.sayfa);
     this.sayfa.setVisible(false);
     this.sayfa.disableInteractive();
@@ -242,11 +242,11 @@ export class RuleBook {
     if (this.sayfalar.length > 1) {
       const ay = ust + SAYFA.h - 36;
       dugme(sol + 48, ay, '<', () => {
-        sfx.play('click');
+        sfx.play('sayfa');
         this.sayfaGoster(this.sayfaNo - 1);
       });
       dugme(sol + SAYFA.w - 52, ay, '>', () => {
-        sfx.play('click');
+        sfx.play('sayfa');
         this.sayfaGoster(this.sayfaNo + 1);
       });
       this.sayfaYazi = s.add.text(0, ay, '', { fontFamily: FONT, fontSize: '30px', color: PAL.murekkepSoluk }).setOrigin(0.5);

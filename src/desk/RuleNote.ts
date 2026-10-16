@@ -1,5 +1,6 @@
 // @beyan görsel
 import * as Phaser from 'phaser';
+import { sfx } from '../audio/sfx';
 import { FONT } from '../config';
 import type { Kural } from '../game/building';
 import { masayaSikistir, ustKatman } from './DocumentCard';
@@ -83,7 +84,11 @@ export class RuleNote extends Phaser.GameObjects.Container {
     this.setSize(W, h);
     this.setInteractive({ draggable: true, useHandCursor: true });
     scene.add.existing(this);
-    this.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => this.setDepth(ustKatman()));
+    this.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => {
+      this.setDepth(ustKatman());
+      sfx.play('kagitAl');
+    });
+    this.on('dragend', () => sfx.play('kagitBirak'));
     this.on('drag', (_p: Phaser.Input.Pointer, dx: number, dy: number) => {
       const [x2, y2] = this.masadaKonum(dx, dy);
       this.setPosition(x2, y2);

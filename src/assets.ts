@@ -12,12 +12,20 @@ import type * as Phaser from 'phaser';
 
 // Kenney Tiny Town (CC0 1.0): bina cepheleri ve sokak; renkler çalışma anında palete boyanır (src/desk/tiles.ts).
 import tinyTown from './art/tiny-town/tilemap_packed.png';
+
+// Kenney ses paketleri (CC0 1.0): src/sounds/kenney/<paket>/*.ogg. Hepsi derlemede import edilir (eager glob,
+// dinamik import değil); ZIP sürümünde HTML'e gömülür. Anahtar: uzantısız dosya adı (src/audio/sesler.ts kullanır).
+const kenneySesleri = import.meta.glob<string>('./sounds/kenney/**/*.ogg', { eager: true, import: 'default' });
 // import oyuncu from './art/oyuncu.png';
 // import patlama from './art/patlama.png';
 // import muzik from './sounds/muzik.mp3';
 
 export function loadAssets(_load: Phaser.Loader.LoaderPlugin): void {
   _load.image('tiny-town', tinyTown);
+  for (const [yol, url] of Object.entries(kenneySesleri)) {
+    const ad = yol.slice(yol.lastIndexOf('/') + 1).replace(/\.ogg$/, '');
+    _load.audio(ad, url);
+  }
   // _load.image('oyuncu', oyuncu);
   // _load.spritesheet('patlama', patlama, { frameWidth: 64, frameHeight: 64 });
   // _load.audio('muzik', muzik);

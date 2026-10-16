@@ -46,7 +46,7 @@ export class SettingsScene extends Phaser.Scene {
     const rows: [string, VolumeKey, string][] = [
       ['Ana ses', 'master', 'click'],
       ['Müzik', 'music', 'click'],
-      ['Efektler', 'sfx', 'pickup'],
+      ['Efektler', 'sfx', 'damga'],
     ];
     const navButtons: Button[] = [];
     rows.forEach(([name, key, preview], i) => {

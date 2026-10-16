@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import { audio } from '../audio/audio';
+import { seslerKur } from '../audio/sesler';
 import { sfx } from '../audio/sfx';
 import { loadFonts } from '../systems/fonts';
 import { createTextures } from '../systems/textures';
@@ -14,6 +15,7 @@ export class BootScene extends Phaser.Scene {
   create(): void {
     createTextures(this);
     audio.init(this.sound);
+    seslerKur();
     sfx.warmup();
     this.scene.launch(SCENES.Debug);
     void loadFonts().then(() => this.scene.start(SCENES.Preload));

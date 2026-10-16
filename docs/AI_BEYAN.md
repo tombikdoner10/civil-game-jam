@@ -11,24 +11,24 @@ otomatik kaydı) ve `docs/ai-elle.json` (elle eklenenler). Teslim formunda her k
 
 ## Ses: Kullanıldı
 
-- **Araç:** Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)
-- **Amaç:** Ses efektlerini ve müziği kodla üreten sentezleyiciyi ve ses ayarlarını yazdı
-- **Kullanıldığı yer:** Ses efektleri ve müzik altyapısı (jam öncesi şablon)
+- **Araç:** Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5)
+- **Amaç:** Ses efektlerini ve müziği kodla üreten sentezleyiciyi ve ses ayarlarını yazdı; Deprem gürlemesinin tabanını kodla üreten döngü (kahverengi gürültü, filtre, dalgalanma) ve Kenney ses dosyalarının hız/perde/katman ayarları
+- **Kullanıldığı yer:** Ses efektleri ve müzik altyapısı (jam öncesi şablon), Öncü sarsıntı sesi (src/audio/sfx.ts, src/audio/sesler.ts), src/audio/ (2 dosya)
 
 ## Kod: Kullanıldı
 
 - **Araç:** Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5)
-- **Amaç:** Oyunun kodunu yazdı; Gün dosyası dengesi, masa sınırı, kart boyutu, duman testi bayrakları (betikle düzenlendi); İnceleme modu ve kural kitabı (G3): Bash/Python betiğiyle yapılan kod düzenlemeleri; G4b: kalıcı sokak ve öncü sarsıntı bağlantıları (betikle düzenleme)
-- **Kullanıldığı yer:** Jam öncesi şablonun bütün kodu, src/game/, src/desk/DocumentCard.ts, src/scenes/, src/ui/, scripts/smoke.mjs, src/scenes/GameScene.ts, src/game/rules.ts, src/game/session.ts, src/desk/documents.ts, src/desk/StampTray.ts, src/game/session.ts, rules.ts, tuning.ts, src/scenes/GameScene.ts, DayEndScene.ts, src/desk/Window.ts, src/game/ (5 dosya), src/scenes/GameScene.ts, scripts/smoke.mjs, src/desk/yerlesim.ts
+- **Amaç:** Oyunun kodunu yazdı; Gün dosyası dengesi, masa sınırı, kart boyutu, duman testi bayrakları (betikle düzenlendi); İnceleme modu ve kural kitabı (G3): Bash/Python betiğiyle yapılan kod düzenlemeleri; G4b: kalıcı sokak ve öncü sarsıntı bağlantıları (betikle düzenleme); G12: Kenney seslerinin oyuna bağlanması, ses tablosu ve Yeniden Başla düzeltmesi (Python betiğiyle kod düzenlemesi)
+- **Kullanıldığı yer:** Jam öncesi şablonun bütün kodu, src/game/, src/desk/DocumentCard.ts, src/scenes/, src/ui/, scripts/smoke.mjs, src/scenes/GameScene.ts, src/game/rules.ts, src/game/session.ts, src/desk/documents.ts, src/desk/StampTray.ts, src/game/session.ts, rules.ts, tuning.ts, src/scenes/GameScene.ts, DayEndScene.ts, src/desk/Window.ts, src/audio/sfx.ts, src/audio/audio.ts, src/assets.ts, src/desk/ (Quake, Inspect, RuleBook, RuleNote, StampTray, DocumentCard), src/scenes/ (Game, Pause, DayEnd, Settings, Boot), src/main.ts, src/game/ (5 dosya), src/scenes/GameScene.ts, scripts/smoke.mjs, src/desk/yerlesim.ts
 
 ## Metin: Kullanıldı
 
-- **Araç:** Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)
+- **Araç:** Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5)
 - **Amaç:** Arayüz metinlerini, README'yi ve BENIOKU'yu yazdı
-- **Kullanıldığı yer:** Menü ve ayar yazıları, README, BENIOKU
+- **Kullanıldığı yer:** Menü ve ayar yazıları, README, BENIOKU, docs/SESLER.md
 
 ## Diğer: Kullanıldı
 
 - **Araç:** Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)
-- **Amaç:** Tema yorumu için konsept seçenekleri önerdi; seçim ve özgün dokunuş takımın
-- **Kullanıldığı yer:** Oyun fikri aşaması
+- **Amaç:** Tema yorumu için konsept seçenekleri önerdi; seçim ve özgün dokunuş takımın; Kenney ses dosyalarını ad, süre ve dalga biçimi ölçümüne göre aday olarak seçti (takım dinleyip değiştirecek); hazır kaynak beyanını ve ses listesini yazdı
+- **Kullanıldığı yer:** Oyun fikri aşaması, src/sounds/kenney/, docs/SESLER.md, README.md, src/data/credits.ts
