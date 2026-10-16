@@ -9,6 +9,7 @@
 //   [{ "bekle": 2500 }, { "tikla": [960, 540] }, { "tus": "ArrowRight", "sure": 400 }, { "goruntu": "adim.png" }]
 //   Sürükle-bırak: { "surukle": [[x1, y1], [x2, y2]] }
 // Senaryo verilmezse: açılış → tıkla → menü → "Oyna" → oyun ekranı.
+// Hazır senaryolar scripts/senaryolar/ altında (ör. masa-damga.json: gün 1, inceleme modu, damga, ikinci dosya).
 // Tarayıcı yolu bulunamazsa CHROME_PATH ortam değişkeniyle verilebilir.
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -95,6 +96,8 @@ const proc = spawn(browser, [
   '--disable-background-timer-throttling',
   // Windows'ta pencere örtülme hesabı ve Edge'in uyuyan sekmeleri de sayfayı dondurabiliyor.
   '--disable-features=CalculateNativeWinOcclusion,IntensiveWakeUpThrottling,EdgeSleepingTabs',
+  // Linux'ta (bulut kabı, GPU yok) varsayılan başsız Chrome saniyede ~3 kare çiziyor; yazılım GL ile 60.
+  ...(process.platform === 'linux' ? ['--use-gl=swiftshader'] : []),
   'about:blank',
 ]);
 

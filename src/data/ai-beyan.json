@@ -42,7 +42,8 @@
         "scripts/ (3 dosya)",
         "src/desk/yerlesim.ts",
         "src/main.ts",
-        "package.json"
+        "package.json",
+        "scripts/senaryolar/masa-damga.json"
       ]
     },
     "text": {
