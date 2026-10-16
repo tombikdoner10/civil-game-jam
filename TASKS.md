@@ -20,7 +20,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 Ara test sonrası (sıra 01.30: G18 → G21 → G5b → G22 → G19 → G20; özellik dondurma Cumartesi 24.00)
 
 
-- [ ] G23 [teknik] Küçük kalanlar: kısa yol sonuç ekranında Enter = Gün 2'den devam (yanlışlıkla Yeniden oyna riski); çöken binanın etiket çubuğu havaya iniyor; gün 2 sokak turunda soluk dekor binaları gerçek binalarla karışıyor (daha koyu/alçak).
+- [ ] G23 [teknik] Küçük kalanlar: G5b testi: öncü sarsıntıda sağdaki "[ÇATLADI · İÇİ BOŞ]" etiketi pencerenin orta kayıt çizgisinde kırpılıyor (etiketler pencere sınırına sıkıştırılsın); kısa/büyük deprem genel görünümünde soldaki bina ve bir etiket yarım (G21b sonrası yeniden kontrol); öncü sarsıntıdan rapora ~15 sn bekleme (kısalsın ya da tuşla geçilsin); doğru ve yanlış fiş farklı yerlerde, doğru fiş kural notuna biniyor; sahte rapordaki "MÜHÜR" yazısı çok küçük; Ayarlar başlığı farklı fontta. kısa yol sonuç ekranında Enter = Gün 2'den devam (yanlışlıkla Yeniden oyna riski); çöken binanın etiket çubuğu havaya iniyor; gün 2 sokak turunda soluk dekor binaları gerçek binalarla karışıyor (daha koyu/alçak).
 - [ ] G19 [teknik] Saha testi, yalnızca Schmidt çekici (takım kararı 01.30): karot yoksa ya da geçersizse SAHA ile beton yüzeyine vurma mini oyunu (geri tepme değeri → dayanım), günde sınırlı hak, zaman harcar; sonuç masaya "saha notu" olarak düşer ve kanıt sayılır (bilgiEdin karot, saha). Burgu YOK.
 - [ ] G20 [teknik] Takip denetimi (küçük): gün 3'ten itibaren önceki GÜÇLENDİR binalarından biri geri gelir; fotoğrafta iskele var ya da yok (bırakılmış), güçlendirme raporu; kural ve damga.
 
