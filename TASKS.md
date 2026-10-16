@@ -9,7 +9,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G4c [teknik] G4b test bulguları: gün 2+ belgeler üst kenarda kırpılıyor (RUHSAT başlığı HUD şeridine değiyor; 20–30 px aşağı); 4–5. günde dolu sokak görünmüyor (pencerede 3–4 bina; gün başı turunda kamera geri çekilsin/uzaklaşsın); gün 5'ten önce mühür yılı = yapım yılı (yanlış kusur izlenimi); inceleme etiketi damga çubuğuna taşmasın; fiş gişe camında silueti örtmesin; mesai saati belgeler masaya oturunca başlasın. + G13 (Gate/Splash kısalt)
 
 ## Sırada
 
@@ -17,7 +16,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 
 
-- [ ] G5b [teknik] G5 test bulguları: gazete "Çöken (boşaltılmış: N)" ile sonuçtaki "Boşaltılmış" kutusu farklı şeyleri sayıyor (etiket netleşsin); gazete fotoğrafı sokağın daha geniş bir karesini göstersin; öne çıkan binalar örnek kararlarda hep aynı numara (dev yoluna özgü, düşük).
+- [ ] G5b [teknik] G5 test bulguları: gazete "Çöken (boşaltılmış: N)" ile sonuçtaki "Boşaltılmış" kutusu farklı şeyleri sayıyor (etiket netleşsin); gazete fotoğrafı sokağın daha geniş bir karesini göstersin; öne çıkan binalar örnek kararlarda hep aynı numara (dev yoluna özgü, düşük); inceleme modunda kapalı kitabın üstündeki belgeye tıklayınca kitap açılıyor; kullanılmayan Rubik ve JetBrains Mono importları ve beyanları kaldırılsın (ZIP küçülür).
 
 Araçlar ve derinlik
 
@@ -68,3 +67,4 @@ Bulutta yapılabilecekler
 - [x] G12 [teknik] Sesler (ara testten önce): Kenney CC0 paketlerinden aday seç ve bağla (damga tokmağı, kâğıt, inceleme bulma/yok, gişe, saat/gün sonu, sarsıntı); src/sounds/, credits.ts, README. (c207380, Opus/high; 42 Kenney OGG, docs/SESLER.md; Yeniden Başla düzeltildi)
 - [x] G5 [teknik] Büyük deprem günü ve gazete: 5. gün sonunda aynı sokakta büyük deprem; damgaların sonucu (ayakta / hasarlı / ağır hasar, boşaltılan boş); gazete ekranı (yer tutucu manşetler); Result. (+ sonuç ekranı masa tarzına) (d7424e7, Opus/high; npm run adalet 4644 denetim 0 hata)
 - [x] G13 [teknik] Gate/Splash kısalt (ara testten önce, eleştirmen); Emeği Geçenler güncel; ilk 30 saniye akışı. (G4c ile birlikte)
+- [x] G4c [teknik] G4b test bulguları: gün 2+ belgeler üst kenarda kırpılıyor (RUHSAT başlığı HUD şeridine değiyor; 20–30 px aşağı); 4–5. günde dolu sokak görünmüyor (pencerede 3–4 bina; gün başı turunda kamera geri çekilsin/uzaklaşsın); gün 5'ten önce mühür yılı = yapım yılı (yanlış kusur izlenimi); inceleme etiketi damga çubuğuna taşmasın; fiş gişe camında silueti örtmesin; mesai saati belgeler masaya oturunca başlasın. + G13 (Gate/Splash kısalt) (79eef37, Opus/high)
