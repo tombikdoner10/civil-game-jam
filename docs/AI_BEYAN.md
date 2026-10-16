@@ -27,4 +27,8 @@ otomatik kaydı) ve `docs/ai-elle.json` (elle eklenenler). Teslim formunda her k
 - **Amaç:** Arayüz metinlerini, README'yi ve BENIOKU'yu yazdı
 - **Kullanıldığı yer:** Menü ve ayar yazıları, README, BENIOKU
 
-## Diğer: Kullanılmadı
+## Diğer: Kullanıldı
+
+- **Araç:** Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)
+- **Amaç:** Tema yorumu için konsept seçenekleri önerdi; seçim ve özgün dokunuş takımın
+- **Kullanıldığı yer:** Oyun fikri aşaması
