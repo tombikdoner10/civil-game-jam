@@ -11,6 +11,8 @@
     "dev": "vite",
     "check": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
+    "build:single": "tsc --noEmit && vite build --mode single",
+    "zip": "npm run build:single && node scripts/zip.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -19,6 +21,7 @@
     "phaser": "3.90.0"
   },
   "devDependencies": {
+    "fflate": "0.8.3",
     "typescript": "7.0.2",
     "vite": "8.3.4"
   }

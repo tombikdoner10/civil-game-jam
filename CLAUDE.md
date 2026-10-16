@@ -4,21 +4,24 @@ Prompt Engineers takımının CIVIL GAME JAM 2026 oyunu. Kodu Claude yazıyor; t
 
 ## Jam kuralları (ihlal = diskalifiye)
 
-Tam metin: https://game.ktimo.com.tr/kurallar
+Ayrıntılı özet: üst klasördeki `KURALLAR.md` (repoda yok; oturum `Gamejam` klasöründe açılınca otomatik yüklenir). Resmî metin: https://game.ktimo.com.tr/kurallar (kitapçık v09).
 
 - Oyuna özgü her şey **16 Ekim 2026 18.00 (UTC+3) sonrasında** yazılır. Öncesinde yalnızca genel altyapı.
-- Son teslim **18 Ekim 2026 18.00**; geç teslim yok. Plan: Pazar 12.00'de özellik dondurma, 14.00 civarı ilk teslim.
-- Repo **public** kalmalı. Teslimde tam commit kimliği verilir; oynanan sürüm o commit'ten derlenmiş olmalı.
-- Oyun ve video bağlantıları **hesapsız** açılmalı (GitHub Pages bunu sağlıyor).
-- **Her hazır kaynak** (görsel, ses, font, kütüphane) beyan edilir: `src/data/credits.ts` + README tablosu. Lisansı belirsiz kaynak kullanma; yeniden dağıtımı yasak dosyayı repoya koyma.
-- Yapay zekâ kullanımı README'de ve oyundaki Emeği Geçenler ekranında beyan edilir; doğru ve eksiksiz tut.
+- Yeni teslim başlatmak için son an **18 Ekim 2026 18.00**. Plan: Pazar 12.00'de özellik dondurma, 14.00 civarı ilk teslim.
+- Teslimde: **ZIP** (`npm run zip`; internetsiz çalışan tek dosya) + web bağlantısı + **en fazla 1 dakikalık MP4 video dosyası** + public repo bağlantısı.
+- Repo **public** kalmalı. ZIP ve web sürümü repodaki bir commit'ten derlenmiş olmalı.
+- Beyanlar **iki bölüm × beş kategori**: hazır kaynaklar ve AI; her birinde görsel, ses, kod, metin, diğer. Kaynak `src/data/credits.ts`, ayrıca README tabloları. En küçük kullanım bile yazılır. Lisansı belirsiz kaynak kullanma; yeniden dağıtımı yasak dosyayı repoya koyma.
+- **Madde 4.3:** Yoğun AI kullanımı jürinin yaratıcılık ve görsel/sanatsal değerlendirmesini etkileyebilir. Takımın kendi çizimleri ve sesleri öncelikli; Claude kodu ve teknik işleri yapar.
+- Sunum video dahil 3 dakika ve jüri o sırada oynuyor: oyun ilk 30 saniyede anlaşılmalı.
+- Teslim ekranının 6 karakterli erişim kodunu asla bir alana yazma; dosyaya ya da repoya koyma.
 - Son teslimden sonra `main`'e push yok: yayın otomatik olduğu için oynanan sürüm değişir.
 
 ## Komutlar
 
 - `npm run dev`: geliştirme sunucusu, http://localhost:5173 (yayında adrese `?dev` eklemek de dev menüsünü açar)
 - `npm run check`: tip denetimi; her değişiklikten sonra çalıştır
-- `npm run build`: tip denetimi + `dist/`
+- `npm run build`: tip denetimi + `dist/` (web sürümü)
+- `npm run zip`: tek dosyalık sürümü `dist-single/`e derler, teslim ZIP'ini `teslim/` altına yazar (`OYNA.html` + `docs/BENIOKU.txt`)
 - `main`'e push → GitHub Actions → GitHub Pages. Derlenmeyen kodu push'lama.
 
 ## Mimari
@@ -37,7 +40,7 @@ Tam metin: https://game.ktimo.com.tr/kurallar
   - `audio/music.ts`: adım sıralayıcı (`music.play(song)`, `jingles.play(song)`). `audio/songs.ts`'deki desenler yalnızca test içindir; oyunda kullanma.
   - `ui/`: `Button`, `MenuNav` (klavye), `ValueBar`, `label()`, `addBackdrop()`
   - `systems/textures.ts`: kodla üretilen dokular (`TEX.px`, `TEX.dot`, `TEX.ring`, `TEX.soft`)
-- Dosya varlıkları: `public/assets/` + `src/assets.ts`.
+- Dosya varlıkları: `src/art/`, `src/sounds/` altına koy, `src/assets.ts`'de **import edip** yükle. ZIP sürümünde hepsi HTML'e gömülür. `public/` klasöründen yükleme ZIP'te çalışmaz; dinamik `import()` da tek dosyalık derlemeyi bozar.
 
 ## Doğrulama
 

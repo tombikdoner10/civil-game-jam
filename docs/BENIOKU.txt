@@ -1,0 +1,27 @@
+OYUN ADI
+Prompt Engineers · CIVIL GAME JAM 2026
+
+NASIL ÇALIŞTIRILIR
+1. ZIP'i bir klasöre çıkarın.
+2. OYNA.html dosyasına çift tıklayın. Oyun tarayıcıda açılır.
+   İnternet, kurulum ya da hesap gerekmez.
+3. Ekrana bir kez tıklayın. Tarayıcılar ilk tıklamaya kadar sesi açmaz.
+
+Web'de oynamak için: https://KULLANICI.github.io/REPO/
+
+PLATFORM VE GEREKSİNİMLER
+- Windows bilgisayarda Google Chrome, Microsoft Edge ya da Firefox'un güncel sürümü
+- Klavye ve fare; ses için hoparlör ya da kulaklık
+
+OYNANIŞ
+- Amaç: (tema açıklanınca yazılacak)
+- Kontroller: (tema açıklanınca yazılacak)
+- İlk adım: (tema açıklanınca yazılacak)
+- Esc ya da P: duraklat
+
+BİLİNEN SORUNLAR
+- Yok.
+
+KAYNAK KOD
+https://github.com/KULLANICI/REPO
+Menünün sağ alt köşesindeki "sürüm" yazısı, bu dosyanın derlendiği commit'i gösterir.

@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser';
 import { COLORS, HEIGHT, SUBTITLE, TEAM, WIDTH } from '../config';
-import { AI, ASSETS, MEMBERS } from '../data/credits';
+import { AI, ASSETS, CATEGORIES, MEMBERS, type Category } from '../data/credits';
 import { fadeIn, goTo } from '../systems/transition';
 import { addBackdrop } from '../ui/backdrop';
 import { Button } from '../ui/Button';
@@ -44,17 +44,25 @@ export class CreditsScene extends Phaser.Scene {
     add(`${SUBTITLE} için 48 saatte geliştirildi.`, { color: COLORS.muted });
     header('Takım');
     MEMBERS.forEach((m) => add(`${m.name}  ·  ${m.role}`));
-    header('Yapay zekâ kullanımı');
-    AI.forEach((a) => {
-      add(a.tool, { weight: 'bold' }, 6);
-      add(`Amaç: ${a.purpose}`, { size: 28 }, 6);
-      add(`Kullanıldığı yer: ${a.where}`, { size: 28, color: COLORS.muted }, 20);
-    });
-    header('Hazır kaynaklar');
-    ASSETS.forEach((a) => {
-      add(`${a.name}  ·  ${a.author}`, { weight: 'bold' }, 6);
-      add(`${a.license}  ·  ${a.usage}  ·  ${a.url}`, { size: 26, color: COLORS.muted }, 20);
-    });
+    // Teslim formundaki gibi: beş kategorinin her biri için Kullanıldı / Kullanılmadı.
+    const declaration = <T,>(title: string, data: Record<Category, T[]>, describe: (item: T) => [string, string]): void => {
+      header(title);
+      for (const { id, label } of CATEGORIES) {
+        const items = data[id];
+        if (items.length === 0) {
+          add(`${label}: Kullanılmadı`, { size: 28, color: COLORS.muted }, 12);
+          continue;
+        }
+        add(`${label}: Kullanıldı`, { size: 30, weight: 'bold' }, 6);
+        for (const item of items) {
+          const [main, detail] = describe(item);
+          add(main, { size: 28 }, 4);
+          add(detail, { size: 24, color: COLORS.muted }, 16);
+        }
+      }
+    };
+    declaration('Yapay zekâ kullanımı', AI, (a) => [`${a.tool}: ${a.purpose}`, `Kullanıldığı yer: ${a.where}`]);
+    declaration('Hazır kaynaklar', ASSETS, (a) => [`${a.name}  ·  ${a.author}`, `${a.license}  ·  ${a.usage}  ·  ${a.url}`]);
 
     const maskShape = this.make.graphics({}, false).fillStyle(0xffffff).fillRect(left - 20, TOP, COLUMN + 40, VIEW_HEIGHT);
     this.content.setMask(maskShape.createGeometryMask());
