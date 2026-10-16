@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G21b [teknik] G21 test bulguları: "Gün 2'den devam" sonrası gün 2 sokağına kısa yolun örnek binaları sızıyor olabilir (doğrula, yalnızca jürinin binaları kalsın); sonuç ekranı düğmeleri hemen görünsün (şu an ~2,5–6 sn boş); uzak plandaki deprem etiketleri büyüsün ya da sabit lejant olsun; gün 1 raporunda Enter = Depremi şimdi yaşa, Sonraki gün ikincil (N ya da tık); saat dosyalar arasında geri gidiyor gibi (09:18 → 09:13), doğrula ve düzelt; sonuç ekranındaki değerlendirme satırının kontrastı. Ek: dev yolunda sonuç ekranı "Birikmiş para: 0 TL" gösteriyor (tablo toplamı farklı).
+- [ ] G22 [teknik] Zarfın bedeli (takım kararı 01.30): zarfı kabul eden oyuncu kişinin istediği damgayı vurmak zorunda (diğer kaşeler kilitli, "zarf aldın" ipucu); bina sokakta küçük bir iz taşır; doğru/yanlış ve deprem gerçek damgaya göre; gazete ve sonuçta görünür. G18 testi: inceleme modunda zarf sürüklenemiyor (sessiz); zarf masadayken kaşe vurmak örtük kabul sayılıyor ve oyuncuya söylenmiyor; bunlar G22 tasarımında netleşsin.
 
 ## Sırada
 
@@ -19,8 +19,8 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 Ara test sonrası (sıra 01.30: G18 → G21 → G5b → G22 → G19 → G20; özellik dondurma Cumartesi 24.00)
 
-- [ ] G22 [teknik] Zarfın bedeli (takım kararı 01.30): zarfı kabul eden oyuncu kişinin istediği damgayı vurmak zorunda (diğer kaşeler kilitli, "zarf aldın" ipucu); bina sokakta küçük bir iz taşır; doğru/yanlış ve deprem gerçek damgaya göre; gazete ve sonuçta görünür. G18 testi: inceleme modunda zarf sürüklenemiyor (sessiz); zarf masadayken kaşe vurmak örtük kabul sayılıyor ve oyuncuya söylenmiyor; bunlar G22 tasarımında netleşsin.
 
+- [ ] G23 [teknik] Küçük kalanlar: kısa yol sonuç ekranında Enter = Gün 2'den devam (yanlışlıkla Yeniden oyna riski); çöken binanın etiket çubuğu havaya iniyor; gün 2 sokak turunda soluk dekor binaları gerçek binalarla karışıyor (daha koyu/alçak).
 - [ ] G19 [teknik] Saha testi, yalnızca Schmidt çekici (takım kararı 01.30): karot yoksa ya da geçersizse SAHA ile beton yüzeyine vurma mini oyunu (geri tepme değeri → dayanım), günde sınırlı hak, zaman harcar; sonuç masaya "saha notu" olarak düşer ve kanıt sayılır (bilgiEdin karot, saha). Burgu YOK.
 - [ ] G20 [teknik] Takip denetimi (küçük): gün 3'ten itibaren önceki GÜÇLENDİR binalarından biri geri gelir; fotoğrafta iskele var ya da yok (bırakılmış), güçlendirme raporu; kural ve damga.
 
@@ -79,3 +79,4 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 - [x] G21 [teknik] Depremi şimdi yaşa (T16, takım kararı A + C): gün 1 sonu raporunda "Depremi şimdi yaşa" düğmesi; jürinin kendi 3 binası + hazır doldurulmuş sokakla (ornek.ts) ~30 sn büyük deprem → gazete → sonuç; normal akış (Sonraki gün) de kalır. (6eda7b7 + c96f6aa, Opus/high; kısa yol ~30 sn, adalet 21732 denetim 0 hata)
 - [x] G14, G15: KALDIRILDI (bulut görevleriydi; takım 17 Ekim'de bulutu tamamen kapattı. G14'ün işini scripts/adalet.mjs, G15'inkini geliştiricilerin smoke senaryoları zaten yapıyor)
 - [x] G5b [teknik] Toplu küçük düzeltmeler ve cila: çerçeve cümlesi, öncü etiketleri, gerekçeli fiş, koyu mürekkep, gün sonu toplamları, tezgâhta tarih, klasör (tıklama geçirgenliği, yeni dosyada kapanma, tek sayfa), kaşelik rozeti, inceleme çizgisi ve SORULDU/İSTENDİ, kayan kart, boş mühür, RAPOR YOK, gazete/sonuç tanımları, smoke beklemeleri, kullanılmayan fontlar kaldırıldı (ZIP 1,02 → 0,81 MB), README/BENIOKU kontroller (6cf541f, Opus/high)
+- [x] G21b [teknik] G21 test bulguları: "Gün 2'den devam" sonrası gün 2 sokağına kısa yolun örnek binaları sızıyor olabilir (doğrula, yalnızca jürinin binaları kalsın); sonuç ekranı düğmeleri hemen görünsün (şu an ~2,5–6 sn boş); uzak plandaki deprem etiketleri büyüsün ya da sabit lejant olsun; gün 1 raporunda Enter = Depremi şimdi yaşa, Sonraki gün ikincil (N ya da tık); saat dosyalar arasında geri gidiyor gibi (09:18 → 09:13), doğrula ve düzelt; sonuç ekranındaki değerlendirme satırının kontrastı. Ek: dev yolunda sonuç ekranı "Birikmiş para: 0 TL" gösteriyor (tablo toplamı farklı). (1fbc253, Opus/high; sızıntı ve saat hatası doğrulanamadı, kod gereği yok; test sürüyor)
