@@ -16,6 +16,8 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 Çekirdek döngü (hedef: Cumartesi 14.00 ara test; sıra: G4 → G4b → G12 → G5 → G13)
 
 
+- [ ] G4c [teknik] G4b test bulguları: gün 2+ belgeler üst kenarda kırpılıyor (RUHSAT başlığı HUD şeridine değiyor; 20–30 px aşağı); 4–5. günde dolu sokak görünmüyor (pencerede 3–4 bina; gün başı turunda kamera geri çekilsin/uzaklaşsın); gün 5'ten önce mühür yılı = yapım yılı (yanlış kusur izlenimi); inceleme etiketi damga çubuğuna taşmasın; fiş gişe camında silueti örtmesin; mesai saati belgeler masaya oturunca başlasın.
+
 Araçlar ve derinlik
 
 - [ ] G6 [teknik] Büyüteç: fotoğrafı büyütünce gizli kusur görünür (çapraz çatlak, pas, deniz kabuğu; yer tutucu çizimler).
@@ -60,5 +62,5 @@ Bulutta yapılabilecekler
 - [x] G2c [teknik] G2b düzeltmeleri: okunurluk (Z/2, B/G, C/G, 5/S), kat sayımı (zemin dahil, sayılabilir pencere sıraları), gün 1 ilk dosya temiz + ikinci kaçak kat, masa sınırı damga çubuğunda bitsin, kesik kolon fotoğrafta kolon eksik görünsün, fiş yeni dosyada kalksın ve kusur adını göstersin, kart genişliği 0 hatası, smoke.mjs arka plan bayrakları. (c82bcab, Opus/high)
 - [x] G3 [teknik] İnceleme modu: Space ile aç/kapat; iki belge alanına tıklanınca tutarsızlık varsa işaret ve etiket ("Kaçak kat" gibi, metinler yer tutucu), yoksa "tutarsızlık yok". (cf78f50, Opus/high; en küçük kural kitabı dahil)
 - [x] G4 [teknik] Gün yapısı ve gün sonu: gün yapılandırması veriden (kurallar, belgeler, dosya sayısı, süre); gün 1 kısa (3 dosya, ~90 sn), yalnızca ruhsat + fotoğraf + açık kural notu, belgeler kuralları geldikçe gelir; kaçak kat 1 kat GÜÇLENDİR / 2+ BOŞALT; gün sonu ekranı (doğru/yanlış, bulunan kusurlar, maaş/ceza); 5 gün akışı; kural kitabı damga çubuğunu örtmesin, sürüklenebilir; ilk dosyalarda temiz/kusurlu karışımı çeşitli; fiş ve kusur etiketleri belge değerlerini örtmesin. (be33cc4, Opus/high)
-- [x] G4b [teknik] Sokak ve öncü sarsıntı: pencere sokağı damgalanan binalarla kalıcı dolar (güçlendirilene iskele, boşaltılana şerit); gün 1 sonunda ~10 sn öncü sarsıntı (sokak sallanır, zayıf onaylanmış binalar çatlar, toz); gün sonu ekranına bağlanır. (7818e01, Opus/high; test sürüyor)
+- [x] G4b [teknik] Sokak ve öncü sarsıntı: pencere sokağı damgalanan binalarla kalıcı dolar (güçlendirilene iskele, boşaltılana şerit); gün 1 sonunda ~10 sn öncü sarsıntı (sokak sallanır, zayıf onaylanmış binalar çatlar, toz); gün sonu ekranına bağlanır. (7818e01, Opus/high; test geçti 23.00)
 - [x] G12 [teknik] Sesler (ara testten önce): Kenney CC0 paketlerinden aday seç ve bağla (damga tokmağı, kâğıt, inceleme bulma/yok, gişe, saat/gün sonu, sarsıntı); src/sounds/, credits.ts, README. (c207380, Opus/high; 42 Kenney OGG, docs/SESLER.md; Yeniden Başla düzeltildi)
