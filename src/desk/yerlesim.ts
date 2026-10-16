@@ -1,6 +1,6 @@
 import type { BelgeTuru } from '../game/building';
 
-/** Masadaki yerleşim (nesne ortası, ekran). Biraz dağınık ama okunur. */
+/** Masadaki yerleşim (nesne ortası, ekran). Biraz dağınık ama okunur. kitap: kapalı yönetmelik klasörü. */
 export interface Yerlesim {
   belge: Record<BelgeTuru, [number, number]>;
   kitap: [number, number];
@@ -8,10 +8,10 @@ export interface Yerlesim {
 }
 
 /*
- * Masa y 464-1080 (616 px). Damga çubuğu açıkken sağ sınır 1544. Belgeler masa üst kenarından en az 24 px
+ * Masa y 464-1080 (616 px). Sağ sınır 1544 (kaşeliğin solu; Kaselik.RAF_SOL). Belgeler masa üst kenarından en az 24 px
  * aşağıda (başlık bandı tezgâha değmesin), aralarında en az 24 px boşluk, alt kenardan en az 8 px yukarıda.
  * Boylar (documents.ts BOY): foto 304×416, ruhsat 376×320, proje 392×240, vaziyet 392×312, karot 328×224,
- * zemin 328×248; kapalı kitap 216×276.
+ * zemin 328×248; kapalı klasör 232×292.
  */
 
 /**

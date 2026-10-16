@@ -5,7 +5,7 @@ import { FONT } from '../config';
 import { num, PAL } from '../desk/palette';
 import { PX, rastgele, snap, Tuval } from '../desk/pixel';
 import { masaCiz, pikselDugme } from '../desk/props';
-import { DAMGA_ADI, DAMGA_RENK } from '../desk/StampTray';
+import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
 import type { Damga } from '../game/building';
 import { SON_GUN } from '../game/days';
 import { KUSUR_BILGI } from '../game/rules';

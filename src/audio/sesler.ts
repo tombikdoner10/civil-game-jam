@@ -49,19 +49,32 @@ export function seslerKur(): void {
     'whoosh',
   );
 
-  // Kural kitabı.
+  // Yönetmelik klasörü (G18): halkalar açılır + kapak; kapanırken kapak + halka kilidi; sekme değiştirme.
   t(
-    'kitapAc',
+    'klasorAc',
     [
-      { dosya: ['bookOpen'], volume: 2.5, bas: 0.01 },
-      { dosya: ['bookPlace3'], volume: 0.35, rate: 1.1 },
+      { dosya: ['metalLatch'], volume: 0.5, rate: 1.15, bas: 0.03 },
+      { dosya: ['bookOpen'], volume: 2.2, bas: 0.01, gecikme: 0.05 },
     ],
     'click',
   );
-  t('kitapKapa', { dosya: ['bookClose'], volume: 0.8, bas: 0.06 }, 'click');
+  t(
+    'klasorKapa',
+    [
+      { dosya: ['bookClose'], volume: 0.8, bas: 0.06 },
+      { dosya: ['metalClick'], volume: 0.7, rate: 1.2, bas: 0.05, gecikme: 0.08 },
+    ],
+    'click',
+  );
+  t('sekme', { dosya: ['bookFlip2'], volume: 0.8, rate: 1.3, bas: 0.02 }, 'click');
   t('sayfa', { dosya: ['bookFlip1'], volume: 1.2, rate: 1.15, bas: 0.26 }, 'click');
 
-  // Damga çubuğu (Tab): ahşap çekmece.
+  // Kaşelik (G18): tahta kaşeyi alma, ıstampaya basma (keçe), yerine koyma. Belgeye vurma 'damga'.
+  t('kaseAl', { dosya: ['impactWood_light_001'], volume: 0.45, rate: 1.35 }, 'click');
+  t('istampa', { dosya: ['bookPlace2'], volume: 0.6, rate: 0.7, bas: 0.01 }, 'thud');
+  t('kaseKoy', { dosya: ['impactWood_light_001'], volume: 0.5, rate: 1.05 }, 'click');
+
+  // Çekmece (zarf): ahşap.
   t('tepsi', { dosya: ['impactWood_light_001'], volume: 0.5, rate: 0.9, gecikme: 0.12 }, 'click');
 
   // İnceleme modu.

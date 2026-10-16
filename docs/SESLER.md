@@ -8,8 +8,8 @@ Kısaltmalar: **I** impact-sounds, **R** rpg-audio, **IF** interface-sounds, **U
 
 | Olay (ad) | Nerede çalar | Dosya(lar) ve ayar | Alternatif adaylar |
 |---|---|---|---|
-| Damga tokmağı (`damga`) | `GameScene.damgala`, tokmak inince; Ayarlar'da efekt düzeyi önizlemesi | I `impactPunch_heavy_000/001/002` (rate 0.85) + I `impactWood_heavy_000/001/002` (masa) | I `impactSoft_heavy_*`, I `impactPlate_heavy_001/003`, R `bookPlace1-3` (kâğıt katmanı) |
-| İADE damgası (`iade`) | `GameScene.damgala`, İADE tokmağı inince (`damga` yerine) | I `impactPunch_heavy_000/001/002` (rate 1.05, daha hafif) + R `bookClose` (dosya kapanır, 0.08 sn sonra); yeni dosya yok | I `impactSoft_medium_*`, R `bookPlace1-3` |
+| Kaşe belgeye vurur (`damga`) | `GameScene.damgala`, kaşe ruhsata inince; Ayarlar'da efekt düzeyi önizlemesi | I `impactPunch_heavy_000/001/002` (rate 0.85) + I `impactWood_heavy_000/001/002` (masa) | I `impactSoft_heavy_*`, I `impactPlate_heavy_001/003`, R `bookPlace1-3` (kâğıt katmanı) |
+| İADE damgası (`iade`) | `GameScene.damgala`, İADE kaşesi inince (`damga` yerine) | I `impactPunch_heavy_000/001/002` (rate 1.05, daha hafif) + R `bookClose` (dosya kapanır, 0.08 sn sonra); yeni dosya yok | I `impactSoft_medium_*`, R `bookPlace1-3` |
 | Belge gişeden kayar (`kagitKay`) | `GameScene.dosyaGetir`, `notGetir`; gün sonu raporu, gazete ve sonuç ekranı açılınca | R `bookFlip2`, `bookFlip3` (rate 1.1) | R `cloth2`, `cloth4`, IF `scratch_004/005` |
 | Belgeyi tut (`kagitAl`) | `DocumentCard`, `RuleNote` (fareye basınca) | R `bookFlip3` (sessiz, rate 1.25) | R `handleSmallLeather`, R `cloth4` |
 | Belgeyi bırak / belge masaya iner (`kagitBirak`) | `DocumentCard`, `RuleNote` (sürükleme bitince); son belge masaya inince | R `bookPlace1/2/3` (sessiz, rate 1.3) | R `dropLeather`, I `impactSoft_medium_*` |
@@ -17,10 +17,14 @@ Kısaltmalar: **I** impact-sounds, **R** rpg-audio, **IF** interface-sounds, **U
 | Fiş düşer (`fis`) | `GameScene.damgala` (uyarı fişi) | R `bookFlip3` + R `bookPlace1/3` (rate 1.5, iniş anında) | R `dropLeather`, IF `drop_002/003` |
 | Doğru karar (`dogru`) | fişle birlikte | IF `confirmation_001` (sessiz, rate 0.9) | IF `confirmation_004`, J `jingles_PIZZI08` |
 | Yanlış karar uyarısı (`uyari`) | fişle birlikte | IF `error_005` (sessiz) | IF `error_006`, IF `error_008`, J `jingles_PIZZI09` |
-| Kural kitabı açılır (`kitapAc`) | `RuleBook.ac` | R `bookOpen` (yükseltildi) + R `bookPlace3` | R `bookFlip3` |
-| Kural kitabı kapanır (`kitapKapa`) | `RuleBook.kapa` | R `bookClose` | R `bookPlace2` |
-| Sayfa çevir (`sayfa`) | `RuleBook` < > düğmeleri | R `bookFlip1` (baştaki 0.26 sn atlanır) | R `bookFlip2` |
-| Damga çubuğu aç/kapa (`tepsi`) | `StampTray.ac` / `kapa` (Tab) | I `impactWood_light_001` (kayma bitince) | U `switch22`, R `creak3` |
+| Yönetmelik klasörü açılır (`klasorAc`, G18) | `Klasor.ac` | R `metalLatch` (halkalar, rate 1.15) + R `bookOpen` | R `bookFlip3` |
+| Yönetmelik klasörü kapanır (`klasorKapa`, G18) | `Klasor.kapa` | R `bookClose` + R `metalClick` (halka kilidi, rate 1.2) | R `bookPlace2` |
+| Sekme değiştir (`sekme`, G18) | `Klasor` sol sayfadaki bölüm sekmeleri | R `bookFlip2` (rate 1.3) | R `bookFlip1`, U `click2` |
+| Sayfa çevir (`sayfa`) | `Klasor` bölüm içi < > düğmeleri (bölüm sağ sayfaya sığmazsa) | R `bookFlip1` (baştaki 0.26 sn atlanır) | R `bookFlip2` |
+| Kaşeyi al (`kaseAl`, G18) | `Kaselik`: kaşe raftan kalkar (tıklama ya da sürükleme) | I `impactWood_light_001` (rate 1.35, tiz tahta) | R `handleSmallLeather` (havuzda) |
+| Istampaya bas (`istampa`, G18) | `Kaselik`: tek tıklamalı vuruşta kaşe ıstampaya dokunur | R `bookPlace2` (rate 0.7, keçeye boğuk "tok") | I `impactSoft_medium_*` (havuzda) |
+| Kaşe yerine konur (`kaseKoy`, G18) | `Kaselik`: kaşe rafa döner; damga vurulamıyorsa kalkıp iner | I `impactWood_light_001` (rate 1.05) | I `impactWood_light_000/002` (havuzda) |
+| Çekmece açılır (`tepsi`) | `Cekmece.ac` (zarf masaya gelince) | I `impactWood_light_001` (gecikmeli) | U `switch22`, R `creak3` |
 | İnceleme modu açılır (`inceleAc`) | `Inspect.ac` (Space / İNCELE) | R `metalLatch` | U `switch16/18`, IF `switch_003` |
 | İnceleme modu kapanır (`inceleKapa`) | `Inspect.kapa` (Esc / Space) | R `metalClick` | U `switch17`, IF `switch_004` |
 | Alan seçimi (`sec`) | `Inspect.tikla` | U `click2` | IF `click_005`, U `click1`, IF `select_002` |

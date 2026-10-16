@@ -7,9 +7,9 @@ import { PX, snap } from '../desk/pixel';
 import { DUGME, Inspect, type Yuzey } from '../desk/Inspect';
 import { PAL } from '../desk/palette';
 import { fisDusur, fisKaldir, fisKur, masaCiz } from '../desk/props';
-import { RuleBook } from '../desk/RuleBook';
+import { Klasor } from '../desk/Klasor';
 import { RuleNote } from '../desk/RuleNote';
-import { DAMGA_ADI, damgaIzi, StampTray, TEPSI_SOL } from '../desk/StampTray';
+import { DAMGA_ADI, damgaIzi, Kaselik, RAF_SOL } from '../desk/Kaselik';
 import { Quake } from '../desk/Quake';
 import { GOZ, MASA_Y, Pencere, SOKAK_DERINLIK } from '../desk/Window';
 import { yerlesim, type Yerlesim } from '../desk/yerlesim';
@@ -58,7 +58,7 @@ const ISTE_BASLIK: Record<IsteAlani, string> = {
 /** Damgaya göre gişedeki kişinin yüzü. */
 const DAMGA_IFADE: Record<Damga, Ifade> = { guvenli: 'sevincli', guclendir: 'mahcup', bosalt: 'kizgin', iade: 'kizgin' };
 
-/** Masa sahnesi: üstte belediye penceresi ve gişe, altta masa, belgeler ve damga çubuğu. */
+/** Masa sahnesi: üstte belediye penceresi ve gişe, altta masa, belgeler, yönetmelik klasörü ve kaşelik. */
 export class GameScene extends Phaser.Scene {
   private controls!: Controls;
   private oturum!: GunOturumu;
@@ -74,11 +74,11 @@ export class GameScene extends Phaser.Scene {
   private mesgul = true;
   private bitirildi = false;
   private pencere!: Pencere;
-  private tepsi!: StampTray;
+  private kaselik!: Kaselik;
   private fis?: Phaser.GameObjects.Container;
   private ilkDosya = true;
   private inceleme!: Inspect;
-  private kitap?: RuleBook;
+  private kitap?: Klasor;
   private ipucu?: Phaser.GameObjects.Text;
   /** Bu günün öncü sarsıntı sonucu (gün sonu raporuna gider). */
   private oncu?: SarsintiKaydi;
@@ -129,22 +129,20 @@ export class GameScene extends Phaser.Scene {
 
     MASA.x = 0;
     MASA.y = MASA_Y;
-    MASA.w = TEPSI_SOL.kapali;
+    MASA.w = RAF_SOL;
     MASA.h = 1080 - MASA_Y;
     masaCiz(this, MASA_Y);
-    // Kural kitabı gün 2'den; gün 1'de masada yalnızca kural notu (hedef ve tek kural).
-    if (ayar.kitap) this.kitap = new RuleBook(this, this.yer.kitap[0], this.yer.kitap[1], this.gun);
+    // Yönetmelik klasörü gün 2'den; gün 1'de masada yalnızca kural notu (hedef ve tek kural).
+    if (ayar.kitap) this.kitap = new Klasor(this, this.yer.kitap[0], this.yer.kitap[1], this.gun);
     if (ayar.not) this.notGetir(ayar.not.gorev, ayar.not.kurallar);
     this.pencere = new Pencere(this, this.gun, sokakKayitlari(this.tohum, this.kayitlar));
-    this.tepsi = new StampTray(this, (d) => this.damgala(d));
-    // Masa sınırı damga çubuğunun sol kenarında biter; çubuk açılınca altında kalan belgeler dışarı itilir.
-    this.tepsi.on('ac', () => {
-      MASA.w = TEPSI_SOL.acik;
-      this.kartlariMasayaIt();
-      this.kitap?.masayaIt();
-    });
-    this.tepsi.on('kapa', () => {
-      MASA.w = TEPSI_SOL.kapali;
+    // Kaşelik (masanın sağı; masa sınırı onun solunda biter). Kaşeler kurallarla gelir (gün ayarı).
+    this.kaselik = new Kaselik(this, ayar.kaseler, ayar.yeniKaseler, {
+      hedef: () => this.muhurYeri(),
+      vur: (d, x, y) => this.damgala(d, x, y),
+      dokunuldu: () => {
+        if (this.inceleme.acik) this.inceleme.kapa();
+      },
     });
 
     this.cekmece = new Cekmece(this);
@@ -182,7 +180,7 @@ export class GameScene extends Phaser.Scene {
     this.pencere.setSaat(this.oturum.saatMetni());
   }
 
-  /** İnceleme modu: açıkken belgeler sürüklenmez, damga çubuğu kilitli. */
+  /** İnceleme modu: açıkken belgeler sürüklenmez; kaşeye dokunmak modu kapatır. */
   private incelemeKur(): void {
     this.inceleme = new Inspect(this, {
       yuzeyler: () => {
@@ -217,7 +215,6 @@ export class GameScene extends Phaser.Scene {
       this.zarf?.disableInteractive(true);
       this.not?.disableInteractive(true);
       this.kitap?.kilitle(true);
-      this.tepsi.kilitle(true);
       if (this.ipucu) {
         this.tweens.killTweensOf(this.ipucu);
         this.ipucu.destroy();
@@ -229,7 +226,6 @@ export class GameScene extends Phaser.Scene {
       if (this.zarf?.active && !this.mesgul) this.zarf.setInteractive();
       this.not?.setInteractive();
       this.kitap?.kilitle(false);
-      this.tepsi.kilitle(false);
     });
     // Gün 1 ipucu (yer tutucu metin): inceleme modu bir kez açılınca kaybolur.
     if (this.gun === 1) {
@@ -238,18 +234,6 @@ export class GameScene extends Phaser.Scene {
         .setOrigin(0, 0.5)
         .setDepth(3020);
       this.tweens.add({ targets: this.ipucu, alpha: 0.25, duration: 420, yoyo: true, repeat: -1 });
-    }
-  }
-
-  /** Masa sınırının dışında kalan belgeleri (ör. açılan damga çubuğunun altındakileri) içeri kaydırır. */
-  private kartlariMasayaIt(): void {
-    const liste: (DocumentCard | RuleNote)[] = [...this.kartlar];
-    if (this.not) liste.push(this.not);
-    for (const k of liste) {
-      if (!k.active || !k.input?.enabled) continue;
-      const [x, y] = k.masadaKonum(k.x, k.y);
-      if (x === k.x && y === k.y) continue;
-      this.tweens.add({ targets: k, x, y, duration: 220, ease: 'Cubic.easeOut' });
     }
   }
 
@@ -326,7 +310,7 @@ export class GameScene extends Phaser.Scene {
     const belgeler = this.oturum.ayar.belgeler;
     this.kartlar = belgeler.map((tur, i) => {
       const [hx, hy] = this.yer.belge[tur];
-      const k = belgeKur(this, tur, bina, GOZ.x, GOZ.y - BOY[tur][1] / 2);
+      const k = belgeKur(this, tur, bina, this.gun, GOZ.x, GOZ.y - BOY[tur][1] / 2);
       k.setDepth(ustKatman()).setAlpha(0);
       // Eksik belge: sahibinden İSTE (G17).
       if ((tur === 'karot' || tur === 'zemin') && this.oturum.istenebilir(tur)) isteDugmesi(k, () => this.iste(tur, k));
@@ -352,14 +336,22 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  /** Dosyanın bütün belgeleri masada: masa açılır, saat işler; günün ilk dosyasında damga çubuğu açılır. */
+  /** Dosyanın bütün belgeleri masada: masa açılır, saat işler; gün 1 ilk dosyada kaşelik göz kırpar. */
   private belgelerOturdu(): void {
     if (this.bitirildi) return;
     this.mesgul = false;
     if (this.ilkDosya) {
       this.ilkDosya = false;
-      this.tepsi.ac();
+      if (this.gun === 1) this.kaselik.ipucuBaslat();
     }
+  }
+
+  /** Tek tıklamalı kaşenin ineceği yer: ruhsatın sol alt köşesi (mühür yeri). Damga vurulamıyorsa null. */
+  private muhurYeri(): [number, number] | null {
+    if (this.mesgul || this.bitirildi) return null;
+    const r = this.kartlar.find((k) => k.tur === 'ruhsat' && k.active);
+    if (!r) return null;
+    return [snap(r.x - r.genislik / 2 + 152), snap(r.y + r.yukseklik / 2 - 60)];
   }
 
   // ---- Gişedeki kişi (G17): SOR, İSTE, zarf ----
@@ -461,30 +453,32 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  private damgala(damga: Damga): void {
-    if (this.mesgul || this.bitirildi) return;
+  /**
+   * Kaşe (x, y) noktasına indi. Ruhsatın üstündeyse damga sayılır (true): mürekkep izi o noktada; değilse
+   * (boş masa, başka belge, masa meşgul) false ve kaşe yerine döner.
+   */
+  private damgala(damga: Damga, x: number, y: number): boolean {
+    if (this.mesgul || this.bitirildi) return false;
+    const ruhsat = this.kartlar.find((k) => k.tur === 'ruhsat' && k.active);
+    if (!ruhsat || !ruhsat.sinir().contains(x, y)) return false;
     const sonuc = this.oturum.damgala(damga);
-    if (!sonuc) return;
+    if (!sonuc) return false;
     this.mesgul = true;
     // Masada kalan zarf kabul sayıldı (oturum kaydetti): çekmeceye kayar. Kişi damgaya tepki verir.
     if (this.zarf) this.zarfCekmeceye(this.zarf);
     const sira = this.oturum.kararlar.length;
     this.time.delayedCall(260, () => this.pencere.soyle(satir(DAMGA_TEPKI[damga], sira + this.tohum), DAMGA_IFADE[damga]));
 
-    // Tokmak iner, mürekkep ruhsata basılır.
-    const ruhsat = this.kartlar.find((k) => k.tur === 'ruhsat');
-    this.tepsi.bas(damga);
-    this.time.delayedCall(70, () => {
-      sfx.play(damga === 'iade' ? 'iade' : 'damga');
-      this.pencere.damgaVur(damga);
-      punch(this, 0.01, 110);
-      if (ruhsat?.active) {
-        ruhsat.one();
-        const iz = damgaIzi(this, damga, this.tohum + this.oturum.kararlar.length * 131);
-        iz.setPosition(-ruhsat.genislik / 2 + 152, ruhsat.yukseklik / 2 - 60);
-        ruhsat.add(iz);
-      }
-    });
+    // Kaşe indi: mürekkep izi ruhsatta, indiği yerde (kart içinde kalacak şekilde).
+    sfx.play(damga === 'iade' ? 'iade' : 'damga');
+    this.pencere.damgaVur(damga);
+    punch(this, 0.01, 110);
+    ruhsat.one();
+    const iz = damgaIzi(this, damga, this.tohum + this.oturum.kararlar.length * 131);
+    const mx = ruhsat.genislik / 2 - iz.displayWidth / 2 - 8;
+    const my = ruhsat.yukseklik / 2 - iz.displayHeight / 2 - 8;
+    iz.setPosition(snap(Phaser.Math.Clamp(x - ruhsat.x, -mx, mx)), snap(Phaser.Math.Clamp(y - ruhsat.y, -my, my)));
+    ruhsat.add(iz);
 
     // Uyarı fişi (yer tutucu geri bildirim).
     this.time.delayedCall(450, () => {
@@ -543,6 +537,7 @@ export class GameScene extends Phaser.Scene {
       if (this.oturum.bitti) this.bitir();
       else this.dosyaGetir();
     });
+    return true;
   }
 
   /** Gün bitti (dosyalar ya da mesai): öncü sarsıntı kancası, sonra gün sonu ekranı. */
@@ -581,7 +576,7 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  /** Sekans sırasında belgeler, kural notu, kitap ve damga çubuğu kilitli. */
+  /** Sekans sırasında belgeler, kural notu, klasör ve kaşelik kilitli. */
   private masaKilitle(): void {
     if (this.ipucu) {
       this.tweens.killTweensOf(this.ipucu);
@@ -592,7 +587,7 @@ export class GameScene extends Phaser.Scene {
     this.zarf?.disableInteractive(true);
     this.not?.disableInteractive(true);
     this.kitap?.kilitle(true);
-    this.tepsi.kilitle(true);
+    this.kaselik.kilitle(true);
   }
 
   /** Yalnızca dev (?dev&portreler): masanın üstünde portreler ve bir portrenin beş ifadesi (görsel denetim). */

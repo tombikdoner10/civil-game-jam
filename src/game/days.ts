@@ -1,5 +1,5 @@
-import type { BelgeTuru, Kural, KusurId } from './building';
-import { aktifKurallar, GOREV_NOTU, KURALLAR, kuralYeni, yeniKusurlari } from './rules';
+import type { BelgeTuru, Damga, Kural, KusurId } from './building';
+import { aktifKurallar, GOREV_NOTU, KURALLAR, KUSUR_BILGI, kuralKusurlari, kuralYeni, RAPOR_KURALI, yeniKusurlari } from './rules';
 import { TUNING } from './tuning';
 
 /** Oyundaki gün sayısı. Son günün sonunda (şimdilik) sonuç ekranına geçilir; büyük deprem G5'te. */
@@ -17,8 +17,12 @@ export interface GunAyar {
   dosyaSayisi: number;
   /** Mesai süresi (gerçek saniye; dosya gelip giderken saat durur). */
   sure: number;
-  /** Kural kitabı masada mı (gün 2'den itibaren). */
+  /** Yönetmelik klasörü masada mı (gün 2'den itibaren). */
   kitap: boolean;
+  /** Kaşelikte o gün duran kaşeler (kurallar geldikçe eklenir: İADE eksik belge kuralıyla, gün 3). */
+  kaseler: Damga[];
+  /** O gün ilk kez rafa gelen kaşeler ("YENİ" işareti). */
+  yeniKaseler: Damga[];
   /** Masadaki küçük kural notu (gün 1): hedef satırı ve o günün kuralı. Yoksa null. */
   not: { gorev: string; kurallar: Kural[] } | null;
   /** Gün sonu ekranından önce öncü sarsıntı olacak mı (G4b dolduracak; şimdilik yalnızca işaret). */
@@ -48,6 +52,15 @@ const BELGE_GUNU: Record<BelgeTuru, number> = {
 };
 const BELGE_SIRASI: BelgeTuru[] = ['foto', 'ruhsat', 'proje', 'vaziyet', 'karot', 'zemin'];
 
+const KASE_SIRASI: Damga[] = ['guvenli', 'guclendir', 'bosalt', 'iade'];
+
+/** Rafta o gün duran kaşeler: İADE, damgası İADE olan ilk kural (eksik belge, gün 3) yürürlüğe girince gelir. */
+export function gunKaseleri(gun: number): Damga[] {
+  const g = sinirla(gun);
+  const iade = aktifKurallar(g).some((k) => k.id === RAPOR_KURALI || kuralKusurlari(k, g).some((id) => KUSUR_BILGI[id].ciddiyet === 'iade'));
+  return KASE_SIRASI.filter((d) => d !== 'iade' || iade);
+}
+
 function sinirla(gun: number): number {
   return Math.min(Math.max(Math.floor(gun), 1), SON_GUN);
 }
@@ -68,6 +81,8 @@ export function gunAyar(gun: number): GunAyar {
     dosyaSayisi: listeden(TUNING.mesai.dosyaSayisi, g),
     sure: listeden(TUNING.mesai.sure, g),
     kitap: g >= 2,
+    kaseler: gunKaseleri(g),
+    yeniKaseler: gunKaseleri(g).filter((d) => g > 1 && !gunKaseleri(g - 1).includes(d)),
     not: g === 1 ? { gorev: GOREV_NOTU, kurallar: yeni } : null,
     oncuSarsinti: g === 1,
     sor: g >= TUNING.kisi.sorIlkGun,

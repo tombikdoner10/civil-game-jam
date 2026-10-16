@@ -37,40 +37,6 @@ export function masaCiz(scene: Phaser.Scene, y: number): Phaser.GameObjects.Imag
   return t.goruntu(0, y).setOrigin(0).setDepth(0);
 }
 
-/** Kural kitabı: masada kapalı, pasif (içeriği G4). */
-export function kuralKitabi(scene: Phaser.Scene, x: number, y: number): Phaser.GameObjects.Container {
-  const W = 52;
-  const H = 66;
-  const t = new Tuval(scene, W + 2, H + 3, 'kitap');
-  // Gölge
-  t.rect(2, 3, W, H, '#00000066');
-  // Sayfa kenarları
-  t.rect(0, 0, W, H, '#1d191b');
-  t.rect(2, 2, W - 3, H - 3, '#cfc5a6');
-  for (let yy = 4; yy < H - 1; yy += 2) t.rect(W - 3, yy, 2, 1, '#a99d7e');
-  for (let xx = 4; xx < W - 1; xx += 2) t.rect(xx, H - 3, 1, 2, '#a99d7e');
-  // Kapak
-  t.rect(0, 0, W - 3, H - 3, '#1d191b');
-  t.rect(1, 1, W - 5, H - 5, '#3d4a3e');
-  t.rect(1, 1, 5, H - 5, '#2f3a31');
-  t.rect(6, 1, 1, H - 5, '#4b5a4c');
-  t.benek(7, 2, W - 12, H - 7, '#465548', 0.08, rastgele(9));
-  // Etiket plakası
-  t.rect(12, 14, 32, 16, '#1d191b');
-  t.rect(13, 15, 30, 14, '#c2b48c');
-  t.frame(14, 16, 28, 12, '#8f8263');
-  t.rect(14, 46, 28, 1, '#55664f');
-  t.rect(14, 48, 20, 1, '#55664f');
-  const kap = scene.add.container(snap(x), snap(y));
-  kap.add(t.goruntu(0, 0));
-  const tx = -((W + 2) * PX) / 2 + 28 * PX;
-  const ty = -((H + 3) * PX) / 2 + 22 * PX;
-  kap.add(scene.add.text(tx, ty - 11, 'KURAL', { fontFamily: FONT, fontSize: '30px', color: '#231e1b' }).setOrigin(0.5));
-  kap.add(scene.add.text(tx, ty + 13, 'KİTABI', { fontFamily: FONT, fontSize: '30px', color: '#231e1b' }).setOrigin(0.5));
-  kap.setDepth(5);
-  return kap;
-}
-
 /**
  * Uyarı fişi (yer tutucu geri bildirim). Doğruysa yeşilimsi, yanlışsa pembe kâğıt. Yanlış kararda satırlar:
  * başlık, doğru damga, kusurlar. Boyu metne göre; kap.width / kap.height ile okunur. Yerini GameScene

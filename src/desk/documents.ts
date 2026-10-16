@@ -3,6 +3,7 @@ import * as Phaser from 'phaser';
 import { FONT } from '../config';
 import { gecerliRuhsat, type Belgeler, type BelgeTuru, type Bina, type Zemin } from '../game/building';
 import { tarih } from '../game/diyalog';
+import { TUNING } from '../game/tuning';
 import type { GetirilenRapor } from '../game/kisi';
 import { DocumentCard } from './DocumentCard';
 import { KONTUR, PAL } from './palette';
@@ -42,7 +43,13 @@ const RAPOR_H = 264;
 const DAKSIL = '#eeeadb';
 const KALEM = '#2f3f78';
 
-type Ctx = { s: Phaser.Scene; c: DocumentCard; b: Belgeler; bina: Bina; t: Tuval; rnd: () => number };
+/**
+ * gun: masadaki gün. Ada / parsel ve imza satırları kuralları gelene kadar gösterilmez (gün 1 sade; G18):
+ * imza TUNING.belgeHile.imzaGun, ada / parsel elleBaskaGun. Veri değişmez, yalnızca çizilmez.
+ */
+type Ctx = { s: Phaser.Scene; c: DocumentCard; b: Belgeler; bina: Bina; t: Tuval; rnd: () => number; gun: number };
+const adaGorunur = (k: Ctx): boolean => k.gun >= TUNING.belgeHile.elleBaskaGun;
+const imzaGorunur = (k: Ctx): boolean => k.gun >= TUNING.belgeHile.imzaGun;
 
 /** Sanat pikseli koordinatını kart içi ekran koordinatına çevirir. */
 const X = (c: DocumentCard, a: number): number => a * PX - c.genislik / 2;
@@ -163,8 +170,8 @@ function ruhsat(k: Ctx): void {
     ['kat', 'Kat sayısı', String(r.kat), 20, '(zemin dahil)'],
     ['yil', 'Yapım yılı', String(r.yil), 32],
     ['muhur', 'Mühür yılı', String(r.muhurYili), 42],
-    ['ada', 'Ada/Parsel', r.ada, 52],
   ];
+  if (adaGorunur(k)) satirlar.push(['ada', 'Ada/Parsel', r.ada, 52]);
   for (const [alan, ad, v, y, alt] of satirlar) {
     if (alt) {
       etiket(k, 6, y - 2, ad);
@@ -177,11 +184,13 @@ function ruhsat(k: Ctx): void {
     bolge(k, alan, 4, y - 6, 72, alt ? 12 : 10);
   }
   // İmza: "x" ve noktalı çizgi; imzalıysa üstünde mavi kalemle karalama, imzasızsa boş (G17b).
-  etiket(k, 6, 65, 'İmza');
-  t.px(22, 67, PAL.murekkepSoluk).px(24, 67, PAL.murekkepSoluk).px(23, 68, PAL.murekkepSoluk).px(22, 69, PAL.murekkepSoluk).px(24, 69, PAL.murekkepSoluk);
-  for (let x = 26; x < 64; x += 2) t.px(x, 70, PAL.murekkepAcik);
-  if (r.imza) imzaCiz(t, 28, 62, rnd);
-  bolge(k, 'imza', 4, 58, 64, 14);
+  if (imzaGorunur(k)) {
+    etiket(k, 6, 65, 'İmza');
+    t.px(22, 67, PAL.murekkepSoluk).px(24, 67, PAL.murekkepSoluk).px(23, 68, PAL.murekkepSoluk).px(22, 69, PAL.murekkepSoluk).px(24, 69, PAL.murekkepSoluk);
+    for (let x = 26; x < 64; x += 2) t.px(x, 70, PAL.murekkepAcik);
+    if (r.imza) imzaCiz(t, 28, 62, rnd);
+    bolge(k, 'imza', 4, 58, 64, 14);
+  }
   muhur(t, 80, 67, rnd);
 }
 
@@ -341,6 +350,7 @@ function vaziyet(k: Ctx): void {
   k.c.alanEkle('dere', de);
   k.c.alanEkle('fay', fa);
   // Ada / parsel şeridi (G17b)
+  if (!adaGorunur(k)) return;
   etiket(k, 9, H, 'Ada/Parsel', 26, PAL.planCizgi);
   const ad = deger(k, 40, H, v.ada, 30, PAL.planCizgi);
   k.c.remove(ad);
@@ -371,11 +381,16 @@ function karot(k: Ctx): void {
     const o = deger(k, 49, y0 + sat + 4, `${b.karot.mpa} MPa`, 36);
     k.c.remove(o);
     k.c.alanEkle('mpa', o);
-    // Ada / parsel satırı (G17b)
-    etiket(k, x0 + 3, y0 + 3 * sat + 4, 'Ada/Parsel', 26);
-    const ad = deger(k, 49, y0 + 3 * sat + 4, b.karot.ada, 30);
-    k.c.remove(ad);
-    k.c.alanEkle('ada', ad);
+    // Ada / parsel satırı (G17b); kuralı gelmeden sahte satır.
+    if (adaGorunur(k)) {
+      etiket(k, x0 + 3, y0 + 3 * sat + 4, 'Ada/Parsel', 26);
+      const ad = deger(k, 49, y0 + 3 * sat + 4, b.karot.ada, 30);
+      k.c.remove(ad);
+      k.c.alanEkle('ada', ad);
+    } else {
+      sahteSatir(t, x0 + 3, y0 + 3 * sat + 4, 24, PAL.labKoyu, rnd);
+      sahteSatir(t, 49, y0 + 3 * sat + 4, 14, PAL.labKoyu, rnd);
+    }
   } else {
     t.rect(x0 + 1, y0 + sat + 1, x1 - x0 - 1, sat * 3 - 1, PAL.lab);
     const o = etiket(k, t.w / 2, y0 + sat * 2 + 4, 'Rapor yok', 36, PAL.damgaBosalt, 0.5);
@@ -413,11 +428,13 @@ function zemin(k: Ctx): void {
     sahteSatir(t, 5, 42, 36, PAL.kirliBeyazKoyu, rnd);
     sahteSatir(t, 5, 44, 28, PAL.kirliBeyazKoyu, rnd);
     // Ada / parsel satırı (G17b)
-    t.rect(4, 51, t.w - 8, 1, PAL.kirliBeyazKoyu);
-    etiket(k, 5, 56, 'Ada/Parsel', 26);
-    const ad = deger(k, 34, 56, b.zemin.ada, 30);
-    k.c.remove(ad);
-    k.c.alanEkle('ada', ad);
+    if (adaGorunur(k)) {
+      t.rect(4, 51, t.w - 8, 1, PAL.kirliBeyazKoyu);
+      etiket(k, 5, 56, 'Ada/Parsel', 26);
+      const ad = deger(k, 34, 56, b.zemin.ada, 30);
+      k.c.remove(ad);
+      k.c.alanEkle('ada', ad);
+    }
   } else {
     sahteSatir(t, 5, 14, 30, PAL.kirliBeyazKoyu, rnd);
     const o = etiket(k, t.w / 2, 32, 'RAPOR YOK', 44, PAL.murekkepSoluk, 0.5);
@@ -429,12 +446,12 @@ function zemin(k: Ctx): void {
 const CIZIM: Record<BelgeTuru, (k: Ctx) => void> = { ruhsat, foto, proje, vaziyet, karot, zemin };
 
 /** Bir belgeyi veriden çizer. */
-export function belgeKur(scene: Phaser.Scene, tur: BelgeTuru, bina: Bina, x: number, y: number): DocumentCard {
+export function belgeKur(scene: Phaser.Scene, tur: BelgeTuru, bina: Bina, gun: number, x: number, y: number): DocumentCard {
   const [w, h] = BOY[tur];
   const kart = new DocumentCard(scene, tur, w, h, x, y);
   const t = new Tuval(scene, w / PX, h / PX, `belge-${tur}`);
   const rnd = rastgele(dizgiTohum(bina.id + tur));
-  CIZIM[tur]({ s: scene, c: kart, b: bina.belgeler, bina, t, rnd });
+  CIZIM[tur]({ s: scene, c: kart, b: bina.belgeler, bina, t, rnd, gun });
   kart.zeminEkle(t);
   return kart;
 }
@@ -475,13 +492,13 @@ export function isteDugmesi(kart: DocumentCard, is: () => void): void {
  */
 export function raporKur(scene: Phaser.Scene, bina: Bina, rapor: GetirilenRapor, gun: number, x: number, y: number): DocumentCard {
   const tur: BelgeTuru = rapor.alan;
-  if (tur === 'ruhsat' || tur === 'vaziyet') return belgeGetir(scene, bina, rapor, x, y);
+  if (tur === 'ruhsat' || tur === 'vaziyet') return belgeGetir(scene, bina, rapor, gun, x, y);
   const [w] = BOY[tur];
   const h = RAPOR_H;
   const c = new DocumentCard(scene, tur, w, h, x, y);
   const t = new Tuval(scene, w / PX, h / PX, `rapor-${tur}`);
   const rnd = rastgele(dizgiTohum(bina.id + tur + 'getirilen'));
-  const k: Ctx = { s: scene, c, b: bina.belgeler, bina, t, rnd };
+  const k: Ctx = { s: scene, c, b: bina.belgeler, bina, t, rnd, gun };
   const karot = tur === 'karot';
   kagit(t, karot ? PAL.lab : PAL.kirliBeyaz, karot ? PAL.labKoyu : PAL.kirliBeyazKoyu, rnd);
   t.rect(3, 3, t.w - 9, 8, karot ? PAL.labKoyu : PAL.kirliBeyazKoyu);
@@ -508,11 +525,13 @@ export function raporKur(scene: Phaser.Scene, bina: Bina, rapor: GetirilenRapor,
   if (rapor.ipucu !== 'muhur') muhurLab(t, 62, 45, rnd, karot ? PAL.lab : PAL.kirliBeyaz);
   bolge(k, 'lab', 38, 42, t.w - 42, 11);
   // Ada / parsel (G17b)
-  for (let x2 = 5; x2 < t.w - 6; x2 += 2) t.px(x2, 54, PAL.murekkepAcik);
-  etiket(k, 5, 59, 'Ada/Parsel', 26);
-  const ad = deger(k, 40, 59, rapor.ada, 30);
-  k.c.remove(ad);
-  k.c.alanEkle('ada', ad);
+  if (adaGorunur(k)) {
+    for (let x2 = 5; x2 < t.w - 6; x2 += 2) t.px(x2, 54, PAL.murekkepAcik);
+    etiket(k, 5, 59, 'Ada/Parsel', 26);
+    const ad = deger(k, 40, 59, rapor.ada, 30);
+    k.c.remove(ad);
+    k.c.alanEkle('ada', ad);
+  }
   c.zeminEkle(t);
   return c;
 }
@@ -521,7 +540,7 @@ export function raporKur(scene: Phaser.Scene, bina: Bina, rapor: GetirilenRapor,
  * Gişeden getirilen ruhsat ya da vaziyet planı (G17b): normal belge gibi çizilir (gerçekte düzgünü; sahtede
  * elle düzeltme, imza yok ya da yine başka binanın ada / parseli), köşesinde ataş.
  */
-function belgeGetir(scene: Phaser.Scene, bina: Bina, rapor: GetirilenRapor, x: number, y: number): DocumentCard {
+function belgeGetir(scene: Phaser.Scene, bina: Bina, rapor: GetirilenRapor, gun: number, x: number, y: number): DocumentCard {
   const tur = rapor.alan as 'ruhsat' | 'vaziyet';
   const [w, h] = BOY[tur];
   const c = new DocumentCard(scene, tur, w, h, x, y);
@@ -530,7 +549,7 @@ function belgeGetir(scene: Phaser.Scene, bina: Bina, rapor: GetirilenRapor, x: n
   const belgeler: Belgeler = { ...B, ruhsat: rapor.ruhsat ?? B.ruhsat, vaziyet: rapor.vaziyet ?? B.vaziyet };
   const b2: Bina = { ...bina, belgeler };
   const rnd = rastgele(dizgiTohum(bina.id + tur + 'getirilen'));
-  CIZIM[tur]({ s: scene, c, b: belgeler, bina: b2, t, rnd });
+  CIZIM[tur]({ s: scene, c, b: belgeler, bina: b2, t, rnd, gun });
   atas(t, tur === 'ruhsat' ? PAL.krem : PAL.plan);
   c.zeminEkle(t);
   return c;

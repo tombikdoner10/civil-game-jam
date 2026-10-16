@@ -72,14 +72,14 @@ export const ASSETS: Record<Category, AssetCredit[]> = {
       author: 'Kenney (www.kenney.nl)',
       url: 'https://kenney.nl/assets/impact-sounds',
       license: 'Creative Commons CC0 1.0',
-      usage: 'Damga tokmağı, damga çubuğu, kusur bulundu sesi ve öncü sarsıntının vuruş, moloz, çatırtı, cam titremesi ve bina hasarı sesleri; çoğu yavaşlatıldı (hız ve perde değiştirildi), bazıları katmanlandı (src/sounds/kenney/impact-sounds/)',
+      usage: 'Kaşenin belgeye vurması, kaşeyi alma ve yerine koyma, çekmece, kusur bulundu sesi ve öncü sarsıntının vuruş, moloz, çatırtı, cam titremesi ve bina hasarı sesleri; çoğu yavaşlatıldı (hız ve perde değiştirildi), bazıları katmanlandı (src/sounds/kenney/impact-sounds/)',
     },
     {
       name: 'Kenney – RPG Audio',
       author: 'Kenney (www.kenney.nl)',
       url: 'https://kenney.nl/assets/rpg-audio',
       license: 'Creative Commons CC0 1.0',
-      usage: 'Kâğıt ve belge sesleri (kayma, alma, bırakma, toplama, fiş), kural kitabı aç/kapa ve sayfa çevirme, inceleme modu aç/kapa, gişede ayak sesleri, sarsıntıda gıcırtı; hız ve perde değiştirildi, baştaki sessizlik atlandı (src/sounds/kenney/rpg-audio/)',
+      usage: 'Kâğıt ve belge sesleri (kayma, alma, bırakma, toplama, fiş), yönetmelik klasörü aç/kapa, sekme ve sayfa çevirme, ıstampa, inceleme modu aç/kapa, gişede ayak sesleri, sarsıntıda gıcırtı; hız ve perde değiştirildi, baştaki sessizlik atlandı (src/sounds/kenney/rpg-audio/)',
     },
     {
       name: 'Kenney – Interface Sounds',

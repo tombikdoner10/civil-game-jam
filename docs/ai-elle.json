@@ -141,5 +141,12 @@
     "yer": "src/game/diyalog.ts (SOR: elle düzeltme, başka bina, imza; İSTE belge), src/game/rules.ts (geçersiz belge kuralı)",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-16T22:19:41.076Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G18 kaşelik, yönetmelik klasörü ve gün 1 sadeliği: kod düzenlemelerinin bir kısmı Claude'un Python değiştirme betiğiyle yapıldı",
+    "yer": "src/scenes/GameScene.ts, src/desk/{Kaselik,Klasor,documents,props,yerlesim}.ts, src/game/days.ts, src/audio/sesler.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-16T22:38:37.650Z"
   }
 ]
