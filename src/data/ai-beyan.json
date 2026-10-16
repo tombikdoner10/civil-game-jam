@@ -18,10 +18,11 @@
     },
     "code": {
       "kullanildi": true,
-      "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)",
+      "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5)",
       "amac": "Oyunun kodunu yazdı",
       "yer": [
-        "Jam öncesi şablonun bütün kodu"
+        "Jam öncesi şablonun bütün kodu",
+        "src/game/ (3 dosya)"
       ]
     },
     "text": {

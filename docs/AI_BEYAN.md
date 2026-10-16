@@ -17,9 +17,9 @@ otomatik kaydı) ve `docs/ai-elle.json` (elle eklenenler). Teslim formunda her k
 
 ## Kod: Kullanıldı
 
-- **Araç:** Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)
+- **Araç:** Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5)
 - **Amaç:** Oyunun kodunu yazdı
-- **Kullanıldığı yer:** Jam öncesi şablonun bütün kodu
+- **Kullanıldığı yer:** Jam öncesi şablonun bütün kodu, src/game/ (3 dosya)
 
 ## Metin: Kullanıldı
 
