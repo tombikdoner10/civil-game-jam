@@ -42,12 +42,21 @@ export function sayiSatiri(o: DepremOzeti): string {
   return `[Ayakta: ${o.ayakta} bina · Hasarlı: ${o.hasarli} · Çöken: ${o.coken} (boşaltılmış: ${o.cokenBos})${o.iade > 0 ? ` · İade edilmiş: ${o.iade}` : ''}]`;
 }
 
-/** Öne çıkan binalar (en çok 3 satır) ve fotoğrafın odaklanacağı bina (ilk satırınki). */
-export function oneCikanlar(s: readonly DepremBinaSonucu[]): { satirlar: string[]; odak?: DepremBinaSonucu } {
+/** Sonucun ağırlığı (sıralama): çöken, ağır hasarlı, hasarlı, ayakta. */
+const agirlik = (b: DepremBinaSonucu): number => (b.coktu ? 3 : b.durum === 'agirHasar' ? 2 : b.durum === 'hasarli' ? 1 : 0);
+
+/**
+ * Öne çıkan binalar (en çok 3 satır) ve fotoğrafın odaklanacağı bina (ilk satırınki). oncelik (G21 kısa yol):
+ * oyuncunun kendi binaları önce, en ağır sonuçtan başlayarak.
+ */
+export function oneCikanlar(s: readonly DepremBinaSonucu[], oncelik?: ReadonlySet<string>): { satirlar: string[]; odak?: DepremBinaSonucu } {
   const out: { b: DepremBinaSonucu; metin: string }[] = [];
   const ekle = (b: DepremBinaSonucu | undefined, metin: (b: DepremBinaSonucu) => string): void => {
     if (b && out.length < 3 && !out.some((x) => x.b === b)) out.push({ b, metin: metin(b) });
   };
+  if (oncelik)
+    for (const b of s.filter((x) => oncelik.has(x.dosyaId)).sort((a, c) => agirlik(c) - agirlik(a) || a.no - c.no))
+      ekle(b, (b) => (b.bos ? `[${no(b)} ${durumAdi(b)}; boşaltılmıştı, içinde kimse yoktu]` : `[${no(b)} ${durumAdi(b)}; ${gecmis(b)}]`));
   const doluCoken = s.filter((b) => b.coktu && !b.bos);
   ekle(doluCoken[0], (b) => `[${no(b)} çöktü; ${gecmis(b)}]`);
   // İADE edilen bina: oyuncunun denetlemeden bıraktığı (bilinçli) risk; gazetede ayrı satır.
@@ -97,3 +106,29 @@ export function zarfOzeti(adet: number, toplam: number, s: readonly DepremBinaSo
   const hasar = s.filter((b) => b.zarf && (b.coktu || b.durum !== 'ayakta')).length;
   return `[Kabul edilen zarf: ${adet} · ${toplam} TL${hasar > 0 ? ` · zarf alınan ${hasar} bina depremde hasar gördü` : ''}]`;
 }
+
+// ---- G21 kısa yol ("Depremi şimdi yaşa") ----
+
+/** Gün 1 raporundaki kısa yol düğmesi ve açıklaması. */
+export const KISA_YOL_DUGME = '[DEPREMİ ŞİMDİ YAŞA]';
+export const KISA_YOL_ACIKLAMA = '[5 gün sonra büyük deprem olacak. Şimdi görmek ister misin?]';
+/** Depremde oyuncunun binalarının üstündeki etiket. */
+export const SENIN_DAMGAN = '[SENİN DAMGAN]';
+
+/** Depremde oyuncunun binasının sonucu (etiket). */
+export function sonucEtiketi(b: DepremBinaSonucu): string {
+  return b.coktu ? '[ÇÖKTÜ]' : b.durum === 'agirHasar' ? '[AĞIR HASAR]' : b.durum === 'hasarli' ? '[HASARLI]' : '[AYAKTA]';
+}
+
+/** Sonuç ekranında oyuncunun binalarının özeti. */
+export function seninBinalarin(o: DepremOzeti): string {
+  return `[Senin binaların: ayakta ${o.ayakta}, hasarlı ${o.hasarli}, çöken ${o.coken}]`;
+}
+
+/** Sonuç ekranındaki kısa yol başlıkları. */
+export const KISA_SONUC = {
+  sag: '[GÜN 1 + DEPREM]',
+  alt: '[Gün 1 ve büyük deprem: senin binaların ve sokak]',
+  senin: 'SENİN BİNALARIN',
+  sokak: (toplam: number, senin: number): string => `BÜYÜK DEPREM · SOKAK [${toplam} bina, ${senin} tanesi senin]`,
+};

@@ -26,6 +26,8 @@ const bak = (kosul, mesaj) => {
 
 function kayitlar(tohum, bicim) {
   if (bicim === 'ornek') return O.ornekKayitlar(tohum, 6);
+  // G21 kısa yol: gün 1 (örnek kararlar) + gün 2-5'i temsil eden örnek binalar (ayrı tohum).
+  if (bicim === 'kisa') return [...O.ornekKayitlar(tohum, 2), ...O.kisaYolKayitlari(tohum)];
   const out = [];
   for (let g = 1; g <= 5; g++) {
     const o = new S.GunOturumu(g, tohum);
@@ -36,11 +38,17 @@ function kayitlar(tohum, bicim) {
 }
 
 for (let tohum = 1; tohum <= 10; tohum++) {
-  for (const bicim of ['ornek', 'dogru', 'guvenli', 'guclendir', 'bosalt', 'iade']) {
+  for (const bicim of ['ornek', 'dogru', 'guvenli', 'guclendir', 'bosalt', 'iade', 'kisa']) {
     const k = kayitlar(tohum, bicim);
     const sokak = S.sokakKayitlari(tohum, k);
     const sonuc = S.buyukDeprem(tohum, k);
     bak(sokak.length === sonuc.length, `t${tohum} ${bicim}: sonuç sayısı`);
+    if (bicim === 'kisa') {
+      // Oyuncunun gün 1 binaları sokakta önde; toplam = gün 1 + örnek bina sayısı.
+      const g1 = k[0].kararlar.map((c) => c.dosyaId);
+      bak(g1.every((id, i) => sonuc[i]?.dosyaId === id), `t${tohum} kisa: gün 1 binaları önde değil`);
+      bak(sonuc.length === g1.length + T.kisaYol.ornekBina, `t${tohum} kisa: sokak uzunluğu ${sonuc.length}`);
+    }
     sonuc.forEach((r, i) => {
       const s = sokak[i];
       const kusurlu = R.fizikselKusurlar(s.bina, s.gun).length > 0;

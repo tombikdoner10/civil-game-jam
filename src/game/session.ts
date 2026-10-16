@@ -91,6 +91,8 @@ export interface GunKaydi {
   kararlar: Karar[];
   /** O günün sonundaki öncü sarsıntı (varsa). Çatlayan binalar sonraki günlerde de çatlak görünür. */
   oncu?: SarsintiKaydi;
+  /** Binalar başka tohumdan (G21 kısa yolun örnek binaları; yoksa oyunun tohumu). */
+  tohum?: number;
 }
 
 /** Sokakta duran (damgalanmış) bir bina. */
@@ -111,7 +113,7 @@ export function sokakKayitlari(tohum: number, kayitlar: readonly GunKaydi[]): So
   for (const k of kayitlar) for (const s of k.oncu?.sonuclar ?? []) if (s.durum !== 'ayakta') hasar.set(s.dosyaId, s.durum);
   const out: SokakKaydi[] = [];
   for (const k of kayitlar) {
-    const binalar = new Map(gunDosyalari(tohum, k.gun, gunAyar(k.gun).dosyaSayisi).map((b) => [b.id, b]));
+    const binalar = new Map(gunDosyalari(k.tohum ?? tohum, k.gun, gunAyar(k.gun).dosyaSayisi).map((b) => [b.id, b]));
     for (const karar of k.kararlar) {
       const bina = binalar.get(karar.dosyaId);
       if (bina) out.push({ bina, damga: karar.damga, gun: k.gun, hasar: hasar.get(karar.dosyaId) });

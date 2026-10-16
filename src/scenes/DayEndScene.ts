@@ -8,6 +8,8 @@ import { masaCiz, pikselDugme } from '../desk/props';
 import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
 import type { Damga } from '../game/building';
 import { SON_GUN } from '../game/days';
+import { KISA_YOL_ACIKLAMA, KISA_YOL_DUGME } from '../game/gazete';
+import { kisaYolKayitlari } from '../game/ornek';
 import { KUSUR_BILGI } from '../game/rules';
 import { gunHesabi, type GunKaydi, type Karar, type SarsintiKaydi } from '../game/session';
 import { TUNING } from '../game/tuning';
@@ -183,17 +185,35 @@ export class DayEndScene extends Phaser.Scene {
       yaz(deger, yy, b, i === 3 ? 44 : 36, renk, 1);
     });
 
-    // Sonraki gün düğmesi
+    // Sonraki gün düğmesi; gün 1'de yanında kısa yol (G21, jüri yolu): "Depremi şimdi yaşa" (D).
     const son = v.gun >= SON_GUN;
-    const dugme = pikselDugme(this, L + KAGIT.w / 2, T + KAGIT.h - 64, son ? 'GECE' : 'SONRAKİ GÜN', 'Enter', () => this.devam(yeniPara));
+    const kisaVar = v.gun === 1 && !son;
+    const by = T + KAGIT.h - 64;
+    const dugme = pikselDugme(this, L + KAGIT.w / 2 - (kisaVar ? 300 : 0), by, son ? 'GECE' : 'SONRAKİ GÜN', 'Enter', () => this.devam(yeniPara));
     this.tweens.add({ targets: dugme, alpha: 1, duration: 200, delay: 400 });
     const kb = this.input.keyboard;
     const tus = (): void => this.devam(yeniPara);
+    const kisaTus = (): void => this.devam(yeniPara, true);
     kb?.on('keydown-ENTER', tus);
     kb?.on('keydown-SPACE', tus);
+    if (kisaVar) {
+      const kd = pikselDugme(this, L + KAGIT.w / 2 + 300, by, KISA_YOL_DUGME, 'D', kisaTus, {
+        govde: PAL.damgaBosalt,
+        acik: '#c4544a',
+        koyu: '#6e2a24',
+      });
+      this.tweens.add({ targets: kd, alpha: 1, duration: 200, delay: 400 });
+      // Açıklama: öncü sarsıntı satırının altında (yer tutucu).
+      const ac = yaz(L + 40, y + 20 + oncuH, KISA_YOL_ACIKLAMA, 32, PAL.damgaBosalt);
+      this.sigdir(ac, KAGIT.w - 80);
+      ac.setAlpha(0);
+      this.tweens.add({ targets: ac, alpha: 1, duration: 160, delay: 400 });
+      kb?.on('keydown-D', kisaTus);
+    }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       kb?.off('keydown-ENTER', tus);
       kb?.off('keydown-SPACE', tus);
+      kb?.off('keydown-D', kisaTus);
     });
     // Rapor dolarken yanlışlıkla geçilmesin.
     this.time.delayedCall(500, () => (this.hazir = true));
@@ -203,7 +223,7 @@ export class DayEndScene extends Phaser.Scene {
     this.time.delayedCall(350, () => sfx.play(iyi ? 'gunIyi' : 'gunKotu'));
   }
 
-  private devam(yeniPara: number): void {
+  private devam(yeniPara: number, kisa = false): void {
     if (!this.hazir || this.gecildi) return;
     this.gecildi = true;
     sfx.play('confirm');
@@ -211,6 +231,18 @@ export class DayEndScene extends Phaser.Scene {
     const kayit: GunKaydi = { gun: v.gun, kararlar: v.kararlar };
     if (v.oncu) kayit.oncu = v.oncu;
     const kayitlar: GunKaydi[] = [...v.kayitlar, kayit];
+    if (kisa) {
+      // Kısa yol (G21): oyuncunun binaları önde, ardından gün 2-5'i temsil eden örnek binalar; kısa deprem.
+      // Oyuncunun kayıtları ayrı taşınır (sonuç ekranı, "Gün 2'den devam"); örnekler kayıtlara karışmaz.
+      const data: DepremData = {
+        tohum: v.tohum,
+        para: yeniPara,
+        kayitlar: [...kayitlar, ...kisaYolKayitlari(v.tohum)],
+        kisa: { gercek: kayitlar, juri: v.kararlar.map((k) => k.dosyaId) },
+      };
+      goTo(this, SCENES.Quake, data, 600);
+      return;
+    }
     if (v.gun >= SON_GUN) {
       // Son gün: gece ve büyük deprem (gece geçişi QuakeScene'de; buradan daha yavaş kararır).
       const data: DepremData = { tohum: v.tohum, para: yeniPara, kayitlar };

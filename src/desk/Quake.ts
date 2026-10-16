@@ -43,6 +43,15 @@ export interface SarsintiSecenek {
    * verir; sonunda bütün sokak görünür. Oda tozu yok (sokak tam ekran); toz ve dökülme sokakla birlikte kayar.
    */
   buyuk?: boolean;
+  /**
+   * Büyük depremde tarama grupları (verilmezse sokak sırasıyla TUNING.buyukDeprem.grup'luk gruplar). Kısa gruplar
+   * görünümde ortalanır (G21: önce oyuncunun binaları).
+   */
+  gruplar?: SokakYeri[][];
+  /** Grupların süre ağırlıkları (verilmezse eşit; eksik olanlar 1). */
+  agirlik?: number[];
+  /** Büyük depremde bir grubun binaları tepki verdikten sonra (gi: grup sırası, sonuclar: gruptakiler). */
+  grupSonu?: (gi: number, sonuclar: QuakeSonucu[]) => void;
 }
 
 export interface QuakeSonucu extends SarsintiSonucu {
@@ -100,15 +109,16 @@ export class Quake {
   }
 
   /** Büyük deprem öncesi görünüm: ilk grup (sahne açılırken sokak zaten orada dursun). */
-  hazirla(binalar: readonly SokakYeri[]): void {
-    const g = Quake.gruplar(binalar)[0];
-    if (g) this.grupOdakla(g, 0);
+  hazirla(binalar: readonly SokakYeri[], gruplar?: SokakYeri[][]): void {
+    const g = (gruplar ?? Quake.gruplar(binalar))[0];
+    if (g) this.grupOdakla(g, 0, !!gruplar);
   }
 
-  private grupOdakla(g: readonly SokakYeri[], sure: number): void {
+  private grupOdakla(g: readonly SokakYeri[], sure: number, ortala = false): void {
     const n = TUNING.buyukDeprem.grup;
-    // Son grup kısa kalsa da ölçek aynı kalsın: grup genişliği hep n parsel.
-    this.sokak.odakla(g[0].yer, g[0].yer + n - 1, sure, undefined, 0.5, 0.1);
+    // Son grup kısa kalsa da ölçek aynı kalsın: grup genişliği hep n parsel. ortala: kısa grup ortada.
+    const i0 = ortala ? g[0].yer - Math.floor((n - Math.min(n, g.length)) / 2) : g[0].yer;
+    this.sokak.odakla(i0, i0 + n - 1, sure, undefined, 0.5, 0.1);
   }
 
   oynat(siddet: number, binalar: readonly SokakYeri[], bitince: (sonuclar: QuakeSonucu[]) => void, secenek: SarsintiSecenek = {}): void {
@@ -265,17 +275,25 @@ export class Quake {
     const tepkiler = sonuclar.filter((s) => s.gorunen !== 'ayakta');
     if (buyuk) {
       // Gruplar sırayla: görünüm gruba kayar, gruptaki binalar sırayla tepki verir; sonunda bütün sokak.
-      const gruplar = Quake.gruplar(binalar);
+      const ozel = !!secenek.gruplar;
+      const gruplar = (secenek.gruplar ?? Quake.gruplar(binalar)).filter((g) => g.length > 0);
       const bas = BUYUK.taramaBas * T;
-      const adim = gruplar.length > 0 ? ((BUYUK.taramaSon - BUYUK.taramaBas) * T) / gruplar.length : 0;
-      const kayma = Math.min(600, adim * 0.3);
+      const agir = gruplar.map((_, gi) => secenek.agirlik?.[gi] ?? 1);
+      const birim = gruplar.length > 0 ? ((BUYUK.taramaSon - BUYUK.taramaBas) * T) / agir.reduce((a, b) => a + b, 0) : 0;
       const sonucu = new Map(sonuclar.map((s) => [s.yer, s]));
+      let t0 = bas;
       gruplar.forEach((g, gi) => {
-        const t0 = bas + gi * adim;
-        if (gi > 0) scene.time.delayedCall(t0, () => this.grupOdakla(g, kayma));
-        const etkin = g.map((b) => sonucu.get(b.yer)).filter((s): s is QuakeSonucu => !!s && s.gorunen !== 'ayakta');
-        const aralik = etkin.length > 0 ? (adim - kayma) * 0.6 / etkin.length : 0;
-        etkin.forEach((s, j) => scene.time.delayedCall(t0 + kayma + 200 + j * aralik, () => tepki(s)));
+        const adim = birim * agir[gi];
+        const kayma = Math.min(600, adim * 0.3);
+        const bu = t0;
+        if (gi > 0) scene.time.delayedCall(bu, () => this.grupOdakla(g, kayma, ozel));
+        const hepsi = g.map((b) => sonucu.get(b.yer)).filter((s): s is QuakeSonucu => !!s);
+        const etkin = hepsi.filter((s) => s.gorunen !== 'ayakta');
+        const aralik = etkin.length > 0 ? ((adim - kayma) * 0.6) / etkin.length : 0;
+        etkin.forEach((s, j) => scene.time.delayedCall(bu + kayma + 200 + j * aralik, () => tepki(s)));
+        const grupSonu = secenek.grupSonu;
+        if (grupSonu) scene.time.delayedCall(bu + kayma + 200 + (adim - kayma) * 0.62, () => grupSonu(gi, hepsi));
+        t0 += adim;
       });
       if (binalar.length > 0)
         scene.time.delayedCall(BUYUK.genis * T, () => {

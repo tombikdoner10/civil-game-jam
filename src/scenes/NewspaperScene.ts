@@ -56,7 +56,8 @@ export class NewspaperScene extends Phaser.Scene {
     this.cameras.main.setRoundPixels(true);
     const v = this.veri;
     const oz = depremOzeti(v.sonuclar);
-    const one = oneCikanlar(v.sonuclar);
+    // Kısa yolda (G21) öne çıkan satırlar önce oyuncunun binalarından.
+    const one = oneCikanlar(v.sonuclar, v.kisa ? new Set(v.kisa.juri) : undefined);
 
     masaCiz(this, 0);
     this.kagitCiz();

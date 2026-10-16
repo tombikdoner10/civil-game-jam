@@ -1,13 +1,14 @@
 // @beyan görsel
 import * as Phaser from 'phaser';
 import { FONT } from '../config';
-import { PAL } from '../desk/palette';
+import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
+import { num, PAL } from '../desk/palette';
 import { Quake } from '../desk/Quake';
-import { Sokak } from '../desk/Street';
+import { Sokak, type SokakYeri } from '../desk/Street';
 import { SON_GUN } from '../game/days';
-import { buyukDeprem, sokakKayitlari, type GunKaydi } from '../game/session';
+import { buyukDeprem, sokakKayitlari, type DepremBinaSonucu, type GunKaydi } from '../game/session';
 import { TUNING } from '../game/tuning';
-import { GECE_SAATI } from '../game/gazete';
+import { GECE_SAATI, SENIN_DAMGAN, sonucEtiketi } from '../game/gazete';
 import { Controls } from '../systems/controls';
 import { goTo } from '../systems/transition';
 import { SCENES } from './keys';
@@ -20,6 +21,16 @@ export interface DepremData {
   para: number;
   /** Beş günün kayıtları (sokak bunlardan kurulur). */
   kayitlar: GunKaydi[];
+  /** Kısa yol (G21, gün 1 raporundan "Depremi şimdi yaşa"); yoksa normal oyun sonu. */
+  kisa?: KisaYol;
+}
+
+/** Kısa yolun taşıdığı durum: sokak (kayitlar) oyuncunun günleri + örnek binalar; oyuncunun kendi kayıtları ayrı. */
+export interface KisaYol {
+  /** Oyuncunun gerçek kayıtları (gün 1). Sonuç ekranı ve "Gün 2'den devam" bunlarla. */
+  gercek: GunKaydi[];
+  /** Oyuncunun damgaladığı binalar (sokakta en önde). */
+  juri: string[];
 }
 
 const SOKAK_D = 10;
@@ -41,6 +52,7 @@ export class QuakeScene extends Phaser.Scene {
 
   init(data: DepremData): void {
     this.veri = data;
+    this.sonucEtiketleri = [];
   }
 
   create(): void {
@@ -50,6 +62,8 @@ export class QuakeScene extends Phaser.Scene {
     this.controls = new Controls(this);
     const v = this.veri;
     const B = TUNING.buyukDeprem;
+    const K = TUNING.kisaYol;
+    const zaman = v.kisa ? K.zaman : ZAMAN;
 
     const sonuclar = buyukDeprem(v.tohum, v.kayitlar);
     const sonucu = new Map(sonuclar.map((s) => [s.dosyaId, s]));
@@ -60,7 +74,19 @@ export class QuakeScene extends Phaser.Scene {
     });
     const binalar = sokak.damgalilar();
     const quake = new Quake(this, sokak, SOKAK_D);
-    quake.hazirla(binalar);
+    // Kısa yol: ilk grup oyuncunun binaları (etiketli, daha uzun), ardından örnek binalar.
+    const juri = new Set(v.kisa?.juri ?? []);
+    let gruplar: SokakYeri[][] | undefined;
+    if (v.kisa) {
+      const sizin = binalar.filter((b) => juri.has(b.bina.id));
+      const kalan = binalar.filter((b) => !juri.has(b.bina.id));
+      gruplar = [sizin, ...Quake.gruplar(kalan)].filter((g) => g.length > 0);
+      for (const b of sizin) {
+        const s = sonucu.get(b.bina.id);
+        if (s) this.etiketKur(sokak, b, s);
+      }
+    }
+    quake.hazirla(binalar, gruplar);
 
     // Gece geçişi: kararma, saat (yer tutucu), perde açılır; sessiz sokak bir an durur.
     const perde = this.add.rectangle(0, 0, 1920, 1080, 0x000000).setOrigin(0).setDepth(100);
@@ -69,33 +95,41 @@ export class QuakeScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(101)
       .setAlpha(0);
-    this.tweens.add({ targets: saat, alpha: 1, duration: 500, delay: ZAMAN.saatGel, ease: 'Stepped', easeParams: [4] });
-    this.tweens.add({ targets: saat, alpha: 0, duration: 400, delay: ZAMAN.saatGit, ease: 'Stepped', easeParams: [4] });
-    this.tweens.add({ targets: perde, alpha: 0, duration: ZAMAN.perdeSure, delay: ZAMAN.perde, ease: 'Stepped', easeParams: [8] });
+    this.tweens.add({ targets: saat, alpha: 1, duration: v.kisa ? 300 : 500, delay: zaman.saatGel, ease: 'Stepped', easeParams: [4] });
+    this.tweens.add({ targets: saat, alpha: 0, duration: v.kisa ? 300 : 400, delay: zaman.saatGit, ease: 'Stepped', easeParams: [4] });
+    this.tweens.add({ targets: perde, alpha: 0, duration: zaman.perdeSure, delay: zaman.perde, ease: 'Stepped', easeParams: [8] });
     // Köşede küçük saat: deprem boyunca.
     const kose = this.add
       .text(48, 44, GECE_SAATI, { fontFamily: FONT, fontSize: '44px', color: PAL.panelYazi })
       .setOrigin(0, 0.5)
       .setDepth(90)
       .setAlpha(0);
-    this.tweens.add({ targets: kose, alpha: 0.8, duration: 400, delay: ZAMAN.perde + ZAMAN.perdeSure });
+    this.tweens.add({ targets: kose, alpha: 0.8, duration: 400, delay: zaman.perde + zaman.perdeSure });
 
-    this.time.delayedCall(ZAMAN.deprem, () =>
+    this.time.delayedCall(zaman.deprem, () =>
       quake.oynat(
         1,
         binalar,
         () => {
-          this.time.delayedCall(ZAMAN.sonra, () => {
+          this.time.delayedCall(zaman.sonra, () => {
             const data: NewspaperData = { ...v, sonuclar };
             goTo(this, SCENES.Newspaper, data, 600);
           });
         },
         {
-          sure: B.sureMs,
+          sure: v.kisa ? K.depremMs : B.sureMs,
           genlik: B.sarsinti,
           sesGucu: B.sesGucu,
           cokme: true,
           buyuk: true,
+          gruplar,
+          agirlik: gruplar ? [K.ilkGrupAgirlik] : undefined,
+          grupSonu: v.kisa
+            ? (gi) => {
+                // Oyuncunun binaları tepki verdi: sonuç etiketleri belirir.
+                if (gi === 0) for (const e of this.sonucEtiketleri) this.tweens.add({ targets: e, alpha: 1, duration: 240, ease: 'Stepped', easeParams: [3] });
+              }
+            : undefined,
           hesap: (b) => {
             const s = sonucu.get(b.bina.id);
             return s ? { durum: s.durum, bos: s.bos, coker: s.coktu } : { durum: 'ayakta', bos: b.damga === 'bosalt' };
@@ -110,6 +144,37 @@ export class QuakeScene extends Phaser.Scene {
     };
     this.game.events.on(Phaser.Core.Events.BLUR, onBlur);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.game.events.off(Phaser.Core.Events.BLUR, onBlur));
+  }
+
+  /** Kısa yolda sonuç etiketleri (ilk grup tepki verince görünür). */
+  private sonucEtiketleri: Phaser.GameObjects.Container[] = [];
+
+  /**
+   * Oyuncunun binasının üstünde: "SENİN DAMGAN" şeridi, damga renginde damga adı ve (gizli) sonuç etiketi.
+   * Sokakla birlikte kayar ve küçülür (yer tutucu metinler, gazete.ts).
+   */
+  private etiketKur(sokak: Sokak, b: SokakYeri, s: DepremBinaSonucu): void {
+    const kap = this.add.container(0, 0);
+    const cip = (y: number, metin: string, zemin: string, renk: string, boy: number): Phaser.GameObjects.Container => {
+      const c = this.add.container(0, y);
+      const t = this.add.text(0, 0, metin, { fontFamily: FONT, fontSize: `${boy}px`, color: renk }).setOrigin(0.5);
+      const w = Math.ceil((t.width + 28) / 4) * 4;
+      const h = Math.ceil((boy + 12) / 4) * 4;
+      c.add(this.add.rectangle(0, 0, w + 8, h + 8, 0x0e0d10, 0.9));
+      c.add(this.add.rectangle(0, 0, w, h, num(zemin)));
+      c.add(t);
+      return c;
+    };
+    const damga = cip(-44, DAMGA_ADI[b.damga], DAMGA_RENK[b.damga], '#f0e6cc', 40);
+    const ust = cip(-104, SENIN_DAMGAN, PAL.kremAcik, '#1d1a18', 36);
+    const kotu = s.coktu || s.durum === 'agirHasar';
+    const renk = kotu ? PAL.damgaBosalt : s.durum === 'hasarli' ? PAL.damgaGuclendir : PAL.damgaGuvenli;
+    const sonuc = cip(-168, sonucEtiketi(s), renk, '#f0e6cc', 44).setAlpha(0);
+    // Etiketten binaya inen kısa çubuk.
+    kap.add(this.add.rectangle(0, -12, 4, 24, 0x0e0d10, 0.9));
+    kap.add([damga, ust, sonuc]);
+    this.sonucEtiketleri.push(sonuc);
+    sokak.ustuneEkle(b.yer, kap);
   }
 
   update(): void {

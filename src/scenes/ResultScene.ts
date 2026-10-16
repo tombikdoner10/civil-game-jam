@@ -6,7 +6,8 @@ import { num, PAL } from '../desk/palette';
 import { PX, rastgele, snap, Tuval } from '../desk/pixel';
 import { masaCiz, pikselDugme } from '../desk/props';
 import { gunAyar, SON_GUN } from '../game/days';
-import { degerlendirme, zarfOzeti } from '../game/gazete';
+import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
+import { degerlendirme, KISA_SONUC, seninBinalarin, sonucEtiketi, zarfOzeti } from '../game/gazete';
 import { depremOzeti, gunHesabi, oyunToplami } from '../game/session';
 import { fadeIn, goTo } from '../systems/transition';
 import type { GameData } from './GameScene';
@@ -39,6 +40,7 @@ export class ResultScene extends Phaser.Scene {
 
   init(data: ResultData): void {
     this.veri = { tohum: data?.tohum ?? 0, para: data?.para ?? 0, kayitlar: data?.kayitlar ?? [], sonuclar: data?.sonuclar ?? [] };
+    if (data?.kisa) this.veri.kisa = data.kisa;
     this.gecildi = false;
   }
 
@@ -46,9 +48,15 @@ export class ResultScene extends Phaser.Scene {
     fadeIn(this);
     this.cameras.main.setRoundPixels(true);
     const v = this.veri;
-    const top = oyunToplami(v.kayitlar);
+    // Kısa yol (G21): tablo ve toplamlar oyuncunun gerçek kayıtlarından; sokak özeti bütün sokaktan,
+    // değerlendirme oyuncunun binalarından.
+    const kisa = v.kisa;
+    const gercek = kisa ? kisa.gercek : v.kayitlar;
+    const juri = new Set(kisa?.juri ?? []);
+    const juriSonuc = v.sonuclar.filter((s) => juri.has(s.dosyaId));
+    const top = oyunToplami(gercek);
     const oz = depremOzeti(v.sonuclar);
-    const deg = degerlendirme(oz);
+    const deg = degerlendirme(kisa ? depremOzeti(juriSonuc) : oz);
 
     masaCiz(this, 0);
     this.kagitCiz();
@@ -66,8 +74,8 @@ export class ResultScene extends Phaser.Scene {
 
     // Başlık
     yaz(L + 40, T + 44, 'DENETÇİ DOSYASI', 64, PAL.kremAcik);
-    yaz(L + KAGIT.w - 40, T + 44, `${SON_GUN} GÜN`, 40, PAL.kremAcik, 1);
-    yaz(L + 40, T + 124, 'Denetim özeti ve deprem sonrası sokak', 30, PAL.murekkepSoluk);
+    yaz(L + KAGIT.w - 40, T + 44, kisa ? KISA_SONUC.sag : `${SON_GUN} GÜN`, 40, PAL.kremAcik, 1);
+    yaz(L + 40, T + 124, kisa ? KISA_SONUC.alt : 'Denetim özeti ve deprem sonrası sokak', 30, PAL.murekkepSoluk);
 
     // Gün tablosu
     const bas = T + 176;
@@ -84,7 +92,7 @@ export class ResultScene extends Phaser.Scene {
     cizgi(bas + 24);
     let y = bas + 24 + SATIR_H / 2 + 4;
     let kazanc = 0;
-    v.kayitlar.forEach((k, i) => {
+    gercek.forEach((k, i) => {
       const dosya = gunAyar(k.gun).dosyaSayisi;
       const h = gunHesabi(k.kararlar, dosya);
       const bulunan = k.kararlar.reduce((n, c) => n + c.bulunan.length, 0);
@@ -118,20 +126,53 @@ export class ResultScene extends Phaser.Scene {
     // Zarf (G17): kabul edilen zarflar ve hasar gören binaları (yer tutucu metin).
     let zarfAdet = 0;
     let zarfTL = 0;
-    for (const k of v.kayitlar) {
+    for (const k of gercek) {
       const h = gunHesabi(k.kararlar, gunAyar(k.gun).dosyaSayisi);
       zarfAdet += h.zarfKabul;
       zarfTL += h.zarf;
     }
     const zarf = zarfOzeti(zarfAdet, zarfTL, v.sonuclar);
     if (zarf) toplamlar.push(this.sigdir(yaz(L + SUTUN.gun, topY + 52, zarf, 32, PAL.damgaBosalt), 760));
-    for (const o of toplamlar) gorun(o, 200 + v.kayitlar.length * 90 + 80);
+    for (const o of toplamlar) gorun(o, 200 + gercek.length * 90 + 80);
+
+    // Kısa yol: oyuncunun binaları (damga → depremdeki sonuç) ve özeti.
+    const dGec = 200 + gercek.length * 90 + 400;
+    if (kisa) {
+      const jy = topY + 112;
+      cizgi(jy - 24);
+      gorun(yaz(L + 40, jy + 16, KISA_SONUC.senin, 34, PAL.etiket), dGec - 200);
+      gorun(this.sigdir(yaz(L + KAGIT.w - 40, jy + 16, seninBinalarin(depremOzeti(juriSonuc)), 34, PAL.murekkep, 1), 760), dGec - 200);
+      const sw = (KAGIT.w - 80) / 3;
+      juriSonuc.slice(0, 3).forEach((s, i) => {
+        const x = L + 40 + i * sw;
+        const kap = this.add.container(snap(x), snap(jy + 76));
+        const ad = this.add.text(0, 0, `Bina ${String(s.no).padStart(2, '0')}`, { fontFamily: FONT, fontSize: '32px', color: PAL.murekkep }).setOrigin(0, 0.5);
+        kap.add(ad);
+        let cx = snap(ad.width + 16);
+        const cip = (metin: string, renk: string): void => {
+          const t = this.add.text(0, 0, metin, { fontFamily: FONT, fontSize: '28px', color: '#f0e6cc' }).setOrigin(0, 0.5);
+          const w = snap(t.width + 16);
+          kap.add(this.add.rectangle(cx, 0, w, 36, num(renk)).setOrigin(0, 0.5));
+          t.setX(cx + 8);
+          kap.add(t);
+          cx += w + 8;
+        };
+        cip(DAMGA_ADI[s.damga], DAMGA_RENK[s.damga]);
+        const ok = this.add.text(cx, 0, '→', { fontFamily: FONT, fontSize: '32px', color: PAL.murekkepSoluk }).setOrigin(0, 0.5);
+        kap.add(ok);
+        cx += snap(ok.width + 8);
+        const kotu = s.coktu || s.durum === 'agirHasar';
+        cip(sonucEtiketi(s), kotu ? PAL.damgaBosalt : s.durum === 'hasarli' ? PAL.damgaGuclendir : PAL.damgaGuvenli);
+        // Sütuna sığmazsa küçült.
+        if (cx > sw - 16) kap.setScale((sw - 16) / cx);
+        gorun(kap, dGec - 100 + i * 120);
+      });
+    }
 
     // Deprem özeti: dört kutu
-    const dy = Math.max(topY + 112, T + 600);
+    const dy = Math.max(topY + 112 + (kisa ? 176 : 0), T + 600);
     cizgi(dy - 24);
-    const dGec = 200 + v.kayitlar.length * 90 + 400;
-    gorun(yaz(L + 40, dy + 16, 'BÜYÜK DEPREM · SOKAK', 34, PAL.etiket), dGec);
+    gorun(yaz(L + 40, dy + 16, kisa ? KISA_SONUC.sokak(oz.toplam, juriSonuc.length) : 'BÜYÜK DEPREM · SOKAK', 34, PAL.etiket), dGec);
     const kutular: [string, number, string, string?][] = [
       ['AYAKTA', oz.ayakta, PAL.damgaGuvenli],
       ['HASARLI', oz.hasarli, PAL.damgaGuclendir],
@@ -163,14 +204,27 @@ export class ResultScene extends Phaser.Scene {
     // Düğmeler
     const yeniden = (): void => this.git(SCENES.Game, { gun: 1 } satisfies GameData);
     const menu = (): void => this.git(SCENES.Menu);
+    // Kısa yol: oyunu gün 2'den sürdür (oyuncunun gerçek kayıtları ve parasıyla; örnek binalar karışmaz).
+    const surdur = (): void => {
+      if (kisa) this.git(SCENES.Game, { gun: 2, tohum: v.tohum, para: v.para, kayitlar: kisa.gercek } satisfies GameData);
+    };
     const by = T + KAGIT.h - 64;
-    const d1 = pikselDugme(this, L + KAGIT.w / 2 - 230, by, 'YENİDEN OYNA', 'Enter', yeniden);
-    const d2 = pikselDugme(this, L + KAGIT.w / 2 + 230, by, 'ANA MENÜ', 'Esc', menu, {
-      govde: PAL.cerceveAcik,
-      acik: '#7a7466',
-      koyu: PAL.cerceve,
-    });
-    for (const d of [d1, d2]) this.tweens.add({ targets: d, alpha: 1, duration: 200, delay: dGec + 900 });
+    const ara = kisa ? 440 : 460;
+    const dx = kisa ? -ara : -ara / 2;
+    const d1 = pikselDugme(this, L + KAGIT.w / 2 + dx, by, 'YENİDEN OYNA', 'Enter', yeniden);
+    const dugmeler = [d1];
+    if (kisa)
+      dugmeler.push(
+        pikselDugme(this, L + KAGIT.w / 2, by, "GÜN 2'DEN DEVAM", 'D', surdur, { govde: PAL.damgaGuvenli, acik: '#5a9a66', koyu: '#2a5232' }),
+      );
+    dugmeler.push(
+      pikselDugme(this, L + KAGIT.w / 2 + dx + ara * (kisa ? 2 : 1), by, 'ANA MENÜ', 'Esc', menu, {
+        govde: PAL.cerceveAcik,
+        acik: '#7a7466',
+        koyu: PAL.cerceve,
+      }),
+    );
+    for (const d of dugmeler) this.tweens.add({ targets: d, alpha: 1, duration: 200, delay: dGec + 900 });
     const kb = this.input.keyboard;
     const hazir = { v: false };
     this.time.delayedCall(dGec + 900, () => (hazir.v = true));
@@ -180,11 +234,16 @@ export class ResultScene extends Phaser.Scene {
     const esc = (): void => {
       if (hazir.v) menu();
     };
+    const dTus = (): void => {
+      if (hazir.v) surdur();
+    };
     kb?.on('keydown-ENTER', enter);
     kb?.on('keydown-ESC', esc);
+    kb?.on('keydown-D', dTus);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       kb?.off('keydown-ENTER', enter);
       kb?.off('keydown-ESC', esc);
+      kb?.off('keydown-D', dTus);
     });
     sfx.play('kagitKay');
     this.time.delayedCall(dGec + 700, () => sfx.play(deg.ton === 'iyi' ? 'gunIyi' : 'gunKotu'));

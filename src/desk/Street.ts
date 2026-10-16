@@ -290,6 +290,16 @@ export class Sokak {
     return new Phaser.Geom.Rectangle(this.parselX(yer) + BOSLUK * O, (this.ufuk - h) * O, CEPHE_W * O, h * O);
   }
 
+  /**
+   * Binanın üstüne sokakla birlikte kayan ve küçülen bir öğe koy (G21 "SENİN DAMGAN" etiketi). Öğenin (0, 0)'ı
+   * cephenin üst kenarının ortasına gelir; öğe binaların önündeki katmanda (sallanmaz, çökmede yerinde kalır).
+   */
+  ustuneEkle(yer: number, obj: Phaser.GameObjects.Container): void {
+    const k = this.yerelKutu(yer);
+    obj.setPosition(Math.round(k.centerX), Math.round(k.y));
+    this.on.add(obj);
+  }
+
   /** Sokak kökünün ekrandaki yeri ve ölçeği (parçacık yayıcıları bununla eşlenir). */
   get gorunum(): { x: number; y: number; olcek: number } {
     return { x: this.kok.x, y: this.kok.y, olcek: this.kok.scale };

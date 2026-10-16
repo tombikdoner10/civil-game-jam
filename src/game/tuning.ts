@@ -162,6 +162,18 @@ export const TUNING = {
     grup: 5,
   },
 
+  /**
+   * Kısa yol (G21, jüri yolu): gün 1 sonu raporunda "Depremi şimdi yaşa". Sokak: oyuncunun gün 1 binaları önde,
+   * ardından gün 2-5'i temsil eden örnek binalar (ornek.ts, tohumdan türetilen ayrı tohumla). Deprem kısa:
+   * gece geçişi kısa (ms), sarsıntı depremMs; ilk grup (oyuncunun binaları) ilkGrupAgirlik kat uzun sürer.
+   */
+  kisaYol: {
+    ornekBina: 9,
+    depremMs: 20000,
+    ilkGrupAgirlik: 1.8,
+    zaman: { saatGel: 150, saatGit: 1100, perde: 1300, perdeSure: 800, deprem: 2300, sonra: 2000 },
+  },
+
   /** Deprem riski (0..1). */
   risk: {
     taban: 0.05,

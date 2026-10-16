@@ -4,7 +4,8 @@ import { num, PAL } from '../desk/palette';
 import { PX } from '../desk/pixel';
 import { gunAyar, SON_GUN } from '../game/days';
 import { ornekKayitlar } from '../game/ornek';
-import { gunHesabi } from '../game/session';
+import { GunOturumu, gunHesabi } from '../game/session';
+import { TUNING } from '../game/tuning';
 import { popIn } from '../systems/fx';
 import { fadeIn, goTo } from '../systems/transition';
 import { addBackdrop } from '../ui/backdrop';
@@ -13,6 +14,7 @@ import { kagitPanel } from '../ui/kagit';
 import { MenuNav } from '../ui/MenuNav';
 import { label } from '../ui/text';
 import { SCENES } from './keys';
+import type { DayEndData } from './DayEndScene';
 import type { DepremData } from './QuakeScene';
 
 /**
@@ -28,6 +30,28 @@ function devDeprem(): DepremData | null {
   const kayitlar = ornekKayitlar(tohum, SON_GUN + 1);
   const para = kayitlar.reduce((n, k) => n + gunHesabi(k.kararlar, gunAyar(k.gun).dosyaSayisi).toplam, 0);
   return { tohum, para, kayitlar };
+}
+
+/**
+ * Yalnızca dev: ?dev&kisayol[&tohum=N] "Oyna"yı doğrudan gün 1 sonu raporuna bağlar (örnek 3 kararla, öncü
+ * sarsıntı sonucu dahil); oradan "Depremi şimdi yaşa" (G21) ya da "Sonraki gün" denenir.
+ */
+function devKisaYol(): DayEndData | null {
+  if (!DEV) return null;
+  const q = new URLSearchParams(location.search);
+  if (!q.has('kisayol')) return null;
+  const t = Number(q.get('tohum'));
+  const tohum = q.has('tohum') && Number.isFinite(t) ? t : Math.floor(Math.random() * 1_000_000_000);
+  const [gun1] = ornekKayitlar(tohum, 2);
+  return {
+    gun: 1,
+    tohum,
+    paraOnce: TUNING.para.baslangic,
+    kararlar: gun1.kararlar,
+    dosyalar: new GunOturumu(1, tohum).dosyalar.map((b) => ({ id: b.id, adres: b.adres })),
+    kayitlar: [],
+    oncu: gun1.oncu,
+  };
 }
 
 export class MenuScene extends Phaser.Scene {
@@ -56,7 +80,9 @@ export class MenuScene extends Phaser.Scene {
         'Oyna',
         () => {
           const deprem = devDeprem();
+          const kisa = devKisaYol();
           if (deprem) goTo(this, SCENES.Quake, deprem);
+          else if (kisa) goTo(this, SCENES.DayEnd, kisa);
           else goTo(this, SCENES.Game);
         },
       ],

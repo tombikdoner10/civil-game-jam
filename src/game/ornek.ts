@@ -1,4 +1,5 @@
 import type { Damga } from './building';
+import { SON_GUN } from './days';
 import { sorulabilir } from './kisi';
 import { depremSonucu, dogruDamga, GECERSIZ_BELGE, gorunenKusurlar, kanitOgeleri, type EdinilenBilgi } from './rules';
 import { GunOturumu, type GunKaydi } from './session';
@@ -17,10 +18,10 @@ const YANLIS: Record<Damga, Damga> = { guvenli: 'bosalt', guclendir: 'bosalt', b
  * düzgünü İSTENİR (gerçeği gelirse gerçek duruma göre damga, gelmezse İADE).
  * Doğru kararlarda kusurlar bulunmuş sayılır. Öncü sarsıntılı günlerde sarsıntı sonucu oyundaki kuralla.
  */
-export function ornekKayitlar(tohum: number, gun: number): GunKaydi[] {
+export function ornekKayitlar(tohum: number, gun: number, ilk = 1): GunKaydi[] {
   const out: GunKaydi[] = [];
   const O = TUNING.oncu;
-  for (let g = 1; g < gun; g++) {
+  for (let g = ilk; g < gun; g++) {
     const o = new GunOturumu(g, tohum);
     for (let i = 0; o.mevcut && !o.bitti; i++) {
       const b = o.mevcut;
@@ -70,4 +71,50 @@ export function ornekKayitlar(tohum: number, gun: number): GunKaydi[] {
     out.push(kayit);
   }
   return out;
+}
+
+/** Kısa yolun örnek binalarının tohumu (oyunun tohumundan türetilir; "Gün 2'den devam" aynı binaları göstermesin). */
+export function kisaYolTohumu(tohum: number): number {
+  return (Math.imul(tohum | 0, 0x2c1b3c6d) ^ 0x51ed) >>> 0;
+}
+
+/**
+ * Kısa yol (G21, "Depremi şimdi yaşa"): gün 2-5'i temsil eden örnek kayıtlar. Her günün örnek kararlarından
+ * (ornekKayitlar) gün başına kota kadar seçilir; seçim çeşitlilik gözetir (o ana kadar az seçilen damga ve
+ * doğru/yanlış birleşimi, kabul edilen zarf öne çıkar): sokakta doğru ve yanlış karışık, İADE ve zarf olabilir.
+ * Toplam TUNING.kisaYol.ornekBina bina. Binalar kisaYolTohumu'ndan (kayıtta tohum alanı). Deterministik.
+ */
+export function kisaYolKayitlari(tohum: number): GunKaydi[] {
+  const toplam = TUNING.kisaYol.ornekBina;
+  const t = kisaYolTohumu(tohum);
+  const gunler = ornekKayitlar(t, SON_GUN + 1, 2);
+  const n = gunler.length;
+  const sayac = new Map<string, number>();
+  let zarfVar = false;
+  return gunler.map((k, i) => {
+    // Artan binalar son günlere (sokağın sonu daha kalabalık).
+    const kota = Math.floor(toplam / n) + (i >= n - (toplam % n) ? 1 : 0);
+    const m = k.kararlar.length;
+    const q = Math.min(kota, m);
+    const secilen: number[] = [];
+    for (let j = 0; j < q; j++) {
+      const hedef = ((j + 0.5) * m) / q;
+      let en = -1;
+      let enPuan = Infinity;
+      k.kararlar.forEach((c, idx) => {
+        if (secilen.includes(idx)) return;
+        const puan = (sayac.get(`${c.damga}${c.dogru}`) ?? 0) * 10 - (c.zarf?.kabul && !zarfVar ? 15 : 0) + Math.abs(idx + 0.5 - hedef) * 0.1;
+        if (puan < enPuan) {
+          enPuan = puan;
+          en = idx;
+        }
+      });
+      const c = k.kararlar[en];
+      sayac.set(`${c.damga}${c.dogru}`, (sayac.get(`${c.damga}${c.dogru}`) ?? 0) + 1);
+      if (c.zarf?.kabul) zarfVar = true;
+      secilen.push(en);
+    }
+    const kararlar = secilen.sort((a, b) => a - b).map((idx) => k.kararlar[idx]);
+    return { gun: k.gun, kararlar, tohum: t };
+  });
 }
