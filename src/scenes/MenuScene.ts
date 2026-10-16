@@ -17,9 +17,9 @@ export class MenuScene extends Phaser.Scene {
     fadeIn(this);
     addBackdrop(this);
 
-    const title = label(this, WIDTH / 2, 250, TITLE, { size: 136, weight: 'bold' });
+    const title = label(this, WIDTH / 2, 250, TITLE, { size: 136, weight: 'bold', baslik: true });
     popIn(this, title);
-    label(this, WIDTH / 2, 365, SUBTITLE, { size: 34, color: COLORS.muted });
+    label(this, WIDTH / 2, 365, SUBTITLE, { size: 40, color: COLORS.muted });
 
     const items: [string, () => void][] = [
       ['Oyna', () => goTo(this, SCENES.Game)],
@@ -32,8 +32,8 @@ export class MenuScene extends Phaser.Scene {
     buttons.forEach((button, i) => popIn(this, button, 120 + i * 70));
     new MenuNav(this, buttons);
 
-    label(this, 48, HEIGHT - 44, TEAM, { size: 26, color: COLORS.muted, align: 'left' });
-    label(this, WIDTH - 48, HEIGHT - 44, `sürüm ${VERSION}`, { size: 24, color: COLORS.muted, mono: true, align: 'right' });
+    label(this, 48, HEIGHT - 44, TEAM, { size: 34, color: COLORS.muted, align: 'left' });
+    label(this, WIDTH - 48, HEIGHT - 44, `sürüm ${VERSION}`, { size: 30, color: COLORS.muted, align: 'right' });
 
     // Menü müziği jam sırasında eklenecek: music.play(SONGS.menu)
   }

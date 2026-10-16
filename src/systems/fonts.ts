@@ -1,4 +1,4 @@
-import { FONT, MONO } from '../config';
+import { BASLIK_FONT, FONT } from '../config';
 
 /**
  * Phaser metni ilk çizdiğinde font yüklü değilse yedek fonta düşer, sonradan da düzelmez.
@@ -6,7 +6,7 @@ import { FONT, MONO } from '../config';
  */
 export async function loadFonts(): Promise<void> {
   const sample = 'AaĞğŞşİıÇçÖöÜü0123';
-  const families = [FONT, MONO].map((stack) => stack.split(',')[0].trim());
+  const families = [BASLIK_FONT, FONT].map((stack) => stack.split(',')[0].trim());
   const loads = families.flatMap((family) =>
     ['400', '700'].map((weight) => document.fonts.load(`${weight} 32px ${family}`, sample)),
   );

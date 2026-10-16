@@ -1,6 +1,6 @@
 import { Rng } from './rng';
 import { TUNING } from './tuning';
-import { KURALLAR } from './rules';
+import { gorunenKusurlar, KURALLAR } from './rules';
 import { HIKAYELER, hikayeBinasiKur } from './stories';
 
 // ---- Temel tipler ----
@@ -189,7 +189,8 @@ export function kusurluBinaKur(rng: Rng, kusurlar: readonly KusurId[], ek: BinaE
   const kesik: number[] = [];
   if (has('kesikKolon')) {
     const n = rng.int(T.kesikKolonSayisi.min, T.kesikKolonSayisi.max);
-    const idx = rng.shuffle(Array.from({ length: kolonSayisi }, (_, i) => i)).slice(0, n);
+    // Yalnızca iç kolonlar kesilir: vitrin iki bölmeyi kaplar ve fotoğrafta açıkça görünür.
+    const idx = rng.shuffle(Array.from({ length: kolonSayisi - 2 }, (_, i) => i + 1)).slice(0, n);
     kesik.push(...idx.sort((a, b) => a - b));
   }
 
@@ -293,20 +294,60 @@ export interface GunDosyaSecenekleri extends UretimSecenekleri {
   hikayeDahil?: boolean;
 }
 
-/** Aynı tohum ve gün, aynı dosyalar. */
+/**
+ * Aynı tohum ve gün, aynı dosyalar.
+ * - Gün 1 açılışı sabit (GDD "İlk 30 saniye"): dosya 1 temiz (GÜVENLİ), dosya 2 kaçak katlı.
+ * - Her günde (o günün kurallarına göre) en az bir temiz ve en az bir kusurlu dosya bulunur.
+ */
 export function gunDosyalari(tohum: number, gun: number, adet: number, secenek: GunDosyaSecenekleri = {}): Bina[] {
   const rng = new Rng(((tohum >>> 0) ^ Math.imul(gun, 0x9e3779b1)) >>> 0);
-  const dosyalar: Bina[] = [];
-  for (let i = 0; i < adet; i++) {
+  const ek = (i: number): BinaEk => {
     const no = String(i + 1).padStart(2, '0');
-    dosyalar.push(binaUret(rng, gun, secenek, { id: `g${gun}-${no}`, adres: `Bina ${no}` }));
+    return { id: `g${gun}-${no}`, adres: `Bina ${no}` };
+  };
+  const dosyalar: Bina[] = [];
+  for (let i = 0; i < adet; i++) dosyalar.push(binaUret(rng, gun, secenek, ek(i)));
+
+  /** Yeri sabitlenmiş dosyalar (açılış ve hikâye binaları): denge adımı bunlara dokunmaz. */
+  const sabit = new Set<number>();
+  if (gun === 1) {
+    if (adet >= 1) {
+      dosyalar[0] = kusurluBinaKur(rng, [], { ...ek(0), ruhsatKat: rng.int(TUNING.acilisKat.min, TUNING.acilisKat.max) });
+      sabit.add(0);
+    }
+    if (adet >= 2) {
+      dosyalar[1] = kusurluBinaKur(rng, ['kacakKat'], { ...ek(1), ruhsatKat: rng.int(TUNING.acilisKat.min, TUNING.acilisKat.max) });
+      sabit.add(1);
+    }
   }
   if (secenek.hikayeDahil !== false) {
     const sablonlar = HIKAYELER.filter((s) => s.gun === gun);
-    const yerler = rng.shuffle(dosyalar.map((_, i) => i));
+    const yerler = rng.shuffle(dosyalar.map((_, i) => i).filter((i) => !sabit.has(i)));
     sablonlar.forEach((s, j) => {
-      if (j < yerler.length) dosyalar[yerler[j]] = hikayeBinasiKur(rng, s);
+      if (j < yerler.length) {
+        dosyalar[yerler[j]] = hikayeBinasiKur(rng, s);
+        sabit.add(yerler[j]);
+      }
     });
+  }
+
+  // Denge: en az bir temiz ve en az bir kusurlu dosya (serbest yerlerden biri yeniden üretilir).
+  const temiz = (b: Bina): boolean => gorunenKusurlar(b, gun).length === 0;
+  const serbest = (): number[] => dosyalar.map((_, i) => i).filter((i) => !sabit.has(i));
+  if (!dosyalar.some(temiz)) {
+    const yer = serbest();
+    if (yer.length > 0) {
+      const i = rng.pick(yer);
+      dosyalar[i] = kusurluBinaKur(rng, [], ek(i));
+      sabit.add(i);
+    }
+  }
+  if (dosyalar.every(temiz)) {
+    const yer = serbest();
+    if (yer.length > 0) {
+      const i = rng.pick(yer);
+      dosyalar[i] = binaUret(rng, gun, { ...secenek, temizOran: 0 }, ek(i));
+    }
   }
   return dosyalar;
 }

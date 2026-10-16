@@ -1,6 +1,6 @@
-import type { Bina, Damga } from './building';
+import type { Bina, Damga, KusurId } from './building';
 import { gunDosyalari } from './building';
-import { dogruDamga } from './rules';
+import { dogruDamga, gorunenKusurlar } from './rules';
 import { TUNING } from './tuning';
 
 export interface Karar {
@@ -8,6 +8,8 @@ export interface Karar {
   damga: Damga;
   dogruDamga: Damga;
   dogru: boolean;
+  /** O günün kurallarına göre dosyadaki kusurlar (geri bildirim fişi için). */
+  kusurlar: KusurId[];
 }
 
 export function gunDosyaSayisi(gun: number): number {
@@ -63,12 +65,13 @@ export class GunOturumu {
     return `${String(Math.floor(toplam / 60)).padStart(2, '0')}:${String(toplam % 60).padStart(2, '0')}`;
   }
 
-  damgala(damga: Damga): { dogru: boolean; dogruDamga: Damga } | null {
+  damgala(damga: Damga): { dogru: boolean; dogruDamga: Damga; kusurlar: KusurId[] } | null {
     const b = this.mevcut;
     if (!b || this.bitti) return null;
     const dogru = dogruDamga(b, this.gun);
-    const sonuc = { dogru: dogru === damga, dogruDamga: dogru };
-    this.kararlar.push({ dosyaId: b.id, damga, dogruDamga: dogru, dogru: sonuc.dogru });
+    const kusurlar = gorunenKusurlar(b, this.gun).map((k) => k.id);
+    const sonuc = { dogru: dogru === damga, dogruDamga: dogru, kusurlar };
+    this.kararlar.push({ dosyaId: b.id, damga, dogruDamga: dogru, dogru: sonuc.dogru, kusurlar });
     this.idx++;
     return sonuc;
   }

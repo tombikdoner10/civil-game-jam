@@ -34,7 +34,7 @@ export class SplashScene extends Phaser.Scene {
     prompt.setX(startX);
     typed.setX(startX + prompt.width + gap).setText('');
     const cursor = this.add.rectangle(typed.x, y, size * 0.55, size * 1.05, COLORS.primary).setOrigin(0, 0.5);
-    const subtitle = label(this, WIDTH / 2, y + 130, 'sunar', { size: 40, color: COLORS.muted }).setAlpha(0);
+    const subtitle = label(this, WIDTH / 2, y + 130, 'sunar', { size: 48, color: COLORS.muted }).setAlpha(0);
 
     const skip = (): void => goTo(this, SCENES.Menu, undefined, 250);
     this.input.once(Phaser.Input.Events.POINTER_UP, skip);

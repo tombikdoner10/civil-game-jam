@@ -44,6 +44,8 @@ export const PAL = {
   murekkep: '#26211e',
   murekkepSoluk: '#5d5348',
   murekkepAcik: '#857a6b',
+  /** Belge etiketleri: soluk ama kâğıt üstünde yeterli kontrast. */
+  etiket: '#3d342c',
   basikSerit: '#5d3530',
   mavisi: '#3f4f78',
   muhur: '#5a4f7a',

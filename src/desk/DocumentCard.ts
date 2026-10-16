@@ -8,7 +8,10 @@ export interface AlanNesne extends AlanRef {
   nesne: Phaser.GameObjects.GameObject;
 }
 
-/** Masa sınırları (ekran). Kartın ortası bu sınırın içinde kalır. GameScene ayarlar. */
+/**
+ * Masa sınırları (ekran). Kartın tamamı bu sınırın içinde kalır. GameScene ayarlar; damga çubuğu
+ * açıkken sağ sınır çubuğun sol kenarıdır.
+ */
 export const MASA = { x: 0, y: 464, w: 1880, h: 616 };
 
 let enUst = 10;
@@ -20,15 +23,19 @@ export function ustKatman(): number {
 /** Sürüklenebilir kâğıt belge. Alanlar ayrı nesnelerdir ve karta çocuk olarak eklenir. */
 export class DocumentCard extends Phaser.GameObjects.Container {
   readonly tur: BelgeTuru;
-  readonly w: number;
-  readonly h: number;
+  /**
+   * Kartın gerçek boyu (ekran pikseli). `w`/`h` adları kullanılmaz: Phaser'ın Transform bileşeninde
+   * `w` alanı var ve `setPosition(x, y)` onu 0'a çekiyor (sürüklemeden sonra genişlik 0 görünüyordu).
+   */
+  readonly genislik: number;
+  readonly yukseklik: number;
   private readonly alanListesi: AlanNesne[] = [];
 
   constructor(scene: Phaser.Scene, tur: BelgeTuru, w: number, h: number, x: number, y: number) {
     super(scene, x, y);
     this.tur = tur;
-    this.w = w;
-    this.h = h;
+    this.genislik = w;
+    this.yukseklik = h;
     // Masaya düşen gölge
     const golge = scene.add.rectangle(PX, PX * 2, w, h, 0x000000, 0.38);
     this.add(golge);
@@ -38,11 +45,19 @@ export class DocumentCard extends Phaser.GameObjects.Container {
 
     this.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => this.one());
     this.on('drag', (_p: Phaser.Input.Pointer, dx: number, dy: number) => {
-      this.setPosition(
-        snap(Phaser.Math.Clamp(dx, MASA.x + w / 2, MASA.x + MASA.w - w / 2)),
-        snap(Phaser.Math.Clamp(dy, MASA.y + h / 2, MASA.y + MASA.h - h / 2)),
-      );
+      const [x2, y2] = this.masadaKonum(dx, dy);
+      this.setPosition(x2, y2);
     });
+  }
+
+  /** Verilen konumu masa sınırına (kartın tamamı masada, damga çubuğunun dışında) sıkıştırır. */
+  masadaKonum(x: number, y: number): [number, number] {
+    const yw = this.genislik / 2;
+    const yh = this.yukseklik / 2;
+    return [
+      snap(Phaser.Math.Clamp(x, MASA.x + yw, Math.max(MASA.x + yw, MASA.x + MASA.w - yw))),
+      snap(Phaser.Math.Clamp(y, MASA.y + yh, Math.max(MASA.y + yh, MASA.y + MASA.h - yh))),
+    ];
   }
 
   /** Kâğıt tuvalini kartın zemini yap (gölgenin hemen üstü). */

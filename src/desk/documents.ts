@@ -1,11 +1,11 @@
 // @beyan görsel
 import * as Phaser from 'phaser';
-import { FONT, MONO } from '../config';
+import { FONT } from '../config';
 import type { Belgeler, BelgeTuru, Bina, Zemin } from '../game/building';
 import { DocumentCard } from './DocumentCard';
 import { KONTUR, PAL } from './palette';
 import { dizgiTohum, PX, rastgele, snap, Tuval } from './pixel';
-import { cepheCiz, cepheH, cepheSecimi, CEPHE_W } from './tiles';
+import { cepheCiz, cepheH, cepheSecimi, CEPHE_W, ZEMIN_H } from './tiles';
 import { binaSecimi } from './Window';
 
 const ZEMIN_ADI: Record<Zemin, string> = { saglam: 'Sağlam', orta: 'Orta', sivilasma: 'Sıvılaşma riski' };
@@ -26,7 +26,7 @@ export const SIRA: BelgeTuru[] = ['foto', 'ruhsat', 'proje', 'vaziyet', 'karot',
 export const BOY: Record<BelgeTuru, [number, number]> = {
   ruhsat: [376, 320],
   foto: [304, 416],
-  proje: [360, 240],
+  proje: [392, 240],
   vaziyet: [392, 288],
   karot: [328, 224],
   zemin: [328, 216],
@@ -35,8 +35,8 @@ export const BOY: Record<BelgeTuru, [number, number]> = {
 type Ctx = { s: Phaser.Scene; c: DocumentCard; b: Belgeler; bina: Bina; t: Tuval; rnd: () => number };
 
 /** Sanat pikseli koordinatını kart içi ekran koordinatına çevirir. */
-const X = (c: DocumentCard, a: number): number => a * PX - c.w / 2;
-const Y = (c: DocumentCard, a: number): number => a * PX - c.h / 2;
+const X = (c: DocumentCard, a: number): number => a * PX - c.genislik / 2;
+const Y = (c: DocumentCard, a: number): number => a * PX - c.yukseklik / 2;
 
 function yazi(x: number, y: number, s: Phaser.Scene, t: string, font: string, size: number, renk: string, ox = 0): Phaser.GameObjects.Text {
   return s.add
@@ -44,16 +44,24 @@ function yazi(x: number, y: number, s: Phaser.Scene, t: string, font: string, si
     .setOrigin(ox, 0.5);
 }
 
-/** Pixelify Sans: başlık ve etiket. */
-function etiket(k: Ctx, ax: number, ay: number, t: string, size = 20, renk: string = PAL.murekkepSoluk, ox = 0): Phaser.GameObjects.Text {
+/**
+ * Belge yazı boyları (VT323). Yazı tipinin pikseli 1/25 em: 50 px'te tam 2 ekran pikseli (keskin başlık).
+ * Etiket ve değer, en küçük ekranda da okunacak boyda.
+ */
+const BOY_BASLIK = 50;
+const BOY_ETIKET = 30;
+const BOY_DEGER = 40;
+
+/** Başlık ve etiket. */
+function etiket(k: Ctx, ax: number, ay: number, t: string, size = BOY_ETIKET, renk: string = PAL.etiket, ox = 0): Phaser.GameObjects.Text {
   const o = yazi(X(k.c, ax), Y(k.c, ay), k.s, t, FONT, size, renk, ox);
   k.c.add(o);
   return o;
 }
 
-/** VT323: değer. */
-function deger(k: Ctx, ax: number, ay: number, t: string, size = 36, renk: string = PAL.murekkep, ox = 0): Phaser.GameObjects.Text {
-  const o = yazi(X(k.c, ax), Y(k.c, ay), k.s, t, MONO, size, renk, ox);
+/** Değer. */
+function deger(k: Ctx, ax: number, ay: number, t: string, size = BOY_DEGER, renk: string = PAL.murekkep, ox = 0): Phaser.GameObjects.Text {
+  const o = yazi(X(k.c, ax), Y(k.c, ay), k.s, t, FONT, size, renk, ox);
   k.c.add(o);
   return o;
 }
@@ -116,22 +124,25 @@ function ruhsat(k: Ctx): void {
     t.px(x, 3, '#7a4a42');
     t.px(x + 1, 10, '#7a4a42');
   }
-  etiket(k, 6, 7, ust(BASLIK.ruhsat), 24, PAL.kremAcik);
+  etiket(k, 6, 7, ust(BASLIK.ruhsat), BOY_BASLIK, PAL.kremAcik);
   sahteSatir(t, 50, 6, 36, '#8a5a50', rnd);
   sahteSatir(t, 56, 8, 30, '#8a5a50', rnd);
-  sahteSatir(t, 6, 14, 50, PAL.kremKoyu, rnd);
-  // Alanlar
-  const satirlar: [string, string, string][] = [
-    ['kat', 'Kat sayısı', String(b.ruhsat.kat)],
+  sahteSatir(t, 6, 13, 50, PAL.kremKoyu, rnd);
+  // Alanlar. Kat sayısı zemin katı (dükkân) da içerir; etiket bunu açıkça söyler.
+  const satirlar: [string, string, string, string?][] = [
+    ['kat', 'Kat sayısı', String(b.ruhsat.kat), '(zemin dahil)'],
     ['yil', 'Yapım yılı', String(b.ruhsat.yil)],
     ['muhur', 'Mühür yılı', String(b.ruhsat.muhurYili)],
   ];
-  satirlar.forEach(([alan, ad, v], i) => {
-    const y = 22 + i * 11;
-    etiket(k, 6, y, ad, 20);
-    deger(k, 46, y, v, 36);
+  satirlar.forEach(([alan, ad, v, alt], i) => {
+    const y = i === 0 ? 21 : 23 + i * 11;
+    if (alt) {
+      etiket(k, 6, y - 2, ad);
+      etiket(k, 6, y + 3, alt, 24);
+    } else etiket(k, 6, y, ad);
+    deger(k, 46, y, v);
     for (let x = 45; x < 74; x += 2) t.px(x, y + 4, PAL.murekkepAcik);
-    bolge(k, alan, 4, y - 5, 72, 10);
+    bolge(k, alan, 4, y - 6, 72, alt ? 12 : 10);
   });
   muhur(t, 80, 67, rnd);
   sahteSatir(t, 6, 74, 30, PAL.kremKoyu, rnd);
@@ -142,7 +153,7 @@ function foto(k: Ctx): void {
   const { t, rnd, b, s, c, bina } = k;
   kagit(t, PAL.fotoKenar, PAL.fotoKenarKoyu, rnd, false);
   t.rect(4, 4, 68, 88, '#24211f');
-  etiket(k, 6, 98, ust(BASLIK.foto), 18, PAL.murekkepAcik);
+  etiket(k, 6, 98, ust(BASLIK.foto), 28, PAL.murekkepSoluk);
   // Fotoğraf: 136×176 piksel, 2 kat büyütülür (baskı küçük, ayrıntı ince).
   const W = 136;
   const H = 176;
@@ -190,7 +201,7 @@ function foto(k: Ctx): void {
     c.alanEkle(alan, o);
   };
   r('kat', bx, yTop, CEPHE_W, Math.max(4, d.katY1));
-  r('kolon', bx, yTop + d.zeminY, CEPHE_W, 20);
+  r('kolon', bx, yTop + d.zeminY, CEPHE_W, ZEMIN_H);
   r('catlak', bx + d.catlak.x - 4, yTop + d.catlak.y - 3, d.catlak.w + 8, d.catlak.h + 6);
 }
 
@@ -199,7 +210,7 @@ function proje(k: Ctx): void {
   kagit(t, PAL.teknik, PAL.kirliBeyazKoyu, rnd);
   for (let x = 4; x < t.w - 2; x += 4) t.dither(x, 2, 1, t.h - 4, PAL.teknikIzgara);
   for (let y = 4; y < t.h - 2; y += 4) t.dither(2, y, t.w - 4, 1, PAL.teknikIzgara);
-  etiket(k, 4, 6, ust(BASLIK.proje), 22, PAL.murekkep);
+  etiket(k, 4, 6, ust(BASLIK.proje), BOY_BASLIK, PAL.murekkep);
   t.rect(3, 10, t.w - 6, 1, PAL.murekkep);
   // Kolon planı
   const n = b.proje.zeminKolonSayisi;
@@ -218,8 +229,8 @@ function proje(k: Ctx): void {
   t.rect(x0, 36, 1, 5, PAL.murekkepSoluk);
   t.rect(x1, 36, 1, 5, PAL.murekkepSoluk);
   bolge(k, 'kolon', x0, 16, x1 - x0 + 1, 18);
-  etiket(k, 4, 45, 'Zemin kat kolon planı', 18);
-  deger(k, t.w - 5, 45, `${n} kolon`, 32, PAL.murekkep, 1);
+  etiket(k, 4, 45, 'Zemin kat kolon planı', 28);
+  deger(k, t.w - 5, 45, `${n} kolon`, 36, PAL.murekkep, 1);
   // Antet kutusu
   t.frame(48, 50, t.w - 52, 7, PAL.murekkepSoluk);
   t.rect(66, 50, 1, 7, PAL.murekkepSoluk);
@@ -235,7 +246,7 @@ function vaziyet(k: Ctx): void {
   for (let x = 4; x < t.w - 2; x += 6) t.rect(x, 2, 1, t.h - 4, PAL.planIzgara);
   for (let y = 4; y < t.h - 2; y += 6) t.rect(2, y, t.w - 4, 1, PAL.planIzgara);
   t.frame(2, 2, t.w - 4, t.h - 4, PAL.planCizgi);
-  etiket(k, 5, 7, ust(BASLIK.vaziyet), 22, PAL.planCizgi);
+  etiket(k, 5, 7, ust(BASLIK.vaziyet), BOY_BASLIK, PAL.planCizgi);
   // Kuzey oku
   const nx = t.w - 9;
   t.line(nx, 5, nx - 3, 11, PAL.planCizgi).line(nx, 5, nx + 3, 11, PAL.planCizgi).rect(nx, 6, 1, 6, PAL.planCizgi);
@@ -262,8 +273,8 @@ function vaziyet(k: Ctx): void {
   }
   const fx = Math.round(bx + 14 + (2 + 0.75 * Math.sqrt(v.fayM)));
   for (let y = 16; y < t.h - 7; y += 4) t.rect(fx, y, 2, 2, PAL.fay);
-  const de = etiket(k, dx + 4, 20, `Dere: ${v.dereM} m`, 18, PAL.planCizgi);
-  const fa = etiket(k, fx - 2, t.h - 11, `Fay: ${v.fayM} m`, 18, '#e6b0a8', 1);
+  const de = etiket(k, dx + 4, 20, `Dere: ${v.dereM} m`, 28, PAL.planCizgi);
+  const fa = etiket(k, fx - 2, t.h - 11, `Fay: ${v.fayM} m`, 28, '#f0beb6', 1);
   k.c.remove(de);
   k.c.remove(fa);
   k.c.alanEkle('dere', de);
@@ -274,7 +285,7 @@ function karot(k: Ctx): void {
   const { t, rnd, b } = k;
   kagit(t, PAL.lab, PAL.labKoyu, rnd);
   t.rect(3, 3, t.w - 9, 8, PAL.labKoyu);
-  etiket(k, 5, 7, ust(BASLIK.karot), 22, PAL.murekkep);
+  etiket(k, 5, 7, ust(BASLIK.karot), BOY_BASLIK, PAL.murekkep);
   // Tablo
   const x0 = 4;
   const x1 = t.w - 5;
@@ -292,13 +303,13 @@ function karot(k: Ctx): void {
   }
   sahteSatir(t, 4, t.h - 5, 28, PAL.labKoyu, rnd);
   if (b.karot) {
-    etiket(k, x0 + 3, y0 + sat + 4, 'Beton dayanımı', 18);
-    const o = deger(k, 49, y0 + sat + 4, `${b.karot.mpa} MPa`, 32);
+    etiket(k, x0 + 3, y0 + sat + 4, 'Beton dayanımı', 26);
+    const o = deger(k, 49, y0 + sat + 4, `${b.karot.mpa} MPa`, 36);
     k.c.remove(o);
     k.c.alanEkle('mpa', o);
   } else {
     t.rect(x0 + 1, y0 + sat + 1, x1 - x0 - 1, sat * 3 - 1, PAL.lab);
-    const o = etiket(k, t.w / 2, y0 + sat * 2 + 4, 'Rapor yok', 28, PAL.damgaBosalt, 0.5);
+    const o = etiket(k, t.w / 2, y0 + sat * 2 + 4, 'Rapor yok', 36, PAL.damgaBosalt, 0.5);
     k.c.remove(o);
     k.c.alanEkle('mpa', o);
   }
@@ -307,13 +318,13 @@ function karot(k: Ctx): void {
 function zemin(k: Ctx): void {
   const { t, rnd, b } = k;
   kagit(t, PAL.kirliBeyaz, PAL.kirliBeyazKoyu, rnd);
-  etiket(k, 5, 6, ust(BASLIK.zemin), 22, PAL.murekkep);
+  etiket(k, 5, 6, ust(BASLIK.zemin), BOY_BASLIK, PAL.murekkep);
   t.rect(4, 10, t.w - 8, 1, PAL.murekkepSoluk);
   if (b.zemin) {
     sahteSatir(t, 5, 14, 40, PAL.kirliBeyazKoyu, rnd);
     sahteSatir(t, 5, 16, 34, PAL.kirliBeyazKoyu, rnd);
-    etiket(k, 5, 24, 'Zemin türü', 18);
-    const o = deger(k, 5, 32, ZEMIN_ADI[b.zemin.tur], 32);
+    etiket(k, 5, 24, 'Zemin türü');
+    const o = deger(k, 5, 32, ZEMIN_ADI[b.zemin.tur], 36);
     k.c.remove(o);
     k.c.alanEkle('tur', o);
     // Sondaj kesiti: katman renkleri zemin türüne göre
@@ -334,7 +345,7 @@ function zemin(k: Ctx): void {
     sahteSatir(t, 5, 44, 28, PAL.kirliBeyazKoyu, rnd);
   } else {
     sahteSatir(t, 5, 14, 30, PAL.kirliBeyazKoyu, rnd);
-    const o = etiket(k, t.w / 2, 32, 'RAPOR YOK', 32, PAL.murekkepAcik, 0.5);
+    const o = etiket(k, t.w / 2, 32, 'RAPOR YOK', 44, PAL.murekkepSoluk, 0.5);
     k.c.remove(o);
     k.c.alanEkle('rapor', o);
   }

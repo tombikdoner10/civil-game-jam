@@ -65,19 +65,19 @@ export function kuralKitabi(scene: Phaser.Scene, x: number, y: number): Phaser.G
   kap.add(t.goruntu(0, 0));
   const tx = -((W + 2) * PX) / 2 + 28 * PX;
   const ty = -((H + 3) * PX) / 2 + 22 * PX;
-  kap.add(scene.add.text(tx, ty - 12, 'KURAL', { fontFamily: FONT, fontSize: '22px', color: '#2b2622' }).setOrigin(0.5));
-  kap.add(scene.add.text(tx, ty + 12, 'KİTABI', { fontFamily: FONT, fontSize: '22px', color: '#2b2622' }).setOrigin(0.5));
+  kap.add(scene.add.text(tx, ty - 11, 'KURAL', { fontFamily: FONT, fontSize: '30px', color: '#231e1b' }).setOrigin(0.5));
+  kap.add(scene.add.text(tx, ty + 13, 'KİTABI', { fontFamily: FONT, fontSize: '30px', color: '#231e1b' }).setOrigin(0.5));
   kap.setDepth(5);
   return kap;
 }
 
 /**
  * Uyarı fişi (yer tutucu geri bildirim): damgadan sonra gişeden masaya düşer.
- * Doğruysa yeşilimsi, yanlışsa pembe kâğıt.
+ * Doğruysa yeşilimsi, yanlışsa pembe kâğıt. Yanlış kararda üç satır: başlık, doğru damga, kusurlar.
  */
 export function fisDusur(scene: Phaser.Scene, dogru: boolean, metin: string, x: number, y: number): Phaser.GameObjects.Container {
-  const W = 72;
-  const H = 30;
+  const W = dogru ? 72 : 96;
+  const H = dogru ? 30 : 44;
   const t = new Tuval(scene, W, H + 2, 'fis');
   const renk = dogru ? PAL.fisYesil : PAL.fisKirmizi;
   const koyu = dogru ? '#9faa8a' : '#b8958a';
@@ -94,7 +94,7 @@ export function fisDusur(scene: Phaser.Scene, dogru: boolean, metin: string, x: 
   kap.add(t.goruntu(0, 0));
   kap.add(
     scene.add
-      .text(0, 4, metin, { fontFamily: FONT, fontSize: '22px', color: PAL.murekkep, align: 'center', lineSpacing: 2 })
+      .text(0, 4, metin, { fontFamily: FONT, fontSize: dogru ? '36px' : '30px', color: PAL.murekkep, align: 'center', lineSpacing: 4 })
       .setOrigin(0.5),
   );
   kap.setDepth(ustKatman());
@@ -102,4 +102,17 @@ export function fisDusur(scene: Phaser.Scene, dogru: boolean, metin: string, x: 
   kap.setAlpha(0);
   scene.tweens.add({ targets: kap, y: snap(y), alpha: 1, duration: 420, ease: 'Bounce.easeOut' });
   return kap;
+}
+
+/** Fişi masadan kaldırır: aşağı, masa çekmecesine kayar ve silinir. */
+export function fisKaldir(scene: Phaser.Scene, fis: Phaser.GameObjects.Container): void {
+  scene.tweens.killTweensOf(fis);
+  scene.tweens.add({
+    targets: fis,
+    y: 1080 + 120,
+    alpha: 0,
+    duration: 360,
+    ease: 'Cubic.easeIn',
+    onComplete: () => fis.destroy(),
+  });
 }

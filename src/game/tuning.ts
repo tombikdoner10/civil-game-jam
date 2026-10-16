@@ -6,6 +6,8 @@ export const TUNING = {
   kat: { min: 2, max: 7 },
   /** Kaçak katta ruhsatın üstüne eklenen kat. */
   kacakKatEkle: { min: 1, max: 2 },
+  /** Gün 1 açılış dosyalarında (1: temiz, 2: kaçak katlı) ruhsattaki kat: fotoğrafta bina iri ve sayılabilir olsun. */
+  acilisKat: { min: 4, max: 6 },
   /** Yapım yılı aralığı. */
   yil: { min: 1965, max: 2008 },
   /** Bu yıldan eski binalar "eski yönetmelik" sayılır (yalnızca riske ekler). */

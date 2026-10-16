@@ -3,9 +3,10 @@
     "visual": {
       "kullanildi": true,
       "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5)",
-      "amac": "Arayüz görsellerini (butonlar, menü efektleri, parçacıklar) kodla çizen kodu yazdı",
+      "amac": "Arayüz görsellerini (butonlar, menü efektleri, parçacıklar) kodla çizen kodu yazdı; Masa sahnesi belge yazıları, bina cephesi kat bandı ve vitrin çizimi (betikle düzenlendi)",
       "yer": [
         "Menüler, arayüz ve efektler (jam öncesi şablon)",
+        "src/desk/documents.ts, src/desk/tiles.ts, src/desk/StampTray.ts, src/desk/props.ts",
         "src/desk/ (9 dosya)"
       ]
     },
@@ -20,11 +21,13 @@
     "code": {
       "kullanildi": true,
       "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5)",
-      "amac": "Oyunun kodunu yazdı",
+      "amac": "Oyunun kodunu yazdı; Gün dosyası dengesi, masa sınırı, kart boyutu, duman testi bayrakları (betikle düzenlendi)",
       "yer": [
         "Jam öncesi şablonun bütün kodu",
+        "src/game/, src/desk/DocumentCard.ts, src/scenes/, src/ui/, scripts/smoke.mjs",
         "src/game/ (4 dosya)",
-        "src/scenes/GameScene.ts"
+        "src/scenes/GameScene.ts",
+        "scripts/smoke.mjs"
       ]
     },
     "text": {

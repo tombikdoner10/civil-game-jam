@@ -41,7 +41,7 @@ export class SettingsScene extends Phaser.Scene {
       addBackdrop(this);
     }
 
-    label(this, WIDTH / 2, 150, 'Ayarlar', { size: 88, weight: 'bold' });
+    label(this, WIDTH / 2, 150, 'Ayarlar', { size: 88, weight: 'bold', baslik: true });
 
     const rows: [string, VolumeKey, string][] = [
       ['Ana ses', 'master', 'click'],
@@ -51,8 +51,8 @@ export class SettingsScene extends Phaser.Scene {
     const navButtons: Button[] = [];
     rows.forEach(([name, key, preview], i) => {
       const y = 320 + i * 120;
-      label(this, 420, y, name, { size: 40, align: 'left' });
-      const percent = label(this, 1500, y, '', { size: 34, color: COLORS.muted, mono: true, align: 'left' });
+      label(this, 420, y, name, { size: 48, align: 'left' });
+      const percent = label(this, 1500, y, '', { size: 40, color: COLORS.muted, align: 'left' });
       const showPercent = (v: number): void => void percent.setText(`%${Math.round(v * 100)}`);
       const bar = new ValueBar(this, 1110, y, 440, settings.get()[key], (v) => {
         settings.set({ [key]: v } as Partial<Settings>);
@@ -64,8 +64,8 @@ export class SettingsScene extends Phaser.Scene {
         sfx.play(preview);
       };
       navButtons.push(
-        new Button(this, 820, y, '−', () => step(-0.1), { width: 84, height: 84, fontSize: 48, sound: null }),
-        new Button(this, 1400, y, '+', () => step(0.1), { width: 84, height: 84, fontSize: 48, sound: null }),
+        new Button(this, 820, y, '−', () => step(-0.1), { width: 84, height: 84, fontSize: 60, sound: null }),
+        new Button(this, 1400, y, '+', () => step(0.1), { width: 84, height: 84, fontSize: 60, sound: null }),
       );
     });
 

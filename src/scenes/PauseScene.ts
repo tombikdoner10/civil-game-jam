@@ -24,7 +24,7 @@ export class PauseScene extends Phaser.Scene {
     dim.setAlpha(0);
     this.tweens.add({ targets: dim, alpha: 1, duration: 150 });
 
-    label(this, WIDTH / 2, 270, 'Duraklatıldı', { size: 88, weight: 'bold' });
+    label(this, WIDTH / 2, 270, 'Duraklatıldı', { size: 88, weight: 'bold', baslik: true });
 
     const resume = (): void => {
       this.scene.resume(this.from);

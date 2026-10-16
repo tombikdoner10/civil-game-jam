@@ -1,11 +1,14 @@
 import type * as Phaser from 'phaser';
-import { COLORS, css, FONT, MONO } from '../config';
+import { BASLIK_FONT, COLORS, css, FONT } from '../config';
 
 export interface LabelOptions {
   size?: number;
   color?: number;
   weight?: 'normal' | 'bold';
+  /** Eski seçenek: artık bütün gövde metni VT323 (FONT). */
   mono?: boolean;
+  /** Büyük başlık: Pixelify Sans (BASLIK_FONT). Yalnızca Z, B, C, E, 5 gibi karışan harfler içermeyen büyük başlıklarda. */
+  baslik?: boolean;
   /** Hizalama aynı zamanda orijini belirler: left → sol kenar, right → sağ kenar, center → orta. */
   align?: 'left' | 'center' | 'right';
   /** Bu genişlikte satır kaydır (px). */
@@ -19,9 +22,10 @@ export function label(scene: Phaser.Scene, x: number, y: number, text: string, o
   const align = o.align ?? 'center';
   return scene.add
     .text(x, y, text, {
-      fontFamily: o.mono ? MONO : FONT,
+      fontFamily: o.baslik ? BASLIK_FONT : FONT,
       fontSize: `${o.size ?? 32}px`,
-      fontStyle: o.weight ?? 'normal',
+      // VT323'ün kalın kesimi yok; tarayıcının sahte kalını pikselleri bulandırıyor.
+      fontStyle: o.baslik ? (o.weight ?? 'normal') : 'normal',
       color: css(o.color ?? COLORS.text),
       align,
       wordWrap: o.wrap ? { width: o.wrap, useAdvancedWrap: true } : undefined,

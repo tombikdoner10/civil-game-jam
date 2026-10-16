@@ -26,7 +26,7 @@ export class GateScene extends Phaser.Scene {
     play.add([ring, icon]);
     this.tweens.add({ targets: play, scale: 1.08, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
 
-    const hint = label(this, WIDTH / 2, HEIGHT / 2 + 150, 'Başlamak için tıkla ya da bir tuşa bas', { size: 40, color: COLORS.muted });
+    const hint = label(this, WIDTH / 2, HEIGHT / 2 + 150, 'Başlamak için tıkla ya da bir tuşa bas', { size: 48, color: COLORS.muted });
     this.tweens.add({ targets: hint, alpha: 0.35, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
 
     const start = (): void => {

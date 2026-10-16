@@ -38,7 +38,7 @@ export class Button extends Phaser.GameObjects.Container {
 
     this.bg = scene.add.graphics();
     this.label = scene.add
-      .text(0, 0, text, { fontFamily: FONT, fontSize: `${opts.fontSize ?? 40}px`, fontStyle: 'bold', color: css(COLORS.text) })
+      .text(0, 0, text, { fontFamily: FONT, fontSize: `${opts.fontSize ?? 50}px`, color: css(COLORS.text) })
       .setOrigin(0.5);
     this.add([this.bg, this.label]);
 

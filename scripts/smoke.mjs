@@ -1,11 +1,13 @@
 // Duman testi: görünmez Edge/Chrome açar, oyunu yükler, adımları uygular, her adımda ekran görüntüsü alır
 // ve sayfadaki hataları yazar. Teslimden önce ZIP'i ya da canlı siteyi denemek, oynanışı test etmek için.
-// Kullanım: node scripts/smoke.mjs [adres-ya-da-dosya] [çıktı-klasörü] [--senaryo dosya.json]
+// Kullanım: node scripts/smoke.mjs [adres-ya-da-dosya] [çıktı-klasörü] [--senaryo dosya.json] [--hd]
+//   --hd: görüntüleri 1920×1080 al (oyunun mantıksal çözünürlüğü, 1:1). Varsayılan 1280×720.
 //   node scripts/smoke.mjs                                   → dist-single/index.html (npm run zip çıktısı)
 //   node scripts/smoke.mjs https://tombikdoner10.github.io/civil-game-jam/
 //   npm run smoke -- --senaryo senaryo.json
 // Senaryo: adım dizisi. Koordinatlar oyunun 1920×1080 düzlemindedir.
 //   [{ "bekle": 2500 }, { "tikla": [960, 540] }, { "tus": "ArrowRight", "sure": 400 }, { "goruntu": "adim.png" }]
+//   Sürükle-bırak: { "surukle": [[x1, y1], [x2, y2]] }
 // Senaryo verilmezse: açılış → tıkla → menü → "Oyna" → oyun ekranı.
 // Tarayıcı yolu bulunamazsa CHROME_PATH ortam değişkeniyle verilebilir.
 import { spawn } from 'node:child_process';
@@ -17,10 +19,17 @@ import { pathToFileURL } from 'node:url';
 const argv = process.argv.slice(2);
 const scenarioFlag = argv.indexOf('--senaryo');
 const scenarioFile = scenarioFlag >= 0 ? argv[scenarioFlag + 1] : null;
-const positional = argv.filter((_, i) => scenarioFlag < 0 || (i !== scenarioFlag && i !== scenarioFlag + 1));
+const hd = argv.includes('--hd');
+const positional = argv.filter(
+  (a, i) => a !== '--hd' && (scenarioFlag < 0 || (i !== scenarioFlag && i !== scenarioFlag + 1)),
+);
 const target = positional[0] ?? 'dist-single/index.html';
 const outDir = positional[1] ?? 'teslim/smoke';
-const url = /^https?:\/\//.test(target) ? target : pathToFileURL(resolve(target)).href;
+// Dosya yolunda sorgu da verilebilir: dist-single/index.html?dev&gun=2&tohum=42
+const [targetPath, targetQuery] = target.split(/\?(.*)/s, 2);
+const url = /^https?:\/\//.test(target)
+  ? target
+  : pathToFileURL(resolve(targetPath)).href + (targetQuery !== undefined ? `?${targetQuery}` : '');
 
 const browser = [
   process.env.CHROME_PATH,
@@ -51,8 +60,8 @@ const DEFAULT_STEPS = [
 ];
 const steps = scenarioFile ? JSON.parse(readFileSync(scenarioFile, 'utf8')) : DEFAULT_STEPS;
 
-const W = 1280;
-const H = 720;
+const W = hd ? 1920 : 1280;
+const H = hd ? 1080 : 720;
 const PORT = 9300 + Math.floor(Math.random() * 600);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // Oyunun mantıksal çözünürlüğü (1920×1080) → görüntü koordinatı.
@@ -80,6 +89,12 @@ const proc = spawn(browser, [
   `--window-size=${W},${H}`,
   '--no-first-run',
   '--no-sandbox',
+  // Görünmez pencere birkaç saniye sonra arka plana alınıp rAF durmasın (uzun senaryolar donmasın).
+  '--disable-backgrounding-occluded-windows',
+  '--disable-renderer-backgrounding',
+  '--disable-background-timer-throttling',
+  // Windows'ta pencere örtülme hesabı ve Edge'in uyuyan sekmeleri de sayfayı dondurabiliyor.
+  '--disable-features=CalculateNativeWinOcclusion,IntensiveWakeUpThrottling,EdgeSleepingTabs',
   'about:blank',
 ]);
 
@@ -122,6 +137,9 @@ try {
   await send('Runtime.enable');
   await send('Page.enable');
   await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: false });
+  // Sayfa odakta ve etkin sayılsın: rAF görünmez pencerede de dursun istemiyoruz.
+  await send('Emulation.setFocusEmulationEnabled', { enabled: true });
+  await send('Page.setWebLifecycleState', { state: 'active' });
   console.log(`Açılıyor: ${url}`);
   await send('Page.navigate', { url });
 
@@ -132,6 +150,18 @@ try {
       for (const type of ['mousePressed', 'mouseReleased']) {
         await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 });
       }
+    }
+    if (step.surukle) {
+      // Sürükle-bırak: { "surukle": [[x1, y1], [x2, y2]] } (oyun koordinatı), araya ara noktalar eklenir.
+      const [a, b] = step.surukle.map(at);
+      await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: a[0], y: a[1], button: 'left', buttons: 1, clickCount: 1 });
+      for (let i = 1; i <= 12; i++) {
+        const x = a[0] + ((b[0] - a[0]) * i) / 12;
+        const y = a[1] + ((b[1] - a[1]) * i) / 12;
+        await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y, button: 'left', buttons: 1 });
+        await sleep(16);
+      }
+      await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: b[0], y: b[1], button: 'left', buttons: 0, clickCount: 1 });
     }
     if (step.tus) {
       const info = keyInfo(step.tus);

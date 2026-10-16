@@ -14,9 +14,16 @@ export const GAME_ID = 'pe-cgj26';
 export const WIDTH = 1920;
 export const HEIGHT = 1080;
 
-/** Arayüz ve başlıklar: Pixelify Sans. Belge değerleri ve saat: VT323. İkisi de piksel yazı tipi (SIL OFL 1.1). */
-export const FONT = '"Pixelify Sans", "Segoe UI", system-ui, sans-serif';
-export const MONO = '"VT323", Consolas, monospace';
+/**
+ * İkisi de piksel yazı tipi (SIL OFL 1.1).
+ * FONT (VT323): arayüz, düğmeler, belgeler, saat; bütün gövde metni ve etiketler.
+ * BASLIK_FONT (Pixelify Sans): yalnızca birkaç büyük başlık. Pixelify'ın köşeleri kesik çizildiği
+ * için her boyda Z→2, B→G, C→O, 5→S, E/e→ε gibi karışıyor; küçük metinde ve bu harfleri
+ * içeren başlıklarda kullanma.
+ */
+export const FONT = '"VT323", Consolas, monospace';
+export const MONO = FONT;
+export const BASLIK_FONT = '"Pixelify Sans", "Segoe UI", system-ui, sans-serif';
 
 /** Renk paleti (Phaser sayı biçimi). Metin rengi gerekirse css() ile dönüştür. */
 export const COLORS = {

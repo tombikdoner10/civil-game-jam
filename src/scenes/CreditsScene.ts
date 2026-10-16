@@ -25,22 +25,22 @@ export class CreditsScene extends Phaser.Scene {
   create(): void {
     fadeIn(this);
     addBackdrop(this);
-    label(this, WIDTH / 2, 120, 'Emeği Geçenler', { size: 80, weight: 'bold' });
+    label(this, WIDTH / 2, 120, 'Emeği Geçenler', { size: 96 });
 
     const left = WIDTH / 2 - COLUMN / 2;
     this.content = this.add.container(left, TOP);
     let y = 0;
     const add = (text: string, o: LabelOptions = {}, gap = 14): void => {
-      const t = label(this, 0, y, text, { size: 32, align: 'left', wrap: COLUMN, ...o }).setOrigin(0, 0);
+      const t = label(this, 0, y, text, { size: 38, align: 'left', wrap: COLUMN, ...o }).setOrigin(0, 0);
       this.content.add(t);
       y += t.height + gap;
     };
     const header = (text: string): void => {
       y += 30;
-      add(text, { size: 40, weight: 'bold', color: COLORS.primary }, 18);
+      add(text, { size: 48, color: COLORS.primary }, 18);
     };
 
-    add(TEAM, { size: 52, weight: 'bold' }, 4);
+    add(TEAM, { size: 60 }, 4);
     add(`${SUBTITLE} için 48 saatte geliştirildi.`, { color: COLORS.muted });
     header('Takım');
     MEMBERS.forEach((m) => add(`${m.name}  ·  ${m.role}`));
@@ -50,14 +50,14 @@ export class CreditsScene extends Phaser.Scene {
       for (const { id, label } of CATEGORIES) {
         const items = data[id];
         if (items.length === 0) {
-          add(`${label}: Kullanılmadı`, { size: 28, color: COLORS.muted }, 12);
+          add(`${label}: Kullanılmadı`, { size: 34, color: COLORS.muted }, 12);
           continue;
         }
-        add(`${label}: Kullanıldı`, { size: 30, weight: 'bold' }, 6);
+        add(`${label}: Kullanıldı`, { size: 38 }, 6);
         for (const item of items) {
           const [main, detail] = describe(item);
-          add(main, { size: 28 }, 4);
-          add(detail, { size: 24, color: COLORS.muted }, 16);
+          add(main, { size: 34 }, 4);
+          add(detail, { size: 30, color: COLORS.muted }, 16);
         }
       }
     };
@@ -68,7 +68,7 @@ export class CreditsScene extends Phaser.Scene {
     this.content.setMask(maskShape.createGeometryMask());
     this.maxScroll = Math.max(0, y - VIEW_HEIGHT);
     if (this.maxScroll > 0) {
-      label(this, WIDTH / 2, TOP + VIEW_HEIGHT + 40, 'Kaydırmak için fare tekerleği ya da ↑ / ↓', { size: 26, color: COLORS.muted });
+      label(this, WIDTH / 2, TOP + VIEW_HEIGHT + 40, 'Kaydırmak için fare tekerleği ya da ↑ / ↓', { size: 32, color: COLORS.muted });
     }
 
     this.input.on(Phaser.Input.Events.POINTER_WHEEL, (_p: Phaser.Input.Pointer, _over: unknown, _dx: number, dy: number) => this.scrollBy(dy));

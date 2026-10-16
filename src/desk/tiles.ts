@@ -114,7 +114,8 @@ function karo(ctx: CanvasRenderingContext2D, tablo: HTMLCanvasElement, id: numbe
 export const CEPHE_W = 112;
 const CATI_H = 12;
 const KAT_H = 16;
-const ZEMIN_H = 20;
+/** Zemin kat (dükkân) üst katlardan yüksek: vitrin ve tabela sığsın. 9 kat: 12 + 8×16 + 24 = 164. */
+export const ZEMIN_H = 24;
 
 export function cepheH(ustKat: number): number {
   return CATI_H + KAT_H * ustKat + ZEMIN_H;
@@ -209,59 +210,61 @@ export function cepheCiz(scene: Phaser.Scene, ctx: CanvasRenderingContext2D, x0:
         fill(i * T + 7, y + 5, 2, 6, KONTUR);
       }
     }
-    // Döşeme çizgisi: katlar kolay sayılsın.
-    fill(2, y + KAT_H - 1, CEPHE_W - 4, 1, rd[1]);
-    fill(2, y + KAT_H - 2, CEPHE_W - 4, 1, rd[4]);
+    // Cephe boyunca koyu çizgi ve üstünde açık şerit: katlar tek tek sayılsın.
+    fill(0, y + KAT_H - 1, CEPHE_W, 1, rd[0]);
+    fill(1, y + KAT_H - 2, CEPHE_W - 2, 1, rd[4]);
   }
 
-  // Zemin kat (kodla): kiriş, kolonlar, bölmeler, vitrin.
+  // Zemin kat (kodla): kiriş, kolonlar, bölmeler, vitrin. Zemin kat da bir kattır (ruhsattaki sayıya dahil).
   const zy = CATI_H + ust * KAT_H;
   fill(0, zy, CEPHE_W, ZEMIN_H, KONTUR);
-  fill(2, zy, CEPHE_W - 4, 1, rd[4]);
-  fill(2, zy + 1, CEPHE_W - 4, 2, rd[3]);
-  fill(2, zy + 3, CEPHE_W - 4, 1, rd[1]);
+  fill(1, zy, CEPHE_W - 2, 1, rd[4]);
+  fill(1, zy + 1, CEPHE_W - 2, 2, rd[3]);
+  fill(1, zy + 3, CEPHE_W - 2, 1, rd[1]);
   const ic = '#2a2526';
-  fill(2, zy + 4, CEPHE_W - 4, ZEMIN_H - 5, ic);
+  const icY = zy + 4;
+  const icH = ZEMIN_H - 5;
+  fill(2, icY, CEPHE_W - 4, icH, ic);
   const kw = 5;
   const kx = (i: number): number => 2 + Math.round((i * (CEPHE_W - 4 - kw)) / Math.max(1, v.kolon - 1));
   // Normal bölmeler: kepenk çizgileri.
   for (let i = 0; i < v.kolon - 1; i++) {
     const a = kx(i) + kw;
     const b = kx(i + 1);
-    for (let yy = zy + 5; yy < zy + ZEMIN_H - 1; yy += 2) fill(a + 1, yy, b - a - 2, 1, '#3a3433');
+    for (let yy = icY + 1; yy < zy + ZEMIN_H - 1; yy += 2) fill(a + 1, yy, b - a - 2, 1, '#3a3433');
   }
-  // Vitrinler: kesik kolonun iki yanındaki bölmeyi kaplayan parlak cam.
+  // Vitrin: kesilen kolonun yeri dahil iki bölmeyi kaplayan geniş cam ve üstünde parlak tabela.
+  // Kesik kolondan iz kalmaz: fotoğraftaki tam boy kolon sayısı projedekinden eksik görünür.
   for (const i of v.vitrin) {
     const a = i > 0 ? kx(i - 1) + kw : 2;
     const b = i < v.kolon - 1 ? kx(i + 1) : CEPHE_W - 2;
-    fill(a, zy + 4, b - a, 3, '#b08d3c'); // tabela şeridi
-    for (let xx = a + 2; xx < b - 2; xx += 3) fill(xx, zy + 5, 1, 1, '#6e5624');
-    fill(a, zy + 7, b - a, ZEMIN_H - 8, KONTUR);
-    fill(a + 1, zy + 8, b - a - 2, ZEMIN_H - 10, '#a9cfd0');
-    fill(a + 1, zy + ZEMIN_H - 5, b - a - 2, 3, '#7fa9ad');
-    for (let d = 0; d < 9; d++) {
+    const w = b - a;
+    // Tabela
+    fill(a, icY, w, 6, KONTUR);
+    fill(a + 1, icY + 1, w - 2, 4, '#c79a3a');
+    fill(a + 1, icY + 1, w - 2, 1, '#e2bd5e');
+    for (let xx = a + 3; xx < b - 3; xx += 4) fill(xx, icY + 2, 2, 2, '#5e4520');
+    // Cam
+    const cy0 = icY + 6;
+    const ch = zy + ZEMIN_H - 1 - cy0;
+    fill(a, cy0, w, ch, KONTUR);
+    fill(a + 1, cy0 + 1, w - 2, ch - 2, '#9fc8cb');
+    fill(a + 1, cy0 + 1, w - 2, 2, '#c6e2e0');
+    fill(a + 1, cy0 + ch - 4, w - 2, 3, '#77a2a6');
+    for (let d = 0; d < ch - 3; d++) {
       const hx = a + 3 + d;
-      if (hx < b - 2) fill(hx, zy + 16 - d, 1, 1, '#eef4ee');
-      const hx2 = a + 7 + d;
-      if (hx2 < b - 2 && d < 6) fill(hx2, zy + 16 - d, 1, 1, '#d8e6e2');
+      if (hx < b - 2) fill(hx, cy0 + ch - 3 - d, 1, 1, '#eef6f2');
+      const hx2 = a + 6 + d;
+      if (hx2 < b - 2 && d < ch - 6) fill(hx2, cy0 + ch - 3 - d, 1, 1, '#d8eae6');
     }
-    // Kolonun kesik ucu: kirişten sarkan pürüzlü parça.
-    const cx = kx(i);
-    fill(cx - 1, zy + 4, kw + 2, 4, KONTUR);
-    fill(cx, zy + 4, kw, 3, rd[3]);
-    fill(cx + 1, zy + 4, 1, 3, rd[4]);
-    fill(cx, zy + 7, 1, 1, rd[3]);
-    fill(cx + 2, zy + 7, 2, 1, rd[3]);
-    fill(cx + 1, zy + 8, 1, 1, KONTUR);
-    fill(cx + 3, zy + 8, 1, 1, KONTUR);
   }
-  // Kolonlar.
+  // Kolonlar (tam boy, kirişten döşemeye).
   for (let i = 0; i < v.kolon; i++) {
     if (v.vitrin.includes(i)) continue;
     const x = kx(i);
-    fill(x, zy + 4, kw, ZEMIN_H - 5, KONTUR);
-    fill(x + 1, zy + 4, kw - 2, ZEMIN_H - 5, rd[3]);
-    fill(x + 1, zy + 4, 1, ZEMIN_H - 5, rd[4]);
+    fill(x, icY, kw, icH, KONTUR);
+    fill(x + 1, icY, kw - 2, icH, rd[3]);
+    fill(x + 1, icY, 1, icH, rd[4]);
   }
   fill(0, zy + ZEMIN_H - 1, CEPHE_W, 1, KONTUR);
 

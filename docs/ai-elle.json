@@ -29,5 +29,19 @@
     "yer": "Oyun fikri aşaması",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-16T16:27:42.858Z"
+  },
+  {
+    "kategori": "visual",
+    "amac": "Masa sahnesi belge yazıları, bina cephesi kat bandı ve vitrin çizimi (betikle düzenlendi)",
+    "yer": "src/desk/documents.ts, src/desk/tiles.ts, src/desk/StampTray.ts, src/desk/props.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-16T18:05:00.300Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "Gün dosyası dengesi, masa sınırı, kart boyutu, duman testi bayrakları (betikle düzenlendi)",
+    "yer": "src/game/, src/desk/DocumentCard.ts, src/scenes/, src/ui/, scripts/smoke.mjs",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-16T18:05:00.356Z"
   }
 ]

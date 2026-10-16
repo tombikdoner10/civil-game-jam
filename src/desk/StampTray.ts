@@ -15,6 +15,8 @@ const SIRA: Damga[] = ['guvenli', 'guclendir', 'bosalt'];
 
 const TRAY = { x: 1544, y: 472, w: 376, h: 600, tutamak: 40 };
 const KAPALI_X = 1920 - TRAY.tutamak;
+/** Çubuğun sol kenarı (ekran x): açıkken ve kapalıyken. Masa sınırı buna göre ayarlanır. */
+export const TEPSI_SOL = { acik: TRAY.x, kapali: KAPALI_X } as const;
 
 /**
  * Sağ kenardan kayarak açılan damga çubuğu. Kapalıyken yalnızca tutamak görünür;
@@ -61,7 +63,7 @@ export class StampTray extends Phaser.GameObjects.Container {
     const tut = tt.goruntu(0, 120).setOrigin(0);
     this.add(tut);
     const yazi = scene.add
-      .text(20, 120 + 52, 'DAMGA', { fontFamily: FONT, fontSize: '20px', color: PAL.panelYazi })
+      .text(20, 120 + 52, 'DAMGA', { fontFamily: FONT, fontSize: '28px', color: PAL.panelYazi })
       .setOrigin(0.5)
       .setAngle(-90);
     this.add(yazi);
@@ -69,7 +71,7 @@ export class StampTray extends Phaser.GameObjects.Container {
     for (let i = 0; i < 4; i++) okT.rect(4 - i, i, 1, 7 - i * 2, PAL.saat);
     this.ok = okT.goruntu(20, 120 + 112);
     this.add(this.ok);
-    const tab = scene.add.text(20, 120 + 148, 'Tab', { fontFamily: FONT, fontSize: '16px', color: PAL.panelYazi }).setOrigin(0.5);
+    const tab = scene.add.text(20, 120 + 148, 'Tab', { fontFamily: FONT, fontSize: '24px', color: PAL.panelYazi }).setOrigin(0.5);
     this.add(tab);
     tut.setInteractive({ useHandCursor: true }).on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => this.degistir());
 
@@ -116,7 +118,7 @@ export class StampTray extends Phaser.GameObjects.Container {
     const kap = s.add.container(cx, cy);
     kap.add(t.goruntu(0, 0));
     const lbl = s.add
-      .text(0, 24 + 4, DAMGA_ADI[d], { fontFamily: FONT, fontSize: '24px', color: '#e8e2d0' })
+      .text(0, 24 + 4, DAMGA_ADI[d], { fontFamily: FONT, fontSize: '36px', color: '#f0ead8' })
       .setOrigin(0.5)
       .setShadow(0, 4, '#00000080', 0);
     kap.add(lbl);
@@ -150,9 +152,11 @@ export class StampTray extends Phaser.GameObjects.Container {
     else this.ac();
   }
 
+  /** Açılınca 'ac', kapanınca 'kapa' olayı yayılır (masa sınırı için). */
   ac(): void {
     if (this.acik) return;
     this.acik = true;
+    this.emit('ac');
     this.okYanip(false);
     this.scene.tweens.killTweensOf(this);
     this.scene.tweens.add({ targets: this, x: TRAY.x, duration: 260, ease: 'Cubic.easeOut' });
@@ -161,6 +165,7 @@ export class StampTray extends Phaser.GameObjects.Container {
   kapa(): void {
     if (!this.acik) return;
     this.acik = false;
+    this.emit('kapa');
     this.okYanip(true);
     this.scene.tweens.killTweensOf(this);
     this.scene.tweens.add({ targets: this, x: KAPALI_X, duration: 220, ease: 'Cubic.easeIn' });
@@ -179,13 +184,13 @@ function KONT(): string {
 }
 
 /**
- * Mürekkep izi: hafif açılı, pürüzlü kenarlı damga baskısı. Sanat pikselinde çizilir (döndürme
- * piksel ızgarasında yapılır), PX katı büyütülür.
+ * Mürekkep izi: hafif açılı, pürüzlü kenarlı damga baskısı. Yarım sanat pikseli ızgarasında çizilir
+ * (VT323 25 px = tuvalde tam 1 piksel; döndürme ızgarada yapılır), 2 kat büyütülür.
  */
 export function damgaIzi(scene: Phaser.Scene, d: Damga, tohum: number): Phaser.GameObjects.Image {
   const rnd = rastgele(tohum);
-  const W = 74;
-  const H = 26;
+  const W = 148;
+  const H = 52;
   const t = new Tuval(scene, W, H, 'iz');
   const ctx = t.ctx;
   const aci = ((rnd() * 2 - 1) * 7 * Math.PI) / 180;
@@ -193,13 +198,13 @@ export function damgaIzi(scene: Phaser.Scene, d: Damga, tohum: number): Phaser.G
   ctx.translate(W / 2, H / 2);
   ctx.rotate(aci);
   ctx.strokeStyle = '#000';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(-32, -9, 64, 18);
-  ctx.font = `12px "Pixelify Sans"`;
+  ctx.lineWidth = 4;
+  ctx.strokeRect(-64, -18, 128, 36);
+  ctx.font = `25px "VT323"`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#000';
-  ctx.fillText(DAMGA_ADI[d], 0, 1);
+  ctx.fillText(DAMGA_ADI[d], 0, 2);
   ctx.restore();
   // Eşikle: yalnızca tam pikseller, mürekkep rengi; rastgele boşluklar (pürüz).
   const img = ctx.getImageData(0, 0, W, H);
@@ -213,5 +218,5 @@ export function damgaIzi(scene: Phaser.Scene, d: Damga, tohum: number): Phaser.G
     p[i + 3] = on ? 225 : 0;
   }
   ctx.putImageData(img, 0, 0);
-  return t.goruntu(0, 0);
+  return t.goruntu(0, 0, PX / 2);
 }

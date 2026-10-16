@@ -90,7 +90,7 @@ export function pulse(scene: Phaser.Scene, target: Transform, amount = 0.1, dura
 /** Yükselip kaybolan yazı: "+10", "Kombo!" vb. */
 export function floatText(scene: Phaser.Scene, x: number, y: number, text: string, color: number = COLORS.text, size = 40): Phaser.GameObjects.Text {
   const t = scene.add
-    .text(x, y, text, { fontFamily: FONT, fontSize: `${size}px`, fontStyle: 'bold', color: css(color), stroke: '#000000', strokeThickness: 6 })
+    .text(x, y, text, { fontFamily: FONT, fontSize: `${size}px`, color: css(color), stroke: '#000000', strokeThickness: 6 })
     .setOrigin(0.5)
     .setDepth(1000);
   scene.tweens.add({ targets: t, y: y - 90, alpha: 0, duration: 850, ease: 'Cubic.easeOut', onComplete: () => t.destroy() });

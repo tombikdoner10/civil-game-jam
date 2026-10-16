@@ -40,16 +40,15 @@ export class ResultScene extends Phaser.Scene {
     if (isRecord) storage.set('best', score);
 
     const title = label(this, WIDTH / 2, 230, this.result.title ?? (won ? 'Tebrikler!' : 'Oyun Bitti'), {
-      size: 120,
-      weight: 'bold',
+      size: 132,
       color: won ? COLORS.primary : COLORS.danger,
     });
     popIn(this, title);
 
-    label(this, WIDTH / 2, 380, 'Skor', { size: 36, color: COLORS.muted });
-    const value = label(this, WIDTH / 2, 470, '0', { size: 110, weight: 'bold', mono: true });
+    label(this, WIDTH / 2, 380, 'Skor', { size: 44, color: COLORS.muted });
+    const value = label(this, WIDTH / 2, 470, '0', { size: 132 });
     const best = label(this, WIDTH / 2, 575, isRecord ? 'Yeni rekor!' : `En iyi: ${previousBest}`, {
-      size: 36,
+      size: 44,
       color: isRecord ? COLORS.success : COLORS.muted,
     }).setAlpha(0);
 

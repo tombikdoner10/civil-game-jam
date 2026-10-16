@@ -4,10 +4,11 @@ import { DEV } from '../config';
 import { DocumentCard, MASA, ustKatman } from '../desk/DocumentCard';
 import { belgeKur, BOY, SIRA } from '../desk/documents';
 import { snap } from '../desk/pixel';
-import { fisDusur, kuralKitabi, masaCiz } from '../desk/props';
-import { DAMGA_ADI, damgaIzi, StampTray } from '../desk/StampTray';
+import { fisDusur, fisKaldir, kuralKitabi, masaCiz } from '../desk/props';
+import { DAMGA_ADI, damgaIzi, StampTray, TEPSI_SOL } from '../desk/StampTray';
 import { GOZ, MASA_Y, Pencere } from '../desk/Window';
 import type { BelgeTuru, Damga } from '../game/building';
+import { KUSUR_BILGI } from '../game/rules';
 import { GunOturumu } from '../game/session';
 import { Controls } from '../systems/controls';
 import { punch } from '../systems/fx';
@@ -29,7 +30,8 @@ const YER: Record<BelgeTuru, [number, number]> = {
   zemin: [1352, 920],
 };
 const KITAP: [number, number] = [1388, 640];
-const FIS: [number, number] = [1300, 576];
+/** Uyarı fişinin düştüğü yer: kural kitabının solunda (kitabı örtmez). */
+const FIS: [number, number] = [1080, 612];
 
 /** Masa sahnesi: üstte belediye penceresi ve gişe, altta masa, belgeler ve damga çubuğu. */
 export class GameScene extends Phaser.Scene {
@@ -75,12 +77,20 @@ export class GameScene extends Phaser.Scene {
 
     MASA.x = 0;
     MASA.y = MASA_Y;
-    MASA.w = 1880;
+    MASA.w = TEPSI_SOL.kapali;
     MASA.h = 1080 - MASA_Y;
     masaCiz(this, MASA_Y);
     kuralKitabi(this, KITAP[0], KITAP[1]);
     this.pencere = new Pencere(this, this.gun);
     this.tepsi = new StampTray(this, (d) => this.damgala(d));
+    // Masa sınırı damga çubuğunun sol kenarında biter; çubuk açılınca altında kalan belgeler dışarı itilir.
+    this.tepsi.on('ac', () => {
+      MASA.w = TEPSI_SOL.acik;
+      this.kartlariMasayaIt();
+    });
+    this.tepsi.on('kapa', () => {
+      MASA.w = TEPSI_SOL.kapali;
+    });
 
     this.dosyaGetir();
 
@@ -109,10 +119,25 @@ export class GameScene extends Phaser.Scene {
     this.pencere.setSaat(this.oturum.saatMetni());
   }
 
+  /** Masa sınırının dışında kalan belgeleri (ör. açılan damga çubuğunun altındakileri) içeri kaydırır. */
+  private kartlariMasayaIt(): void {
+    for (const k of this.kartlar) {
+      if (!k.active || !k.input?.enabled) continue;
+      const [x, y] = k.masadaKonum(k.x, k.y);
+      if (x === k.x && y === k.y) continue;
+      this.tweens.add({ targets: k, x, y, duration: 220, ease: 'Cubic.easeOut' });
+    }
+  }
+
   /** Sıradaki dosya: siluet gişeye gelir, bina pencerede görünür, belgeler gişe gözünden masaya kayar. */
   private dosyaGetir(): void {
     const bina = this.oturum.mevcut;
     if (!bina) return;
+    // Önceki dosyanın fişi kayarak masadan çekilir.
+    if (this.fis) {
+      fisKaldir(this, this.fis);
+      this.fis = undefined;
+    }
     this.pencere.setDosya(this.oturum.no, this.oturum.toplam);
     this.pencere.binaGoster(bina);
     this.pencere.siluetGelsin(this.tohum + this.oturum.no * 7919);
@@ -157,15 +182,17 @@ export class GameScene extends Phaser.Scene {
       if (ruhsat?.active) {
         ruhsat.one();
         const iz = damgaIzi(this, damga, this.tohum + this.oturum.kararlar.length * 131);
-        iz.setPosition(-ruhsat.w / 2 + 152, ruhsat.h / 2 - 60);
+        iz.setPosition(-ruhsat.genislik / 2 + 152, ruhsat.yukseklik / 2 - 60);
         ruhsat.add(iz);
       }
     });
 
     // Uyarı fişi (yer tutucu geri bildirim).
     this.time.delayedCall(450, () => {
-      this.fis?.destroy();
-      const metin = sonuc.dogru ? 'Doğru karar' : `Yanlış karar:\ndoğrusu ${DAMGA_ADI[sonuc.dogruDamga]}`;
+      if (this.fis) fisKaldir(this, this.fis);
+      // Yanlış kararda doğrusu ve dosyadaki kusurlar (atlanan ya da olmadığı halde görülen).
+      const kusurlar = sonuc.kusurlar.map((id) => KUSUR_BILGI[id].etiket).join(' · ') || 'Kusur yok';
+      const metin = sonuc.dogru ? 'Doğru karar' : `Yanlış karar\nDoğrusu: ${DAMGA_ADI[sonuc.dogruDamga]}\n${kusurlar}`;
       this.fis = fisDusur(this, sonuc.dogru, metin, FIS[0], FIS[1]);
       sfx.play(sonuc.dogru ? 'confirm' : 'error');
     });
@@ -182,7 +209,7 @@ export class GameScene extends Phaser.Scene {
         this.tweens.add({
           targets: k,
           x: GOZ.x,
-          y: GOZ.y - k.h / 2 - 40,
+          y: GOZ.y - k.yukseklik / 2 - 40,
           duration: 380,
           delay: i * 50,
           ease: 'Cubic.easeIn',
