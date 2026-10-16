@@ -36,9 +36,9 @@ _Bizim yorumumuz (takımın kararı):_ Afete hazırlığın en kritik ama görü
 | Gün | Yeni kural | Yeni araç |
 |---|---|---|
 | 1 | Ruhsattaki kat sayısı gerçekle aynı olmalı | İnceleme modu |
-| 2 | Zemin katta kolon kesilmemiş olmalı | Fotoğraf büyüteci |
+| 2 | Zemin katta kolon kesilmemiş olmalı; çapraz (kesme) çatlak yok | Fotoğraf büyüteci |
 | 3 | Beton dayanımı eşiğin üstünde olmalı | Karot sonucu |
-| 4 | Dere yatağı ve fay hattına en az X metre | Vaziyet planı + cetvel |
+| 4 | Dere yatağı ve fay hattına en az X metre; zemin etüdü var ve sıvılaşma riski yok | Vaziyet planı + cetvel |
 | 5 | Hepsi + sahte belge | Tarih / mühür kontrolü |
 
 ### Gerilim ve duygu

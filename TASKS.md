@@ -9,12 +9,12 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G2 [teknik] Masa sahnesi iskeleti: `GameScene` masa alanı, veriden çizilen gri belge kartları (ruhsat, fotoğraf yer tutucusu, vaziyet planı, karot sonucu) sürüklenebiliyor, 3 damga düğmesi, mesai saati; damga basınca sıradaki dosya geliyor.
+
 ## Sırada
 
 Çekirdek döngü (gri kutularla; hedef: Cumartesi 14.00 ara test)
 
-- [ ] G1 [teknik] Bina veri modeli ve üretici: `src/game/building.ts` (gerçek kat, ruhsat katı, yapım yılı, beton dayanımı, kolon durumu, dere/fay mesafesi, zemin raporu); tohumlu rastgele üretici + elle yazılabilir hikâye binası biçimi; her bina için kusur listesi ve doğru damga hesaplanıyor; `npm run check` temiz.
-- [ ] G2 [teknik] Masa sahnesi iskeleti: `GameScene` masa alanı, veriden çizilen gri belge kartları (ruhsat, fotoğraf yer tutucusu, vaziyet planı, karot sonucu) sürüklenebiliyor, 3 damga düğmesi, mesai saati; damga basınca sıradaki dosya geliyor.
 - [ ] G3 [teknik] İnceleme modu: Space ile aç/kapat; iki belge alanına tıklanınca tutarsızlık varsa işaret ve etiket ("Kaçak kat" gibi, metinler yer tutucu), yoksa "tutarsızlık yok".
 - [ ] G4 [teknik] Kural kitabı ve gün yapısı: gün yapılandırması (kurallar, dosya sayısı, süre) JSON/TS veriden; kural kitabı paneli (yer tutucu metinler); gün sonu ekranı (doğru/yanlış, maaş, ceza); 5 gün akışı.
 - [ ] G5 [teknik] Deprem günü ve sonuç: üstten şehir haritası (gri kutular), damgalanan binaların sonucu, sarsıntı efekti, gazete ekranı (yer tutucu manşetler); Result sahnesine bağlanıyor.
@@ -51,3 +51,5 @@ Bulutta yapılabilecekler
 - [ ] T9 [takım] Pazar: 1 dakikalık video (MP4) ve 3 dakikalık sunum.
 
 ## Bitti
+
+- [x] G1 [teknik] Bina veri modeli ve üretici: `src/game/building.ts` (gerçek kat, ruhsat katı, yapım yılı, beton dayanımı, kolon durumu, dere/fay mesafesi, zemin raporu); tohumlu rastgele üretici + elle yazılabilir hikâye binası biçimi; her bina için kusur listesi ve doğru damga hesaplanıyor; `npm run check` temiz. (6cab272)

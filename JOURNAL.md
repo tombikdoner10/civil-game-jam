@@ -17,3 +17,5 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 18:08 · Faz konsepte geçti, tema bekleniyor (Kontrol 1); kullanım %4 · Kullanıcıdan tema metni ve `/konsept` (xhigh) istendi · Sıradaki: konsept seçimi
 - 18:09 · Tema geldi: "Afete hazırlık ve farkındalık"; GDD'ye aynen yazıldı · Kullanıcıdan `/konsept` (xhigh) bekleniyor · Sıradaki: Kontrol 1
 - 19:26 · Karar: Konsept Yapı Denetçisi (Papers, Please tarzı masa oyunu; dosyadaki tutarsızlıkları yakala, damga vur, deprem günü sınar) · Neden: takım yaklaşık 90 seçenek arasından seçti; uzman rolü, masa/üstten görünüm, ciddi-gergin ton tercihine uyuyor, mekaniği deterministik ve 48 saate sığıyor, jürideki inşaat mühendislerine hitap ediyor · Sıradaki: G1 bina veri modeli
+- 19:30 · Karar: Eleştirmeni ilk oynanabilir sürüme (G2–G3 sonrası) ertele · Neden: değerlendirecek oyun yok, kullanım boşa gider · Sıradaki: G1 geliştiricide
+- 19:50 · G1 bitti (6cab272): bina modeli, kural motoru, tohumlu üretici; check temiz, determinizm doğrulandı · Karar: G1 için test-oyuncusu çağrılmadı · Neden: arayüzü yok, oyunda hiçbir yere bağlı değil · Sıradaki: G2 masa sahnesi
