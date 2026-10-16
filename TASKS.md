@@ -10,6 +10,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 ## Şimdi
 
 - [ ] G17 [teknik] Gişede insan ve sorgu: kodla piksel portreli mal sahibi (siluet yerine); SOR (bulunan tutarsızlıkta: bahane / itiraf / zarf) ve İSTE (eksik belgede: gerçek / sahte / yok); belge hileleri (elle düzeltilmiş rakam, ada/parsel uyuşmazlığı, eksik imza/boş alan, sahte rapor) ve kuralları; diyalog metinleri yer tutucu, takım yazacak.
+- [ ] G17b [teknik] Belge hileleri: elle düzeltilmiş rakam (tipp-ex, üstü çizili), ada/parsel uyuşmazlığı (başka binanın belgesi), eksik imza/boş alan; "geçersiz belge" eksik belge gibi işler (İSTE → gerçek/sahte/yok → İADE); kural satırları ve günlere dağılım.
 
 ## Sırada
 
