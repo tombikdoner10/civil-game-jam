@@ -244,11 +244,11 @@ export class Sokak {
 
   /**
    * [i0, i1] parsellerini pencereye al (oran: ortalarının penceredeki yatay yeri, 0.5 = orta); sığmıyorsa
-   * küçült (en az minOlcek; pencere varsayılanı yarı boy).
+   * küçült (en az minOlcek; pencere varsayılanı yarı boy). maxOlcek: en büyük ölçek (varsayılan 1).
    */
-  odakla(i0: number, i1: number, sure = 400, bitince?: () => void, oran = 0.5, minOlcek = 0.5): void {
+  odakla(i0: number, i1: number, sure = 400, bitince?: () => void, oran = 0.5, minOlcek = 0.5, maxOlcek = 1): void {
     const genislik = (i1 - i0 + 1) * PARSEL + 16;
-    const s = Phaser.Math.Clamp(this.penW / genislik, Math.min(minOlcek, 1), 1);
+    const s = Phaser.Math.Clamp(this.penW / genislik, Math.min(minOlcek, maxOlcek, 1), Math.min(maxOlcek, 1));
     const c = ((i0 + i1 + 1) / 2) * PARSEL;
     this.turBekleme?.remove();
     this.turBekleme = undefined;

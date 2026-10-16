@@ -2,6 +2,7 @@
 import * as Phaser from 'phaser';
 import { MONO } from '../config';
 import type { Bina, Damga } from '../game/building';
+import { tarih } from '../game/diyalog';
 import type { Ifade, Kisi } from '../game/kisi';
 import type { SokakKaydi } from '../game/session';
 import { Konusma, type SoyleSecenek } from './Konusma';
@@ -19,6 +20,8 @@ export const MASA_Y = BANT_H + TEZGAH_H;
 
 const PEN = { x: 32, y: 32, w: 1168, h: 360 };
 const GISE = { x: 1248, y: 32, w: 640, h: 360 };
+/** Gişe camının alanı (ekran): öncü sarsıntının şerit yazısı burada (G5b). */
+export const GISE_ALAN: Readonly<typeof GISE> = GISE;
 /** Belgelerin girip çıktığı gişe gözü (ekran). */
 export const GOZ = { x: 1568, y: BANT_H + 8 };
 
@@ -59,6 +62,8 @@ export class Pencere {
     yaz(96, `GÜN ${gun}`, MONO, 32, PAL.panelYazi);
     this.saatYazi = yaz(248, '09:00', MONO, 40, PAL.saat);
     this.dosyaYazi = yaz(440, '', MONO, 32, PAL.panelYazi);
+    // Oyun içi tarih (G5b): ileri tarihli getirilen raporu yakalamak için bugünün tarihi tezgâhta.
+    yaz(644, tarih(gun), MONO, 32, PAL.panelYazi);
     this.balon = new Konusma(scene, BALON, D.balon);
   }
 
@@ -119,6 +124,7 @@ export class Pencere {
     panel(6, 36);
     panel(46, 32);
     panel(84, 52);
+    panel(140, 42);
     t.goruntu(0, 0).setOrigin(0).setDepth(D.duvar);
     // Cam yansımaları (pencere üstünde, hafif)
     const y = new Tuval(this.scene, p.w, p.h, 'yansima');

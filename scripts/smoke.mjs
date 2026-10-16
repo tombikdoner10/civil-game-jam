@@ -48,14 +48,16 @@ if (!browser) {
   process.exit(2);
 }
 
+// Bekleme süreleri geçişlerin bitmesine göre (G5b): açılış (yükleme + tıklama kapısı), takım logosu ve menünün
+// belirmesi, menüden oyuna geçiş ve belgelerin masaya inmesi. Yavaş makinede de geçişin ortası yakalanmasın.
 const DEFAULT_STEPS = [
-  { bekle: 2500 },
+  { bekle: 3500 },
   { goruntu: '1-acilis.png' },
   { tikla: [960, 540] },
-  { bekle: 2800 },
+  { bekle: 3800 },
   { goruntu: '2-menu.png' },
   { tikla: [960, 530] }, // menüdeki ilk buton: Oyna
-  { bekle: 1500 },
+  { bekle: 3200 },
   { goruntu: '3-oyun.png' },
 ];
 const steps = scenarioFile ? JSON.parse(readFileSync(scenarioFile, 'utf8')) : DEFAULT_STEPS;

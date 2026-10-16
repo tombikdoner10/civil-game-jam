@@ -115,20 +115,6 @@ export const ASSETS: Record<Category, AssetCredit[]> = {
   text: [],
   other: [
     {
-      name: 'Rubik (yazı tipi)',
-      author: 'The Rubik Project Authors',
-      url: 'https://github.com/googlefonts/rubik',
-      license: 'SIL Open Font License 1.1',
-      usage: 'Arayüz yazı tipi, değiştirilmedi',
-    },
-    {
-      name: 'JetBrains Mono (yazı tipi)',
-      author: 'The JetBrains Mono Project Authors',
-      url: 'https://github.com/JetBrains/JetBrainsMono',
-      license: 'SIL Open Font License 1.1',
-      usage: 'Takım logosu ve teknik yazılar, değiştirilmedi',
-    },
-    {
       name: 'Pixelify Sans (yazı tipi)',
       author: 'The Pixelify Sans Project Authors',
       url: 'https://fonts.google.com/specimen/Pixelify+Sans',

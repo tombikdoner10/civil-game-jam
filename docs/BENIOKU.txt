@@ -14,10 +14,19 @@ PLATFORM VE GEREKSİNİMLER
 - Klavye ve fare; ses için hoparlör ya da kulaklık
 
 OYNANIŞ
-- Amaç: (tema açıklanınca yazılacak)
-- Kontroller: (tema açıklanınca yazılacak)
-- İlk adım: (tema açıklanınca yazılacak)
+- Amaç: (takım yazacak)
+- Her dosyada belgeleri karşılaştır, tutarsızlığı inceleme modunda bul,
+  kaşeyle karar ver (GÜVENLİ / GÜÇLENDİR / BOŞALT / İADE).
+
+KONTROLLER
+- Fare ile belgeyi sürükle: belgeyi masada taşı
+- Fare ile kaşeye tıkla: kaşe ruhsata vurulur (karar)
+- 1 / 2 / 3 / 4: GÜVENLİ / GÜÇLENDİR / BOŞALT / İADE kaşesi
+- Space: inceleme modunu aç / kapa (inceleme modunda iki alana tıkla)
+- Yönetmelik klasörüne tıkla: kuralları aç (gün 2'den)
 - Esc ya da P: duraklat
+- Enter ya da Space: gün sonu raporunda sonraki gün
+- D: gün 1 sonu raporunda "Depremi şimdi yaşa" (büyük depreme kısa yol)
 
 BİLİNEN SORUNLAR
 - Yok.

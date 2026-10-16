@@ -22,7 +22,7 @@ export class RuleNote extends Phaser.GameObjects.Container {
   readonly yukseklik: number;
   private readonly satirlar: SecimNesne[] = [];
 
-  constructor(scene: Phaser.Scene, x: number, y: number, gun: number, gorev: string, kurallar: Kural[]) {
+  constructor(scene: Phaser.Scene, x: number, y: number, gun: number, gorev: string, kurallar: Kural[], cerceve?: string) {
     super(scene, x, y);
     const yazi = (t: string, size: number, renk: string): Phaser.GameObjects.Text =>
       scene.add
@@ -35,12 +35,15 @@ export class RuleNote extends Phaser.GameObjects.Container {
         })
         .setOrigin(0);
 
+    // Çerçeve cümlesi (G5b, gün 1): notun en üstünde, kırmızı mürekkeple; altında ince çizgi.
+    const cerceveYazi = cerceve ? yazi(cerceve, 32, PAL.damgaBosalt) : undefined;
+    const cerceveH = cerceveYazi ? cerceveYazi.height + 16 : 0;
     const baslik = yazi(`KURAL NOTU · GÜN ${gun}`, 40, PAL.murekkep);
     const gorevYazi = yazi(gorev, 30, PAL.basikSerit);
     const kuralYazilari = kurallar.map((k) => yazi(kuralMetni(k, gun), 30, PAL.murekkep));
 
-    // Yükseklik içerikten: başlık, görev, ayraç, kurallar.
-    let h = 20 + 44 + 8 + gorevYazi.height + 20;
+    // Yükseklik içerikten: çerçeve, başlık, görev, ayraç, kurallar.
+    let h = 20 + cerceveH + 44 + 8 + gorevYazi.height + 20;
     for (const k of kuralYazilari) h += k.height + 12;
     h = snap(h + 12, PX * 2);
     this.yukseklik = h;
@@ -62,6 +65,12 @@ export class RuleNote extends Phaser.GameObjects.Container {
 
     const sol = -W / 2 + 24;
     let yy = -h / 2 + 20;
+    if (cerceveYazi) {
+      cerceveYazi.setPosition(sol, yy - 4);
+      this.add(cerceveYazi);
+      yy += cerceveH;
+      this.add(scene.add.rectangle(sol, snap(yy - 10), ICERIK, PX, 0xa8352d, 0.5).setOrigin(0));
+    }
     baslik.setPosition(sol, yy);
     this.add(baslik);
     yy += 44 + 8;

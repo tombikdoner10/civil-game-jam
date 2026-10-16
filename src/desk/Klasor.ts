@@ -90,6 +90,11 @@ export class Klasor {
   private yeniIsaret?: Phaser.GameObjects.Container;
   private yeniBolum = -1;
   private kilitli = false;
+  /**
+   * Noktada kapalı klasörün üstünde başka bir kâğıt (belge, not) var mı (GameScene verir). İnceleme modunda
+   * belgeler tıklama almaz; üstlerine tıklamak alttaki kapalı klasörü açmasın (G5b).
+   */
+  ortulu?: (x: number, y: number) => boolean;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -101,7 +106,10 @@ export class Klasor {
     this.kapali.setSize(KW * PX, KH * PX);
     this.kapali.setInteractive({ useHandCursor: true });
     this.kapali.setData('incelemeYok', true);
-    this.kapali.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => this.ac());
+    this.kapali.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (p: Phaser.Input.Pointer) => {
+      if (this.ortulu?.(p.worldX, p.worldY)) return;
+      this.ac();
+    });
 
     this.sayfa = this.acikKur();
     if (this.yeniBolum >= 0) this.yeniIsaretKur();
@@ -129,7 +137,9 @@ export class Klasor {
     this.sayfa.setDepth(ustKatman());
     this.sayfa.setVisible(true).setAlpha(0).setPosition(hx, hy + 24);
     this.scene.tweens.add({ targets: this.sayfa, alpha: 1, y: hy, duration: 140, ease: 'Cubic.easeOut' });
-    if (!this.kilitli) this.sayfa.setInteractive();
+    // Açık klasör tıklamaları hep tutar (arkasındaki düğmelere geçmesin, G5b); inceleme modunda yalnızca sürüklenmez.
+    this.sayfa.setInteractive();
+    this.scene.input.setDraggable(this.sayfa, !this.kilitli);
   }
 
   kapa(): void {
@@ -148,12 +158,14 @@ export class Klasor {
     else this.ac();
   }
 
-  /** İnceleme modunda açık klasör sürüklenmez (sekmeler, sayfa ve X çalışır). */
+  /**
+   * İnceleme modunda açık klasör sürüklenmez (sekmeler, sayfa ve X çalışır). Etkileşimi kapanmaz: üstüne
+   * tıklamak arkasındaki belgelere ve düğmelere (İSTE) geçmesin.
+   */
   kilitle(on: boolean): void {
     this.kilitli = on;
     if (!this.acik) return;
-    if (on) this.sayfa.disableInteractive();
-    else this.sayfa.setInteractive();
+    this.scene.input.setDraggable(this.sayfa, !on);
   }
 
   /** İnceleme modu için: açıkken klasör ve görünen bölüm sayfasındaki kural satırları. */
@@ -350,29 +362,51 @@ export class Klasor {
       kap.add(sekme);
       sekmeY += sh + 12;
 
+      // Önce bütün satırlar ölçülür: bölüm tek sayfaya (sayfa çevirme satırı olmadan, alta kadar) sığıyorsa
+      // bölünmez ve "1/2" göstergesi çıkmaz (G5b). 30 px sığmazsa 28 ve 26 px denenir; hiçbiri sığmazsa 30 px ve
+      // ICERIK_ALT'ta sayfa bölünür.
+      const olc = (boy: number) => {
+        const out = liste.map(({ k, no }) => {
+          const yk = kuralYeni(k, this.gun);
+          const yazi = s.add
+            .text(sagSol + 64, 0, kuralMetni(k, this.gun), {
+              fontFamily: FONT,
+              fontSize: `${boy}px`,
+              color: PAL.murekkep,
+              lineSpacing: 2,
+              wordWrap: { width: yk ? genislik - 56 : genislik, useAdvancedWrap: true },
+            })
+            .setOrigin(0);
+          return { k, no, yk, yazi, boy, h: snap(Math.max(yazi.height, 32) + 12) };
+        });
+        return { out, toplam: out.reduce((n, x) => n + x.h + 8, 0) };
+      };
+      const tekSayfa = ACIK.h - 24 - ICERIK_UST;
+      let olcum = olc(30);
+      let alt = ICERIK_ALT;
+      for (const boy of [30, 28, 26]) {
+        const o = boy === 30 ? olcum : olc(boy);
+        if (o.toplam <= tekSayfa) {
+          if (o !== olcum) olcum.out.forEach((x) => x.yazi.destroy());
+          olcum = o;
+          alt = ACIK.h - 24;
+          break;
+        }
+        if (o !== olcum) o.out.forEach((x) => x.yazi.destroy());
+      }
+      const satirlar = olcum.out;
       const sayfalar: Phaser.GameObjects.Container[] = [];
       let sayfa = s.add.container(0, 0);
       sayfalar.push(sayfa);
       let y = ust + ICERIK_UST;
-      for (const { k, no } of liste) {
-        const yk = kuralYeni(k, this.gun);
-        const yazi = s.add
-          .text(sagSol + 64, y + 4, kuralMetni(k, this.gun), {
-            fontFamily: FONT,
-            fontSize: '30px',
-            color: PAL.murekkep,
-            lineSpacing: 2,
-            wordWrap: { width: yk ? genislik - 56 : genislik, useAdvancedWrap: true },
-          })
-          .setOrigin(0);
-        const h = snap(Math.max(yazi.height, 32) + 12);
-        if (y + h > ust + ICERIK_ALT && y > ust + ICERIK_UST) {
+      for (const { k, no, yk, yazi, h, boy } of satirlar) {
+        if (y + h > ust + alt && y > ust + ICERIK_UST) {
           sayfa = s.add.container(0, 0);
           sayfalar.push(sayfa);
           y = ust + ICERIK_UST;
-          yazi.setY(y + 4);
         }
-        const noYazi = s.add.text(sagSol + 20, y + 4, `${no}.`, { fontFamily: FONT, fontSize: '30px', color: yk ? PAL.damgaBosalt : PAL.murekkep }).setOrigin(0);
+        yazi.setY(y + 4);
+        const noYazi = s.add.text(sagSol + 20, y + 4, `${no}.`, { fontFamily: FONT, fontSize: `${boy}px`, color: yk ? PAL.damgaBosalt : PAL.murekkep }).setOrigin(0);
         const r = s.add.rectangle(sagSol + 12, y, SAG_W - 28, h, 0xffffff, 0.001).setOrigin(0);
         r.setData('belge', 'kural').setData('alan', k.id);
         sayfa.add([r, noYazi, yazi]);

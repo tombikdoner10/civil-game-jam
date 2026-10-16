@@ -7,6 +7,12 @@ import type { Damga, KusurId } from './building';
  * oturum bir sayı verir, liste uzunluğuna göre satır seçilir (src/game/kisi.ts). {para}: zarftaki miktar.
  */
 
+/**
+ * Oyunu çerçeveleyen tek cümle (G5b): gün 1 kural notunun en üstünde. TODO(takım): asıl cümle; 3 sn'de
+ * okunacak kadar kısa kalsın.
+ */
+export const CERCEVE = '[Belediyenin yapı denetçisisin. Deprem yaklaşıyor.]';
+
 /** Dosya gelince kısa selam. */
 export const SELAM = ['[Merhaba, dosyam burada]', '[İyi günler, sıra bende]', '[Kolay gelsin, şu dosya]', '[Buyrun, belgelerim]'];
 

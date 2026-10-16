@@ -151,24 +151,27 @@ export class DayEndScene extends Phaser.Scene {
     const hy = Math.max(y + 24 + oncuH, T + 700);
     this.add.rectangle(L + 32, hy - 16, KAGIT.w - 64, PX, num(PAL.murekkepSoluk)).setOrigin(0);
     const sol = L + 40;
-    yaz(sol, hy + 24, `Doğru: ${hesap.dogru}`, 36, PAL.damgaGuvenli);
-    yaz(sol, hy + 72, `Yanlış: ${hesap.yanlis}`, 36, PAL.damgaBosalt);
-    let sy = hy + 120;
+    // Sayılar toplanınca dosya sayısını verir (G5b): Doğru + Yanlış + İşlenmedi = dosya. İADE ayrı bir sayı değil;
+    // doğru ya da yanlış içinde sayılır ve satırında "içinde İADE" olarak gösterilir (binalar denetlenmeden kaldı).
+    const iadeDogru = v.kararlar.filter((k) => k.damga === 'iade' && k.dogru).length;
+    const iadeYanlis = v.kararlar.filter((k) => k.damga === 'iade' && !k.dogru).length;
+    const icinde = (n: number): string => (n > 0 ? `  (içinde İADE: ${n})` : '');
+    const SA = 42;
+    yaz(sol, hy + 24, `Doğru: ${hesap.dogru}${icinde(iadeDogru)}`, 34, PAL.damgaGuvenli);
+    yaz(sol, hy + 24 + SA, `Yanlış: ${hesap.yanlis}${icinde(iadeYanlis)}`, 34, PAL.damgaBosalt);
+    let sy = hy + 24 + SA * 2;
     if (hesap.islenmeyen > 0) {
-      yaz(sol, sy, `İşlenmedi: ${hesap.islenmeyen}`, 36, PAL.murekkepSoluk);
-      sy += 48;
+      yaz(sol, sy, `İşlenmedi: ${hesap.islenmeyen}`, 34, PAL.murekkepSoluk);
+      sy += SA;
     }
-    // İADE edilen dosyalar: denetlenmeden kaldı (binalar sokakta, içleri dolu).
-    const iade = v.kararlar.filter((k) => k.damga === 'iade').length;
-    if (iade > 0) {
-      yaz(sol, sy, `İade: ${iade} (denetlenmedi)`, 36, PAL.damgaIade);
-      sy += 48;
-    }
+    this.add.rectangle(sol, sy - 12, 240, PX, num(PAL.murekkepSoluk)).setOrigin(0);
+    yaz(sol, sy + 12, `Toplam: ${v.dosyalar.length} dosya`, 34, PAL.murekkep);
+    sy += SA + 12;
     // Zarf (G17): kabul edilenler günün toplamına eklenir; ayrı satır.
     if (hesap.zarfTeklif > 0) {
       const ret = hesap.zarfTeklif - hesap.zarfKabul;
       const metin = hesap.zarfKabul > 0 ? `Zarf: +${para(hesap.zarf)} (${hesap.zarfKabul} kabul${ret > 0 ? `, ${ret} ret` : ''})` : `Zarf: ${ret} ret`;
-      yaz(sol, sy, metin, 36, hesap.zarfKabul > 0 ? PAL.damgaBosalt : PAL.murekkepSoluk);
+      yaz(sol, sy, metin, 34, hesap.zarfKabul > 0 ? PAL.damgaBosalt : PAL.murekkepSoluk);
     }
     const ad = L + 640;
     const deger = L + KAGIT.w - 40;

@@ -32,6 +32,13 @@ export interface SarsintiSecenek {
   /** Ekranın üstünde şerit yazı (yer tutucu metin; verilmezse yok). */
   yazi?: string;
   /**
+   * Şerit yazının alanı (ekran; verilmezse sokak penceresinin üstü). G5b öncü sarsıntı: gişe camında, sokaktaki
+   * damga etiketlerini örtmesin.
+   */
+  yaziAlan?: { x: number; y: number; w: number; h: number };
+  /** Öncü sarsıntıda sokak görünümünün en büyük ölçeği (binaların üstündeki etiketlere yer kalsın; varsayılan 1). */
+  enBuyukOlcek?: number;
+  /**
    * Ses gücü (1 = öncü sarsıntı). Gürleme düzeyini, moloz/çatırtı sıklığını ve vuruşların gücünü ölçekler.
    * Verilmezse şiddetten: siddet / 2.5 (öncü 2.5 → 1; G5 büyük depremde daha yüksek şiddet daha güçlü çalar).
    */
@@ -52,6 +59,8 @@ export interface SarsintiSecenek {
   agirlik?: number[];
   /** Büyük depremde bir grubun binaları tepki verdikten sonra (gi: grup sırası, sonuclar: gruptakiler). */
   grupSonu?: (gi: number, sonuclar: QuakeSonucu[]) => void;
+  /** Bir bina tepki verdiğinde (çatlak, ağır hasar ya da çökme; G5b öncü sarsıntı etiketleri). */
+  binaTepki?: (s: QuakeSonucu) => void;
 }
 
 export interface QuakeSonucu extends SarsintiSonucu {
@@ -156,7 +165,7 @@ export class Quake {
     const yerler = binalar.map((b) => b.yer);
     const ilkYer = yerler.length > 0 ? Math.min(...yerler) : 0;
     const sonYer = yerler.length > 0 ? Math.max(...yerler) : 0;
-    if (!buyuk && binalar.length > 0) this.sokak.odakla(ilkYer, sonYer, 500);
+    if (!buyuk && binalar.length > 0) this.sokak.odakla(ilkYer, sonYer, 500, undefined, 0.5, 0.5, secenek.enBuyukOlcek);
 
     // Parçacıklar: tavandan toz ve sıva parçaları (odanın her yerine; büyük depremde yok), binalardan toz.
     const tavan = buyuk
@@ -247,7 +256,7 @@ export class Quake {
       return [k.x + Math.random() * k.width, k.bottom - Math.random() * k.height * ust];
     };
 
-    const yazi = secenek.yazi ? this.seritKur(secenek.yazi, 0.24 * T) : undefined;
+    const yazi = secenek.yazi ? this.seritKur(secenek.yazi, 0.24 * T, secenek.yaziAlan) : undefined;
 
     const guc = secenek.sesGucu ?? siddet / 2.5;
 
@@ -270,6 +279,7 @@ export class Quake {
       }
       if (yikik) sfx.play('cokus', { volume: Math.min(1.3, 0.8 * guc) });
       else sfx.play('hasar', { volume: Math.min(1.2, (s.gorunen === 'agirHasar' ? 0.8 : 0.6) * guc) });
+      secenek.binaTepki?.(s);
     };
 
     const tepkiler = sonuclar.filter((s) => s.gorunen !== 'ayakta');
@@ -297,8 +307,8 @@ export class Quake {
       });
       if (binalar.length > 0)
         scene.time.delayedCall(BUYUK.genis * T, () => {
-          // Özel gruplarda (G21) kenarlarda birer parsel pay: baştaki binaların etiketleri ekrandan taşmasın.
-          const pay = ozel ? 1 : 0;
+          // Kenarlarda birer parsel pay: baştaki ve sondaki bina (G21'de etiketleri) ekranda kırpılmasın.
+          const pay = 1;
           this.sokak.odakla(ilkYer - pay, sonYer + pay, 1600, undefined, 0.5, 0.05);
           // Bütün sokak küçülünce arkadaki şehir binaları gölgede kalsın: göz sokağa gitsin.
           this.sokak.uzakSoldur(0.2, 1600);
@@ -382,15 +392,22 @@ export class Quake {
     });
   }
 
-  /** Pencerenin üstünde koyu şerit ve yazı (yer tutucu metin). */
-  private seritKur(metin: string, gecikme: number): Phaser.GameObjects.Container {
+  /**
+   * Koyu şerit ve yazı (yer tutucu metin): pencerenin üstünde ya da verilen alanın ortasında (alan dar ise yazı
+   * satırlara bölünür).
+   */
+  private seritKur(metin: string, gecikme: number, alan?: { x: number; y: number; w: number; h: number }): Phaser.GameObjects.Container {
     const pen = this.sokak.pencere;
-    const kap = this.scene.add.container(snap(pen.centerX), snap(pen.y + 56)).setDepth(3010);
-    const yazi = this.scene.add.text(0, 0, metin, { fontFamily: FONT, fontSize: '44px', color: PAL.kremAcik }).setOrigin(0.5);
-    const w = snap(Math.min(pen.width - 32, yazi.width + 64));
-    kap.add(this.scene.add.rectangle(0, 0, w, 64, 0x151413, 0.86));
-    kap.add(this.scene.add.rectangle(0, -32, w, 4, 0xa8352d));
-    kap.add(this.scene.add.rectangle(0, 28, w, 4, 0xa8352d));
+    const r = alan ?? { x: pen.x, y: pen.y, w: pen.width, h: 112 };
+    const kap = this.scene.add.container(snap(r.x + r.w / 2), snap(alan ? r.y + r.h / 2 : pen.y + 56)).setDepth(3010);
+    const yazi = this.scene.add
+      .text(0, 0, metin, { fontFamily: FONT, fontSize: '44px', color: PAL.kremAcik, align: 'center', wordWrap: { width: r.w - 96, useAdvancedWrap: true } })
+      .setOrigin(0.5);
+    const w = snap(Math.min(r.w - 32, yazi.width + 64));
+    const h = snap(Math.max(64, yazi.height + 24));
+    kap.add(this.scene.add.rectangle(0, 0, w, h, 0x151413, 0.86));
+    kap.add(this.scene.add.rectangle(0, -h / 2, w, 4, 0xa8352d));
+    kap.add(this.scene.add.rectangle(0, h / 2 - 4, w, 4, 0xa8352d));
     kap.add(yazi);
     kap.setAlpha(0);
     this.scene.tweens.add({ targets: kap, alpha: 1, duration: 200, delay: gecikme, ease: 'Stepped', easeParams: [3] });

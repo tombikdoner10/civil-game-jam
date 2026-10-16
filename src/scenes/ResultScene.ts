@@ -179,8 +179,9 @@ export class ResultScene extends Phaser.Scene {
     const kutular: [string, number, string, string?][] = [
       ['AYAKTA', oz.ayakta, PAL.damgaGuvenli],
       ['HASARLI', oz.hasarli, PAL.damgaGuclendir],
-      ['ÇÖKEN', oz.coken, PAL.damgaBosalt, oz.coken > 0 ? `${oz.cokenBos} boşaltılmıştı` : undefined],
-      ['BOŞALTILMIŞ', oz.bos, PAL.murekkepSoluk],
+      // Gazeteyle aynı tanımlar (G5b): çökenlerin "içi boş" olanları; BOŞALTILMIŞ bütün boşaltılmış binalar.
+      ['ÇÖKEN', oz.coken, PAL.damgaBosalt, oz.coken > 0 ? `içi boş: ${oz.cokenBos}` : undefined],
+      ['BOŞALTILMIŞ', oz.bos, PAL.murekkepSoluk, 'toplam'],
       // İADE: denetlenmeden kalan binalar (içleri doluydu); kaçının çöktüğü alt satırda.
       ['İADE', oz.iade, PAL.damgaIade, oz.iade > 0 ? (oz.iadeCoken > 0 ? `${oz.iadeCoken} çöktü` : 'denetlenmedi') : undefined],
     ];

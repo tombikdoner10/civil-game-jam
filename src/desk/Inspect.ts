@@ -54,8 +54,8 @@ const D = { ortuMasa: 7, ortuBant: 3010, dugme: 3020, serit: 8000, cizim: 9000, 
 const SARI = num(PAL.saat);
 const KIRMIZI = num(PAL.damgaBosalt);
 const KOYU = 0x1d191b;
-/** Düğmenin yeri (tezgâh, panellerin sağı). */
-export const DUGME = { x: 704, y: BANT_H + 24, w: 176, h: 40 };
+/** Düğmenin yeri (tezgâh, panellerin sağı; tarih panelinden sonra). */
+export const DUGME = { x: 840, y: BANT_H + 24, w: 176, h: 40 };
 
 function sinir(n: Phaser.GameObjects.GameObject): Phaser.Geom.Rectangle {
   return (n as unknown as Phaser.GameObjects.Components.GetBounds).getBounds();
@@ -96,6 +96,8 @@ export class Inspect extends Phaser.Events.EventEmitter {
   private readonly serit: Phaser.GameObjects.Container;
   private readonly dugmeIsik: Phaser.GameObjects.Image;
   private readonly dugmeYazi: Phaser.GameObjects.Text;
+  /** Bu karede kesikli çizginin kaçınacağı alanlar ve soluk geçeceği kâğıtlar (ciz doldurur). */
+  private cizgiEngel: { alanlar: Phaser.Geom.Rectangle[]; kagitlar: Phaser.Geom.Rectangle[] } = { alanlar: [], kagitlar: [] };
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -181,8 +183,7 @@ export class Inspect extends Phaser.Events.EventEmitter {
 
   /** Noktadaki seçilebilir öğe: en üstteki yüzeyin alanlarından, üst üste binenlerde en küçüğü. */
   private bul(x: number, y: number): SecimNesne | null {
-    let ust: Yuzey | null = null;
-    for (const yz of this.ayar.yuzeyler()) if (yz.sinir.contains(x, y) && (!ust || yz.derinlik > ust.derinlik)) ust = yz;
+    const ust = this.ustYuzey(x, y);
     if (!ust) return null;
     let en: SecimNesne | null = null;
     let enAlan = Infinity;
@@ -200,15 +201,29 @@ export class Inspect extends Phaser.Events.EventEmitter {
     return en;
   }
 
+  /** Noktadaki en üst yüzey (belge, not, açık klasör). */
+  private ustYuzey(x: number, y: number): Yuzey | null {
+    let ust: Yuzey | null = null;
+    for (const yz of this.ayar.yuzeyler()) if (yz.sinir.contains(x, y) && (!ust || yz.derinlik > ust.derinlik)) ust = yz;
+    return ust;
+  }
+
   private dunya(p: Phaser.Input.Pointer): Phaser.Math.Vector2 {
     return this.scene.cameras.main.getWorldPoint(p.x, p.y);
   }
 
   private tikla(p: Phaser.Input.Pointer, ustunde: Phaser.GameObjects.GameObject[]): void {
     if (!this.acik || this.beklemede || p.button !== 0) return;
-    // Düğme, kitabı açma ve X: kendi işleyicileri var.
-    if (ustunde.some((o) => o.getData('incelemeYok'))) return;
+    // Düğme, kitabı açma ve X: kendi işleyicileri var. Üstünde daha yüksek bir kâğıt (belge, not) olan düğme
+    // sayılmaz (G5b: belgenin altında kalan kapalı klasör, belgedeki alana tıklamayı yutmasın).
     const w = this.dunya(p);
+    const ust = this.ustYuzey(w.x, w.y);
+    const derinlik = (o: Phaser.GameObjects.GameObject): number => {
+      let n = o as Phaser.GameObjects.GameObject & { depth?: number };
+      while (n.parentContainer) n = n.parentContainer;
+      return n.depth ?? 0;
+    };
+    if (ustunde.some((o) => o.getData('incelemeYok') && !(ust && derinlik(o) < ust.derinlik))) return;
     const h = this.bul(w.x, w.y);
     if (!h) {
       // Boşluğa tıklamak seçimi sıfırlar.
@@ -287,6 +302,7 @@ export class Inspect extends Phaser.Events.EventEmitter {
     const dw = 88;
     const bosluk = 8;
     const dugmeW = dugmeler.length * (dw + bosluk);
+    const sonduruculer: { tur: 'sor' | 'iste'; sondur: () => void; sondu: () => boolean }[] = [];
     const w = snap(yazi.width + 32 + dugmeW);
     const h = 48;
     const kap = s.add.container(0, 0).setDepth(D.etiket);
@@ -302,16 +318,24 @@ export class Inspect extends Phaser.Events.EventEmitter {
       kutu.setInteractive({ useHandCursor: true }).setData('incelemeYok', true);
       kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => kutu.setFillStyle(0x3a2f22));
       kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => kutu.setFillStyle(KOYU));
+      // Bir kez kullanılır: düğme söner ("SORULDU" / "İSTENDİ"). Oturum artık izin vermiyorsa da (ör. zaten
+      // soruldu) ciz() her karede söndürür (G5b).
+      const sondur = (): void => {
+        if (!kutu.input?.enabled && dyazi.getData('sondu')) return;
+        kutu.disableInteractive();
+        kutu.setFillStyle(KOYU, 0.6);
+        dyazi.setData('sondu', true).setText(tur === 'sor' ? 'SORULDU' : 'İSTENDİ').setFontSize(24).setColor(PAL.murekkepAcik);
+      };
       kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (_p: Phaser.Input.Pointer, _x: number, _y: number, e: Phaser.Types.Input.EventData) => {
         e.stopPropagation();
-        kutu.disableInteractive();
-        kutu.setFillStyle(KOYU);
-        dyazi.setColor(PAL.murekkepAcik);
+        sondur();
         sfx.play('sec');
         this.emit(tur, id);
       });
       kap.add([kutu, dyazi]);
+      sonduruculer.push({ tur, sondur, sondu: () => !!dyazi.getData('sondu') });
     });
+    kap.setData('dugmeler', sonduruculer);
     return kap;
   }
 
@@ -334,8 +358,11 @@ export class Inspect extends Phaser.Events.EventEmitter {
     g.clear();
     // Bulunan kusurlar: kırmızı çerçeve, kırmızı kesikli çizgi; etiket alanın kenarında, değerleri örtmeyen yerde.
     // Üstüne başka belge ya da açık kitap çekilmiş alanın işareti çizilmez (etiket kitabın üstünde kalmasın).
-    const yuzeyler = this.bulunanlar.length > 0 ? this.ayar.yuzeyler() : [];
-    const engeller = this.bulunanlar.length > 0 ? this.alanSinirlari(yuzeyler) : [];
+    const cizgiVar = this.bulunanlar.length > 0 || this.secili.length === 2;
+    const yuzeyler = cizgiVar ? this.ayar.yuzeyler() : [];
+    const engeller = cizgiVar ? this.alanSinirlari(yuzeyler) : [];
+    // Bağlantı çizgisi belge yazılarının (alanların) üstünden geçmez, kâğıtların üstünde soluk çizilir (G5b).
+    this.cizgiEngel = { alanlar: engeller, kagitlar: yuzeyler.map((y) => y.sinir) };
     const etiketler: Phaser.Geom.Rectangle[] = [];
     for (const b of this.bulunanlar) {
       // Kanıt belgesi masadan kalktıysa (ör. gişeden düzgünü gelip yerine geçti, G17b) işaret de kalkar.
@@ -345,6 +372,7 @@ export class Inspect extends Phaser.Events.EventEmitter {
       }
       const gor = b.ogeler.filter((o) => gorunur(o.nesne) && !ortulu(o, yuzeyler)).map((o) => sinir(o.nesne));
       gor.forEach((r) => this.cerceve(r, KIRMIZI));
+      this.dugmeleriEsle(b);
       if (gor.length === 2) this.kesikli(gor[0], gor[1], KIRMIZI);
       b.etiket.setVisible(gor.length > 0);
       if (gor.length > 0) {
@@ -364,6 +392,18 @@ export class Inspect extends Phaser.Events.EventEmitter {
       const w = this.dunya(this.scene.input.activePointer);
       const h = this.bul(w.x, w.y);
       if (h && !sec.some((s) => ayni(s, h))) this.cerceve(sinir(h.nesne), 0xe3d8b8, true);
+    }
+  }
+
+  /** Etiketteki SOR / İSTE düğmeleri: oturum artık izin vermiyorsa söner (bir kez sorulur, bir kez istenir). */
+  private dugmeleriEsle(b: Bulunan): void {
+    const liste = b.etiket.getData('dugmeler') as { tur: 'sor' | 'iste'; sondur: () => void; sondu: () => boolean }[] | undefined;
+    // Dosya damgalanıp kalkarken (masa meşgul) oturum sıradaki dosyaya geçmiştir: eşleme yapılmaz.
+    if (!liste || !this.ayar.izin()) return;
+    for (const d of liste) {
+      if (d.sondu()) continue;
+      const izin = d.tur === 'sor' ? this.ayar.sorulabilir?.(b.kusur.id) : this.ayar.istenebilir?.(b.kusur.id);
+      if (!izin) d.sondur();
     }
   }
 
@@ -445,8 +485,9 @@ export class Inspect extends Phaser.Events.EventEmitter {
   }
 
   /**
-   * İki dikdörtgenin ortaları arasında kesikli çizgi (4 px kareler, koyu gölgeli). Çerçevelerin içinde
-   * kalan kısım çizilmez: alandaki yazı okunur kalsın.
+   * İki dikdörtgenin ortaları arasında kesikli çizgi (4 px kareler, koyu gölgeli). Çerçevelerin ve öbür
+   * belge alanlarının (değer yazıları) içinde kalan kısım çizilmez; kâğıtların üstünden soluk geçer (G5b):
+   * belge yazıları okunur kalsın.
    */
   private kesikli(a: Phaser.Geom.Rectangle, b: Phaser.Geom.Rectangle, renk: number): void {
     const disA = Phaser.Geom.Rectangle.Inflate(Phaser.Geom.Rectangle.Clone(a), 12, 12);
@@ -458,16 +499,22 @@ export class Inspect extends Phaser.Events.EventEmitter {
     const boy = Math.hypot(x1 - x0, y1 - y0);
     const n = Math.floor(boy / 16);
     const g = this.g;
+    const { alanlar } = this.cizgiEngel;
+    // Kanıtın kendi kâğıtlarında çizgi tam renk; aradaki başka kâğıtların üstünde soluk.
+    const kagitlar = this.cizgiEngel.kagitlar.filter((r) => !r.contains(x0, y0) && !r.contains(x1, y1));
+    const icinde = (rs: readonly Phaser.Geom.Rectangle[], x: number, y: number, pay: number): boolean =>
+      rs.some((r) => x >= r.left - pay && x <= r.right + pay && y >= r.top - pay && y <= r.bottom + pay);
     for (const [renk2, ofs] of [
       [KOYU, PX],
       [renk, 0],
     ]) {
-      g.fillStyle(renk2, 1);
       for (let i = 0; i <= n; i++) {
         const t = n === 0 ? 0 : i / n;
         const px = x0 + (x1 - x0) * t;
         const py = y0 + (y1 - y0) * t;
         if (disA.contains(px, py) || disB.contains(px, py)) continue;
+        if (icinde(alanlar, px, py, 8)) continue;
+        g.fillStyle(renk2, icinde(kagitlar, px, py, 0) ? 0.35 : 1);
         const x = snap(px) + ofs;
         const y = snap(py) + ofs;
         g.fillRect(x - PX, y - PX, PX * 2, PX * 2);

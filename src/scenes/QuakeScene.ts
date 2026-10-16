@@ -1,8 +1,8 @@
 // @beyan görsel
 import * as Phaser from 'phaser';
 import { FONT } from '../config';
-import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
-import { num, PAL } from '../desk/palette';
+import { binaEtiketi, ETIKET_BUYUK } from '../desk/BinaEtiketi';
+import { PAL } from '../desk/palette';
 import { Quake } from '../desk/Quake';
 import { Sokak, type SokakYeri } from '../desk/Street';
 import { SON_GUN } from '../game/days';
@@ -133,7 +133,7 @@ export class QuakeScene extends Phaser.Scene {
           grupSonu: v.kisa
             ? (gi) => {
                 // Oyuncunun binaları tepki verdi: sonuç etiketleri belirir.
-                if (gi === 0) for (const e of this.sonucEtiketleri) this.tweens.add({ targets: e, alpha: 1, duration: 240, ease: 'Stepped', easeParams: [3] });
+                if (gi === 0) for (const goster of this.sonucEtiketleri) goster();
               }
             : undefined,
           hesap: (b) => {
@@ -153,32 +153,16 @@ export class QuakeScene extends Phaser.Scene {
   }
 
   /** Kısa yolda sonuç etiketleri (ilk grup tepki verince görünür). */
-  private sonucEtiketleri: Phaser.GameObjects.Container[] = [];
+  private sonucEtiketleri: (() => void)[] = [];
 
   /**
    * Oyuncunun binasının üstünde: "SENİN DAMGAN" şeridi, damga renginde damga adı ve (gizli) sonuç etiketi.
-   * Sokakla birlikte kayar ve küçülür (yer tutucu metinler, gazete.ts).
+   * Sokakla birlikte kayar ve küçülür (yer tutucu metinler, gazete.ts; bileşen BinaEtiketi.ts).
    */
   private etiketKur(sokak: Sokak, b: SokakYeri, s: DepremBinaSonucu): void {
-    const kap = this.add.container(0, 0);
-    const cip = (y: number, metin: string, zemin: string, renk: string, boy: number): Phaser.GameObjects.Container => {
-      const c = this.add.container(0, y);
-      const t = this.add.text(0, 0, metin, { fontFamily: FONT, fontSize: `${boy}px`, color: renk }).setOrigin(0.5);
-      const w = Math.ceil((t.width + 28) / 4) * 4;
-      const h = Math.ceil((boy + 12) / 4) * 4;
-      c.add(this.add.rectangle(0, 0, w + 8, h + 8, 0x0e0d10, 0.9));
-      c.add(this.add.rectangle(0, 0, w, h, num(zemin)));
-      c.add(t);
-      return c;
-    };
-    const damga = cip(-44, DAMGA_ADI[b.damga], DAMGA_RENK[b.damga], '#f0e6cc', 40);
-    const ust = cip(-104, SENIN_DAMGAN, PAL.kremAcik, '#1d1a18', 36);
-    const sonuc = cip(-168, sonucEtiketi(s), sonucRengi(s), '#f0e6cc', 44).setAlpha(0);
-    // Etiketten binaya inen kısa çubuk.
-    kap.add(this.add.rectangle(0, -12, 4, 24, 0x0e0d10, 0.9));
-    kap.add([damga, ust, sonuc]);
-    this.sonucEtiketleri.push(sonuc);
-    sokak.ustuneEkle(b.yer, kap);
+    const e = binaEtiketi(this, b.damga, ETIKET_BUYUK, SENIN_DAMGAN);
+    this.sonucEtiketleri.push(() => e.sonucGoster(sonucEtiketi(s), sonucRengi(s)));
+    sokak.ustuneEkle(b.yer, e.kap);
   }
 
   update(): void {

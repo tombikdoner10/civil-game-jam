@@ -13,6 +13,16 @@ export const DAMGA_RENK: Record<Damga, string> = {
   bosalt: PAL.damgaBosalt,
   iade: PAL.damgaIade,
 };
+/**
+ * Mürekkep izinin rengi (G5b): krem kâğıtta okunsun diye GÜÇLENDİR (hardal) ve İADE (gri mavi) daha koyu;
+ * GÜVENLİ ve BOŞALT lastik rengiyle aynı.
+ */
+const MUREKKEP: Record<Damga, string> = {
+  guvenli: PAL.damgaGuvenli,
+  guclendir: '#7e5e14',
+  bosalt: PAL.damgaBosalt,
+  iade: '#34465c',
+};
 /** Raf sırası; 1-4 tuşları da bu sırayla. */
 const SIRA: Damga[] = ['guvenli', 'guclendir', 'bosalt', 'iade'];
 
@@ -91,7 +101,8 @@ export class Kaselik {
     for (const d of SIRA) {
       const [x, y] = yuva(d);
       const var_ = raf.includes(d);
-      const ty = y + 5 * PX + 2;
+      // Plakanın iç ortası y + 20; VT323 satır kutusunun altı boş, yazı 2 px yukarı (Ç'nin çengeli kenara değmesin).
+      const ty = y + 18;
       s.add
         .text(x + 8, ty, var_ ? DAMGA_ADI[d] : '', { fontFamily: FONT, fontSize: '28px', color: PAL.murekkep })
         .setOrigin(0.5)
@@ -438,17 +449,21 @@ export class Kaselik {
     return t.goruntu(0, 0);
   }
 
-  /** Yeni gelen kaşenin üstünde yanıp sönen "YENİ" (kaşe ilk kez kullanılınca kalkar). */
+  /**
+   * Yeni gelen kaşenin oyuğunda yanıp sönen "YENİ" (kaşe ilk kez kullanılınca kalkar). Oyuğun sol üst köşesinde,
+   * kaşenin topuzunun üstündeki boşlukta: üst raftaki etikete ve kaşe başına binmez.
+   */
   private yeniKur(d: Damga): void {
     const s = this.scene;
-    const [x, y] = yuva(d);
-    // Oyuğun içinde, topuzun solunda (üst raftaki etiketi örtmesin).
-    const kap = s.add.container(snap(x - 56), snap(y - KH * PX + 24)).setDepth(12);
-    const yazi = s.add.text(0, 0, 'YENİ', { fontFamily: FONT, fontSize: '30px', color: '#f0e6cc' }).setOrigin(0.5);
-    const w = snap(yazi.width + 20);
-    kap.add(s.add.rectangle(PX, PX, w + 8, 40, 0x000000, 0.4));
-    kap.add(s.add.rectangle(0, 0, w + 8, 40, 0x1d191b));
-    kap.add(s.add.rectangle(0, 0, w, 32, num(PAL.damgaBosalt)));
+    const i = SIRA.indexOf(d);
+    const oyukSol = RAF.x + (i % 2 === 0 ? 3 : RW / 2 + 1) * PX;
+    const oyukUst = RAF.y + (i < 2 ? 3 : TAHTA[0] + TAHTA_H + 1) * PX;
+    const yazi = s.add.text(0, -1, 'YENİ', { fontFamily: FONT, fontSize: '22px', color: '#f0e6cc' }).setOrigin(0.5);
+    const w = snap(yazi.width + 12);
+    const h = 28;
+    const kap = s.add.container(snap(oyukSol + PX + (w + 8) / 2), oyukUst + h / 2).setDepth(12);
+    kap.add(s.add.rectangle(0, 0, w + 8, h, 0x1d191b));
+    kap.add(s.add.rectangle(0, 0, w, h - 8, num(PAL.damgaBosalt)));
     kap.add(yazi);
     s.tweens.add({ targets: kap, alpha: 0.35, duration: 450, yoyo: true, repeat: -1 });
     this.yeniIsaret.set(d, kap);
@@ -481,7 +496,7 @@ export function damgaIzi(scene: Phaser.Scene, d: Damga, tohum: number): Phaser.G
   // Eşikle: yalnızca tam pikseller, mürekkep rengi; rastgele boşluklar (pürüz).
   const img = ctx.getImageData(0, 0, W, H);
   const p = img.data;
-  const [r, g, b] = [1, 3, 5].map((i) => parseInt(DAMGA_RENK[d].slice(i, i + 2), 16));
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(MUREKKEP[d].slice(i, i + 2), 16));
   for (let i = 0; i < p.length; i += 4) {
     const on = p[i + 3] > 110 && rnd() > 0.1;
     p[i] = r;

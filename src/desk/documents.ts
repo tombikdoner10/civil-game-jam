@@ -39,6 +39,8 @@ export const BOY: Record<BelgeTuru, [number, number]> = {
 const PLAN_H = 72;
 /** Gişeden getirilen rapor kartının yüksekliği (ekran; ada / parsel satırı için normal karttan uzun). */
 const RAPOR_H = 264;
+/** Eksik belge kartındaki yazı (G5b): karot ve zemin etüdünde aynı metin, boy ve renk. */
+const RAPOR_YOK = { metin: 'RAPOR YOK', boy: 44, renk: PAL.damgaBosalt };
 /** Elle düzeltme: daksil rengi ve tükenmez kalem mavisi (G17a raporu ve G17b ruhsatı). */
 const DAKSIL = '#eeeadb';
 const KALEM = '#2f3f78';
@@ -393,7 +395,7 @@ function karot(k: Ctx): void {
     }
   } else {
     t.rect(x0 + 1, y0 + sat + 1, x1 - x0 - 1, sat * 3 - 1, PAL.lab);
-    const o = etiket(k, t.w / 2, y0 + sat * 2 + 4, 'Rapor yok', 36, PAL.damgaBosalt, 0.5);
+    const o = etiket(k, t.w / 2, y0 + sat * 2 + 4, RAPOR_YOK.metin, RAPOR_YOK.boy, RAPOR_YOK.renk, 0.5);
     k.c.remove(o);
     k.c.alanEkle('mpa', o);
   }
@@ -437,7 +439,7 @@ function zemin(k: Ctx): void {
     }
   } else {
     sahteSatir(t, 5, 14, 30, PAL.kirliBeyazKoyu, rnd);
-    const o = etiket(k, t.w / 2, 32, 'RAPOR YOK', 44, PAL.murekkepSoluk, 0.5);
+    const o = etiket(k, t.w / 2, 32, RAPOR_YOK.metin, RAPOR_YOK.boy, RAPOR_YOK.renk, 0.5);
     k.c.remove(o);
     k.c.alanEkle('rapor', o);
   }
@@ -521,8 +523,14 @@ export function raporKur(scene: Phaser.Scene, bina: Bina, rapor: GetirilenRapor,
   k.c.alanEkle('tarih', tr);
   // Laboratuvar mührü (sahtede yok: noktalı boş yer)
   etiket(k, 5, 47, 'Lab mührü', 26);
-  for (let x2 = 40; x2 < t.w - 6; x2 += 2) t.px(x2, 50, PAL.murekkepAcik);
-  if (rapor.ipucu !== 'muhur') muhurLab(t, 62, 45, rnd, karot ? PAL.lab : PAL.kirliBeyaz);
+  const bosMuhur = rapor.ipucu === 'muhur';
+  for (let x2 = 40; x2 < t.w - 6; x2 += 2) if (!bosMuhur || x2 < 55 || x2 > 69) t.px(x2, 50, PAL.murekkepAcik);
+  if (!bosMuhur) muhurLab(t, 62, 45, rnd, karot ? PAL.lab : PAL.kirliBeyaz);
+  else {
+    // Mühür yeri boş (G5b): kesik çizgili boş daire ve içinde soluk "MÜHÜR" (gerçek raporda dolu mühür).
+    kesikDaire(t, 62, 45, 6, PAL.murekkepAcik);
+    etiket(k, 62, 45.5, 'MÜHÜR', 18, PAL.murekkepSoluk, 0.5);
+  }
   bolge(k, 'lab', 38, 42, t.w - 42, 11);
   // Ada / parsel (G17b)
   if (adaGorunur(k)) {
@@ -553,6 +561,17 @@ function belgeGetir(scene: Phaser.Scene, bina: Bina, rapor: GetirilenRapor, gun:
   atas(t, tur === 'ruhsat' ? PAL.krem : PAL.plan);
   c.zeminEkle(t);
   return c;
+}
+
+/** Kesik çizgili halka (16 dilim, biri dolu biri boş): doldurulmamış mühür yeri. */
+function kesikDaire(t: Tuval, cx: number, cy: number, r: number, c: string): void {
+  for (let y = -r; y <= r; y++)
+    for (let x = -r; x <= r; x++) {
+      const d = Math.sqrt(x * x + y * y);
+      if (d > r + 0.5 || d <= r - 0.5) continue;
+      const dilim = Math.floor(((Math.atan2(y, x) + Math.PI) / (2 * Math.PI)) * 16);
+      if (dilim % 2 === 0) t.px(cx + x, cy + y, c);
+    }
 }
 
 /** Laboratuvar mührü: halka içinde L harfi deseni (jenerik; gerçek bir kurumun mührü değil). */

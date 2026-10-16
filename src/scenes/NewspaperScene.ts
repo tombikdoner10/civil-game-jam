@@ -24,8 +24,8 @@ const KAGIT = { x: 200, y: 24, w: 1360, h: 1032 };
 /** Fotoğraf çerçevesinin içi (ekran) ve fotoğraf sokağının ekran dışındaki yeri. */
 const FOTO = { x: 240, y: 336, w: 880, h: 224 };
 const UZAK = { x: 4000, y: 0 };
-/** Fotoğrafta en çok kaç parsel (fazlası: öne çıkan binanın çevresi). */
-const FOTO_PARSEL = 12;
+/** Fotoğrafta en çok kaç parsel (fazlası: öne çıkan binanın çevresi). G5b: daha geniş kare. */
+const FOTO_PARSEL = 18;
 
 const MUREKKEP = '#1d1a18';
 const KAGIT_RENK = '#d9d3c1';
@@ -91,14 +91,14 @@ export class NewspaperScene extends Phaser.Scene {
     const rnd = rastgele(v.tohum * 17 + 3);
     this.add.rectangle(sx - 20, FOTO.y - 8, PX, FOTO.h + 56, 0x1d1a18, 0.6).setOrigin(0);
     const sayi = this.add
-      .text(snap(sx), snap(FOTO.y), sayiSatiri(oz), { fontFamily: FONT, fontSize: '40px', color: MUREKKEP, wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
+      .text(snap(sx), snap(FOTO.y), sayiSatiri(oz), { fontFamily: FONT, fontSize: '36px', color: MUREKKEP, wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
       .setOrigin(0, 0);
     let y = snap(FOTO.y + sayi.height + 16);
     // Zarf izi (G17): kabul edilen zarfın binası hasar gördüyse.
     const zarf = zarfSatiri(v.sonuclar);
     if (zarf) {
       const z = this.add
-        .text(snap(sx), y, zarf, { fontFamily: FONT, fontSize: '32px', color: '#6e2a24', wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
+        .text(snap(sx), y, zarf, { fontFamily: FONT, fontSize: '30px', color: '#6e2a24', wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
         .setOrigin(0, 0);
       y = snap(y + z.height + 12);
     }

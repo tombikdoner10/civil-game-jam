@@ -10,14 +10,16 @@ import { fisDusur, fisKaldir, fisKur, masaCiz } from '../desk/props';
 import { Klasor } from '../desk/Klasor';
 import { RuleNote } from '../desk/RuleNote';
 import { DAMGA_ADI, damgaIzi, Kaselik, RAF_SOL } from '../desk/Kaselik';
+import { binaEtiketi, ETIKET_KUCUK, ETIKET_KUCUK_YUKSEKLIK, type BinaEtiketi } from '../desk/BinaEtiketi';
 import { Quake } from '../desk/Quake';
-import { GOZ, MASA_Y, Pencere, SOKAK_DERINLIK } from '../desk/Window';
+import { GISE_ALAN, GOZ, MASA_Y, Pencere, SOKAK_DERINLIK } from '../desk/Window';
 import { yerlesim, type Yerlesim } from '../desk/yerlesim';
 import { Cekmece, Zarf, ZARF_BOY } from '../desk/Zarf';
 import { Portre, PORTRE_EKRAN } from '../desk/Portre';
 import type { Damga, KusurId, Kural } from '../game/building';
-import { DAMGA_TEPKI, ISTE_BELGE_METIN, ISTE_METIN, satir, SELAM, SOR_METIN, ZARF_TEPKI } from '../game/diyalog';
+import { CERCEVE, DAMGA_TEPKI, ISTE_BELGE_METIN, ISTE_METIN, satir, SELAM, SOR_METIN, ZARF_TEPKI } from '../game/diyalog';
 import type { Ifade, IsteAlani } from '../game/kisi';
+import { oncuEtiketi } from '../game/gazete';
 import { KUSUR_BILGI } from '../game/rules';
 import { ornekKayitlar } from '../game/ornek';
 import { GunOturumu, sokakKayitlari, type GunKaydi, type SarsintiKaydi } from '../game/session';
@@ -46,6 +48,9 @@ const ONCU_YAZI = '[Öncü sarsıntı. Asıl deprem gelecek.]';
  * w: siluetin solunda kalan genişlik (siluet gişenin ortasında, yaklaşık 1424-1712).
  */
 const FIS_GISE = { x: 1256, w: 160, alt: 384, derinlik: 3500 };
+
+/** İSTE ile gelen ve giden kartın kayarken derinliği: masanın (0) üstünde, kapalı klasörün (5) ve belgelerin altında. */
+const KAYAN_DERINLIK = 4;
 
 /** İSTE balonunun başlığı (yer tutucu). */
 const ISTE_BASLIK: Record<IsteAlani, string> = {
@@ -133,7 +138,12 @@ export class GameScene extends Phaser.Scene {
     MASA.h = 1080 - MASA_Y;
     masaCiz(this, MASA_Y);
     // Yönetmelik klasörü gün 2'den; gün 1'de masada yalnızca kural notu (hedef ve tek kural).
-    if (ayar.kitap) this.kitap = new Klasor(this, this.yer.kitap[0], this.yer.kitap[1], this.gun);
+    if (ayar.kitap) {
+      this.kitap = new Klasor(this, this.yer.kitap[0], this.yer.kitap[1], this.gun);
+      // Kapalı klasörün üstündeki belgeye ya da nota tıklamak klasörü açmasın (inceleme modunda belgeler tıklama almaz).
+      this.kitap.ortulu = (x, y) =>
+        this.masadakiKartlar().some((k) => k.sinir().contains(x, y)) || (!!this.not?.active && this.not.sinir().contains(x, y));
+    }
     if (ayar.not) this.notGetir(ayar.not.gorev, ayar.not.kurallar);
     this.pencere = new Pencere(this, this.gun, sokakKayitlari(this.tohum, this.kayitlar));
     // Kaşelik (masanın sağı; masa sınırı onun solunda biter). Kaşeler kurallarla gelir (gün ayarı).
@@ -244,7 +254,8 @@ export class GameScene extends Phaser.Scene {
 
   /** Gün 1 kural notu: gişeden masaya kayar ve gün boyu masada kalır. */
   private notGetir(gorev: string, kurallar: Kural[]): void {
-    const not = new RuleNote(this, GOZ.x, GOZ.y, this.gun, gorev, kurallar);
+    // Gün 1: notun en üstünde oyunu çerçeveleyen tek cümle (G5b, yer tutucu).
+    const not = new RuleNote(this, GOZ.x, GOZ.y, this.gun, gorev, kurallar, this.gun === 1 ? CERCEVE : undefined);
     not.setDepth(ustKatman()).setAlpha(0);
     const [x, y] = not.masadaKonum(this.yer.not[0], this.yer.not[1]);
     this.tweens.add({ targets: not, alpha: 1, duration: 120, delay: 150 });
@@ -295,6 +306,8 @@ export class GameScene extends Phaser.Scene {
       fisKaldir(this, this.fis);
       this.fis = undefined;
     }
+    // Yeni dosyada açık klasör kapanır (G5b): belgeler klasörün altına ya da üstüne karışmasın.
+    if (this.kitap?.acik) this.kitap.kapa();
     this.pencere.setDosya(this.oturum.no, this.oturum.toplam);
     this.pencere.binaGoster(bina);
     const kisi = this.oturum.kisi;
@@ -437,10 +450,23 @@ export class GameScene extends Phaser.Scene {
       const h = yeni.yukseklik;
       const hedef = eski.active ? [eski.x, eski.y] : this.yer.belge[alan];
       const [hx, hy] = yeni.masadaKonum(hedef[0], hedef[1]);
-      yeni.setDepth(ustKatman()).setAlpha(0);
+      // Kayarken yeni ve eski kart masadaki her şeyin altından geçer (G5b: öbür belgeleri ve klasörü örtmez); yeni
+      // kart yerine inince eski kartın katmanına çıkar.
+      const sonDerinlik = eski.active ? eski.depth : ustKatman();
+      yeni.setDepth(KAYAN_DERINLIK).setAlpha(0);
       if (this.inceleme.acik) yeni.disableInteractive(true);
       this.tweens.add({ targets: yeni, alpha: 1, duration: 120 });
-      this.tweens.add({ targets: yeni, x: hx, y: hy, duration: 440, ease: 'Cubic.easeOut', onComplete: () => sfx.play('kagitBirak') });
+      this.tweens.add({
+        targets: yeni,
+        x: hx,
+        y: hy,
+        duration: 440,
+        ease: 'Cubic.easeOut',
+        onComplete: () => {
+          if (yeni.active && yeni.depth === KAYAN_DERINLIK) yeni.setDepth(sonDerinlik);
+          sfx.play('kagitBirak');
+        },
+      });
       sfx.play('kagitKay');
       const i = this.kartlar.indexOf(eski);
       if (i >= 0) this.kartlar.splice(i, 1, yeni);
@@ -448,6 +474,7 @@ export class GameScene extends Phaser.Scene {
       if (eski.active) {
         this.input.setDraggable(eski, false);
         eski.disableInteractive();
+        eski.setDepth(KAYAN_DERINLIK);
         this.tweens.add({ targets: eski, x: GOZ.x, y: GOZ.y - h / 2 - 40, alpha: 0, duration: 360, ease: 'Cubic.easeIn', onComplete: () => eski.destroy() });
       }
     });
@@ -486,7 +513,9 @@ export class GameScene extends Phaser.Scene {
       // Yanlış kararda doğrusu ve dosyadaki kusurlar (atlanan ya da olmadığı halde görülen).
       // Eksiksiz dosyayı İADE etmek: gerekçe "dosya eksiksiz" (yer tutucu metin).
       const kusurlar = sonuc.etiketler.join('\n') || (damga === 'iade' ? 'Kusur yok, dosya eksiksiz' : 'Kusur yok');
-      const metin = sonuc.dogru ? 'Doğru karar' : `Yanlış karar\nDoğrusu: ${DAMGA_ADI[sonuc.dogruDamga]}\n${kusurlar}`;
+      // Doğru kararda da kısa gerekçe (G5b): kusurlar ya da "Kusur yok", ok ve vurulan damga.
+      const gerekce = `${sonuc.etiketler.join(', ') || 'Kusur yok'} → ${DAMGA_ADI[damga]}`;
+      const metin = sonuc.dogru ? `Doğru karar\n${gerekce}` : `Yanlış karar\nDoğrusu: ${DAMGA_ADI[sonuc.dogruDamga]}\n${kusurlar}`;
       const fis = fisKur(this, sonuc.dogru, metin);
       // Masanın boş yerine; yer yoksa gişe camının altına (belge değerlerini örtmesin).
       // Önce tam boy, sığmazsa biraz küçük; masada hiç yer yoksa gişe camının sol kenarına küçülerek (silueti örtmez).
@@ -564,6 +593,21 @@ export class GameScene extends Phaser.Scene {
     const sokak = this.pencere.sokak;
     const binalar = sokak.damgalilar();
     this.time.delayedCall(700, () => {
+      // Her damgalı binanın üstünde damga etiketi (G5b); çatlayanlarda üstünde sonuç belirir. Sokak, en uzun
+      // binanın etiketi pencereye sığacak kadar küçülür (etiketler sokakla birlikte ölçeklenir).
+      let olcek = 1;
+      for (const b of binalar) {
+        const k = sokak.yerelKutu(b.yer);
+        olcek = Math.min(olcek, (k.bottom - 8) / (k.height + ETIKET_KUCUK_YUKSEKLIK));
+      }
+      const etiketler = new Map<string, BinaEtiketi>();
+      for (const b of binalar) {
+        const e = binaEtiketi(this, b.damga, ETIKET_KUCUK);
+        e.kap.setAlpha(0);
+        this.tweens.add({ targets: e.kap, alpha: 1, duration: 240, ease: 'Stepped', easeParams: [3] });
+        sokak.ustuneEkle(b.yer, e.kap);
+        etiketler.set(b.bina.id, e);
+      }
       new Quake(this, sokak, SOKAK_DERINLIK).oynat(
         O.siddet,
         binalar,
@@ -571,7 +615,16 @@ export class GameScene extends Phaser.Scene {
           this.oncu = { siddet: O.siddet, sonuclar: sonuclar.map(({ dosyaId, durum, bos }) => ({ dosyaId, durum, bos })) };
           this.time.delayedCall(500, devam);
         },
-        { sure: O.sureMs, genlik: O.sarsinti, enAgir: 'hasarli', gizli: false, yazi: ONCU_YAZI },
+        {
+          sure: O.sureMs,
+          genlik: O.sarsinti,
+          enAgir: 'hasarli',
+          gizli: false,
+          yazi: ONCU_YAZI,
+          yaziAlan: GISE_ALAN,
+          enBuyukOlcek: olcek,
+          binaTepki: (s) => etiketler.get(s.dosyaId)?.sonucGoster(oncuEtiketi(s.bos), s.bos ? PAL.damgaIade : PAL.damgaBosalt),
+        },
       );
     });
   }

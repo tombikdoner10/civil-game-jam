@@ -37,9 +37,12 @@ export function manset(o: DepremOzeti): string {
   return '[Manşet: sokak ayakta]';
 }
 
-/** Sayı satırı (bina sayıları). */
+/**
+ * Sayı satırı (bina sayıları). Sonuç ekranıyla aynı tanımlar (G5b): "içi boş" çökenlerin boşaltılmış olanları,
+ * "Boşaltılmış (toplam)" ayakta, hasarlı ve çöken bütün boşaltılmış binalar.
+ */
 export function sayiSatiri(o: DepremOzeti): string {
-  return `[Ayakta: ${o.ayakta} bina · Hasarlı: ${o.hasarli} · Çöken: ${o.coken} (boşaltılmış: ${o.cokenBos})${o.iade > 0 ? ` · İade edilmiş: ${o.iade}` : ''}]`;
+  return `[Ayakta: ${o.ayakta} bina · Hasarlı: ${o.hasarli} · Çöken: ${o.coken}${o.coken > 0 ? ` (içi boş: ${o.cokenBos})` : ''} · Boşaltılmış (toplam): ${o.bos}${o.iade > 0 ? ` · İade edilmiş: ${o.iade}` : ''}]`;
 }
 
 /** Sonucun ağırlığı (sıralama): çöken, ağır hasarlı, hasarlı, ayakta. */
@@ -114,6 +117,11 @@ export const KISA_YOL_DUGME = '[DEPREMİ ŞİMDİ YAŞA]';
 export const KISA_YOL_ACIKLAMA = '[5 gün sonra büyük deprem olacak. Şimdi görmek ister misin?]';
 /** Depremde oyuncunun binalarının üstündeki etiket. */
 export const SENIN_DAMGAN = '[SENİN DAMGAN]';
+
+/** Öncü sarsıntıda çatlayan binanın etiketi (G5b; pencerede damga etiketinin üstünde). */
+export function oncuEtiketi(bos: boolean): string {
+  return bos ? '[ÇATLADI · İÇİ BOŞ]' : '[ÇATLADI]';
+}
 
 /** Depremde oyuncunun binasının sonucu (etiket). */
 export function sonucEtiketi(b: DepremBinaSonucu): string {
