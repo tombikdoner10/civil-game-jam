@@ -9,7 +9,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G2 [teknik] Masa sahnesi iskeleti: `GameScene` masa alanı, veriden çizilen gri belge kartları (ruhsat, fotoğraf yer tutucusu, vaziyet planı, karot sonucu) sürüklenebiliyor, 3 damga düğmesi, mesai saati; damga basınca sıradaki dosya geliyor.
+- [ ] G2b [teknik] Papers, Please görsel yönü: piksel çizim, solgun palet, pencere (sokak + gişe) ve masa düzeni, belge kâğıtları, kayan damga çubuğu ve mürekkep izi, Pixelify Sans + VT323, Tiny Town cepheleri; G2 işlevleri bozulmadan.
 
 ## Sırada
 
@@ -29,7 +29,7 @@ Araçlar ve derinlik
 
 Görsel, ses, cila (takım paketleri onaylayınca)
 
-- [ ] G11 [teknik] Sketch Town parçalarından kat sayısı değişen cephe birleştirici; UI Pack panelleri; havuzdan dosyaları `src/art/`a kopyala, `credits.ts` ve README'ye yaz.
+- [ ] G11 [teknik] Görsel cila: diğer sahneleri (menü, sonuç, gün sonu) aynı piksel tarza getir; belge ayrıntıları (mühür, imza, tarih damgası).
 - [ ] G12 [teknik] Sesler: damga, kâğıt, gün sonu, deprem; `src/sounds/`, beyan.
 - [ ] G13 [teknik] Menü, başlık, Emeği Geçenler güncel; ilk 30 saniye akışı (Gate/Splash kısa).
 
@@ -44,7 +44,6 @@ Bulutta yapılabilecekler
 - [ ] T2 [takım] Kural kitabı metinleri ve eşikler (5 gün); TBDY 2018, AFAD ve Bakanlık kaynaklarıyla doğrula, kaynakları not et.
 - [ ] T3 [takım] 6–8 hikâye binası: kısa dosya metni, mal sahibinin bir cümlesi, gizli kusur.
 - [ ] T4 [takım] Gazete manşetleri ve sonlar (ton: kurban yok, sayı yok, odak önleme).
-- [ ] T5 [takım] Görsel paket onayı: Sketch Town + UI Pack + Game Icons uygun mu; font seçimi.
 - [ ] T6 [takım] Ses seçimi: damga, kâğıt, gün sonu, deprem (havuzdaki Kenney ses paketlerinden).
 - [ ] T7 [takım] Kararlar: deprem hangi gün; imar affı belgesi olacak mı.
 - [ ] T8 [takım] Cumartesi 14.00 ara test: oyunu oyna, geri bildirim ver (Kontrol 2).
@@ -53,3 +52,5 @@ Bulutta yapılabilecekler
 ## Bitti
 
 - [x] G1 [teknik] Bina veri modeli ve üretici: `src/game/building.ts` (gerçek kat, ruhsat katı, yapım yılı, beton dayanımı, kolon durumu, dere/fay mesafesi, zemin raporu); tohumlu rastgele üretici + elle yazılabilir hikâye binası biçimi; her bina için kusur listesi ve doğru damga hesaplanıyor; `npm run check` temiz. (6cab272)
+- [x] G2 [teknik] Masa sahnesi iskeleti: `GameScene` masa alanı, veriden çizilen gri belge kartları (ruhsat, fotoğraf yer tutucusu, vaziyet planı, karot sonucu) sürüklenebiliyor, 3 damga düğmesi, mesai saati; damga basınca sıradaki dosya geliyor. (40eccc7; test G2b ile birlikte yapılacak)
+- [x] T5 [takım] Görsel yön ve fontlar: Papers, Please tarzı; Tiny Town (boyanmış) + kodla kâğıt/damga; Pixelify Sans + VT323 (16 Ekim 19.50)

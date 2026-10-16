@@ -19,3 +19,6 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 19:26 · Karar: Konsept Yapı Denetçisi (Papers, Please tarzı masa oyunu; dosyadaki tutarsızlıkları yakala, damga vur, deprem günü sınar) · Neden: takım yaklaşık 90 seçenek arasından seçti; uzman rolü, masa/üstten görünüm, ciddi-gergin ton tercihine uyuyor, mekaniği deterministik ve 48 saate sığıyor, jürideki inşaat mühendislerine hitap ediyor · Sıradaki: G1 bina veri modeli
 - 19:30 · Karar: Eleştirmeni ilk oynanabilir sürüme (G2–G3 sonrası) ertele · Neden: değerlendirecek oyun yok, kullanım boşa gider · Sıradaki: G1 geliştiricide
 - 19:50 · G1 bitti (6cab272): bina modeli, kural motoru, tohumlu üretici; check temiz, determinizm doğrulandı · Karar: G1 için test-oyuncusu çağrılmadı · Neden: arayüzü yok, oyunda hiçbir yere bağlı değil · Sıradaki: G2 masa sahnesi
+- 19:55 · 9a15eb0 push'landı, canlı smoke hatasız, son-saglam taşındı; G2 (masa sahnesi) geliştiricide · Sıradaki: G2 testi
+- 19:52 · Karar: Geliştirici ajanı Opus 5.5 (medium) · Neden: takım istedi; tasarım kalitesi öncelik · Sıradaki: G2b
+- 19:52 · Karar: Görsel yön Papers, Please; Tiny Town (solgun palete boyanmış) + kodla kâğıt/damga, fontlar Pixelify Sans + VT323 · Neden: takım istedi ve seçti; hazır kaynak ağırlıklı, AI yoğunluğu düşük · Sıradaki: G2b geliştiricide (G2 testi G2b ile birlikte)

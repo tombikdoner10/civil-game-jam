@@ -83,17 +83,21 @@ Yalnızca fare ve Space; masaüstü tarayıcı.
 
 Takım görsel ya da ses üretmiyor. Kaynaklar: lisanslı hazır paketler (hazır kaynak beyanı; tercihen CC0, tek tutarlı tarz) ve gerekirse takım onayıyla yapay zekâ (AI beyanı, madde 4.3 riski). Seçim takımın.
 
-- **Görsel kaynağı (öneri, takım onayı bekliyor):** Kenney Sketch Town binalarından kat sayısı değişebilen cepheler (fotoğraflar karakalem çizim olur), Kenney UI Pack ve Game Icons paneller. Çatlak, mühür, masa dokusu kodla.
-- **Renkler ve hava:** Kâğıt, mürekkep, karakalem; loş ofis; damgalarda kırmızı ve yeşil mürekkep.
+- **Yön (takım kararı, 16 Ekim 19.50):** Papers, Please gibi. Düşük çözünürlüklü piksel çizim (görünen piksel yaklaşık 4 ekran pikseli), solgun ve kasvetli palet, yoğun piksel tipografi, dokunsal damga.
+- **Ekran düzeni:** Üst bant belediye penceresi: dışarıda sokak ve incelenen bina, gişede (buzlu cam arkasında siluet) mal sahibi. Alt bölüm masa: her belge türü kendi kâğıt rengi ve dokusuyla (ruhsat krem ve mühürlü, vaziyet planı mavi kopya, karot raporu tablo, fotoğraf kenarlıklı baskı), sağ kenardan kayarak açılan damga çubuğu, belgeye basılan mürekkep izi, dosya bitince belgeler gişeden geri verilir.
+- **Görsel kaynağı (takım kararı):** Bina cepheleri ve sokak Kenney Tiny Town'dan (CC0), Papers Please paletine boyanarak (değişiklik: renk paleti, parçalardan cephe kurma). Kâğıt, masa, damga, mühür ve siluet kodla çizilir (AI beyanı: görsel, kodla çizim).
+- **Fontlar (takım kararı):** Arayüz ve başlıklar Pixelify Sans, belgelerdeki değerler VT323 (ikisi de SIL OFL 1.1, Türkçe karakterli).
+- **Renkler ve hava (öneri, takım değiştirebilir):** Koyu kahve-gri masa, krem ve kirli beyaz kâğıtlar, soluk mavi plan, mürekkepte kırmızı (BOŞALT), hardal (GÜÇLENDİR), yeşil (GÜVENLİ); dışarıda soluk akşamüstü.
 - **Ses kaynağı (öneri):** Kenney Impact Sounds (damga), Interface Sounds (kâğıt, tık), Music Jingles (gün sonu).
 
 ## Varlık listesi
 
 | Dosya | Ne | Kaynak (paket / AI) | Lisans | Durum |
 |---|---|---|---|---|
-| (bina cephe parçaları) | Fotoğraf belgeleri | Kenney – Sketch Town | CC0 1.0 | aday, takım onayı bekliyor |
-| (paneller, düğmeler) | Masa arayüzü | Kenney – UI Pack | CC0 1.0 | aday |
-| (simgeler) | Araçlar, durum | Kenney – Game Icons | CC0 1.0 | aday |
+| Tiny Town karoları | Bina cepheleri, sokak | Kenney – Tiny Town (renk paleti değiştirildi) | CC0 1.0 | seçildi |
+| Pixelify Sans | Arayüz fontu | Stefie Justprince (Google Fonts) | SIL OFL 1.1 | seçildi |
+| VT323 | Belge fontu | Peter Hull (Google Fonts) | SIL OFL 1.1 | seçildi |
+| Kâğıt, masa, damga, mühür, siluet | Masa ve belgeler | Kodla çizim (AI beyanı: görsel) | – | seçildi |
 | (damga, kâğıt sesleri) | Ses efektleri | Kenney – Impact Sounds, Interface Sounds | CC0 1.0 | aday |
 | (gün sonu müziği) | Jingle | Kenney – Music Jingles | CC0 1.0 | aday |
 
@@ -103,4 +107,3 @@ Takım görsel ya da ses üretmiyor. Kaynaklar: lisanslı hazır paketler (hazı
 - Kural eşikleri (beton dayanımı, dere / fay mesafesi): oyun için sadeleştirilmiş ama doğru; TBDY 2018, AFAD ve Çevre, Şehircilik ve İklim Değişikliği Bakanlığı kaynaklarıyla doğrulanacak (takım).
 - Deprem hangi gün: 5. gün sonu mu, rastgele mi (takım).
 - İmar affı belgesi ("kâğıtta yasal, gerçekte güvensiz") oyunda olacak mı (takım; siyasi hassasiyet).
-- Daktilo havası veren font: lisansı uygun (OFL) bir font mu, yoksa sistem fontu mu.

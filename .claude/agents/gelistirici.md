@@ -1,7 +1,7 @@
 ---
 name: gelistirici
 description: Liderin yazdığı TEK bir teknik görevi uygular, test eder ve commit atar (özellik kodu, hata düzeltme, takımın ürettiği görsel ve ses dosyalarını oyuna bağlama). Yaratıcı içerik (oyun fikri, görsel ya da ses tasarımı, hikâye) üretmez.
-model: sonnet
+model: opus
 effort: medium
 color: blue
 maxTurns: 150
