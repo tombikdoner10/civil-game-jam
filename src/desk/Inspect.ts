@@ -32,6 +32,11 @@ export interface InspectAyar {
   izin: () => boolean;
   /** Bu kusur gişedeki kişiye sorulabilir mi (G17): etikette SOR düğmesi çıkar, tıklanınca 'sor' olayı. */
   sorulabilir?: (id: KusurId) => boolean;
+  /**
+   * Bulunan kusur geçersiz bir belgeyse ve düzgünü istenebiliyorsa true (G17b): etikette İSTE düğmesi çıkar,
+   * tıklanınca 'iste' olayı (kusur kimliği).
+   */
+  istenebilir?: (id: KusurId) => boolean;
 }
 
 interface Bulunan {
@@ -232,7 +237,11 @@ export class Inspect extends Phaser.Events.EventEmitter {
         eski.ogeler = ogeler;
         this.scene.tweens.add({ targets: eski.etiket, scale: 1.15, duration: 90, yoyo: true });
       } else {
-        const etiket = this.etiketKur(sonuc.kusur.etiket, this.ayar.sorulabilir?.(sonuc.kusur.id) ? sonuc.kusur.id : undefined);
+        const id = sonuc.kusur.id;
+        const dugmeler: ('sor' | 'iste')[] = [];
+        if (this.ayar.sorulabilir?.(id)) dugmeler.push('sor');
+        if (this.ayar.istenebilir?.(id)) dugmeler.push('iste');
+        const etiket = this.etiketKur(sonuc.kusur.etiket, id, dugmeler);
         const r = etiket.getBounds();
         this.bulunanlar.push({ kusur: sonuc.kusur, ogeler, etiket, w: snap(r.width), h: snap(r.height), aday: -1 });
         etiket.setScale(0.4);
@@ -267,27 +276,29 @@ export class Inspect extends Phaser.Events.EventEmitter {
   }
 
   /**
-   * Kusur etiketi: kırmızı kâğıt şerit, koyu kenar. sorId verilirse sağında SOR düğmesi (G17): tıklanınca
-   * 'sor' olayı (kusur kimliği) yayılır ve düğme sönükleşir (bir kez sorulur).
+   * Kusur etiketi: kırmızı kâğıt şerit, koyu kenar. Sağında düğmeler: SOR (G17) ve geçersiz belgede İSTE (G17b).
+   * Tıklanınca 'sor' ya da 'iste' olayı (kusur kimliği) yayılır ve düğme sönükleşir (bir kez).
    */
-  private etiketKur(metin: string, sorId?: KusurId): Phaser.GameObjects.Container {
+  private etiketKur(metin: string, id: KusurId, dugmeler: readonly ('sor' | 'iste')[] = []): Phaser.GameObjects.Container {
     const s = this.scene;
     const yazi = s.add
       .text(0, 0, metin.toLocaleUpperCase('tr-TR'), { fontFamily: FONT, fontSize: '40px', color: '#f0e6cc' })
       .setOrigin(0.5);
-    const dw = sorId ? 88 : 0;
-    const w = snap(yazi.width + 32 + (sorId ? dw + 8 : 0));
+    const dw = 88;
+    const bosluk = 8;
+    const dugmeW = dugmeler.length * (dw + bosluk);
+    const w = snap(yazi.width + 32 + dugmeW);
     const h = 48;
     const kap = s.add.container(0, 0).setDepth(D.etiket);
     kap.add(s.add.rectangle(4, 4, w, h, 0x000000, 0.45));
     kap.add(s.add.rectangle(0, 0, w + 8, h + 8, KOYU));
     kap.add(s.add.rectangle(0, 0, w, h, KIRMIZI));
     kap.add(yazi);
-    if (sorId) {
-      yazi.setX(snap(-dw / 2 - 4));
-      const dx = snap(w / 2 - dw / 2 - 4);
+    yazi.setX(snap(-dugmeW / 2));
+    dugmeler.forEach((tur, i) => {
+      const dx = snap(w / 2 - 4 - dw / 2 - (dugmeler.length - 1 - i) * (dw + bosluk));
       const kutu = s.add.rectangle(dx, 0, dw, h - 12, KOYU);
-      const dyazi = s.add.text(dx, 0, 'SOR', { fontFamily: FONT, fontSize: '34px', color: PAL.saat }).setOrigin(0.5);
+      const dyazi = s.add.text(dx, 0, tur === 'sor' ? 'SOR' : 'İSTE', { fontFamily: FONT, fontSize: '34px', color: PAL.saat }).setOrigin(0.5);
       kutu.setInteractive({ useHandCursor: true }).setData('incelemeYok', true);
       kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => kutu.setFillStyle(0x3a2f22));
       kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => kutu.setFillStyle(KOYU));
@@ -297,10 +308,10 @@ export class Inspect extends Phaser.Events.EventEmitter {
         kutu.setFillStyle(KOYU);
         dyazi.setColor(PAL.murekkepAcik);
         sfx.play('sec');
-        this.emit('sor', sorId);
+        this.emit(tur, id);
       });
       kap.add([kutu, dyazi]);
-    }
+    });
     return kap;
   }
 
@@ -327,6 +338,11 @@ export class Inspect extends Phaser.Events.EventEmitter {
     const engeller = this.bulunanlar.length > 0 ? this.alanSinirlari(yuzeyler) : [];
     const etiketler: Phaser.Geom.Rectangle[] = [];
     for (const b of this.bulunanlar) {
+      // Kanıt belgesi masadan kalktıysa (ör. gişeden düzgünü gelip yerine geçti, G17b) işaret de kalkar.
+      if (b.ogeler.some((o) => o.belge !== 'kural' && !o.nesne.active)) {
+        b.etiket.setVisible(false);
+        continue;
+      }
       const gor = b.ogeler.filter((o) => gorunur(o.nesne) && !ortulu(o, yuzeyler)).map((o) => sinir(o.nesne));
       gor.forEach((r) => this.cerceve(r, KIRMIZI));
       if (gor.length === 2) this.kesikli(gor[0], gor[1], KIRMIZI);

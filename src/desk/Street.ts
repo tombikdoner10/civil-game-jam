@@ -1,6 +1,7 @@
 // @beyan görsel
 import * as Phaser from 'phaser';
 import type { Bina, Damga } from '../game/building';
+import { gecerliRuhsat } from '../game/building';
 import type { HasarDurumu } from '../game/rules';
 import type { SokakKaydi } from '../game/session';
 import { PAL } from './palette';
@@ -472,7 +473,7 @@ export class Sokak {
       vitrin: f.vitrinKolonlar,
       catlak: f.gorunenCatlak,
       secim,
-      ekKat: Math.max(0, kat - bina.belgeler.ruhsat.kat),
+      ekKat: Math.max(0, kat - gecerliRuhsat(bina.belgeler.ruhsat).kat),
       aksam: true,
       rnd: rastgele(dizgiTohum(bina.id) ^ 0x1a5),
     });

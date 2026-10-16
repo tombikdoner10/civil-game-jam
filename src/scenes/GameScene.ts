@@ -16,8 +16,8 @@ import { yerlesim, type Yerlesim } from '../desk/yerlesim';
 import { Cekmece, Zarf, ZARF_BOY } from '../desk/Zarf';
 import { Portre, PORTRE_EKRAN } from '../desk/Portre';
 import type { Damga, KusurId, Kural } from '../game/building';
-import { DAMGA_TEPKI, ISTE_METIN, satir, SELAM, SOR_METIN, ZARF_TEPKI } from '../game/diyalog';
-import type { Ifade, RaporAlani } from '../game/kisi';
+import { DAMGA_TEPKI, ISTE_BELGE_METIN, ISTE_METIN, satir, SELAM, SOR_METIN, ZARF_TEPKI } from '../game/diyalog';
+import type { Ifade, IsteAlani } from '../game/kisi';
 import { KUSUR_BILGI } from '../game/rules';
 import { ornekKayitlar } from '../game/ornek';
 import { GunOturumu, sokakKayitlari, type GunKaydi, type SarsintiKaydi } from '../game/session';
@@ -46,6 +46,14 @@ const ONCU_YAZI = '[Öncü sarsıntı. Asıl deprem gelecek.]';
  * w: siluetin solunda kalan genişlik (siluet gişenin ortasında, yaklaşık 1424-1712).
  */
 const FIS_GISE = { x: 1256, w: 160, alt: 384, derinlik: 3500 };
+
+/** İSTE balonunun başlığı (yer tutucu). */
+const ISTE_BASLIK: Record<IsteAlani, string> = {
+  karot: 'İSTE · KAROT RAPORU',
+  zemin: 'İSTE · ZEMİN ETÜDÜ',
+  ruhsat: 'İSTE · RUHSAT',
+  vaziyet: 'İSTE · VAZİYET PLANI',
+};
 
 /** Damgaya göre gişedeki kişinin yüzü. */
 const DAMGA_IFADE: Record<Damga, Ifade> = { guvenli: 'sevincli', guclendir: 'mahcup', bosalt: 'kizgin', iade: 'kizgin' };
@@ -191,8 +199,15 @@ export class GameScene extends Phaser.Scene {
       kontrol: (secim) => this.oturum.incele(secim),
       izin: () => !this.mesgul && !this.bitirildi,
       sorulabilir: (id) => this.oturum.sorulabilir(id),
+      istenebilir: (id) => this.oturum.isteAlani(id) !== null,
     });
     this.inceleme.on('sor', (id: KusurId) => this.sor(id));
+    // Geçersiz belge (G17b): etiketteki İSTE, belgenin düzgününü ister.
+    this.inceleme.on('iste', (id: KusurId) => {
+      const alan = this.oturum.isteAlani(id);
+      const kart = alan ? this.kartlar.find((k) => k.tur === alan && k.active) : undefined;
+      if (alan && kart) this.iste(alan, kart);
+    });
     // Tutarsızlık bulununca gişedeki kişi gerilir.
     this.inceleme.on('bulundu', () => {
       if (!this.mesgul) this.pencere.ifade('gergin');
@@ -409,22 +424,25 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * İSTE: eksik belge kişiden istenir. Gerçek ya da sahte rapor gelirse kart gişeden kayar ve "Rapor yok"
-   * kartının yerine geçer (eski kart gişeye geri döner); getiremezse kart gelmez.
+   * İSTE: eksik belge ya da geçersiz belgenin düzgünü (G17b) kişiden istenir. Gerçek ya da sahte belge gelirse
+   * kart gişeden kayar ve eski kartın ("Rapor yok" ya da geçersiz belge) yerine geçer (eski kart gişeye geri
+   * döner); getiremezse kart gelmez.
    */
-  private iste(alan: RaporAlani, eski: DocumentCard): void {
+  private iste(alan: IsteAlani, eski: DocumentCard): void {
     if (this.mesgul || this.bitirildi) return;
+    const once = this.oturum.mevcut;
+    const eksik = !!once && (alan === 'karot' || alan === 'zemin') && once.belgeler[alan] === null;
     const c = this.oturum.iste(alan);
     const bina = this.oturum.mevcut;
     if (!c || !bina) return;
-    const baslik = alan === 'karot' ? 'İSTE · KAROT RAPORU' : 'İSTE · ZEMİN ETÜDÜ';
-    this.pencere.soyle(satir(ISTE_METIN[c.tur], c.secim), c.ifade, { baslik });
+    this.pencere.soyle(satir((eksik ? ISTE_METIN : ISTE_BELGE_METIN)[c.tur], c.secim), c.ifade, { baslik: ISTE_BASLIK[alan] });
     const rapor = c.rapor;
     if (!rapor) return;
     this.time.delayedCall(TUNING.diyalog.raporGecikme, () => {
       if (this.oturum.mevcut?.id !== bina.id || this.mesgul || this.bitirildi) return;
-      const h = BOY[alan][1];
-      const yeni = raporKur(this, bina, rapor, this.gun, GOZ.x, GOZ.y - h / 2);
+      const yeni = raporKur(this, bina, rapor, this.gun, GOZ.x, GOZ.y);
+      yeni.setY(GOZ.y - yeni.yukseklik / 2);
+      const h = yeni.yukseklik;
       const hedef = eski.active ? [eski.x, eski.y] : this.yer.belge[alan];
       const [hx, hy] = yeni.masadaKonum(hedef[0], hedef[1]);
       yeni.setDepth(ustKatman()).setAlpha(0);

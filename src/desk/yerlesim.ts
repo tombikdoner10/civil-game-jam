@@ -10,8 +10,8 @@ export interface Yerlesim {
 /*
  * Masa y 464-1080 (616 px). Damga çubuğu açıkken sağ sınır 1544. Belgeler masa üst kenarından en az 24 px
  * aşağıda (başlık bandı tezgâha değmesin), aralarında en az 24 px boşluk, alt kenardan en az 8 px yukarıda.
- * Boylar (documents.ts BOY): foto 304×416, ruhsat 376×320, proje 392×240, vaziyet 392×288, karot 328×224,
- * zemin 328×216; kapalı kitap 216×276.
+ * Boylar (documents.ts BOY): foto 304×416, ruhsat 376×320, proje 392×240, vaziyet 392×312, karot 328×224,
+ * zemin 328×248; kapalı kitap 216×276.
  */
 
 /**
@@ -23,9 +23,9 @@ const TAM: Yerlesim = {
     foto: [192, 704], // 496-912
     ruhsat: [560, 652], // 492-812
     karot: [560, 956], // 844-1068
-    vaziyet: [972, 648], // 504-792
-    proje: [972, 940], // 820-1060
-    zemin: [1364, 948], // 840-1056
+    vaziyet: [972, 648], // 492-804
+    proje: [972, 948], // 828-1068
+    zemin: [1364, 948], // 824-1072
   },
   kitap: [1388, 652],
   not: [1000, 680],

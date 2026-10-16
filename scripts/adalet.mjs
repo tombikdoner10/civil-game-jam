@@ -11,6 +11,7 @@ const R = await server.ssrLoadModule('/src/game/rules.ts');
 const O = await server.ssrLoadModule('/src/game/ornek.ts');
 const BLD = await server.ssrLoadModule('/src/game/building.ts');
 const T = (await server.ssrLoadModule('/src/game/tuning.ts')).TUNING;
+const D = await server.ssrLoadModule('/src/game/days.ts');
 
 let hata = 0;
 let sayi = 0;
@@ -78,7 +79,7 @@ const sayac = { karotYok: 0, zeminEtuduYok: 0, dereSaglam: 0, dereSivi: 0, dereE
 for (let tohum = 1; tohum <= 40; tohum++) {
   for (let g = 1; g <= 5; g++) {
     const o = new S.GunOturumu(g, tohum);
-    const yeni = o.ayar.yeniKurallar.flatMap((k) => k.kusurlar);
+    const yeni = D.yeniKusurlar(g);
     // İlk iki dosyadan biri o günün yeni kuralının kusurunu gösterir (gün 2+).
     if (g >= 2 && yeni.length > 0)
       bak(
@@ -101,7 +102,7 @@ for (let tohum = 1; tohum <= 40; tohum++) {
       else bak(ana === (bosaltGor ? 'bosalt' : 'iade'), 'eksik belgeli dosyada doğru damga: ' + ana + ' ' + e);
       // Bilgi edinilince gerçek damga da doğru, İADE de doğru kalır.
       if (ana === 'iade') {
-        const bilgi = { karot: b.gercek.betonMpa, zemin: b.gercek.zemin };
+        const bilgi = { karot: b.gercek.betonMpa, zemin: b.gercek.zemin, ruhsat: true, vaziyet: true };
         const kabul = R.dogruDamgalar(b, g, bilgi);
         bak(kabul[0] === 'iade' && kabul.length === 2 && kabul[1] !== 'iade', 'bilgiyle kabul: ' + kabul.join(',') + ' ' + e);
         bak(kabul[1] === R.dogruDamga(R.bilgiyleTamamla(b, bilgi), g), 'bilgiyle gerçek damga: ' + e);
@@ -135,9 +136,26 @@ for (let tohum = 1; tohum <= 40; tohum++) {
       const b = o2.mevcut;
       const ana = R.dogruDamga(b, g);
       if (ana === 'iade' && b.id.endsWith('1')) {
-        if (b.belgeler.karot === null) o2.bilgiEdin('karot', b.gercek.betonMpa, 'saha');
-        if (b.belgeler.zemin === null) o2.bilgiEdin('zemin', b.gercek.zemin, 'iste');
-        const tam = R.dogruDamga(R.bilgiyleTamamla(b, { karot: 0, zemin: 'orta' }), g);
+        // Eksik ve geçersiz belgelerin hepsinin bilgisi edinilir (G17b: geçersiz ruhsat ve başka binanın belgesi dahil).
+        const baska = BLD.baskaBinaBelgesi(b.belgeler);
+        const bilgi = {};
+        if (b.belgeler.karot === null || baska === 'karot') {
+          o2.bilgiEdin('karot', b.gercek.betonMpa, 'saha');
+          bilgi.karot = 0;
+        }
+        if (b.belgeler.zemin === null || baska === 'zemin') {
+          o2.bilgiEdin('zemin', b.gercek.zemin, 'iste');
+          bilgi.zemin = 'orta';
+        }
+        if (BLD.ruhsatGecersiz(b.belgeler.ruhsat)) {
+          o2.bilgiEdin('ruhsat', true, 'iste');
+          bilgi.ruhsat = true;
+        }
+        if (baska === 'vaziyet') {
+          o2.bilgiEdin('vaziyet', true, 'iste');
+          bilgi.vaziyet = true;
+        }
+        const tam = R.dogruDamga(R.bilgiyleTamamla(b, bilgi), g);
         const s = o2.damgala(tam);
         bak(s.dogru && s.kabul.includes('iade'), `t${tohum} g${g} ${b.id}: bilgiyle gerçek damga (${tam}) doğru sayılmadı`);
       } else {
@@ -216,8 +234,8 @@ for (let tohum = 1; tohum <= 40; tohum++) {
       if (Object.keys(gelen).length > 0) kabulBeklenen = R.dogruDamgalar(b, g, gelen);
       // SOR: her görünen kusur bulunur ve (sorulabilirse) sorulur.
       for (const k of R.gorunenKusurlar(b, g)) {
-        o.incele(R.kanitOgeleri(k.id));
-        ikiz.incele(R.kanitOgeleri(k.id));
+        o.incele(R.kanitOgeleri(k));
+        ikiz.incele(R.kanitOgeleri(k));
         if (!K.sorulabilir(k.id)) {
           bak(!o.sorulabilir(k.id), `${e}: eksik belge sorulabilir`);
           continue;
@@ -277,6 +295,170 @@ for (let tohum = 1; tohum <= 10; tohum++) {
   bak(a1.filter((r) => r.zarf).length === k.flatMap((x) => x.kararlar).filter((c) => c.zarf?.kabul).length, `t${tohum}: deprem sonucunda zarf işareti`);
 }
 console.log('G17 (tohum 1-40, gün 1-5):', JSON.stringify(g17));
+
+// ---- G17b: belge hileleri (elle düzeltme, başka binanın belgesi, imza yok) ----
+// Geçersiz belge eksik belge gibi: İADE doğru; kusur incelemede bulunur, SOR ve İSTE çalışır; düzgün belge gelince
+// gerçek damga doğru; elle düzeltilmiş değere ya da başka binanın belgesine inanan damga (İSTE'siz) yanlış; sahte
+// belge incelemede "Sahte rapor" olarak bulunur ve değeri yanıltıcı yöndedir.
+const HB = T.belgeHile;
+const g17b = { elleDuzeltme: 0, baskaBina: 0, imzaYok: 0, gercek: 0, sahte: 0, yok: 0, inanan: 0, sahteBulundu: 0, gercekDamga: 0 };
+const sahteKanit = (r) => {
+  const alan = K.ipucuAlani(r);
+  if (r.ipucu === 'ada')
+    return [
+      { belge: 'ruhsat', alan: 'ada' },
+      { belge: r.alan, alan: 'ada' },
+    ];
+  const kural = r.ipucu === 'muhur' || r.ipucu === 'tarih' ? R.RAPOR_KURALI : R.GECERSIZ_KURALI;
+  return [
+    { belge: r.alan, alan },
+    { belge: 'kural', alan: kural },
+  ];
+};
+for (let tohum = 1; tohum <= 60; tohum++) {
+  for (let g = 1; g <= 5; g++) {
+    const o = new S.GunOturumu(g, tohum);
+    const ikiz = new S.GunOturumu(g, tohum);
+    while (o.mevcut && !o.bitti) {
+      const b = o.mevcut;
+      const B = b.belgeler;
+      const e = `t${tohum} g${g} ${b.id}`;
+      const ruhsatHile = BLD.ruhsatGecersiz(B.ruhsat);
+      const baska = BLD.baskaBinaBelgesi(B);
+      // Günler: imzasız ruhsat gün 4'ten, elle düzeltme ve başka binanın belgesi gün 5'ten.
+      if (ruhsatHile === 'imzaYok') bak(g >= HB.imzaGun, `${e}: erken imzasız ruhsat`);
+      if (ruhsatHile === 'elleDuzeltme') bak(g >= HB.elleBaskaGun, `${e}: erken elle düzeltme`);
+      if (baska) bak(g >= HB.elleBaskaGun, `${e}: erken başka binanın belgesi`);
+      // Ruhsatta en çok bir hile ve sahte mühürle birlikte değil; geçersiz ruhsatın kâğıttaki katı fotoğrafla aynı.
+      if (ruhsatHile) {
+        bak(!b.gercek.ruhsatSahte, `${e}: geçersiz ruhsat sahte mühürle`);
+        bak(B.ruhsat.kat === B.foto.gorunenKat, `${e}: geçersiz ruhsatta kat fotoğraftan farklı`);
+      }
+      if (B.ruhsat.duzeltme) bak(B.ruhsat[B.ruhsat.duzeltme.alan] !== B.ruhsat.duzeltme.asil, `${e}: düzeltme değeri asılla aynı`);
+      if (baska) bak(B[baska].ada !== B.ruhsat.ada, `${e}: başka binanın belgesinde ada aynı`);
+      else bak([B.vaziyet, B.karot, B.zemin].every((x) => !x || x.ada === B.ruhsat.ada), `${e}: ada uyuşmazlığı`);
+      const gor = R.gorunenKusurlar(b, g);
+      const gecersiz = gor.filter((k) => R.GECERSIZ_BELGE.includes(k.id));
+      if (gecersiz.length === 0) {
+        const d = R.dogruDamga(b, g);
+        o.damgala(d);
+        ikiz.damgala(d);
+        continue;
+      }
+      for (const k of gecersiz) g17b[k.id]++;
+      const ana = R.dogruDamga(b, g);
+      const bosaltGor = gor.some((k) => k.ciddiyet === 'bosalt');
+      bak(ana === (bosaltGor ? 'bosalt' : 'iade'), `${e}: geçersiz belgede doğru damga ${ana}`);
+      // Bulunmadan İSTE yok.
+      for (const k of gecersiz) bak(ikiz.isteAlani(k.id) === null, `${e}: bulunmadan İSTE (${k.id})`);
+      // Geçersiz belgedeki değere inanan (belge geçerliymiş gibi) damga, İSTE'siz yanlış.
+      const inananB = { ...B, ruhsat: { ...B.ruhsat, imza: true, duzeltme: undefined } };
+      if (baska) inananB[baska] = { ...B[baska], ada: B.ruhsat.ada };
+      const inanan = R.dogruDamga({ ...b, belgeler: inananB }, g);
+      if (inanan !== ana) {
+        g17b.inanan++;
+        const s = ikiz.damgala(inanan);
+        bak(s && !s.dogru, `${e}: geçersiz belgeye inanan damga (${inanan}) doğru sayıldı`);
+      } else ikiz.damgala(ana);
+      // Bulma, SOR ve İSTE
+      const bilgi = {};
+      let tamam = true;
+      for (const k of gecersiz) {
+        const r = o.incele(R.kanitOgeleri(k));
+        bak(r?.kusur.id === k.id, `${e}: ${k.id} incelemede bulunmadı`);
+        bak(o.sorulabilir(k.id), `${e}: ${k.id} sorulamıyor`);
+        const alan = o.isteAlani(k.id);
+        bak(alan !== null && alan === K.gecersizAlani(b, k.id), `${e}: ${k.id} İSTE alanı ${alan}`);
+        if (!alan) continue;
+        const c = o.iste(alan);
+        bak(c && o.iste(alan) === null, `${e}: ${k.id} İSTE iki kez`);
+        if (!c) continue;
+        g17b[c.tur]++;
+        if (c.tur === 'gercek') {
+          if (alan === 'karot') bilgi.karot = b.gercek.betonMpa;
+          else if (alan === 'zemin') bilgi.zemin = b.gercek.zemin;
+          else bilgi[alan] = true;
+          bak(!c.rapor.ipucu && c.rapor.ada === B.ruhsat.ada, `${e}: gerçek belgede ipucu ya da ada farkı`);
+          if (alan === 'ruhsat') bak(c.rapor.ruhsat.imza && !c.rapor.ruhsat.duzeltme, `${e}: gelen ruhsat geçersiz`);
+        } else if (c.tur === 'sahte') {
+          tamam = false;
+          bak(!!c.rapor?.ipucu, `${e}: sahte belgede ipucu yok`);
+          const r2 = o.incele(sahteKanit(c.rapor));
+          bak(r2?.kusur.id === 'sahteRapor', `${e}: sahte ${alan} (${c.rapor.ipucu}) incelemede bulunmadı`);
+          if (r2?.kusur.id === 'sahteRapor') g17b.sahteBulundu++;
+          // Yanıltıcı yön: saklı kusur sahte belgede görünmez.
+          if (K.sakliKusur(b, alan)) {
+            if (alan === 'ruhsat') bak(c.rapor.ruhsat.kat === b.gercek.kat, `${e}: sahte ruhsat kaçak katı gizlemiyor`);
+            if (alan === 'vaziyet')
+              bak(c.rapor.vaziyet.dereM >= T.dereMinM && c.rapor.vaziyet.fayM >= T.fayMinM, `${e}: sahte plan yakınlığı gizlemiyor`);
+            if (alan === 'karot') bak(c.rapor.deger >= T.betonEsikMpa, `${e}: sahte karot gizlemiyor`);
+            if (alan === 'zemin') bak(c.rapor.deger !== 'sivilasma', `${e}: sahte etüt gizlemiyor`);
+          }
+        } else {
+          tamam = false;
+          bak(!c.rapor, `${e}: getiremediği halde belge`);
+        }
+      }
+      const eksikDiger = gor.some((k) => R.EKSIK_BELGE.includes(k.id));
+      const kabul = Object.keys(bilgi).length > 0 ? R.dogruDamgalar(b, g, bilgi) : [ana];
+      bak(kabul[0] === ana, `${e}: kabulün ilki asıl damga değil`);
+      if (tamam && !eksikDiger && ana === 'iade') {
+        // Bütün geçersiz belgelerin düzgünü geldi: gerçek damga da doğru (binanın gerçeğine göre).
+        const gercekD = R.dogruDamga(R.bilgiyleTamamla(b, bilgi), g);
+        bak(gercekD !== 'iade' && kabul.includes(gercekD), `${e}: düzgün belge sonrası gerçek damga (${gercekD}) kabulde yok: ${kabul}`);
+        const s = o.damgala(gercekD);
+        bak(s && s.dogru, `${e}: düzgün belge sonrası gerçek damga yanlış sayıldı`);
+        g17b.gercekDamga++;
+      } else {
+        // Sahte geldi ya da getiremedi: İADE (ya da görünen BOŞALT) doğru.
+        const s = o.damgala(ana);
+        bak(s && s.dogru, `${e}: geçersiz belgede ${ana} yanlış sayıldı`);
+      }
+    }
+  }
+}
+// Doğrudan kurulan binalar: elle düzeltilmiş kat kaçak katı gizler; başka binanın belgesi yok sayılır.
+{
+  const Rng = (await server.ssrLoadModule('/src/game/rng.ts')).Rng;
+  const rng = new Rng(17);
+  for (let i = 0; i < 60; i++) {
+    const b = BLD.kusurluBinaKur(rng, ['elleDuzeltme']);
+    const e = `kurulu elle #${i}`;
+    bak(R.dogruDamga(b, 5) === 'iade', `${e}: İADE değil`);
+    bak(R.dogruDamga(b, 4) !== 'iade', `${e}: gün 4'te elle düzeltme görünüyor`);
+    const d = b.belgeler.ruhsat.duzeltme;
+    if (d?.alan === 'kat') {
+      const gercekD = R.dogruDamga(R.bilgiyleTamamla(b, { ruhsat: true }), 5);
+      bak(gercekD === 'guclendir' || gercekD === 'bosalt', `${e}: düzgün ruhsatta kaçak kat yok (${gercekD})`);
+      bak(R.dogruDamgalar(b, 5, { ruhsat: true }).join() === `iade,${gercekD}`, `${e}: kabul`);
+      // Kâğıttaki (elle yazılmış) kata inanmak: GÜVENLİ, yanlış.
+      bak(!R.dogruDamgalar(b, 5).includes('guvenli'), `${e}: elle yazılmış kata inanan doğru`);
+    }
+  }
+  for (let i = 0; i < 60; i++) {
+    const b = BLD.kusurluBinaKur(rng, ['baskaBina']);
+    const e = `kurulu başka #${i}`;
+    const baska = BLD.baskaBinaBelgesi(b.belgeler);
+    bak(!!baska && R.dogruDamga(b, 5) === 'iade', `${e}: İADE değil`);
+    const sahici = { ...b.belgeler, [baska]: { ...b.belgeler[baska], ada: b.belgeler.ruhsat.ada } };
+    const inanan = R.dogruDamga({ ...b, belgeler: sahici }, 5);
+    bak(!R.dogruDamgalar(b, 5).includes(inanan), `${e}: başka binanın ${baska} belgesine inanan (${inanan}) doğru`);
+    const bilgi = { karot: 1, zemin: 'orta', vaziyet: true };
+    const gercekD = R.dogruDamga(R.bilgiyleTamamla(b, bilgi), 5);
+    bak(gercekD === R.dogruDamga({ ...b, belgeler: { ...b.belgeler, [baska]: baska === 'vaziyet' ? { dereM: b.gercek.dereMesafeM, fayM: b.gercek.fayMesafeM, ada: b.belgeler.ruhsat.ada } : baska === 'karot' ? { mpa: b.gercek.betonMpa, ada: b.belgeler.ruhsat.ada } : { tur: b.gercek.zemin, ada: b.belgeler.ruhsat.ada } } }, 5), `${e}: gerçek belgeyle damga`);
+  }
+  for (let i = 0; i < 20; i++) {
+    const b = BLD.kusurluBinaKur(rng, ['imzaYok']);
+    bak(R.dogruDamga(b, 4) === 'iade' && R.dogruDamga(b, 3) === 'guvenli', `kurulu imza #${i}: gün 4 İADE, gün 3 GÜVENLİ değil`);
+    bak(R.dogruDamgalar(b, 4, { ruhsat: true }).join() === 'iade,guvenli', `kurulu imza #${i}: düzgün ruhsatla GÜVENLİ`);
+  }
+  // Kural kitabı: gün 4'te imza, gün 5'te üç hile aynı satırda ve "YENİ".
+  const kural = R.KURALLAR.find((k) => k.id === R.GECERSIZ_KURALI);
+  bak(R.kuralMetni(kural, 4).includes('imzasız') && !R.kuralMetni(kural, 4).includes('elle'), 'gün 4 geçersiz belge kuralı metni');
+  bak(['elle', 'başka', 'imzasız', 'İADE'].every((x) => R.kuralMetni(kural, 5).includes(x)), 'gün 5 geçersiz belge kuralı metni');
+  bak(R.kuralYeni(kural, 4) && R.kuralYeni(kural, 5) && !R.kuralYeni(kural, 3), 'geçersiz belge kuralı YENİ günleri');
+}
+console.log('G17b (tohum 1-60, gün 1-5):', JSON.stringify(g17b));
 
 console.log(`${sayi} denetim, ${hata} hata`);
 console.log(`Kural: fay yakını = ${T.fayKurali === 'bosalt' ? 'her zaman BOŞALT' : 'zemine bağlı (dere gibi)'}`);

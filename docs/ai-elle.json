@@ -120,5 +120,26 @@
     "yer": "src/game/diyalog.ts, src/game/gazete.ts, src/game/rules.ts (rapor kuralı)",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-16T21:49:28.079Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G17b belge hileleri: geçersiz belge kuralı, üretici, İSTE/SOR genişletmesi ve adalet denetimi (Python değiştirme betiğiyle düzenlendi)",
+    "yer": "src/game/{building,rules,kisi,session,days,tuning,ornek}.ts, src/scenes/GameScene.ts, src/desk/{Inspect,RuleBook,Street,yerlesim}.ts, scripts/adalet.mjs",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-16T22:19:40.957Z"
+  },
+  {
+    "kategori": "visual",
+    "amac": "G17b belgelerde ada/parsel satırları, kodla piksel imza, daksil + mavi kalem elle düzeltme çizimi (Python değiştirme betiğiyle düzenlendi)",
+    "yer": "src/desk/documents.ts (ruhsat, vaziyet planı, karot, zemin etüdü, getirilen belgeler)",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-16T22:19:41.016Z"
+  },
+  {
+    "kategori": "text",
+    "amac": "G17b yer tutucu diyalog satırları ve kural metni (takım yazacak)",
+    "yer": "src/game/diyalog.ts (SOR: elle düzeltme, başka bina, imza; İSTE belge), src/game/rules.ts (geçersiz belge kuralı)",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-16T22:19:41.076Z"
   }
 ]

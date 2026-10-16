@@ -42,6 +42,21 @@ export const TUNING = {
   /** Gerçek ruhsatta mühür yılı, yapım yılından kaç yıl önce (0 = aynı yıl). */
   gercekMuhurFark: { min: 0, max: 2 },
 
+  /**
+   * Belge hileleri (G17b): geçersiz belge eksik belge gibi işler (düzgününü iste, getiremezse İADE). Günler:
+   * imzasız ruhsat gün 4, elle düzeltme ve başka binanın belgesi gün 5 (kural kitabında tek satır).
+   */
+  belgeHile: {
+    imzaGun: 4,
+    elleBaskaGun: 5,
+    /** Elle düzeltmede kat sayısı payı (kalanı yapım yılı). Kat düzeltmesi kaçak katı gizler. */
+    elleKatOrani: 0.7,
+    /** Elle düzeltilmiş yapım yılı asıl yıldan kaç yıl ileri. */
+    yilIleri: { min: 8, max: 20 },
+    /** Başka binanın belgesinde (asıl binada saklı kusur yoksa) kötü değer görünme olasılığı. */
+    baskaKotuOrani: 0.5,
+  },
+
   /** Üretici olasılıkları. */
   olasilik: {
     /** Gün dosyalarında kusursuz bina oranı. */

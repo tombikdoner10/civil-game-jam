@@ -62,6 +62,22 @@ export const SOR_METIN: Record<SorulanKusur, Record<SorTuru, string[]>> = {
     itiraf: ['[Raporu bir tanıdık hazırladı]', '[Gerçek raporu bulamadım]'],
     zarf: ['[Raporu kabul etseniz, {para}]', '[Bu rapor olur, değil mi?]'],
   },
+  // G17b geçersiz belge
+  elleDuzeltme: {
+    bahane: ['[Memur yanlış yazmış, biz düzelttik]', '[Daksil değil o, kâğıt eski]', '[Rakam silinmişti, yeniden yazdık]'],
+    itiraf: ['[Kat sayısını ben düzelttim]', '[Eski rakam işimize gelmiyordu]'],
+    zarf: ['[Bir rakam için uğraşmayalım, {para}]', '[Bu düzeltmeyi görmeseniz?]'],
+  },
+  baskaBina: {
+    bahane: ['[Parsel numarası yanlış basılmış]', '[Aynı ada, ne fark eder?]', '[Komşunun planı karışmış]'],
+    itiraf: ['[Bizimkini bulamadım, komşununkini getirdim]', '[Bizim rapor kötü çıkınca bunu koyduk]'],
+    zarf: ['[Numara meselesi, {para}]', '[Parseli düzeltiriz, bunu geçseniz?]'],
+  },
+  imzaYok: {
+    bahane: ['[Memur imzayı unutmuş]', '[İmza arkada olacaktı]', '[Fotokopide çıkmamış]'],
+    itiraf: ['[İmzalatmaya vaktim olmadı]', '[Belediyede imzalatamadım]'],
+    zarf: ['[İmza işini aramızda halletsek, {para}]', '[İmzasız da olur, değil mi?]'],
+  },
 };
 
 /** İSTE cevabının türü: gerçek raporu getirir, sahte rapor getirir ya da getiremez. */
@@ -71,6 +87,13 @@ export const ISTE_METIN: Record<IsteTuru, string[]> = {
   gercek: ['[Buyrun, raporum burada]', '[Çantamdaymış, işte]', '[Laboratuvardan dün aldım]'],
   sahte: ['[Raporum var tabii, buyrun]', '[İşte rapor, her şey yolunda]', '[Laboratuvar yeni verdi]'],
   yok: ['[Yarın getiririm]', '[Rapor evde kaldı]', '[Laboratuvar daha vermedi]'],
+};
+
+/** Geçersiz belgenin (ruhsat, vaziyet planı, başka binanın raporu) düzgününü İSTE (G17b). */
+export const ISTE_BELGE_METIN: Record<IsteTuru, string[]> = {
+  gercek: ['[Haklısınız, asıl belge bu]', '[Buyrun, düzgünü burada]', '[Pardon, doğrusu bu]'],
+  sahte: ['[Buyrun, bu kesin doğru]', '[İşte asıl belge]', '[Bu sefer tamam, bakın]'],
+  yok: ['[Asıl belge bende yok]', '[Belediyeden almam lazım]', '[Başka belgem yok]'],
 };
 
 /** Zarfa verilen karşılık. */

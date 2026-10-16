@@ -1,6 +1,6 @@
 import { Rng } from './rng';
 import { TUNING } from './tuning';
-import { gorunenKusurlar, KURALLAR } from './rules';
+import { gorunenKusurlar, KURALLAR, kuralKusurlari, yeniKusurlari } from './rules';
 import { HIKAYELER, hikayeBinasiKur } from './stories';
 
 // ---- Temel tipler ----
@@ -10,7 +10,7 @@ export type Demir = 'nervurlu' | 'duz';
 export type Catlak = 'yok' | 'kilcal' | 'capraz';
 /** Damgalar. İADE: dosya eksik ve tamamlanamadı; bina denetlenmeden geri çevrilir (içinde insanlar kalır). */
 export type Damga = 'guvenli' | 'guclendir' | 'bosalt' | 'iade';
-/** Kusurun gerektirdiği damga. 'iade': eksik belge (karot ya da zemin etüdü yok). */
+/** Kusurun gerektirdiği damga. 'iade': eksik ya da geçersiz belge (karot / zemin etüdü yok, belge geçersiz). */
 export type Ciddiyet = 'guclendir' | 'bosalt' | 'iade';
 
 export type KusurId =
@@ -25,14 +25,18 @@ export type KusurId =
   | 'caprazCatlak'
   | 'sahteBelge'
   /** Gişeden getirilen sahte rapor (G17). Binanın değil oturumun kusuru: üretici kullanmaz. */
-  | 'sahteRapor';
+  | 'sahteRapor'
+  /** Geçersiz belge (G17b): ruhsatta elle düzeltilmiş değer, başka binanın belgesi, imzasız ruhsat. Eksik belge gibi. */
+  | 'elleDuzeltme'
+  | 'baskaBina'
+  | 'imzaYok';
 
 export type BelgeTuru = 'ruhsat' | 'proje' | 'foto' | 'karot' | 'zemin' | 'vaziyet';
 
 /**
  * Belge üzerinde tıklanabilir bir alan.
- * Alan adları: ruhsat: kat | yil | muhur; proje: kolon; foto: kat | kolon | catlak;
- * karot: mpa; zemin: tur | rapor; vaziyet: dere | fay.
+ * Alan adları: ruhsat: kat | yil | muhur | ada | imza; proje: kolon; foto: kat | kolon | catlak;
+ * karot: mpa | ada; zemin: tur | rapor | ada; vaziyet: dere | fay | ada.
  */
 export interface AlanRef {
   belge: BelgeTuru;
@@ -60,6 +64,11 @@ export interface Kural {
   kusurlar: KusurId[];
   /** Yer tutucu kural kitabı metni. */
   metin: string;
+  /**
+   * Kural sonraki bir günde genişler (G17b geçersiz belge): o günden itibaren ek kusurlar da kapsanır ve kitapta
+   * metin yerine ek metin yazar; kural o gün yeniden "YENİ" sayılır.
+   */
+  ek?: { gun: number; kusurlar: KusurId[]; metin: string };
 }
 
 // ---- Bina ----
@@ -80,11 +89,22 @@ export interface GercekDurum {
   ruhsatSahte: boolean;
 }
 
+/** Elle düzeltilebilen ruhsat alanları (G17b). */
+export type DuzeltmeAlani = 'kat' | 'yil';
+
 export interface Ruhsat {
+  /** Kâğıtta yazan kat sayısı (elle düzeltilmişse mavi kalemle yazılan). */
   kat: number;
+  /** Kâğıtta yazan yapım yılı (elle düzeltilmişse mavi kalemle yazılan). */
   yil: number;
   /** Mühür yılı. Sahte belgede yapım yılından sonradır. */
   muhurYili: number;
+  /** Ada / parsel ("112 / 7"). Ruhsattaki her zaman binanın kendisi. */
+  ada: string;
+  /** İmza var mı (yoksa boş çizgi; G17b). */
+  imza: boolean;
+  /** Elle düzeltme (daksil + mavi kalem): hangi alan ve daksilin altındaki asıl değer. */
+  duzeltme?: { alan: DuzeltmeAlani; asil: number };
 }
 export interface ProjeOzeti {
   zeminKolonSayisi: number;
@@ -98,13 +118,46 @@ export interface Fotograf {
 }
 export interface KarotSonucu {
   mpa: number;
+  /** Ada / parsel: ruhsattakinden farklıysa başka binanın belgesi (G17b). */
+  ada: string;
 }
 export interface ZeminEtudu {
   tur: Zemin;
+  ada: string;
 }
 export interface VaziyetPlani {
   dereM: number;
   fayM: number;
+  ada: string;
+  /** Yalnızca gişeden getirilen sahte planda: elle düzeltilmiş mesafe (asıl değer daksilin altında). */
+  duzeltme?: { alan: 'dere' | 'fay'; asil: number };
+}
+
+/** Başka binanın belgesi olabilen belgeler (G17b; ruhsat her zaman binanın kendisi). */
+export type BaskaBelge = 'vaziyet' | 'karot' | 'zemin';
+
+/** Ruhsatın geçerli (düzgün) hâli: düzeltme geri alınmış, imzalı. */
+export function gecerliRuhsat(r: Ruhsat): Ruhsat {
+  if (!r.duzeltme && r.imza) return r;
+  const out: Ruhsat = { kat: r.kat, yil: r.yil, muhurYili: r.muhurYili, ada: r.ada, imza: true };
+  if (r.duzeltme) out[r.duzeltme.alan] = r.duzeltme.asil;
+  return out;
+}
+
+/** Ruhsatın geçersizlik nedeni (elle düzeltme ya da imza yok); geçerliyse null. */
+export function ruhsatGecersiz(r: Ruhsat): 'elleDuzeltme' | 'imzaYok' | null {
+  if (r.duzeltme) return 'elleDuzeltme';
+  if (!r.imza) return 'imzaYok';
+  return null;
+}
+
+/** Ada / parseli ruhsattakinden farklı olan (başka binaya ait) belge; yoksa null. */
+export function baskaBinaBelgesi(B: Belgeler): BaskaBelge | null {
+  const ada = B.ruhsat.ada;
+  if (B.vaziyet.ada !== ada) return 'vaziyet';
+  if (B.karot && B.karot.ada !== ada) return 'karot';
+  if (B.zemin && B.zemin.ada !== ada) return 'zemin';
+  return null;
 }
 
 export interface Belgeler {
@@ -159,6 +212,13 @@ export interface BinaEk {
 const CATISAN: [KusurId, KusurId][] = [
   ['sivilasma', 'zeminEtuduYok'],
   ['dusukBeton', 'karotYok'],
+  // Ruhsatta tek hile (G17b); geçersiz ruhsatta kaçak kat yalnızca elle düzeltmenin arkasında saklı olur
+  // (görünen kat fotoğrafla aynı: oyuncu "kaçak kat" ile "geçersiz belge" arasında kalmasın).
+  ['elleDuzeltme', 'imzaYok'],
+  ['elleDuzeltme', 'sahteBelge'],
+  ['imzaYok', 'sahteBelge'],
+  ['elleDuzeltme', 'kacakKat'],
+  ['imzaYok', 'kacakKat'],
 ];
 
 function catisir(a: KusurId, secili: KusurId[]): boolean {
@@ -167,14 +227,41 @@ function catisir(a: KusurId, secili: KusurId[]): boolean {
 
 function aktifKusurlar(gun: number): KusurId[] {
   const out: KusurId[] = [];
-  for (const k of KURALLAR) if (k.ilkGun <= gun) out.push(...k.kusurlar);
+  for (const k of KURALLAR) out.push(...kuralKusurlari(k, gun));
   return out;
 }
 
 function pasifKusurlar(gun: number): KusurId[] {
+  const aktif = aktifKusurlar(gun);
   const out: KusurId[] = [];
-  for (const k of KURALLAR) if (k.ilkGun > gun) out.push(...k.kusurlar);
+  for (const k of KURALLAR) out.push(...kuralKusurlari(k, Infinity).filter((id) => !aktif.includes(id)));
   return out;
+}
+
+/**
+ * Ada / parsel, binanın öbür değerlerinden türetilir (üreticinin rastgele dizisini tüketmez: eski günlerin
+ * dosyaları aynı kalsın).
+ */
+function adaUret(id: string, yil: number, kat: number, kolon: number, mpa: number): string {
+  let h = 2166136261;
+  for (const c of `${id}:${yil}:${kat}:${kolon}:${mpa}`) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+  h >>>= 0;
+  return `${100 + (h % 880)} / ${1 + ((h >>> 12) % 38)}`;
+}
+
+/**
+ * Başka binanın ada / parseli: dikkatli bakınca görülsün diye tek bir rakam değişir (parsel ya da adanın son
+ * hanesi).
+ */
+export function baskaAda(ada: string, rng: Rng): string {
+  const [a, p] = ada.split(' / ').map(Number);
+  if (rng.chance(0.5)) {
+    const yeni = p + (rng.chance(0.5) ? 1 : -1) * rng.int(1, 3);
+    return `${a} / ${yeni >= 1 ? yeni : p + rng.int(1, 3)}`;
+  }
+  const son = a % 10;
+  const fark = rng.int(1, 3);
+  return `${a - son + ((son + fark) % 10)} / ${p}`;
 }
 
 /** Fotoğraf, gerçek durumdan türetilir. */
@@ -194,7 +281,22 @@ export function kusurluBinaKur(rng: Rng, kusurlar: readonly KusurId[], ek: BinaE
 
   const yil = ek.yil ?? rng.int(T.yil.min, T.yil.max);
   const ruhsatKat = ek.ruhsatKat ?? rng.int(T.kat.min, T.kat.max);
-  const kat = ruhsatKat + (has('kacakKat') ? (ek.kacakFark ?? rng.int(T.kacakKatEkle.min, T.kacakKatEkle.max)) : 0);
+  // Belge hileleri (G17b): yalnızca bu kusurlar seçildiyse rastgele dizi tüketilir (eski günler değişmesin).
+  const H = T.belgeHile;
+  const elleAlan: DuzeltmeAlani | null = has('elleDuzeltme') ? (rng.chance(H.elleKatOrani) ? 'kat' : 'yil') : null;
+  // Elle düzeltilmiş kat: kâğıtta yazan kat fotoğrafla aynı, daksilin altındaki asıl kat düşük (kaçak kat saklı).
+  const elleKacak = elleAlan === 'kat' ? rng.int(T.kacakKatEkle.min, T.kacakKatEkle.max) : 0;
+  let baska: BaskaBelge | null = null;
+  let baskaSakli = false;
+  if (has('baskaBina')) {
+    const adaylar: BaskaBelge[] = ['vaziyet'];
+    if (!has('karotYok')) adaylar.push('karot');
+    if (!has('zeminEtuduYok')) adaylar.push('zemin');
+    baska = rng.pick(adaylar);
+    baskaSakli = rng.chance(T.olasilik.eksikBelgeSakliKusur);
+  }
+  const kat =
+    ruhsatKat + elleKacak + (has('kacakKat') ? (ek.kacakFark ?? rng.int(T.kacakKatEkle.min, T.kacakKatEkle.max)) : 0);
 
   const kolonSayisi = rng.int(T.kolon.min, T.kolon.max);
   const kesik: number[] = [];
@@ -206,19 +308,19 @@ export function kusurluBinaKur(rng: Rng, kusurlar: readonly KusurId[], ek: BinaE
   }
 
   // Eksik belgenin arkasında gerçek kusur saklı olabilir (İADE edilen bina depremde gerçek durumuyla sınanır).
-  const sakliBeton = has('karotYok') && rng.chance(T.olasilik.eksikBelgeSakliKusur);
+  const sakliBeton = (has('karotYok') && rng.chance(T.olasilik.eksikBelgeSakliKusur)) || (baska === 'karot' && baskaSakli);
   const betonMpa = has('dusukBeton') || sakliBeton
     ? rng.int(T.betonDusuk.min, T.betonDusuk.max)
     : rng.int(T.betonIyi.min, T.betonIyi.max);
 
-  const dereMesafeM = has('dereyeYakin')
+  const dereMesafeM = has('dereyeYakin') || (baska === 'vaziyet' && baskaSakli)
     ? rng.int(T.dereKotu.min, T.dereKotu.max)
     : rng.int(T.dereIyi.min, T.dereIyi.max);
   const fayMesafeM = has('fayaYakin')
     ? rng.int(T.fayKotu.min, T.fayKotu.max)
     : rng.int(T.fayIyi.min, T.fayIyi.max);
 
-  const sakliZemin = has('zeminEtuduYok') && rng.chance(T.olasilik.eksikBelgeSakliKusur);
+  const sakliZemin = (has('zeminEtuduYok') && rng.chance(T.olasilik.eksikBelgeSakliKusur)) || (baska === 'zemin' && baskaSakli);
   const zemin: Zemin = has('sivilasma') || sakliZemin
     ? 'sivilasma'
     : rng.chance(T.olasilik.zeminSaglam)
@@ -256,14 +358,40 @@ export function kusurluBinaKur(rng: Rng, kusurlar: readonly KusurId[], ek: BinaE
     : yil - rng.int(T.gercekMuhurFark.min, T.gercekMuhurFark.max);
 
 
+  const ada = adaUret(ek.id ?? 'bina', yil, ruhsatKat, kolonSayisi, betonMpa);
+  const ruhsat: Ruhsat = { kat: ruhsatKat, yil, muhurYili, ada, imza: !has('imzaYok') };
+  if (elleAlan === 'kat') {
+    ruhsat.kat = kat;
+    ruhsat.duzeltme = { alan: 'kat', asil: ruhsatKat };
+  } else if (elleAlan === 'yil') {
+    // Yapım yılı yeni yönetmelik sonrasına çekilmiş (bina daha yeni görünsün).
+    ruhsat.yil = Math.min(T.yil.max + 4, Math.max(yil + rng.int(H.yilIleri.min, H.yilIleri.max), T.eskiYapiYili + 1));
+    ruhsat.duzeltme = { alan: 'yil', asil: yil };
+  }
+
   const belgeler: Belgeler = {
-    ruhsat: { kat: ruhsatKat, yil, muhurYili },
+    ruhsat,
     proje: { zeminKolonSayisi: kolonSayisi },
     foto: fotografUret(gercek),
-    karot: has('karotYok') ? null : { mpa: betonMpa },
-    zemin: has('zeminEtuduYok') ? null : { tur: zemin },
-    vaziyet: { dereM: dereMesafeM, fayM: fayMesafeM },
+    karot: has('karotYok') ? null : { mpa: betonMpa, ada },
+    zemin: has('zeminEtuduYok') ? null : { tur: zemin, ada },
+    vaziyet: { dereM: dereMesafeM, fayM: fayMesafeM, ada },
   };
+  // Başka binanın belgesi: ada / parsel farklı; değerler o binanın. Asıl binada saklı kusur varsa yabancı belge
+  // onu gizler (iyi görünür); yoksa yarı yarıya kötü görünür (inanan yanlış damga vurur).
+  if (baska) {
+    const kotu = !baskaSakli && rng.chance(H.baskaKotuOrani);
+    const yAda = baskaAda(ada, rng);
+    if (baska === 'vaziyet')
+      belgeler.vaziyet = {
+        dereM: kotu ? rng.int(T.dereKotu.min, T.dereKotu.max) : rng.int(T.dereIyi.min, T.dereIyi.max),
+        fayM: rng.int(T.fayIyi.min, T.fayIyi.max),
+        ada: yAda,
+      };
+    else if (baska === 'karot')
+      belgeler.karot = { mpa: kotu ? rng.int(T.betonDusuk.min, T.betonDusuk.max) : rng.int(T.betonIyi.min, T.betonIyi.max), ada: yAda };
+    else belgeler.zemin = { tur: kotu ? 'sivilasma' : rng.chance(0.6) ? 'saglam' : 'orta', ada: yAda };
+  }
 
   const bina: Bina = {
     id: ek.id ?? 'bina',
@@ -319,7 +447,7 @@ type Plan = 'temiz' | KusurId;
  */
 function gunPlani(rng: Rng, gun: number, adet: number): Plan[] {
   const aktif = aktifKusurlar(gun);
-  const yeni = KURALLAR.filter((k) => k.ilkGun === gun).flatMap((k) => k.kusurlar);
+  const yeni = KURALLAR.flatMap((k) => yeniKusurlari(k, gun));
   const eski = aktif.filter((k) => !yeni.includes(k));
   const plan: Plan[] = [];
   if (gun === 1) {
@@ -431,6 +559,7 @@ export function gunDosyalari(tohum: number, gun: number, adet: number, secenek: 
   }
   // Sahte belge kuralı gelmeden mühür yılı yapım yılıyla aynı: fark, oyuncuya kusur gibi görünmesin.
   const sahteGunu = KURALLAR.find((k) => k.kusurlar.includes('sahteBelge'))?.ilkGun ?? Infinity;
+  // (Geçersiz belge hileleri kuralı gelmeden üretilmez: aktifKusurlar.)
   if (gun < sahteGunu) for (const b of dosyalar) if (!b.gercek.ruhsatSahte) b.belgeler.ruhsat.muhurYili = b.yil;
   return dosyalar;
 }

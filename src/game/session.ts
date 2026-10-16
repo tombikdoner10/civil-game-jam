@@ -1,8 +1,9 @@
 import type { Bina, Damga, Kusur, KusurId, Zemin } from './building';
-import { gunDosyalari } from './building';
+import { baskaBinaBelgesi, gunDosyalari } from './building';
 import { gunAyar, type GunAyar } from './days';
 import type { IsteTuru } from './diyalog';
 import {
+  gecersizAlani,
   ipucuAlani,
   ISTE_KUSURU,
   isteCevabi,
@@ -10,6 +11,7 @@ import {
   sorCevabi,
   sorulabilir,
   type GetirilenRapor,
+  type IsteAlani,
   type IsteCevap,
   type Kisi,
   type SorCevap,
@@ -19,6 +21,7 @@ import {
   buyukDepremSonucu,
   dogruDamgalar,
   fizikselKusurlar,
+  GECERSIZ_KURALI,
   gorunenKusurlar,
   KUSUR_BILGI,
   RAPOR_KURALI,
@@ -33,8 +36,8 @@ export type { EdinilenBilgi } from './rules';
 
 /** Bilginin kaynağı: dosyadaki belge, gişedeki kişiden isteme (G17) ya da saha testi (G19). */
 export type BilgiKaynak = 'belge' | 'iste' | 'saha';
-/** Eksik olabilen belgelerin bilgisi. */
-export type BilgiAlani = 'karot' | 'zemin';
+/** Eksik ya da geçersiz olabilen belgelerin bilgisi (ruhsat ve vaziyet planı G17b). */
+export type BilgiAlani = IsteAlani;
 
 /** Dosya başına edinilen bilgi ve kaynağı (G17 İSTE ve G19 saha testi `bilgiEdin` ile doldurur). */
 export interface DosyaBilgisi {
@@ -350,16 +353,29 @@ export class GunOturumu {
     if (this.zarfTeklif && this.zarfTeklif.kabul === undefined) this.zarfTeklif.kabul = kabul;
   }
 
-  /** Eksik belge bu dosyada istenebilir mi (belge yok, kuralı gelmiş, daha önce istenmemiş). */
+  /**
+   * Belge bu dosyada istenebilir mi (daha önce istenmemiş): eksik belge (yok, kuralı gelmiş) ya da geçersiz belge
+   * (G17b: elle düzeltilmiş, başka binaya ait, imzasız; kusuru inceleme modunda bulunmuş olmalı).
+   */
   istenebilir(alan: BilgiAlani): boolean {
     const b = this.mevcut;
-    if (!b || this.bitti || !this.ayar.iste || b.belgeler[alan] !== null || this.istenen[alan]) return false;
-    return gorunenKusurlar(b, this.gun).some((k) => k.id === ISTE_KUSURU[alan]);
+    if (!b || this.bitti || !this.ayar.iste || this.istenen[alan]) return false;
+    if ((alan === 'karot' || alan === 'zemin') && b.belgeler[alan] === null)
+      return gorunenKusurlar(b, this.gun).some((k) => k.id === ISTE_KUSURU[alan]);
+    return this.bulunan.some((id) => gecersizAlani(b, id) === alan);
+  }
+
+  /** Bulunan geçersiz belge kusurunun düzgünü istenebiliyorsa istenecek belge (inceleme etiketinde İSTE). */
+  isteAlani(id: KusurId): BilgiAlani | null {
+    const b = this.mevcut;
+    const alan = b ? gecersizAlani(b, id) : null;
+    return alan && this.istenebilir(alan) ? alan : null;
   }
 
   /**
-   * İSTE: eksik belgeyi kişiden iste. Gerçek rapor bilgiyi edindirir (gerçek damga da doğru olur); sahte rapor
-   * edindirmez (doğru damga İADE kalır; inceleme modunda "Sahte rapor" bulunur); getiremezse kart gelmez.
+   * İSTE: eksik belgeyi ya da geçersiz belgenin düzgününü kişiden iste. Gerçek belge bilgiyi edindirir (gerçek
+   * damga da doğru olur); sahte belge edindirmez (doğru damga İADE kalır; inceleme modunda "Sahte rapor"
+   * bulunur); getiremezse kart gelmez.
    */
   iste(alan: BilgiAlani): IsteCevap | null {
     const b = this.mevcut;
@@ -369,7 +385,8 @@ export class GunOturumu {
     this.istenen[alan] = c;
     if (c.tur === 'gercek' && c.rapor) {
       if (alan === 'karot') this.bilgiEdin('karot', c.rapor.deger as number, 'iste');
-      else this.bilgiEdin('zemin', c.rapor.deger as Zemin, 'iste');
+      else if (alan === 'zemin') this.bilgiEdin('zemin', c.rapor.deger as Zemin, 'iste');
+      else this.bilgiEdin(alan, true, 'iste');
     }
     return c;
   }
@@ -398,10 +415,12 @@ export class GunOturumu {
    */
   bilgiEdin(alan: 'karot', deger: number, kaynak: BilgiKaynak): void;
   bilgiEdin(alan: 'zemin', deger: Zemin, kaynak: BilgiKaynak): void;
-  bilgiEdin(alan: BilgiAlani, deger: number | Zemin, kaynak: BilgiKaynak): void {
+  bilgiEdin(alan: 'ruhsat' | 'vaziyet', deger: true, kaynak: BilgiKaynak): void;
+  bilgiEdin(alan: BilgiAlani, deger: number | Zemin | true, kaynak: BilgiKaynak): void {
     if (!this.mevcut || this.bitti) return;
     if (alan === 'karot') this.bilgi.bilgi.karot = deger as number;
-    else this.bilgi.bilgi.zemin = deger as Zemin;
+    else if (alan === 'zemin') this.bilgi.bilgi.zemin = deger as Zemin;
+    else this.bilgi.bilgi[alan] = true;
     this.bilgi.kaynak[alan] = kaynak;
   }
 
@@ -413,11 +432,13 @@ export class GunOturumu {
     this.zarfTeklif = undefined;
     const B = b?.belgeler;
     const d: DosyaBilgisi = { bilgi: {}, kaynak: {} };
-    if (B?.karot) {
+    // Başka binanın belgesi bilgi saymaz (G17b).
+    const baska = B ? baskaBinaBelgesi(B) : null;
+    if (B?.karot && baska !== 'karot') {
       d.bilgi.karot = B.karot.mpa;
       d.kaynak.karot = 'belge';
     }
-    if (B?.zemin) {
+    if (B?.zemin && baska !== 'zemin') {
       d.bilgi.zemin = B.zemin.tur;
       d.kaynak.zemin = 'belge';
     }
@@ -430,7 +451,9 @@ export class GunOturumu {
     const out: EdinilenBilgi = {};
     if (kaynak.karot && kaynak.karot !== 'belge') out.karot = bilgi.karot;
     if (kaynak.zemin && kaynak.zemin !== 'belge') out.zemin = bilgi.zemin;
-    return out.karot !== undefined || out.zemin !== undefined ? out : undefined;
+    if (kaynak.ruhsat && kaynak.ruhsat !== 'belge') out.ruhsat = true;
+    if (kaynak.vaziyet && kaynak.vaziyet !== 'belge') out.vaziyet = true;
+    return Object.keys(out).length > 0 ? out : undefined;
   }
 
   get mevcut(): Bina | undefined {
@@ -465,30 +488,45 @@ export class GunOturumu {
   incele(secim: readonly SecimRef[]): IncelemeSonucu | null {
     const b = this.mevcut;
     if (!b || this.bitti) return null;
-    const kusur = this.sahteKaniti(secim) ?? seciminKusuru(b, this.gun, secim) ?? this.gorunenSecim(b, secim);
+    // Gişeden gerçek belge geldiyse belgeler onunla (ör. düzgün ruhsattaki kat, gelen karottaki düşük beton);
+    // sahte belgeyle değişen kartın alanları dosyanın eski kusurlarını kanıtlamaz.
+    const dis = this.disBilgi();
+    const etkin = dis ? bilgiyleTamamla(b, dis) : b;
+    const degisen = new Set(this.sahteRaporlar.map((r) => r.alan as string));
+    const eski = seciminKusuru(etkin, this.gun, secim);
+    const kusur = this.sahteKaniti(secim) ?? (eski && !eski.kanit.some((k) => degisen.has(k.belge)) ? eski : null);
     if (!kusur) return null;
     const yeni = !this.bulunan.includes(kusur.id);
     if (yeni) this.bulunan.push(kusur.id);
     return { kusur, yeni };
   }
 
-  /** İSTE ile gerçek rapor geldiyse, raporun değeriyle bulunabilen kusur (ör. düşük beton). */
-  private gorunenSecim(b: Bina, secim: readonly SecimRef[]): Kusur | null {
-    const dis = this.disBilgi();
-    return dis ? seciminKusuru(bilgiyleTamamla(b, dis), this.gun, secim) : null;
-  }
-
-  /** Sahte raporun kanıtı: rapor kartındaki ipucu alanı ve rapor kuralı (sırası önemsiz). */
+  /**
+   * Sahte belgenin kanıtı (sırası önemsiz): kartındaki ipucu alanı ve kural satırı (mühür ve tarih: rapor kuralı;
+   * elle düzeltme: rapor ya da geçersiz belge kuralı; imza: geçersiz belge kuralı) ya da ada / parselde ruhsat
+   * ile getirilen planın ada / parseli.
+   */
   private sahteKaniti(secim: readonly SecimRef[]): Kusur | null {
     if (secim.length !== 2) return null;
+    const esit = (kanit: SecimRef[]): boolean => kanit.every((k) => secim.some((s) => s.belge === k.belge && s.alan === k.alan));
     for (const r of this.sahteRaporlar) {
       const alan = ipucuAlani(r);
       if (!alan) continue;
-      const kanit: SecimRef[] = [
-        { belge: r.alan, alan },
-        { belge: 'kural', alan: RAPOR_KURALI },
-      ];
-      if (kanit.every((k) => secim.some((s) => s.belge === k.belge && s.alan === k.alan))) return { id: 'sahteRapor', ...KUSUR_BILGI.sahteRapor };
+      const adaylar: SecimRef[][] = [];
+      if (r.ipucu === 'ada')
+        adaylar.push([
+          { belge: 'ruhsat', alan: 'ada' },
+          { belge: r.alan, alan: 'ada' },
+        ]);
+      else {
+        const kurallar = r.ipucu === 'imza' ? [GECERSIZ_KURALI] : r.ipucu === 'elle' ? [RAPOR_KURALI, GECERSIZ_KURALI] : [RAPOR_KURALI];
+        for (const k of kurallar)
+          adaylar.push([
+            { belge: r.alan, alan },
+            { belge: 'kural', alan: k },
+          ]);
+      }
+      if (adaylar.some(esit)) return { id: 'sahteRapor', ...KUSUR_BILGI.sahteRapor };
     }
     return null;
   }

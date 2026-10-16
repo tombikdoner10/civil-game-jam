@@ -1,5 +1,5 @@
 import type { BelgeTuru, Kural, KusurId } from './building';
-import { aktifKurallar, GOREV_NOTU, KURALLAR } from './rules';
+import { aktifKurallar, GOREV_NOTU, KURALLAR, kuralYeni, yeniKusurlari } from './rules';
 import { TUNING } from './tuning';
 
 /** Oyundaki gün sayısı. Son günün sonunda (şimdilik) sonuç ekranına geçilir; büyük deprem G5'te. */
@@ -10,7 +10,7 @@ export interface GunAyar {
   gun: number;
   /** O gün yürürlükteki bütün kurallar (kural kitabı). */
   kurallar: Kural[];
-  /** O gün ilk kez gelen kurallar (kitapta "YENİ"; üretici bunları ilk iki dosyadan birine koyar). */
+  /** O gün ilk kez gelen ya da genişleyen kurallar (kitapta "YENİ"; üretici bunları ilk iki dosyadan birine koyar). */
   yeniKurallar: Kural[];
   /** Masaya gelen belge türleri (kurallar geldikçe eklenir). */
   belgeler: BelgeTuru[];
@@ -59,7 +59,7 @@ function listeden<T>(liste: readonly T[], gun: number): T {
 /** Günün yapılandırması (gün 1-5; dışındakiler sınıra çekilir). */
 export function gunAyar(gun: number): GunAyar {
   const g = sinirla(gun);
-  const yeni = KURALLAR.filter((k) => k.ilkGun === g);
+  const yeni = KURALLAR.filter((k) => kuralYeni(k, g));
   return {
     gun: g,
     kurallar: aktifKurallar(g),
@@ -78,7 +78,8 @@ export function gunAyar(gun: number): GunAyar {
   };
 }
 
-/** O gün ilk kez gelen kuralların kusurları. */
+/** O gün ilk kez gelen kusurlar (genişleyen kuralda yalnızca eklenenler). */
 export function yeniKusurlar(gun: number): KusurId[] {
-  return gunAyar(gun).yeniKurallar.flatMap((k) => k.kusurlar);
+  const g = sinirla(gun);
+  return gunAyar(g).yeniKurallar.flatMap((k) => yeniKusurlari(k, g));
 }

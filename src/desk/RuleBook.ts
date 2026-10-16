@@ -3,7 +3,7 @@ import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
 import { FONT } from '../config';
 import { tarih } from '../game/diyalog';
-import { aktifKurallar, kuralMetni } from '../game/rules';
+import { aktifKurallar, kuralMetni, kuralYeni } from '../game/rules';
 import { masayaSikistir, ustKatman } from './DocumentCard';
 import type { SecimNesne, Yuzey } from './Inspect';
 import { num, PAL } from './palette';
@@ -54,7 +54,7 @@ export class RuleBook {
     this.kapali.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => this.ac());
 
     this.sayfa = this.sayfaKur();
-    if (aktifKurallar(gun).some((k) => k.ilkGun === gun)) this.yeniIsaretKur();
+    if (aktifKurallar(gun).some((k) => kuralYeni(k, gun))) this.yeniIsaretKur();
   }
 
   get sinir(): Phaser.Geom.Rectangle {
@@ -207,7 +207,7 @@ export class RuleBook {
     this.sayfalar.push(sayfa);
     let y = ust + ICERIK_UST;
     aktifKurallar(this.gun).forEach((k, i) => {
-      const yeni = k.ilkGun === this.gun;
+      const yeni = kuralYeni(k, this.gun);
       const yazi = s.add
         .text(sol + 64, y + 4, kuralMetni(k, this.gun), {
           fontFamily: FONT,

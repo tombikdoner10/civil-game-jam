@@ -1,4 +1,5 @@
-import type { Bina, Ciddiyet, KusurId, Zemin } from './building';
+import type { Bina, Ciddiyet, KusurId, Ruhsat, VaziyetPlani, Zemin } from './building';
+import { baskaAda, baskaBinaBelgesi, gecerliRuhsat } from './building';
 import type { IsteTuru, SorTuru, SorulanKusur } from './diyalog';
 import type { GunAyar } from './days';
 import { Rng } from './rng';
@@ -12,8 +13,10 @@ import { TUNING } from './tuning';
 export type Kisilik = 'durust' | 'kacamak' | 'pazarlikci';
 /** Portre ifadeleri. */
 export type Ifade = 'notr' | 'gergin' | 'kizgin' | 'mahcup' | 'sevincli';
-/** Eksik olabilen belgeler (session.BilgiAlani ile aynı). */
+/** Eksik olabilen belgeler. */
 export type RaporAlani = 'karot' | 'zemin';
+/** Gişedeki kişiden istenebilen belgeler: eksik rapor ya da geçersiz belgenin düzgünü (G17b; session.BilgiAlani). */
+export type IsteAlani = RaporAlani | 'ruhsat' | 'vaziyet';
 
 export interface Kisi {
   /** Portre tohumu (yüz, saç, giysi). */
@@ -100,33 +103,45 @@ export function sorCevabi(
   return { kusur, tur: 'bahane', secim, ifade: 'gergin' };
 }
 
-/** Sahte raporu ele veren ipucu: laboratuvar mührü yok, tarih bugünden ileri ya da değer elle düzeltilmiş. */
-export type SahteIpucu = 'muhur' | 'tarih' | 'elle';
+/**
+ * Sahte belgeyi ele veren ipucu: laboratuvar mührü yok, tarih bugünden ileri, değer elle düzeltilmiş; getirilen
+ * ruhsatta imza yok ya da getirilen planın ada / parseli yine farklı (G17b).
+ */
+export type SahteIpucu = 'muhur' | 'tarih' | 'elle' | 'imza' | 'ada';
 
-/** Getirilen (gerçek ya da sahte) rapor: kartı çizmek ve incelemek için. */
+/** Getirilen (gerçek ya da sahte) belge: kartı çizmek ve incelemek için. */
 export interface GetirilenRapor {
-  alan: RaporAlani;
-  /** Kartta yazan değer (sahtede yanıltıcı). */
+  alan: IsteAlani;
+  /** Kartta yazan değer (sahtede yanıltıcı). Ruhsatta kat, vaziyet planında dere mesafesi. */
   deger: number | Zemin;
   /** Rapor tarihi: bugünden kaç gün sonra (gerçekte eksi). */
   tarihFark: number;
-  /** Sahte rapordaki ipucu; gerçek raporda yok. */
+  /** Kartta yazan ada / parsel. */
+  ada: string;
+  /** Sahte belgedeki ipucu; gerçek belgede yok. */
   ipucu?: SahteIpucu;
+  /** Getirilen ruhsat ya da vaziyet planı (kart normal belge gibi çizilir). */
+  ruhsat?: Ruhsat;
+  vaziyet?: VaziyetPlani;
 }
 
 /**
- * İpucunun rapor kartındaki alanı (inceleme modunda rapor kuralıyla seçilir): mühür yeri, tarih ya da değerin
- * kendisi (karotta 'mpa', zeminde 'tur'; değer alanı gerçek raporda düşük beton ve sıvılaşma kanıtı da olur).
+ * İpucunun kartındaki alanı (inceleme modunda kural satırıyla seçilir): mühür yeri, tarih, elle düzeltilen değer
+ * (karotta 'mpa', zeminde 'tur', ruhsatta 'kat' / 'yil', planda 'dere' / 'fay'), imza ya da ada / parsel.
  */
 export function ipucuAlani(r: GetirilenRapor): string | null {
   if (!r.ipucu) return null;
   if (r.ipucu === 'muhur') return 'lab';
   if (r.ipucu === 'tarih') return 'tarih';
+  if (r.ipucu === 'imza') return 'imza';
+  if (r.ipucu === 'ada') return 'ada';
+  if (r.alan === 'ruhsat') return r.ruhsat?.duzeltme?.alan ?? 'kat';
+  if (r.alan === 'vaziyet') return r.vaziyet?.duzeltme?.alan ?? 'dere';
   return r.alan === 'karot' ? 'mpa' : 'tur';
 }
 
 export interface IsteCevap {
-  alan: RaporAlani;
+  alan: IsteAlani;
   tur: IsteTuru;
   secim: number;
   ifade: Ifade;
@@ -134,9 +149,56 @@ export interface IsteCevap {
   rapor?: GetirilenRapor;
 }
 
-/** Eksik belgenin arkasında gerçek kusur saklı mı (düşük beton ya da sıvılaşma). */
-export function sakliKusur(bina: Bina, alan: RaporAlani): boolean {
-  return alan === 'karot' ? bina.gercek.betonMpa < TUNING.betonEsikMpa : bina.gercek.zemin === 'sivilasma';
+/**
+ * Eksik ya da geçersiz belgenin arkasında gerçek kusur saklı mı: düşük beton, sıvılaşma, kaçak kat (elle
+ * düzeltilmiş kat) ya da dereye / faya yakınlık (başka binanın planı).
+ */
+export function sakliKusur(bina: Bina, alan: IsteAlani): boolean {
+  const g = bina.gercek;
+  if (alan === 'karot') return g.betonMpa < TUNING.betonEsikMpa;
+  if (alan === 'zemin') return g.zemin === 'sivilasma';
+  if (alan === 'ruhsat') return gecerliRuhsat(bina.belgeler.ruhsat).kat !== g.kat;
+  return g.dereMesafeM < TUNING.dereMinM || g.fayMesafeM < TUNING.fayMinM;
+}
+
+/**
+ * Getirilen sahte ruhsat ya da vaziyet planı (G17b): değer oyuncuyu yanıltacak yönde (kaçak kat gizlenir, yakın
+ * dere / fay uzak görünür); tek ipucu: ruhsatta elle düzeltme ya da imza yok, planda elle düzeltme ya da yine
+ * başka binanın ada / parseli.
+ */
+function sahteBelge(r: Rng, bina: Bina, alan: 'ruhsat' | 'vaziyet', sakli: boolean): GetirilenRapor {
+  const g = bina.gercek;
+  const R = gecerliRuhsat(bina.belgeler.ruhsat);
+  const T = TUNING;
+  const tarihFark = -r.int(T.kisi.iste.gercekTarihOnce.min, T.kisi.iste.gercekTarihOnce.max);
+  if (alan === 'ruhsat') {
+    const ipucu = r.pick<SahteIpucu>(['elle', 'imza']);
+    const ruhsat: Ruhsat = { ...R };
+    if (ipucu === 'imza') {
+      ruhsat.imza = false;
+      if (sakli) ruhsat.kat = g.kat;
+    } else if (sakli) {
+      ruhsat.kat = g.kat;
+      ruhsat.duzeltme = { alan: 'kat', asil: R.kat };
+    } else {
+      ruhsat.yil = Math.min(T.yil.max + 4, Math.max(R.yil + r.int(T.belgeHile.yilIleri.min, T.belgeHile.yilIleri.max), T.eskiYapiYili + 1));
+      ruhsat.duzeltme = { alan: 'yil', asil: R.yil };
+    }
+    return { alan, deger: ruhsat.kat, tarihFark, ada: R.ada, ipucu, ruhsat };
+  }
+  const iyiDere = r.int(T.dereIyi.min, T.dereIyi.max);
+  const iyiFay = r.int(T.fayIyi.min, T.fayIyi.max);
+  const ipucu = r.pick<SahteIpucu>(['elle', 'ada']);
+  let vaziyet: VaziyetPlani;
+  if (ipucu === 'ada') {
+    vaziyet = { dereM: sakli ? iyiDere : g.dereMesafeM, fayM: sakli ? iyiFay : g.fayMesafeM, ada: baskaAda(R.ada, r) };
+  } else {
+    const fay = g.fayMesafeM < T.fayMinM && g.dereMesafeM >= T.dereMinM;
+    vaziyet = fay
+      ? { dereM: g.dereMesafeM, fayM: iyiFay, ada: R.ada, duzeltme: { alan: 'fay', asil: g.fayMesafeM } }
+      : { dereM: sakli ? iyiDere : g.dereMesafeM + r.int(20, 60), fayM: g.fayMesafeM, ada: R.ada, duzeltme: { alan: 'dere', asil: g.dereMesafeM } };
+  }
+  return { alan, deger: vaziyet.dereM, tarihFark, ada: vaziyet.ada, ipucu, vaziyet };
 }
 
 /**
@@ -144,7 +206,7 @@ export function sakliKusur(bina: Bina, alan: RaporAlani): boolean {
  * oyuncuyu yanıltacak yönde (düşük beton yüksek, sıvılaşma sağlam görünür). Sahte rapor günü gelmediyse
  * sahte yerine getiremez.
  */
-export function isteCevabi(tohum: number, bina: Bina, kisi: Kisi, alan: RaporAlani, ayar: GunAyar): IsteCevap {
+export function isteCevabi(tohum: number, bina: Bina, kisi: Kisi, alan: IsteAlani, ayar: GunAyar): IsteCevap {
   const r = rng(tohum, bina, `iste:${alan}`);
   const I = TUNING.kisi.iste;
   const sakli = sakliKusur(bina, alan);
@@ -159,10 +221,21 @@ export function isteCevabi(tohum: number, bina: Bina, kisi: Kisi, alan: RaporAla
   const tur = agirlikli<IsteTuru>(r, w);
   const secim = r.int(0, 999);
   if (tur === 'yok') return { alan, tur, secim, ifade: 'mahcup' };
-  const gercekDeger = alan === 'karot' ? bina.gercek.betonMpa : bina.gercek.zemin;
+  const g = bina.gercek;
+  const ada = bina.belgeler.ruhsat.ada;
+  if (alan === 'ruhsat' || alan === 'vaziyet') {
+    if (tur === 'sahte') return { alan, tur, secim, ifade: 'gergin', rapor: sahteBelge(r, bina, alan, sakli) };
+    const tarihFark = -r.int(I.gercekTarihOnce.min, I.gercekTarihOnce.max);
+    const rapor: GetirilenRapor =
+      alan === 'ruhsat'
+        ? { alan, deger: gecerliRuhsat(bina.belgeler.ruhsat).kat, tarihFark, ada, ruhsat: gecerliRuhsat(bina.belgeler.ruhsat) }
+        : { alan, deger: g.dereMesafeM, tarihFark, ada, vaziyet: { dereM: g.dereMesafeM, fayM: g.fayMesafeM, ada } };
+    return { alan, tur, secim, ifade: 'notr', rapor };
+  }
+  const gercekDeger = alan === 'karot' ? g.betonMpa : g.zemin;
   if (tur === 'gercek') {
     const tarihFark = -r.int(I.gercekTarihOnce.min, I.gercekTarihOnce.max);
-    return { alan, tur, secim, ifade: 'notr', rapor: { alan, deger: gercekDeger, tarihFark } };
+    return { alan, tur, secim, ifade: 'notr', rapor: { alan, deger: gercekDeger, tarihFark, ada } };
   }
   // Sahte: değer yanıltıcı yönde; ipucu tek.
   let deger: number | Zemin;
@@ -170,5 +243,12 @@ export function isteCevabi(tohum: number, bina: Bina, kisi: Kisi, alan: RaporAla
   else deger = sakli ? (r.chance(0.6) ? 'saglam' : 'orta') : 'saglam';
   const ipucu = r.pick<SahteIpucu>(['muhur', 'tarih', 'elle']);
   const tarihFark = ipucu === 'tarih' ? r.int(I.sahteTarihIleri.min, I.sahteTarihIleri.max) : -r.int(I.gercekTarihOnce.min, I.gercekTarihOnce.max);
-  return { alan, tur, secim, ifade: 'gergin', rapor: { alan, deger, tarihFark, ipucu } };
+  return { alan, tur, secim, ifade: 'gergin', rapor: { alan, deger, tarihFark, ada, ipucu } };
+}
+
+/** Geçersiz belge kusurunun düzgünü istenecek belge (G17b): ruhsat ya da başka binaya ait belge. */
+export function gecersizAlani(bina: Bina, id: KusurId): IsteAlani | null {
+  if (id === 'elleDuzeltme' || id === 'imzaYok') return 'ruhsat';
+  if (id === 'baskaBina') return baskaBinaBelgesi(bina.belgeler);
+  return null;
 }

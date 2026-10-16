@@ -1,9 +1,12 @@
 import type { AlanRef, Bina, Ciddiyet, Damga, Kural, Kusur, KusurId, Zemin } from './building';
+import { baskaBinaBelgesi, gecerliRuhsat, ruhsatGecersiz } from './building';
 import { tarih } from './diyalog';
 import { TUNING } from './tuning';
 
 /** Getirilen raporun kuralı (sahte rapor: mühür, tarih, elle düzeltme; G17). */
 export const RAPOR_KURALI = 'rapor';
+/** Geçersiz belge kuralı (G17b: elle düzeltilmiş, başka binaya ait, imzasız). */
+export const GECERSIZ_KURALI = 'gecersiz';
 
 /** Kusur başına yer tutucu etiket, ciddiyet ve kanıt alanları. */
 export const KUSUR_BILGI: Record<KusurId, Omit<Kusur, 'id'>> = {
@@ -63,12 +66,32 @@ export const KUSUR_BILGI: Record<KusurId, Omit<Kusur, 'id'>> = {
     ciddiyet: 'iade',
     kanit: [{ belge: 'karot', alan: 'lab' }],
   },
+  // G17b geçersiz belge (eksik belge gibi: düzgününü iste, getiremezse İADE). Etiketler yer tutucu.
+  // Elle düzeltmenin kanıt alanı düzeltilen alandır (kat ya da yıl; kusurListesi koyar) + geçersiz belge kuralı.
+  elleDuzeltme: {
+    etiket: 'Elle düzeltilmiş',
+    ciddiyet: 'iade',
+    kanit: [{ belge: 'ruhsat', alan: 'kat' }],
+  },
+  // Kanıt: ruhsattaki ve öbür belgedeki ada / parsel (öbür belge kusurListesi'nde).
+  baskaBina: {
+    etiket: 'Başka binanın belgesi',
+    ciddiyet: 'iade',
+    kanit: [{ belge: 'ruhsat', alan: 'ada' }, { belge: 'vaziyet', alan: 'ada' }],
+  },
+  imzaYok: {
+    etiket: 'İmza yok',
+    ciddiyet: 'iade',
+    kanit: [{ belge: 'ruhsat', alan: 'imza' }],
+  },
 };
 
 export const KUSUR_IDLERI = Object.keys(KUSUR_BILGI) as KusurId[];
 
 /** Eksik belge kusurları (ciddiyet 'iade'): bilgi başka yoldan edinilmediyse doğru damga İADE. */
 export const EKSIK_BELGE: readonly KusurId[] = ['karotYok', 'zeminEtuduYok'];
+/** Geçersiz belge kusurları (G17b; ciddiyet 'iade'): eksik belge gibi, ama bulunması inceleme ister. */
+export const GECERSIZ_BELGE: readonly KusurId[] = ['elleDuzeltme', 'baskaBina', 'imzaYok'];
 
 const fayMetni = (): string =>
   TUNING.fayKurali === 'bosalt'
@@ -126,12 +149,44 @@ export const KURALLAR: Kural[] = [
     metin: '[Kural: zemin etüdü yoksa sahibinden iste; getiremezse saha testi yap ya da → İADE]',
   },
   { id: 'sivilasma', ilkGun: 4, kusurlar: ['sivilasma'], metin: '[Kural: zeminde sıvılaşma riski varsa → BOŞALT]' },
+  {
+    // G17b: gün 4 imzasız ruhsat; gün 5'te elle düzeltme ve başka binanın belgesi aynı satıra eklenir.
+    id: GECERSIZ_KURALI,
+    ilkGun: TUNING.belgeHile.imzaGun,
+    kusurlar: ['imzaYok'],
+    metin: '[Kural: ruhsat imzasızsa geçersizdir; düzgününü iste, getiremezse → İADE]',
+    ek: {
+      gun: TUNING.belgeHile.elleBaskaGun,
+      kusurlar: ['elleDuzeltme', 'baskaBina'],
+      metin: '[Kural: belge elle düzeltilmişse, başka binaya aitse (ada/parsel) ya da imzasızsa geçersizdir; düzgününü iste, getiremezse → İADE]',
+    },
+  },
   { id: 'belge', ilkGun: 5, kusurlar: ['sahteBelge'], metin: '[Kural: mühür yılı yapım yılından sonraysa belge sahte → GÜÇLENDİR]' },
 ];
 
-/** Kural kitabında gösterilecek metin: {bugun} o günün tarihi olur. */
+/** Kural kitabında gösterilecek metin: {bugun} o günün tarihi olur; genişleyen kuralda o günün metni. */
 export function kuralMetni(k: Kural, gun: number): string {
-  return k.metin.replace('{bugun}', tarih(gun));
+  const m = k.ek && gun >= k.ek.gun ? k.ek.metin : k.metin;
+  return m.replace('{bugun}', tarih(gun));
+}
+
+/** Kuralın o gün kapsadığı kusurlar (gelmemişse boş; genişleyen kuralda ek kusurlar dahil). */
+export function kuralKusurlari(k: Kural, gun: number): KusurId[] {
+  if (k.ilkGun > gun) return [];
+  return k.ek && gun >= k.ek.gun ? [...k.kusurlar, ...k.ek.kusurlar] : k.kusurlar;
+}
+
+/** Kural o gün yeni mi (ilk kez geldi ya da genişledi; kitapta "YENİ"). */
+export function kuralYeni(k: Kural, gun: number): boolean {
+  return k.ilkGun === gun || k.ek?.gun === gun;
+}
+
+/** Kuralın o gün ilk kez kapsadığı kusurlar. */
+export function yeniKusurlari(k: Kural, gun: number): KusurId[] {
+  const out: KusurId[] = [];
+  if (k.ilkGun === gun) out.push(...k.kusurlar);
+  if (k.ek?.gun === gun) out.push(...k.ek.kusurlar);
+  return out;
 }
 
 /** Gün 1 kural notunun ilk satırı: oyunun hedefi (yer tutucu, takım yazacak). */
@@ -158,31 +213,52 @@ function yakinlikCiddiyeti(id: 'dereyeYakin' | 'fayaYakin', zemin: Zemin | null)
 }
 
 /**
- * Binanın kusurları. belge: belgelerde görünenler (eksik belgenin arkasındaki kusur görünmez; dere/fay ciddiyeti
- * zemin etüdündeki türe göre). gercek: binanın gerçek durumu; eksik belge kusurları da listede (ciddiyet 'iade').
+ * Binanın kusurları. belge: belgelerde görünenler (eksik ya da geçersiz belgenin arkasındaki kusur görünmez;
+ * geçersiz belgedeki bilgi yok sayılır; dere/fay ciddiyeti zemin etüdündeki türe göre). gercek: binanın gerçek
+ * durumu; eksik ve geçersiz belge kusurları da listede (ciddiyet 'iade').
  */
 function kusurListesi(b: Bina, mod: 'belge' | 'gercek'): Kusur[] {
   const g = b.gercek;
   const B = b.belgeler;
+  const gercekMod = mod === 'gercek';
   const out: Kusur[] = [];
-  const fark = g.kat - B.ruhsat.kat;
-  if (fark !== 0) out.push(kacakKatKusuru(fark));
-  const ekle = (id: KusurId, ciddiyet?: Ciddiyet): void => {
+  const ruhsatHile = ruhsatGecersiz(B.ruhsat);
+  const baska = baskaBinaBelgesi(B);
+  // Kaçak kat: geçersiz ruhsattaki kat değerlendirilemez (gerçekte daksilin altındaki asıl kat).
+  if (gercekMod || !ruhsatHile) {
+    const fark = g.kat - gecerliRuhsat(B.ruhsat).kat;
+    if (fark !== 0) out.push(kacakKatKusuru(fark));
+  }
+  const ekle = (id: KusurId, ciddiyet?: Ciddiyet): Kusur => {
     const k = kusur(id);
     if (ciddiyet) k.ciddiyet = ciddiyet;
     out.push(k);
+    return k;
   };
-  const zemin = mod === 'gercek' ? g.zemin : (B.zemin?.tur ?? null);
-  const mpa = mod === 'gercek' ? g.betonMpa : B.karot?.mpa;
+  const karot = B.karot && baska !== 'karot' ? B.karot : null;
+  const zeminBelge = B.zemin && baska !== 'zemin' ? B.zemin : null;
+  const zemin = gercekMod ? g.zemin : (zeminBelge?.tur ?? null);
+  const mpa = gercekMod ? g.betonMpa : karot?.mpa;
+  // Vaziyet planı başka binanınsa mesafeleri yok sayılır.
+  const plan = gercekMod || baska !== 'vaziyet';
+  const dere = gercekMod ? g.dereMesafeM : B.vaziyet.dereM;
+  const fay = gercekMod ? g.fayMesafeM : B.vaziyet.fayM;
   if (g.kesikKolonlar.length > 0) ekle('kesikKolon');
   if (mpa !== undefined && mpa < TUNING.betonEsikMpa) ekle('dusukBeton');
   if (B.karot === null) ekle('karotYok');
-  if (g.dereMesafeM < TUNING.dereMinM) ekle('dereyeYakin', yakinlikCiddiyeti('dereyeYakin', zemin));
-  if (g.fayMesafeM < TUNING.fayMinM) ekle('fayaYakin', yakinlikCiddiyeti('fayaYakin', zemin));
+  if (plan && dere < TUNING.dereMinM) ekle('dereyeYakin', yakinlikCiddiyeti('dereyeYakin', zemin));
+  if (plan && fay < TUNING.fayMinM) ekle('fayaYakin', yakinlikCiddiyeti('fayaYakin', zemin));
   if (B.zemin === null) ekle('zeminEtuduYok');
   if (zemin === 'sivilasma') ekle('sivilasma');
   if (g.catlak === 'capraz') ekle('caprazCatlak');
   if (g.ruhsatSahte) ekle('sahteBelge');
+  if (ruhsatHile === 'elleDuzeltme') ekle('elleDuzeltme').kanit = [{ belge: 'ruhsat', alan: B.ruhsat.duzeltme?.alan ?? 'kat' }];
+  else if (ruhsatHile === 'imzaYok') ekle('imzaYok');
+  if (baska)
+    ekle('baskaBina').kanit = [
+      { belge: 'ruhsat', alan: 'ada' },
+      { belge: baska, alan: 'ada' },
+    ];
   return out;
 }
 
@@ -197,7 +273,7 @@ export function aktifKurallar(gun: number): Kural[] {
 
 function kapsam(gun: number): Set<KusurId> {
   const out = new Set<KusurId>();
-  for (const k of aktifKurallar(gun)) for (const id of k.kusurlar) out.add(id);
+  for (const k of aktifKurallar(gun)) for (const id of kuralKusurlari(k, gun)) out.add(id);
   return out;
 }
 
@@ -228,17 +304,30 @@ export function eksikBelgeVar(b: Bina, gun: number): boolean {
 export interface EdinilenBilgi {
   karot?: number;
   zemin?: Zemin;
+  /** Düzgün (geçerli) ruhsat ya da vaziyet planı getirildi (G17b). */
+  ruhsat?: boolean;
+  vaziyet?: boolean;
 }
 
-/** Eksik belgeleri, bilgisi edinilmiş alanlar için gerçek durumla tamamlanmış bina kopyası. */
+/**
+ * Eksik ya da geçersiz belgeleri, bilgisi edinilmiş alanlar için gerçek durumla (binanın kendi ada / parseliyle)
+ * tamamlanmış bina kopyası.
+ */
 export function bilgiyleTamamla(b: Bina, bilgi: EdinilenBilgi): Bina {
   const B = b.belgeler;
+  const g = b.gercek;
+  const ada = B.ruhsat.ada;
+  const baska = baskaBinaBelgesi(B);
+  const karotYok = B.karot === null || baska === 'karot';
+  const zeminYok = B.zemin === null || baska === 'zemin';
   return {
     ...b,
     belgeler: {
       ...B,
-      karot: B.karot ?? (bilgi.karot !== undefined ? { mpa: b.gercek.betonMpa } : null),
-      zemin: B.zemin ?? (bilgi.zemin !== undefined ? { tur: b.gercek.zemin } : null),
+      ruhsat: bilgi.ruhsat ? gecerliRuhsat(B.ruhsat) : B.ruhsat,
+      karot: karotYok && bilgi.karot !== undefined ? { mpa: g.betonMpa, ada } : B.karot,
+      zemin: zeminYok && bilgi.zemin !== undefined ? { tur: g.zemin, ada } : B.zemin,
+      vaziyet: baska === 'vaziyet' && bilgi.vaziyet ? { dereM: g.dereMesafeM, fayM: g.fayMesafeM, ada } : B.vaziyet,
     },
   };
 }
@@ -358,17 +447,19 @@ export interface SecimRef {
   alan: string;
 }
 
-/** Bu kusuru kapsayan kural (kural kitabındaki satır). */
+/** Bu kusuru kapsayan kural (kural kitabındaki satır; genişleyen kuralın ek kusurları dahil). */
 export function kusurKurali(id: KusurId): Kural | undefined {
-  return KURALLAR.find((k) => k.kusurlar.includes(id));
+  return KURALLAR.find((k) => k.kusurlar.includes(id) || !!k.ek?.kusurlar.includes(id));
 }
 
 /**
  * Bu kusurun kanıtı için tıklanması gereken öğeler. İki alanlı kanıt olduğu gibi; tek alanlı kanıtta
- * alan ve o kusuru kapsayan kural satırı (eşik kural kitabında).
+ * alan ve o kusuru kapsayan kural satırı (eşik kural kitabında). Kusur nesnesi verilirse onun kanıtı (elle
+ * düzeltme ve başka binanın belgesinde alan binaya göre değişir).
  */
-export function kanitOgeleri(id: KusurId): SecimRef[] {
-  const kanit: SecimRef[] = KUSUR_BILGI[id].kanit.slice();
+export function kanitOgeleri(k: KusurId | Kusur): SecimRef[] {
+  const id = typeof k === 'string' ? k : k.id;
+  const kanit: SecimRef[] = (typeof k === 'string' ? KUSUR_BILGI[k].kanit : k.kanit).slice();
   if (kanit.length === 1) {
     const kural = kusurKurali(id);
     if (kural) kanit.push({ belge: 'kural', alan: kural.id });
@@ -379,12 +470,12 @@ export function kanitOgeleri(id: KusurId): SecimRef[] {
 const ayni = (a: SecimRef, b: SecimRef): boolean => a.belge === b.belge && a.alan === b.alan;
 
 /** Seçim, kusurun kanıt öğeleriyle (sırası önemsiz) aynı mı? */
-export function kanitEslesir(id: KusurId, secim: readonly SecimRef[]): boolean {
-  const kanit = kanitOgeleri(id);
-  return kanit.length === secim.length && kanit.every((k) => secim.some((s) => ayni(k, s)));
+export function kanitEslesir(k: KusurId | Kusur, secim: readonly SecimRef[]): boolean {
+  const kanit = kanitOgeleri(k);
+  return kanit.length === secim.length && kanit.every((x) => secim.some((s) => ayni(x, s)));
 }
 
 /** Seçimin kanıtladığı, o gün görünen (kuralı gelmiş) kusur; yoksa null. */
 export function seciminKusuru(b: Bina, gun: number, secim: readonly SecimRef[]): Kusur | null {
-  return gorunenKusurlar(b, gun).find((k) => kanitEslesir(k.id, secim)) ?? null;
+  return gorunenKusurlar(b, gun).find((k) => kanitEslesir(k, secim)) ?? null;
 }
