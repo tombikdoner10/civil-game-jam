@@ -18,11 +18,11 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 
 
-- [ ] G5b [teknik] G5 test bulguları: gazete "Çöken (boşaltılmış: N)" ile sonuçtaki "Boşaltılmış" kutusu farklı şeyleri sayıyor (etiket netleşsin); gazete fotoğrafı sokağın daha geniş bir karesini göstersin; öne çıkan binalar örnek kararlarda hep aynı numara (dev yoluna özgü, düşük); inceleme modunda kapalı kitabın üstündeki belgeye tıklayınca kitap açılıyor; kullanılmayan Rubik ve JetBrains Mono importları ve beyanları kaldırılsın (ZIP küçülür).
+- [ ] G5b [teknik] (küçük düzeltmeler toplu) G16 testi: kural kitabı yeni dosyada kapansın; gün sonu Doğru/Yanlış/İade sayıları toplanabilir olsun; doğru kararda fiş kısa gerekçe yazsın; karot ve zemin "Rapor yok" aynı görünümde; İADE ve GÜÇLENDİR mürekkebi koyulaşsın; öncelik kuralı birleşik örnek versin. G5 testi: G5 test bulguları: gazete "Çöken (boşaltılmış: N)" ile sonuçtaki "Boşaltılmış" kutusu farklı şeyleri sayıyor (etiket netleşsin); gazete fotoğrafı sokağın daha geniş bir karesini göstersin; öne çıkan binalar örnek kararlarda hep aynı numara (dev yoluna özgü, düşük); inceleme modunda kapalı kitabın üstündeki belgeye tıklayınca kitap açılıyor; kullanılmayan Rubik ve JetBrains Mono importları ve beyanları kaldırılsın (ZIP küçülür).
 
 Ara test sonrası (takım kararı 23.53; sıra: G16 → G17 → G18 → G19 → G20)
 
-- [ ] G18 [teknik] Fiziksel kaşe ve yönetmelik klasörü: kayan damga çubuğu yerine masadaki kaşeler (GÜVENLİ / GÜÇLENDİR / BOŞALT / İADE): al, ıstampaya bastır, belgeye vur; yeşil kural kitabı yerine halkalı yönetmelik klasörü; jüri 30 saniyede bulsun.
+- [ ] G18 [teknik] Fiziksel kaşe ve yönetmelik klasörü: kayan damga çubuğu yerine masadaki kaşeler (GÜVENLİ / GÜÇLENDİR / BOŞALT / İADE): al, ıstampaya bastır, belgeye vur; yeşil kural kitabı yerine halkalı yönetmelik klasörü; jüri 30 saniyede bulsun. Kaşeler kuralları geldikçe masaya gelsin (İADE gün 3).
 - [ ] G19 [teknik] Saha testi: SAHA düğmesi (günde sınırlı hak, zaman harcar); Schmidt çekici mini oyunu (beton yüzeyine vur, geri tepme değeri → dayanım) ve el burgusu (zemin katmanları); sonuç masaya "saha notu" olarak düşer ve kanıt sayılır.
 - [ ] G20 [teknik] Takip denetimi: gün 3'ten itibaren önceki GÜÇLENDİR binalarından biri geri gelir; fotoğraf ve güçlendirme raporu; yapıldı mı, iskele kurulup bırakıldı mı; kural ve damga.
 
