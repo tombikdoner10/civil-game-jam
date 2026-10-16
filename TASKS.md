@@ -19,6 +19,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 Ara test sonrası (sıra 01.30: G18 → G21 → G5b → G22 → G19 → G20; özellik dondurma Cumartesi 24.00)
 
+- [ ] G21b [teknik] G21 test bulguları: "Gün 2'den devam" sonrası gün 2 sokağına kısa yolun örnek binaları sızıyor olabilir (doğrula, yalnızca jürinin binaları kalsın); sonuç ekranı düğmeleri hemen görünsün (şu an ~2,5–6 sn boş); uzak plandaki deprem etiketleri büyüsün ya da sabit lejant olsun; gün 1 raporunda Enter = Depremi şimdi yaşa, Sonraki gün ikincil (N ya da tık); saat dosyalar arasında geri gidiyor gibi (09:18 → 09:13), doğrula ve düzelt; sonuç ekranındaki değerlendirme satırının kontrastı.
 - [ ] G22 [teknik] Zarfın bedeli (takım kararı 01.30): zarfı kabul eden oyuncu kişinin istediği damgayı vurmak zorunda (diğer kaşeler kilitli, "zarf aldın" ipucu); bina sokakta küçük bir iz taşır; doğru/yanlış ve deprem gerçek damgaya göre; gazete ve sonuçta görünür. G18 testi: inceleme modunda zarf sürüklenemiyor (sessiz); zarf masadayken kaşe vurmak örtük kabul sayılıyor ve oyuncuya söylenmiyor; bunlar G22 tasarımında netleşsin.
 
 - [ ] G19 [teknik] Saha testi, yalnızca Schmidt çekici (takım kararı 01.30): karot yoksa ya da geçersizse SAHA ile beton yüzeyine vurma mini oyunu (geri tepme değeri → dayanım), günde sınırlı hak, zaman harcar; sonuç masaya "saha notu" olarak düşer ve kanıt sayılır (bilgiEdin karot, saha). Burgu YOK.

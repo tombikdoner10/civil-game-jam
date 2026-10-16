@@ -7,7 +7,7 @@ otomatik kaydı) ve `docs/ai-elle.json` (elle eklenenler). Teslim formunda her k
 
 - **Araç:** Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5)
 - **Amaç:** Arayüz görsellerini (butonlar, menü efektleri, parçacıklar) kodla çizen kodu yazdı; Masa sahnesi belge yazıları, bina cephesi kat bandı ve vitrin çizimi (betikle düzenlendi); G4b: sokakta deprem çatlağı ve sıva dökülmesi çizimi (betikle düzenleme); G17 gişedeki kişinin kodla çizilen piksel portresi, konuşma balonu, zarf ve çekmece, SOR/İSTE düğmeleri ve getirilen rapor kartı (Bash betiğiyle düzenlendi); G17b belgelerde ada/parsel satırları, kodla piksel imza, daksil + mavi kalem elle düzeltme çizimi (Python değiştirme betiğiyle düzenlendi)
-- **Kullanıldığı yer:** Menüler, arayüz ve efektler (jam öncesi şablon), src/desk/documents.ts, src/desk/tiles.ts, src/desk/StampTray.ts, src/desk/props.ts, src/desk/tiles.ts (hasarCiz), src/desk/Portre.ts, Konusma.ts, Zarf.ts, Window.ts, Inspect.ts, documents.ts, RuleBook.ts, src/desk/documents.ts (ruhsat, vaziyet planı, karot, zemin etüdü, getirilen belgeler), src/desk/ (19 dosya), src/scenes/ (4 dosya), src/ui/ (2 dosya)
+- **Kullanıldığı yer:** Menüler, arayüz ve efektler (jam öncesi şablon), src/desk/documents.ts, src/desk/tiles.ts, src/desk/StampTray.ts, src/desk/props.ts, src/desk/tiles.ts (hasarCiz), src/desk/Portre.ts, Konusma.ts, Zarf.ts, Window.ts, Inspect.ts, documents.ts, RuleBook.ts, src/desk/documents.ts (ruhsat, vaziyet planı, karot, zemin etüdü, getirilen belgeler), src/desk/ (20 dosya), src/scenes/ (4 dosya), src/ui/ (2 dosya)
 
 ## Ses: Kullanıldı
 
