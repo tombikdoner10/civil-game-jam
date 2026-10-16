@@ -131,11 +131,15 @@ export function dogruDamga(b: Bina, gun: number): Damga {
   return 'guvenli';
 }
 
-/** Kurallardan bağımsız deprem riski (0-1). */
-export function riskHesapla(b: Bina): number {
+/**
+ * Kurallardan bağımsız deprem riski (0-1). gizli: belgelerde kusur olarak görünmeyen zayıflıklar (düz demir,
+ * deniz kumu, eski yönetmelik) da sayılsın mı (öncü sarsıntı saymaz: yalnızca kusurların bedeli görünsün).
+ */
+export function riskHesapla(b: Bina, gizli = true): number {
   const R = TUNING.risk;
   let r = R.taban;
   for (const k of gercekKusurlar(b)) r += k.ciddiyet === 'bosalt' ? R.bosalt : R.guclendir;
+  if (!gizli) return Math.min(1, r);
   if (b.gercek.demir === 'duz') r += R.duzDemir;
   if (b.gercek.denizKumu) r += R.denizKumu;
   if (b.yil < TUNING.eskiYapiYili) r += R.eskiYapi;
@@ -150,10 +154,10 @@ export interface DepremSonucu {
   risk: number;
 }
 
-/** Oyuncunun damgasına göre deprem sonucu. siddet: risk çarpanı (varsayılan 1). */
-export function depremSonucu(b: Bina, damga: Damga, siddet = 1): DepremSonucu {
+/** Oyuncunun damgasına göre deprem sonucu. siddet: risk çarpanı (varsayılan 1). gizli: bkz. riskHesapla. */
+export function depremSonucu(b: Bina, damga: Damga, siddet = 1, gizli = true): DepremSonucu {
   const R = TUNING.risk;
-  let risk = riskHesapla(b) * siddet;
+  let risk = riskHesapla(b, gizli) * siddet;
   if (damga === 'guclendir') risk *= R.guclendirCarpan;
   const durum: HasarDurumu = risk < R.hasarEsik ? 'ayakta' : risk < R.agirHasarEsik ? 'hasarli' : 'agirHasar';
   return { durum, bos: damga === 'bosalt', risk };

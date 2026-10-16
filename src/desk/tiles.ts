@@ -112,8 +112,8 @@ function karo(ctx: CanvasRenderingContext2D, tablo: HTMLCanvasElement, id: numbe
 // ---- Cephe ----
 
 export const CEPHE_W = 112;
-const CATI_H = 12;
-const KAT_H = 16;
+export const CATI_H = 12;
+export const KAT_H = 16;
 /** Zemin kat (dükkân) üst katlardan yüksek: vitrin ve tabela sığsın. 9 kat: 12 + 8×16 + 24 = 164. */
 export const ZEMIN_H = 24;
 
@@ -300,4 +300,217 @@ export function cepheCiz(scene: Phaser.Scene, ctx: CanvasRenderingContext2D, x0:
   }
 
   return { w: CEPHE_W, h: cepheH(ust), katY0: CATI_H, katY1: zy, zeminY: zy, catlak };
+}
+
+// ---- Sokak katmanları: damga işaretleri ve deprem hasarı (G4b) ----
+// Hepsi cephenin üstüne ayrı bir tuvalde çizilir (x0,y0 cephenin sol üstü), böylece ayrı ayrı canlandırılır.
+
+function dolgu(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, c: string): void {
+  ctx.fillStyle = c;
+  ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+}
+
+function cizgi(ctx: CanvasRenderingContext2D, x0: number, y0: number, x1: number, y1: number, c: string): void {
+  const dx = Math.abs(x1 - x0);
+  const dy = -Math.abs(y1 - y0);
+  const sx = x0 < x1 ? 1 : -1;
+  const sy = y0 < y1 ? 1 : -1;
+  let err = dx + dy;
+  for (;;) {
+    dolgu(ctx, x0, y0, 1, 1, c);
+    if (x0 === x1 && y0 === y1) break;
+    const e2 = 2 * err;
+    if (e2 >= dy) {
+      err += dy;
+      x0 += sx;
+    }
+    if (e2 <= dx) {
+      err += dx;
+      y0 += sy;
+    }
+  }
+}
+
+/** Sokak katmanlarının cephe dışına taşan payı (iskele, şerit direkleri, moloz). */
+export const KATMAN_PAY = { yan: 4, ust: 6, alt: 2 } as const;
+
+/** GÜÇLENDİR: cephenin önünde iskele (sarı dikmeler, her katta döşeme, çapraz bağlar). */
+export function iskeleCiz(ctx: CanvasRenderingContext2D, x0: number, y0: number, kat: number): void {
+  const ust = Math.max(0, kat - 1);
+  const h = cepheH(ust);
+  const sol = x0 - 3;
+  const sag = x0 + CEPHE_W + 2;
+  const dikmeler = [sol, x0 + 36, x0 + 74, sag - 1];
+  const tepe = y0 - 4;
+  const taban = y0 + h;
+  const SARI = '#c9a33e';
+  const SARI_K = '#6e5420';
+  const BAG = '#9c7f36';
+  const TAHTA = '#7a5c34';
+  const TAHTA_A = '#b08a52';
+  // Döşeme seviyeleri: çatı altı ve her kat çizgisi.
+  const seviye: number[] = [tepe + 3];
+  for (let k = 0; k <= ust; k++) seviye.push(y0 + CATI_H + k * KAT_H - 2);
+  // Çapraz bağlar (dikmelerin arasında, her seviye aralığında yön değiştirir).
+  for (let b = 0; b < dikmeler.length - 1; b++)
+    for (let s = 0; s < seviye.length - 1; s++) {
+      const a = dikmeler[b] + 1;
+      const c = dikmeler[b + 1] - 1;
+      const ya = seviye[s] + 2;
+      const yc = seviye[s + 1] - 1;
+      if ((b + s) % 2 === 0) cizgi(ctx, a, ya, c, yc, BAG);
+      else cizgi(ctx, a, yc, c, ya, BAG);
+    }
+  // Döşemeler
+  for (const y of seviye) {
+    dolgu(ctx, sol, y, sag - sol + 1, 2, TAHTA);
+    dolgu(ctx, sol, y, sag - sol + 1, 1, TAHTA_A);
+  }
+  // Dikmeler
+  for (const x of dikmeler) {
+    dolgu(ctx, x, tepe, 1, taban - tepe, SARI);
+    dolgu(ctx, x + 1, tepe, 1, taban - tepe, SARI_K);
+    dolgu(ctx, x - 1, taban - 1, 3, 1, SARI_K);
+  }
+  // Tepede korkuluk
+  dolgu(ctx, sol, tepe, sag - sol + 1, 1, SARI);
+}
+
+/** BOŞALT: girişte kırmızı-beyaz şerit ve iki direk. */
+export function seritCiz(ctx: CanvasRenderingContext2D, x0: number, y0: number, kat: number): void {
+  const h = cepheH(Math.max(0, kat - 1));
+  const zy = y0 + h - ZEMIN_H;
+  const sol = x0 - 3;
+  const sag = x0 + CEPHE_W + 2;
+  for (const x of [sol, sag - 1]) {
+    dolgu(ctx, x, zy + 6, 1, y0 + h - zy - 6, '#d6d0c0');
+    dolgu(ctx, x + 1, zy + 6, 1, y0 + h - zy - 6, '#6a645c');
+  }
+  const serit = (y: number, sarkma: number): void => {
+    for (let x = sol; x < sag; x++) {
+      const t = (x - sol) / (sag - sol);
+      const yy = y + Math.round(Math.sin(t * Math.PI) * sarkma);
+      const kirmizi = Math.floor((x - sol) / 4) % 2 === 0;
+      dolgu(ctx, x, yy, 1, 2, kirmizi ? '#b8342c' : '#e0dccf');
+      dolgu(ctx, x, yy + 2, 1, 1, KONTUR);
+    }
+  };
+  serit(zy + 8, 2);
+  serit(zy + 15, 3);
+}
+
+/** BOŞALT: ışıklar sönük; pencere camları karanlık, zemin kat içi kararmış, cephe hafif koyu. */
+export function karanlikCiz(ctx: CanvasRenderingContext2D, x0: number, y0: number, kat: number, secim: CepheSecim): void {
+  const ust = Math.max(0, kat - 1);
+  const h = cepheH(ust);
+  ctx.fillStyle = 'rgba(14,14,24,0.28)';
+  ctx.fillRect(x0, y0, CEPHE_W, h);
+  for (let k = 0; k < ust; k++) {
+    const y = y0 + CATI_H + k * KAT_H;
+    for (let i = 1; i <= 5; i++) {
+      if (!((secim.desen >> (i - 1)) & 1)) continue;
+      dolgu(ctx, x0 + i * T + 5, y + 5, 6, 6, '#15161b');
+      dolgu(ctx, x0 + i * T + 5, y + 5, 6, 1, '#272932');
+    }
+  }
+  const zy = y0 + h - ZEMIN_H;
+  ctx.fillStyle = 'rgba(6,6,10,0.6)';
+  ctx.fillRect(x0 + 2, zy + 4, CEPHE_W - 4, ZEMIN_H - 5);
+}
+
+export type HasarDerece = 'hasarli' | 'agirHasar';
+
+/** Deprem hasarı: kırık çizgili çatlaklar, dökülen sıva, kaldırımda moloz. Ağır hasarda daha çok ve kırık camlar. */
+export function hasarCiz(
+  ctx: CanvasRenderingContext2D,
+  x0: number,
+  y0: number,
+  kat: number,
+  derece: HasarDerece,
+  secim: CepheSecim,
+  rnd: () => number,
+): void {
+  const ust = Math.max(0, kat - 1);
+  const h = cepheH(ust);
+  const agir = derece === 'agirHasar';
+  const TUGLA = '#9a5a44';
+  const TUGLA_A = '#c08060';
+  const TUGLA_K = '#4a2a24';
+  const ACIK = '#cfc6b0';
+  const govdeAlt = h - ZEMIN_H;
+  const noktalar: [number, number][] = [];
+  const ayaklar: number[] = [];
+  const n = agir ? 4 : 2;
+  for (let c = 0; c < n; c++) {
+    // Kesme çatlağı: üst katlarda bir köşeden başlar, merdiven gibi çapraz iner (zemin kat kirişine kadar).
+    const soldan = c % 2 === 0;
+    let x = soldan ? 6 + Math.floor(rnd() * 30) : CEPHE_W - 8 - Math.floor(rnd() * 30);
+    let y = CATI_H + 1 + Math.floor(rnd() * Math.max(1, Math.min(18, govdeAlt - CATI_H - 24)));
+    const yon = soldan ? 1 : -1;
+    const boy = Math.min(govdeAlt - y + 2, (agir ? 40 : 30) + Math.floor(rnd() * 14));
+    for (let s = 0; s < boy; s++) {
+      const kal = agir ? 3 : 2;
+      dolgu(ctx, x0 + x, y0 + y, kal, 1, KONTUR);
+      dolgu(ctx, x0 + x + (yon > 0 ? kal : -1), y0 + y, 1, 1, ACIK);
+      if (s % 5 === 0) noktalar.push([x, y]);
+      if (rnd() < 0.78) x += rnd() < 0.12 ? -yon : yon;
+      x = Math.min(CEPHE_W - 4, Math.max(2, x));
+      y++;
+      // Kısa dal
+      if (rnd() < (agir ? 0.14 : 0.1)) {
+        const d = rnd() < 0.5 ? -1 : 1;
+        for (let k = 1; k <= 4; k++) dolgu(ctx, x0 + x + d * k, y0 + y + Math.floor(k / 2), 1, 1, KONTUR);
+      }
+    }
+    ayaklar.push(x);
+  }
+  // Dökülen sıva: altından tuğla görünen lekeler (çatlak boyunca).
+  const leke = agir ? 14 : 8;
+  for (let k = 0; k < leke && noktalar.length > 0; k++) {
+    const [px, py] = noktalar[Math.floor(rnd() * noktalar.length)];
+    const w = 3 + Math.floor(rnd() * (agir ? 5 : 3));
+    const hh = 2 + Math.floor(rnd() * 3);
+    const lx = Math.min(CEPHE_W - w - 1, Math.max(1, px + Math.floor(rnd() * 7) - 3));
+    const ly = py + Math.floor(rnd() * 3) - 1;
+    dolgu(ctx, x0 + lx - 1, y0 + ly - 1, w + 2, hh + 2, KONTUR);
+    dolgu(ctx, x0 + lx, y0 + ly, w, hh, TUGLA);
+    dolgu(ctx, x0 + lx, y0 + ly, w, 1, TUGLA_A);
+    dolgu(ctx, x0 + lx, y0 + ly + hh - 1, w, 1, TUGLA_K);
+  }
+  // Çatlağın dibinde kaldırımda moloz yığıntısı.
+  for (const ax of ayaklar) {
+    const w = agir ? 12 : 8;
+    for (let i = 0; i < w; i++) {
+      const tepe = Math.round(Math.sin((i / (w - 1)) * Math.PI) * (agir ? 3 : 2));
+      for (let j = 0; j <= tepe; j++) dolgu(ctx, x0 + ax - w / 2 + i, y0 + h - j, 1, 1, (i + j) % 3 === 0 ? '#5a544c' : '#8a8276');
+    }
+  }
+  if (agir) {
+    // Kırık camlar
+    for (let k = 0; k < ust; k++)
+      for (let i = 1; i <= 5; i++) {
+        if (!((secim.desen >> (i - 1)) & 1) || rnd() > 0.35) continue;
+        const y = y0 + CATI_H + k * KAT_H;
+        dolgu(ctx, x0 + i * T + 5, y + 5, 6, 6, '#0e0f12');
+        cizgi(ctx, x0 + i * T + 5, y + 5, x0 + i * T + 9, y + 10, CAM.acik);
+      }
+  }
+  // Kaldırımda moloz
+  const moloz = agir ? 16 : 8;
+  for (let k = 0; k < moloz; k++) {
+    const mx = x0 + Math.floor(rnd() * CEPHE_W);
+    dolgu(ctx, mx, y0 + h - 1 + Math.floor(rnd() * 2), 1 + Math.floor(rnd() * 2), 1, rnd() < 0.5 ? '#8a8276' : '#5a544c');
+  }
+}
+
+/** Çöken binanın yerinde moloz yığını (G5 için). yZemin: kaldırım çizgisi. */
+export function molozCiz(ctx: CanvasRenderingContext2D, x0: number, yZemin: number, rnd: () => number): void {
+  const renk = ['#5a544c', '#6e675d', '#8a8276', '#46423b', '#6e5446'];
+  for (let x = 0; x < CEPHE_W; x++) {
+    const t = x / (CEPHE_W - 1);
+    const tepe = Math.round(Math.sin(t * Math.PI) * 18 + rnd() * 4);
+    for (let y = 0; y < tepe; y++) dolgu(ctx, x0 + x, yZemin - 1 - y, 1, 1, renk[Math.floor(rnd() * renk.length)]);
+  }
+  // Ayakta kalan kolon kalıntıları
+  for (const kx of [10, 52, 96]) dolgu(ctx, x0 + kx, yZemin - 24 - Math.floor(rnd() * 8), 3, 24, '#58565a');
 }

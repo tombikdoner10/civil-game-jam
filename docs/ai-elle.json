@@ -50,5 +50,19 @@
     "yer": "src/scenes/GameScene.ts, src/game/rules.ts, src/game/session.ts, src/desk/documents.ts, src/desk/StampTray.ts",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-16T18:18:58.344Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G4b: kalıcı sokak ve öncü sarsıntı bağlantıları (betikle düzenleme)",
+    "yer": "src/game/session.ts, rules.ts, tuning.ts, src/scenes/GameScene.ts, DayEndScene.ts, src/desk/Window.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-16T19:38:53.970Z"
+  },
+  {
+    "kategori": "visual",
+    "amac": "G4b: sokakta deprem çatlağı ve sıva dökülmesi çizimi (betikle düzenleme)",
+    "yer": "src/desk/tiles.ts (hasarCiz)",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-16T19:38:54.036Z"
   }
 ]

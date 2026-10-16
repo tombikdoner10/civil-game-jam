@@ -1,10 +1,12 @@
 // @beyan görsel
 import * as Phaser from 'phaser';
 import { MONO } from '../config';
-import type { Bina } from '../game/building';
+import type { Bina, Damga } from '../game/building';
+import type { SokakKaydi } from '../game/session';
 import { PAL } from './palette';
 import { dizgiTohum, PX, rastgele, Tuval } from './pixel';
-import { cepheCiz, cepheH, cepheSecimi, CEPHE_W } from './tiles';
+import { Sokak } from './Street';
+import { cepheSecimi } from './tiles';
 
 /** Üst bandın ölçüleri (ekran pikseli). */
 export const BANT_H = 416;
@@ -17,16 +19,19 @@ const GISE = { x: 1248, y: 32, w: 640, h: 360 };
 /** Belgelerin girip çıktığı gişe gözü (ekran). */
 export const GOZ = { x: 1568, y: BANT_H + 8 };
 
-const D = { arka: 3000, siluet: 3001, on: 3002, duvar: 3003, yazi: 3004 };
+/** Sokak (gök ve binalar) gişenin arkasında: pencereden taşan kısmı duvar ve buzlu cam örter. */
+const D = { sokak: 2990, arka: 3000, siluet: 3001, on: 3002, duvar: 3003, yazi: 3004 };
+/** Sokaktaki tozun derinliği (Quake). */
+export const SOKAK_DERINLIK = D.sokak;
 
 /** Bina cephe seçimi dosyaya bağlı: pencerede ve fotoğrafta aynı bina görünsün. */
 export function binaSecimi(bina: Bina): ReturnType<typeof cepheSecimi> {
   return cepheSecimi(rastgele(dizgiTohum(bina.id)));
 }
 
-/** Belediye penceresi: dışarıda sokak ve dosyanın binası, sağda buzlu camlı gişe, altta tezgâh ve paneller. */
+/** Belediye penceresi: dışarıda kalıcı sokak ve dosyanın binası, sağda buzlu camlı gişe, altta tezgâh ve paneller. */
 export class Pencere {
-  private sokak?: Phaser.GameObjects.Image;
+  readonly sokak: Sokak;
   private siluet?: Phaser.GameObjects.Image;
   private readonly saatYazi: Phaser.GameObjects.Text;
   private readonly dosyaYazi: Phaser.GameObjects.Text;
@@ -34,7 +39,9 @@ export class Pencere {
   constructor(
     private readonly scene: Phaser.Scene,
     gun: number,
+    sokak: readonly SokakKaydi[] = [],
   ) {
+    this.sokak = new Sokak(scene, PEN, gun, sokak, D.sokak);
     this.duvarCiz();
     this.giseCiz();
     const yaz = (x: number, t: string, font: string, size: number, renk: string): Phaser.GameObjects.Text =>
@@ -139,74 +146,14 @@ export class Pencere {
     g.goruntu(GISE.x, GISE.y).setOrigin(0).setDepth(D.on);
   }
 
-  /** Dosyanın binasını sokağa koy (eskisiyle çapraz geçiş). */
+  /** Dosyanın binası sokakta sıradaki parsele gelir (incelenen, ortada ve aydınlık). */
   binaGoster(bina: Bina): void {
-    const W = PEN.w / 2;
-    const H = PEN.h / 2;
-    const t = new Tuval(this.scene, W, H, 'sokak');
-    const rnd = rastgele(dizgiTohum(bina.id) ^ 0x5eed);
-    const ufuk = H - 14;
-    // Gök: bantlar ve dama geçişler
-    const bant = Math.ceil(ufuk / PAL.gok.length);
-    PAL.gok.forEach((c, i) => {
-      t.rect(0, i * bant, W, bant, c);
-      if (i > 0) t.dither(0, i * bant, W, 2, PAL.gok[i - 1]);
-    });
-    // Güneş
-    t.daire(470, ufuk - 40, 9, '#d4b98c');
-    t.dither(458, ufuk - 52, 25, 25, '#c9ad85', 1);
-    t.daire(470, ufuk - 40, 8, '#dcc39a');
-    // Uzak siluet
-    for (let x = 0; x < W; ) {
-      const bw = 14 + Math.floor(rnd() * 26);
-      const bh = 26 + Math.floor(rnd() * 56);
-      t.rect(x, ufuk - bh, bw, bh, rnd() < 0.5 ? PAL.uzakBina : PAL.uzakBinaKoyu);
-      for (let k = 0; k < bw * bh * 0.01; k++) t.px(x + 2 + Math.floor(rnd() * (bw - 4)), ufuk - bh + 3 + Math.floor(rnd() * (bh - 6)), PAL.isikKoyu);
-      x += bw + Math.floor(rnd() * 6);
-    }
-    // Komşular (soluk) ve dosyanın binası
-    const bx = Math.floor(W / 2 - CEPHE_W / 2);
-    const komsu = [bx - 124, bx + 124, bx - 248, bx + 248];
-    for (const kx of komsu) {
-      const kat = 3 + Math.floor(rnd() * 4);
-      const kh = cepheH(kat - 1);
-      cepheCiz(this.scene, t.ctx, kx, ufuk - kh, { kat, kolon: 6, vitrin: [], catlak: 'yok', secim: cepheSecimi(rnd), aksam: true, rnd });
-      t.ctx.fillStyle = 'rgba(40,34,46,0.5)';
-      t.ctx.fillRect(kx, ufuk - kh, CEPHE_W, kh);
-    }
-    const f = bina.belgeler.foto;
-    const ustH = cepheH(f.gorunenKat - 1);
-    cepheCiz(this.scene, t.ctx, bx, ufuk - ustH, {
-      kat: f.gorunenKat,
-      kolon: bina.belgeler.proje.zeminKolonSayisi,
-      vitrin: f.vitrinKolonlar,
-      catlak: f.gorunenCatlak,
-      secim: binaSecimi(bina),
-      ekKat: Math.max(0, f.gorunenKat - bina.belgeler.ruhsat.kat),
-      aksam: true,
-      rnd,
-    });
-    // Kaldırım ve yol
-    t.rect(0, ufuk, W, 5, PAL.kaldirim);
-    for (let x = 0; x < W; x += 8) t.px(x, ufuk + 1 + ((x / 8) % 2) * 2, '#5a564f');
-    t.rect(0, ufuk + 5, W, 1, '#8a857a');
-    t.rect(0, ufuk + 6, W, 8, PAL.asfalt);
-    for (let x = 4; x < W; x += 24) t.rect(x, ufuk + 10, 10, 1, PAL.asfaltCizgi);
-    // Sokak lambası
-    const lx = 96;
-    t.rect(lx, ufuk - 52, 2, 52, '#1e1c1e');
-    t.rect(lx, ufuk - 52, 12, 2, '#1e1c1e');
-    t.rect(lx + 9, ufuk - 50, 5, 2, '#1e1c1e');
-    t.rect(lx + 10, ufuk - 48, 3, 1, PAL.isik);
-    t.dither(lx + 4, ufuk - 47, 15, 8, PAL.isik, 1);
+    this.sokak.incele(bina);
+  }
 
-    const img = t.goruntu(PEN.x, PEN.y, 2).setOrigin(0).setDepth(D.arka).setTint(0xe6dcd4);
-    const eski = this.sokak;
-    this.sokak = img;
-    if (eski) {
-      img.setAlpha(0);
-      this.scene.tweens.add({ targets: img, alpha: 1, duration: 450, onComplete: () => eski.destroy() });
-    }
+  /** Damga basıldı: bina sokaktaki yerine işaretiyle oturur (iskele, şerit). */
+  damgaVur(damga: Damga): void {
+    this.sokak.damgala(damga);
   }
 
   /** Gişeye yeni mal sahibinin silueti gelir. */

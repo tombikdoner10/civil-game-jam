@@ -1,7 +1,7 @@
 import type { Bina, Damga, Kusur, KusurId } from './building';
 import { gunDosyalari } from './building';
 import { gunAyar, type GunAyar } from './days';
-import { dogruDamga, gorunenKusurlar, seciminKusuru, type SecimRef } from './rules';
+import { dogruDamga, gorunenKusurlar, seciminKusuru, type HasarDurumu, type SecimRef } from './rules';
 import { TUNING } from './tuning';
 
 export interface Karar {
@@ -15,10 +15,53 @@ export interface Karar {
   bulunan: KusurId[];
 }
 
+/** Bir sarsıntıda tek binanın sonucu. */
+export interface SarsintiSonucu {
+  dosyaId: string;
+  durum: HasarDurumu;
+  /** Bina boşaltılmış mı (içeride kimse yok). */
+  bos: boolean;
+}
+
+/** Bir sarsıntının kaydı (öncü sarsıntı; G5 büyük depremi de aynı biçimi kullanabilir). */
+export interface SarsintiKaydi {
+  siddet: number;
+  sonuclar: SarsintiSonucu[];
+}
+
 /** Bitmiş bir günün kaydı (günler arasında taşınır; sokak ve deprem günü için). */
 export interface GunKaydi {
   gun: number;
   kararlar: Karar[];
+  /** O günün sonundaki öncü sarsıntı (varsa). Çatlayan binalar sonraki günlerde de çatlak görünür. */
+  oncu?: SarsintiKaydi;
+}
+
+/** Sokakta duran (damgalanmış) bir bina. */
+export interface SokakKaydi {
+  bina: Bina;
+  damga: Damga;
+  gun: number;
+  /** Önceki sarsıntılardan kalan hasar (yoksa sağlam). */
+  hasar?: HasarDurumu;
+}
+
+/**
+ * Önceki günlerin kararlarından sokak: damgalanan her bina damgalanma sırasıyla. Binalar tohumdan yeniden
+ * üretilir (aynı tohum ve gün, aynı dosyalar); hasar, kayıtlı sarsıntılardan (en sonuncusu geçerli).
+ */
+export function sokakKayitlari(tohum: number, kayitlar: readonly GunKaydi[]): SokakKaydi[] {
+  const hasar = new Map<string, HasarDurumu>();
+  for (const k of kayitlar) for (const s of k.oncu?.sonuclar ?? []) if (s.durum !== 'ayakta') hasar.set(s.dosyaId, s.durum);
+  const out: SokakKaydi[] = [];
+  for (const k of kayitlar) {
+    const binalar = new Map(gunDosyalari(tohum, k.gun, gunAyar(k.gun).dosyaSayisi).map((b) => [b.id, b]));
+    for (const karar of k.kararlar) {
+      const bina = binalar.get(karar.dosyaId);
+      if (bina) out.push({ bina, damga: karar.damga, gun: k.gun, hasar: hasar.get(karar.dosyaId) });
+    }
+  }
+  return out;
 }
 
 export interface IncelemeSonucu {

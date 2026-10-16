@@ -9,7 +9,7 @@ import { DAMGA_ADI, DAMGA_RENK } from '../desk/StampTray';
 import type { Damga } from '../game/building';
 import { SON_GUN } from '../game/days';
 import { KUSUR_BILGI } from '../game/rules';
-import { gunHesabi, type GunKaydi, type Karar } from '../game/session';
+import { gunHesabi, type GunKaydi, type Karar, type SarsintiKaydi } from '../game/session';
 import { TUNING } from '../game/tuning';
 import { fadeIn, goTo } from '../systems/transition';
 import type { GameData } from './GameScene';
@@ -26,6 +26,8 @@ export interface DayEndData {
   dosyalar: { id: string; adres: string }[];
   /** Önceki günlerin kayıtları. */
   kayitlar: GunKaydi[];
+  /** Günün sonundaki öncü sarsıntı (varsa): raporda bir satır, kayıtta sokağın hasarı. */
+  oncu?: SarsintiKaydi;
 }
 
 /** Rapor kâğıdı (ekran pikseli). */
@@ -118,9 +120,33 @@ export class DayEndScene extends Phaser.Scene {
       y += SATIR_H;
     });
 
+    // Öncü sarsıntı satırı (yer tutucu metin)
+    let oncuH = 0;
+    if (v.oncu) {
+      const adres = new Map(v.dosyalar.map((d) => [d.id, d.adres]));
+      const catlayan = v.oncu.sonuclar.filter((s) => s.durum !== 'ayakta');
+      const dolu = catlayan.filter((s) => !s.bos);
+      const bos = catlayan.filter((s) => s.bos);
+      const ad = (id: string): string => adres.get(id) ?? id;
+      const parcalar: string[] = [];
+      if (dolu.length > 0)
+        parcalar.push(
+          `${dolu.length} bina çatladı (${dolu.map((s) => `${ad(s.dosyaId)}, ${DAMGA_ADI[kararlar.get(s.dosyaId)?.damga ?? 'guvenli']} damgalı`).join('; ')})`,
+        );
+      else parcalar.push('içinde insan olan bina çatlamadı');
+      if (bos.length > 0) parcalar.push(`çatlayan boş bina: ${bos.map((s) => ad(s.dosyaId)).join(', ')}`);
+      const metin = `[Öncü sarsıntı: ${parcalar.join(' · ')}]`;
+      const kotu = dolu.length > 0;
+      const satir = yaz(L + 40, y + 20, metin, 34, kotu ? PAL.damgaBosalt : PAL.damgaGuvenli);
+      this.sigdir(satir, KAGIT.w - 80);
+      satir.setAlpha(0);
+      this.tweens.add({ targets: satir, alpha: 1, duration: 160, delay: 200 + v.dosyalar.length * 90 + 120 });
+      oncuH = 56;
+    }
+
     // Hesap
     const P = TUNING.para;
-    const hy = Math.max(y + 24, T + 700);
+    const hy = Math.max(y + 24 + oncuH, T + 700);
     this.add.rectangle(L + 32, hy - 16, KAGIT.w - 64, PX, num(PAL.murekkepSoluk)).setOrigin(0);
     const sol = L + 40;
     yaz(sol, hy + 24, `Doğru: ${hesap.dogru}`, 36, PAL.damgaGuvenli);
@@ -162,7 +188,9 @@ export class DayEndScene extends Phaser.Scene {
     this.gecildi = true;
     sfx.play('confirm');
     const v = this.veri;
-    const kayitlar: GunKaydi[] = [...v.kayitlar, { gun: v.gun, kararlar: v.kararlar }];
+    const kayit: GunKaydi = { gun: v.gun, kararlar: v.kararlar };
+    if (v.oncu) kayit.oncu = v.oncu;
+    const kayitlar: GunKaydi[] = [...v.kayitlar, kayit];
     if (v.gun >= SON_GUN) {
       const toplam = kayitlar.reduce((n, g) => n + g.kararlar.length, 0);
       const dogru = kayitlar.reduce((n, g) => n + g.kararlar.filter((k) => k.dogru).length, 0);

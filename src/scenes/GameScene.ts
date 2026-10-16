@@ -10,10 +10,12 @@ import { fisDusur, fisKaldir, fisKur, masaCiz } from '../desk/props';
 import { RuleBook } from '../desk/RuleBook';
 import { RuleNote } from '../desk/RuleNote';
 import { DAMGA_ADI, damgaIzi, StampTray, TEPSI_SOL } from '../desk/StampTray';
-import { GOZ, MASA_Y, Pencere } from '../desk/Window';
+import { Quake } from '../desk/Quake';
+import { GOZ, MASA_Y, Pencere, SOKAK_DERINLIK } from '../desk/Window';
 import { yerlesim, type Yerlesim } from '../desk/yerlesim';
 import type { Damga, Kural } from '../game/building';
-import { GunOturumu, type GunKaydi } from '../game/session';
+import { depremSonucu, dogruDamga } from '../game/rules';
+import { GunOturumu, sokakKayitlari, type GunKaydi, type SarsintiKaydi } from '../game/session';
 import { TUNING } from '../game/tuning';
 import type { DayEndData } from './DayEndScene';
 import { Controls } from '../systems/controls';
@@ -29,6 +31,38 @@ export interface GameData {
   para?: number;
   /** Önceki günlerin kararları (sokak ve deprem günü için; G4b/G5). */
   kayitlar?: GunKaydi[];
+}
+
+/** Öncü sarsıntı şeridi (yer tutucu metin; takım yazacak). */
+const ONCU_YAZI = '[Öncü sarsıntı. Asıl deprem gelecek.]';
+
+/**
+ * Yalnızca dev: gün 1'den (gun - 1)'e kadar örnek kayıtlar. Kararlar çoğunlukla doğru, her dördüncü dosya
+ * yanlışlıkla GÜVENLİ; öncü sarsıntılı günlerde sarsıntı sonucu da hesaplanır (oyundaki kuralla).
+ */
+function ornekKayitlar(tohum: number, gun: number): GunKaydi[] {
+  const out: GunKaydi[] = [];
+  const O = TUNING.oncu;
+  for (let g = 1; g < gun; g++) {
+    const o = new GunOturumu(g, tohum);
+    for (let i = 0; o.mevcut && !o.bitti; i++) {
+      const b = o.mevcut;
+      o.damgala(i % 4 === 1 ? 'guvenli' : dogruDamga(b, g));
+    }
+    const kayit: GunKaydi = { gun: g, kararlar: o.kararlar.slice() };
+    if (o.ayar.oncuSarsinti) {
+      kayit.oncu = {
+        siddet: O.siddet,
+        sonuclar: o.kararlar.map((k) => {
+          const b = o.dosyalar.find((x) => x.id === k.dosyaId);
+          const s = b ? depremSonucu(b, k.damga, O.siddet, false) : { durum: 'ayakta' as const, bos: false };
+          return { dosyaId: k.dosyaId, durum: s.durum === 'agirHasar' ? 'hasarli' : s.durum, bos: s.bos };
+        }),
+      };
+    }
+    out.push(kayit);
+  }
+  return out;
 }
 
 /** Masada boş yer yoksa uyarı fişi gişe camının altına düşer (belgeleri örtmez). */
@@ -56,6 +90,8 @@ export class GameScene extends Phaser.Scene {
   private inceleme!: Inspect;
   private kitap?: RuleBook;
   private ipucu?: Phaser.GameObjects.Text;
+  /** Bu günün öncü sarsıntı sonucu (gün sonu raporuna gider). */
+  private oncu?: SarsintiKaydi;
 
   constructor() {
     super(SCENES.Game);
@@ -73,6 +109,8 @@ export class GameScene extends Phaser.Scene {
       const t = q.get('tohum');
       if (q.has('gun') && Number.isFinite(g) && g >= 1) this.gun = Math.floor(g);
       if (t !== null && Number.isFinite(Number(t))) this.tohum = Number(t);
+      // ?dev&gun=N&sokak: önceki günler örnek kararlarla dolu gelsin (sokak ve deprem testleri için).
+      if (q.has('sokak')) this.kayitlar = ornekKayitlar(this.tohum, this.gun);
     }
     this.kartlar = [];
     this.giden = [];
@@ -83,6 +121,7 @@ export class GameScene extends Phaser.Scene {
     this.ipucu = undefined;
     this.not = undefined;
     this.kitap = undefined;
+    this.oncu = undefined;
   }
 
   create(): void {
@@ -102,7 +141,7 @@ export class GameScene extends Phaser.Scene {
     // Kural kitabı gün 2'den; gün 1'de masada yalnızca kural notu (hedef ve tek kural).
     if (ayar.kitap) this.kitap = new RuleBook(this, this.yer.kitap[0], this.yer.kitap[1], this.gun);
     if (ayar.not) this.notGetir(ayar.not.gorev, ayar.not.kurallar);
-    this.pencere = new Pencere(this, this.gun);
+    this.pencere = new Pencere(this, this.gun, sokakKayitlari(this.tohum, this.kayitlar));
     this.tepsi = new StampTray(this, (d) => this.damgala(d));
     // Masa sınırı damga çubuğunun sol kenarında biter; çubuk açılınca altında kalan belgeler dışarı itilir.
     this.tepsi.on('ac', () => {
@@ -292,6 +331,7 @@ export class GameScene extends Phaser.Scene {
     this.tepsi.bas(damga);
     this.time.delayedCall(70, () => {
       sfx.play('thud');
+      this.pencere.damgaVur(damga);
       punch(this, 0.01, 110);
       if (ruhsat?.active) {
         ruhsat.one();
@@ -355,12 +395,43 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * G4b kancası: gün sonu ekranından önceki adım (öncü sarsıntı; `oturum.ayar.oncuSarsinti` gün 1'de true).
-   * Şimdilik boş: 'gunSonuOncesi' olayını yayar ve hemen devam eder. Doldururken sarsıntı bitince devam() çağır.
+   * Gün sonu ekranından önceki adım: öncü sarsıntı olan günlerde (gün 1) sokak sallanır, zayıf binalar çatlar;
+   * sonuç gün sonu raporuna ve sonraki günlerin sokağına taşınır. Sekans sırasında masa kilitli; Esc çalışır.
    */
   private gunSonuOncesi(devam: () => void): void {
     this.events.emit('gunSonuOncesi', this.oturum.ayar);
-    devam();
+    if (!this.oturum.ayar.oncuSarsinti) {
+      devam();
+      return;
+    }
+    this.masaKilitle();
+    const O = TUNING.oncu;
+    const sokak = this.pencere.sokak;
+    const binalar = sokak.damgalilar();
+    this.time.delayedCall(700, () => {
+      new Quake(this, sokak, SOKAK_DERINLIK).oynat(
+        O.siddet,
+        binalar,
+        (sonuclar) => {
+          this.oncu = { siddet: O.siddet, sonuclar: sonuclar.map(({ dosyaId, durum, bos }) => ({ dosyaId, durum, bos })) };
+          this.time.delayedCall(500, devam);
+        },
+        { sure: O.sureMs, genlik: O.sarsinti, enAgir: 'hasarli', gizli: false, yazi: ONCU_YAZI },
+      );
+    });
+  }
+
+  /** Sekans sırasında belgeler, kural notu, kitap ve damga çubuğu kilitli. */
+  private masaKilitle(): void {
+    if (this.ipucu) {
+      this.tweens.killTweensOf(this.ipucu);
+      this.ipucu.destroy();
+      this.ipucu = undefined;
+    }
+    for (const k of this.masadakiKartlar()) k.disableInteractive(true);
+    this.not?.disableInteractive(true);
+    this.kitap?.kilitle(true);
+    this.tepsi.kilitle(true);
   }
 
   private gunSonu(): void {
@@ -371,6 +442,7 @@ export class GameScene extends Phaser.Scene {
       kararlar: this.oturum.kararlar.slice(),
       dosyalar: this.oturum.dosyalar.map((b) => ({ id: b.id, adres: b.adres })),
       kayitlar: this.kayitlar,
+      oncu: this.oncu,
     };
     goTo(this, SCENES.DayEnd, data);
   }

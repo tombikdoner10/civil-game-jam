@@ -63,6 +63,13 @@ export const TUNING = {
   /** Gün sonu parası (yer tutucu değerler; aile bütçesi yok). */
   para: { baslangic: 0, maas: 20, ceza: 10 },
 
+  /**
+   * Öncü sarsıntı (gün 1 sonu): risk çarpanı, süre (ms) ve kamera sarsıntısı genliği. Öncüde yalnızca belgelerdeki
+   * kusurlar sayılır ve en fazla çatlak olur. 2.5 ile: 1 kaçak katlı bina GÜVENLİ damgalıysa çatlar, GÜÇLENDİR
+   * damgalıysa sağlam kalır; temiz bina sağlam kalır.
+   */
+  oncu: { siddet: 2.5, sureMs: 9000, sarsinti: 0.006 },
+
   /** Deprem riski (0..1). */
   risk: {
     taban: 0.05,
