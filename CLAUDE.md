@@ -45,6 +45,7 @@ Ayrıntılı özet: üst klasördeki `KURALLAR.md` (repoda yok; oturum `Gamejam`
 ## Doğrulama
 
 - Değişiklikten sonra `npm run check`. Görsel değişiklikte oyunu tarayıcıda açıp ekran görüntüsü al ve konsol hatalarına bak.
+- `npm run smoke [adres-ya-da-dosya]`: görünmez Edge'de oyunu açar, açılışa ve "Oyna"ya tıklar, `teslim/smoke/` altına ekran görüntüsü alır ve sayfa hatalarını yazar. Varsayılan hedef `dist-single/index.html` (ZIP sürümü); canlı site için `npm run smoke https://tombikdoner10.github.io/civil-game-jam/`. Yayın sürümünde `window.game` olmadığı için yayın/ZIP testi bununla yapılır.
 - Claude masaüstü uygulamasının tarayıcı paneli gizliyken `requestAnimationFrame` durur ve oyun ilerlemez. Testte döngüyü elle sür:
   `setInterval(() => game.step(performance.now(), 1000 / 60), 1000 / 60)` (`window.game` yalnızca dev sunucusunda var).
 - Ekran görüntüsü almak birkaç saniye sürer; kısa animasyonları görmek için sahneyi `game.scene.pause(key)` ile dondur.
