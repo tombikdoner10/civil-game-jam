@@ -9,7 +9,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G17b [teknik] Belge hileleri: elle düzeltilmiş rakam (tipp-ex, üstü çizili), ada/parsel uyuşmazlığı (başka binanın belgesi), eksik imza/boş alan; "geçersiz belge" eksik belge gibi işler (İSTE → gerçek/sahte/yok → İADE); kural satırları ve günlere dağılım.
+- [ ] G18 [teknik] Fiziksel kaşe ve yönetmelik klasörü: kayan damga çubuğu yerine masadaki kaşeler (GÜVENLİ / GÜÇLENDİR / BOŞALT / İADE): al, ıstampaya bastır, belgeye vur; yeşil kural kitabı yerine halkalı yönetmelik klasörü; jüri 30 saniyede bulsun. Kaşeler kuralları geldikçe masaya gelsin (İADE gün 3). Ruhsattaki Ada/Parsel ve İmza satırları kuralları gelene kadar (gün 4–5) görünmesin; gün 1 masası sade kalsın.
 
 ## Sırada
 
@@ -21,7 +21,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 Ara test sonrası (takım kararı 23.53; sıra: G16 → G17 → G18 → G19 → G20)
 
-- [ ] G18 [teknik] Fiziksel kaşe ve yönetmelik klasörü: kayan damga çubuğu yerine masadaki kaşeler (GÜVENLİ / GÜÇLENDİR / BOŞALT / İADE): al, ıstampaya bastır, belgeye vur; yeşil kural kitabı yerine halkalı yönetmelik klasörü; jüri 30 saniyede bulsun. Kaşeler kuralları geldikçe masaya gelsin (İADE gün 3).
 - [ ] G19 [teknik] Saha testi: SAHA düğmesi (günde sınırlı hak, zaman harcar); Schmidt çekici mini oyunu (beton yüzeyine vur, geri tepme değeri → dayanım) ve el burgusu (zemin katmanları); sonuç masaya "saha notu" olarak düşer ve kanıt sayılır.
 - [ ] G20 [teknik] Takip denetimi: gün 3'ten itibaren önceki GÜÇLENDİR binalarından biri geri gelir; fotoğraf ve güçlendirme raporu; yapıldı mı, iskele kurulup bırakıldı mı; kural ve damga.
 
@@ -80,3 +79,4 @@ Bulutta yapılabilecekler
 - [x] G4c [teknik] G4b test bulguları: gün 2+ belgeler üst kenarda kırpılıyor (RUHSAT başlığı HUD şeridine değiyor; 20–30 px aşağı); 4–5. günde dolu sokak görünmüyor (pencerede 3–4 bina; gün başı turunda kamera geri çekilsin/uzaklaşsın); gün 5'ten önce mühür yılı = yapım yılı (yanlış kusur izlenimi); inceleme etiketi damga çubuğuna taşmasın; fiş gişe camında silueti örtmesin; mesai saati belgeler masaya oturunca başlasın. + G13 (Gate/Splash kısalt) (79eef37, Opus/high)
 - [x] G16 [teknik] Kurallar netleşsin + İADE: kural kitabında her satır damgasını yazsın; 4. damga İADE (sonucu: bina denetimsiz, depremde gerçek durumuyla); eksik karot/zemin etüdü akışı (iste → değerlendir → saha testi ya da İADE için kanca); dereye/faya yakın karar zemin etüdüne bağlı; doğru damga, fiş, gün sonu, adalet betiği buna uysun. (ea01399, Opus/high; adalet 9086 denetim 0 hata)
 - [x] G17a [teknik] Gişede insan ve sorgu: kodla piksel portreli mal sahibi (siluet yerine); SOR (bulunan tutarsızlıkta: bahane / itiraf / zarf) ve İSTE (eksik belgede: gerçek / sahte / yok); belge hileleri (elle düzeltilmiş rakam, ada/parsel uyuşmazlığı, eksik imza/boş alan, sahte rapor) ve kuralları; diyalog metinleri yer tutucu, takım yazacak. (63e6900, Opus/high; adalet 16724 denetim 0 hata)
+- [x] G17b [teknik] Belge hileleri: elle düzeltilmiş rakam (tipp-ex, üstü çizili), ada/parsel uyuşmazlığı (başka binanın belgesi), eksik imza/boş alan; "geçersiz belge" eksik belge gibi işler (İSTE → gerçek/sahte/yok → İADE); kural satırları ve günlere dağılım. (27ca242, Opus/high; adalet 21282 denetim 0 hata)
