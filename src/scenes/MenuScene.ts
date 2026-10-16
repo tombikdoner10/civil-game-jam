@@ -1,5 +1,7 @@
 import * as Phaser from 'phaser';
-import { COLORS, DEV, HEIGHT, SUBTITLE, TEAM, TITLE, VERSION, WIDTH } from '../config';
+import { DEV, HEIGHT, SUBTITLE, TEAM, TITLE, VERSION, WIDTH } from '../config';
+import { num, PAL } from '../desk/palette';
+import { PX } from '../desk/pixel';
 import { gunAyar, SON_GUN } from '../game/days';
 import { ornekKayitlar } from '../game/ornek';
 import { gunHesabi } from '../game/session';
@@ -7,6 +9,7 @@ import { popIn } from '../systems/fx';
 import { fadeIn, goTo } from '../systems/transition';
 import { addBackdrop } from '../ui/backdrop';
 import { Button } from '../ui/Button';
+import { kagitPanel } from '../ui/kagit';
 import { MenuNav } from '../ui/MenuNav';
 import { label } from '../ui/text';
 import { SCENES } from './keys';
@@ -36,9 +39,17 @@ export class MenuScene extends Phaser.Scene {
     fadeIn(this);
     addBackdrop(this);
 
-    const title = label(this, WIDTH / 2, 250, TITLE, { size: 136, weight: 'bold', baslik: true });
+    // Masada bir dosya kâğıdı: başlık şeridinde oyun adı (yer tutucu, config TITLE), altında düğmeler.
+    const n = DEV ? 4 : 3;
+    const kagitH = 360 + n * 112;
+    // "Oyna" her zaman y≈528'de (dev menüsünde de; smoke senaryoları 960,530'a tıklıyor).
+    const ust = 176;
+    const kagitY = ust + kagitH / 2;
+    kagitPanel(this, WIDTH / 2, kagitY, 800, kagitH, { serit: 168, tohum: 17 });
+    const title = label(this, WIDTH / 2, ust + 96, TITLE, { size: 120, weight: 'bold', baslik: true, color: num(PAL.kremAcik) });
     popIn(this, title);
-    label(this, WIDTH / 2, 365, SUBTITLE, { size: 40, color: COLORS.muted });
+    label(this, WIDTH / 2, ust + 224, SUBTITLE, { size: 40, color: num(PAL.murekkepSoluk) });
+    this.add.rectangle(WIDTH / 2, ust + 264, 640, PX, num(PAL.kremKoyu));
 
     const items: [string, () => void][] = [
       [
@@ -54,12 +65,12 @@ export class MenuScene extends Phaser.Scene {
     ];
     if (DEV) items.push(['Oyun Alanı (dev)', () => goTo(this, SCENES.Playground)]);
 
-    const buttons = items.map(([text, action], i) => new Button(this, WIDTH / 2, 530 + i * 122, text, action));
-    buttons.forEach((button, i) => popIn(this, button, 120 + i * 70));
+    const buttons = items.map(([text, action], i) => new Button(this, WIDTH / 2, ust + 352 + i * 112, text, action));
+    buttons.forEach((button, i) => popIn(this, button, 80 + i * 50));
     new MenuNav(this, buttons);
 
-    label(this, 48, HEIGHT - 44, TEAM, { size: 34, color: COLORS.muted, align: 'left' });
-    label(this, WIDTH - 48, HEIGHT - 44, `sürüm ${VERSION}`, { size: 30, color: COLORS.muted, align: 'right' });
+    label(this, 48, HEIGHT - 44, TEAM, { size: 34, color: num(PAL.panelYazi), align: 'left' });
+    label(this, WIDTH - 48, HEIGHT - 44, `sürüm ${VERSION}`, { size: 30, color: num(PAL.panelYazi), align: 'right' });
 
     // Menü müziği jam sırasında eklenecek: music.play(SONGS.menu)
   }

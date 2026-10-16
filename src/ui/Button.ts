@@ -1,19 +1,21 @@
 // @beyan görsel
 import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
-import { COLORS, css, FONT } from '../config';
+import { FONT } from '../config';
+import { num, PAL } from '../desk/palette';
+import { PX, snap } from '../desk/pixel';
 
 export interface ButtonOptions {
   width?: number;
   height?: number;
   fontSize?: number;
-  /** Kenar ve odak rengi. */
+  /** Odakta gövde rengi (varsayılan damga sarısı). */
   color?: number;
   /** Basınca çalınacak efekt; null ise ses yok. */
   sound?: string | null;
 }
 
-/** Fare ve klavyeyle (MenuNav) kullanılan, sesli ve animasyonlu buton. */
+/** Fare ve klavyeyle (MenuNav) kullanılan, sesli ve animasyonlu buton (masa tarzı piksel düğme). */
 export class Button extends Phaser.GameObjects.Container {
   readonly label: Phaser.GameObjects.Text;
   /** MenuNav, fare üstüne gelince odağı güncellemek için kullanır. */
@@ -31,14 +33,14 @@ export class Button extends Phaser.GameObjects.Container {
   constructor(scene: Phaser.Scene, x: number, y: number, text: string, action: () => void, opts: ButtonOptions = {}) {
     super(scene, x, y);
     this.action = action;
-    this.boxWidth = opts.width ?? 460;
-    this.boxHeight = opts.height ?? 96;
-    this.accent = opts.color ?? COLORS.primary;
+    this.boxWidth = snap(opts.width ?? 460, PX * 2);
+    this.boxHeight = snap(opts.height ?? 88, PX * 2);
+    this.accent = opts.color ?? num(PAL.damgaGuclendir);
     this.pressSound = opts.sound === undefined ? 'confirm' : opts.sound;
 
     this.bg = scene.add.graphics();
     this.label = scene.add
-      .text(0, 0, text, { fontFamily: FONT, fontSize: `${opts.fontSize ?? 50}px`, color: css(COLORS.text) })
+      .text(0, 0, text, { fontFamily: FONT, fontSize: `${opts.fontSize ?? 50}px`, color: PAL.kremAcik })
       .setOrigin(0.5);
     this.add([this.bg, this.label]);
 
@@ -94,14 +96,25 @@ export class Button extends Phaser.GameObjects.Container {
     return this;
   }
 
+  /**
+   * Masa tarzı piksel düğme (props.pikselDugme ile aynı dil): koyu çerçeve, köşesiz gövde, üstte açık, altta
+   * koyu çizgi. Odakta damga sarısı gövde, koyu yazı.
+   */
   private draw(): void {
     const w = this.boxWidth;
     const h = this.boxHeight;
-    const radius = Math.min(22, h / 2);
-    this.bg.clear();
-    this.bg.fillStyle(0x000000, 0.35).fillRoundedRect(-w / 2 + 4, -h / 2 + 8, w, h, radius);
-    this.bg.fillStyle(this.focused ? this.accent : COLORS.panel, 1).fillRoundedRect(-w / 2, -h / 2, w, h, radius);
-    this.bg.lineStyle(4, this.accent, 1).strokeRoundedRect(-w / 2, -h / 2, w, h, radius);
-    this.label.setColor(css(this.focused ? COLORS.bg : COLORS.text));
+    const x = -w / 2;
+    const y = -h / 2;
+    const g = this.bg;
+    const govde = this.focused ? this.accent : num(PAL.tezgah);
+    const acik = this.focused ? 0xd0ad52 : num(PAL.tezgahAcik);
+    const koyu = this.focused ? 0x8a6a20 : num(PAL.tezgahKoyu);
+    g.clear();
+    g.fillStyle(0x000000, 0.4).fillRect(x + PX, y + PX * 2, w, h);
+    g.fillStyle(num(PAL.cerceveKoyu)).fillRect(x, y, w, h);
+    g.fillStyle(govde).fillRect(x + PX, y + PX, w - PX * 2, h - PX * 2);
+    g.fillStyle(acik).fillRect(x + PX, y + PX, w - PX * 2, PX);
+    g.fillStyle(koyu).fillRect(x + PX, y + h - PX * 2, w - PX * 2, PX);
+    this.label.setColor(this.focused ? PAL.panel : PAL.kremAcik);
   }
 }

@@ -41,7 +41,7 @@ export class Pencere {
     gun: number,
     sokak: readonly SokakKaydi[] = [],
   ) {
-    this.sokak = new Sokak(scene, PEN, gun, sokak, D.sokak);
+    this.sokak = new Sokak(scene, PEN, gun, sokak, D.sokak, { tur: true });
     this.duvarCiz();
     this.giseCiz();
     const yaz = (x: number, t: string, font: string, size: number, renk: string): Phaser.GameObjects.Text =>

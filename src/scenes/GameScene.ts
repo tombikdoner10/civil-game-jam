@@ -36,8 +36,11 @@ export interface GameData {
 /** Öncü sarsıntı şeridi (yer tutucu metin; takım yazacak). */
 const ONCU_YAZI = '[Öncü sarsıntı. Asıl deprem gelecek.]';
 
-/** Masada boş yer yoksa uyarı fişi gişe camının altına düşer (belgeleri örtmez). */
-const FIS_GISE = { x: 1568, alt: 384, derinlik: 3500 };
+/**
+ * Masada boş yer yoksa uyarı fişi gişe camının sol alt köşesine düşer (belgeleri örtmez). x: sol kenar;
+ * w: siluetin solunda kalan genişlik (siluet gişenin ortasında, yaklaşık 1424-1712).
+ */
+const FIS_GISE = { x: 1256, w: 160, alt: 384, derinlik: 3500 };
 
 /** Masa sahnesi: üstte belediye penceresi ve gişe, altta masa, belgeler ve damga çubuğu. */
 export class GameScene extends Phaser.Scene {
@@ -145,7 +148,9 @@ export class GameScene extends Phaser.Scene {
     if (this.controls.justDown('action')) this.inceleme.degistir();
     if (this.bitirildi) return;
     if (!this.mesgul) {
-      this.oturum.ilerle(Math.min(delta, 100) / 1000);
+      // Gün 1 ilk dosyada "Space: İNCELE" ipucu duruyorken (öğrenme anı) saat yavaş akar.
+      const hiz = this.ipucu && this.oturum.no === 1 ? TUNING.mesai.ipucuHiz : 1;
+      this.oturum.ilerle((Math.min(delta, 100) / 1000) * hiz);
       if (this.oturum.mesaiBitti) {
         this.mesgul = true;
         this.bitir();
@@ -237,9 +242,17 @@ export class GameScene extends Phaser.Scene {
     engel.forEach((r) => Phaser.Geom.Rectangle.Inflate(r, 12, 12));
     let en: [number, number] | null = null;
     let enPuan = Infinity;
-    const adim = 16;
-    for (let y = MASA.y + h / 2 + 8; y <= MASA.y + MASA.h - h / 2 - 8; y += adim)
-      for (let x = MASA.x + w / 2 + 8; x <= MASA.x + MASA.w - w / 2 - 8; x += adim) {
+    // 16 px adımlı ızgara; masa kenarlarına ve engellerin kenarlarına dayalı konumlar da denenir (dar boşluklar kaçmasın).
+    const adimlar = (bas: number, son: number, kenarlar: number[]): number[] => {
+      const out: number[] = [];
+      for (let v = bas; v < son; v += 16) out.push(v);
+      out.push(son, ...kenarlar.filter((v) => v >= bas && v <= son));
+      return out;
+    };
+    const ys = adimlar(MASA.y + h / 2 + 8, MASA.y + MASA.h - h / 2 - 8, engel.flatMap((e) => [e.top - h / 2 - 4, e.bottom + h / 2 + 4]));
+    const xs = adimlar(MASA.x + w / 2 + 8, MASA.x + MASA.w - w / 2 - 8, engel.flatMap((e) => [e.left - w / 2 - 4, e.right + w / 2 + 4]));
+    for (const y of ys)
+      for (const x of xs) {
         const r = new Phaser.Geom.Rectangle(x - w / 2, y - h / 2, w, h);
         const ortu = engel.some((e) => Phaser.Geom.Intersects.RectangleToRectangle(r, e));
         if (ortu) continue;
@@ -281,19 +294,26 @@ export class GameScene extends Phaser.Scene {
         ease: 'Cubic.easeOut',
         onStart: () => sfx.play('kagitKay', { volume: 0.7 }),
         // Son belge masaya inince kâğıt sesi.
+        // Son belge masaya inince kâğıt sesi; mesai saati ancak o zaman işlemeye başlar.
         onComplete: () => {
-          if (i === belgeler.length - 1) sfx.play('kagitBirak');
+          if (i === belgeler.length - 1) {
+            sfx.play('kagitBirak');
+            this.belgelerOturdu();
+          }
         },
       });
       return k;
     });
-    this.time.delayedCall(gecikme + 420 + belgeler.length * 80, () => {
-      this.mesgul = false;
-      if (this.ilkDosya) {
-        this.ilkDosya = false;
-        this.tepsi.ac();
-      }
-    });
+  }
+
+  /** Dosyanın bütün belgeleri masada: masa açılır, saat işler; günün ilk dosyasında damga çubuğu açılır. */
+  private belgelerOturdu(): void {
+    if (this.bitirildi) return;
+    this.mesgul = false;
+    if (this.ilkDosya) {
+      this.ilkDosya = false;
+      this.tepsi.ac();
+    }
   }
 
   private damgala(damga: Damga): void {
@@ -325,9 +345,21 @@ export class GameScene extends Phaser.Scene {
       const metin = sonuc.dogru ? 'Doğru karar' : `Yanlış karar\nDoğrusu: ${DAMGA_ADI[sonuc.dogruDamga]}\n${kusurlar}`;
       const fis = fisKur(this, sonuc.dogru, metin);
       // Masanın boş yerine; yer yoksa gişe camının altına (belge değerlerini örtmesin).
-      const yer = this.bosYer(fis.width, fis.height);
+      // Önce tam boy, sığmazsa biraz küçük; masada hiç yer yoksa gişe camının sol kenarına küçülerek (silueti örtmez).
+      let yer: [number, number] | null = null;
+      for (const s of [1, 0.75]) {
+        yer = this.bosYer(fis.width * s, fis.height * s);
+        if (yer) {
+          fis.setScale(s);
+          break;
+        }
+      }
       if (yer) fisDusur(this, fis, yer[0], yer[1]);
-      else fisDusur(this, fis, FIS_GISE.x, FIS_GISE.alt - fis.height / 2, FIS_GISE.derinlik);
+      else {
+        const s = Phaser.Math.Clamp(FIS_GISE.w / fis.width, 0.5, 1);
+        fis.setScale(s);
+        fisDusur(this, fis, FIS_GISE.x + (fis.width * s) / 2, FIS_GISE.alt - (fis.height * s) / 2, FIS_GISE.derinlik);
+      }
       this.fis = fis;
       sfx.play('fis');
       sfx.play(sonuc.dogru ? 'dogru' : 'uyari');

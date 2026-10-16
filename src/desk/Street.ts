@@ -39,6 +39,13 @@ const ZEMIN_ALT = 42;
 
 /** İncelenen bina pencerenin ortasının biraz sağında: solda geçmiş binalardan ikisi tam görünsün. */
 const INCELE_ORAN = 0.58;
+/**
+ * Sokak dolunca (en az `esik` geçmiş bina) masa penceresinde sokak yarı boyda (1 sanat pikseli = 1 ekran
+ * pikseli, keskin) ve incelenen bina sağda: solunda 6 kadar geçmiş bina görünür.
+ */
+const DOLU = { esik: 3, olcek: 0.5, oran: 0.76 };
+/** Gün başı turu: sokağın tamamı (ya da son kısmı) küçük ölçekte; bekle, sonra incelenen binaya yaklaş. */
+const TUR = { minOlcek: 0.25, bekle: 1300, yaklas: 1400 };
 
 const TON_GUN = { incelenen: 0xe6dcd4, damgali: 0xa09898, dolgu: 0x6e6874, arsa: 0x8a8480, gok: 0xe6dcd4 };
 /** Gece (G5 büyük deprem): soğuk ve karanlık; binalar lamba ışığında seçilir. */
@@ -56,6 +63,11 @@ export interface SokakSecenek {
   gece?: boolean;
   /** Uzak siluet (arkadaki şehir) çizilsin mi (varsayılan evet; gazete fotoğrafında hayır). */
   uzak?: boolean;
+  /**
+   * Masa penceresi: gün başında sokak turu (dolu sokak küçük ölçekte görünür, sonra ilk dosyanın binasına
+   * yaklaşılır) ve dolu sokakta yarı boy görünüm (DOLU).
+   */
+  tur?: boolean;
 }
 
 /** Sokaktaki bir bina yeri (Quake bunlarla çalışır). */
@@ -108,6 +120,11 @@ export class Sokak {
   private uzakImg?: Phaser.GameObjects.Image;
   private incelenen?: Parsel;
   private kaydirma?: Phaser.Tweens.Tween;
+  /** Masa penceresi modu (SokakSecenek.tur). */
+  private readonly masa: boolean;
+  /** Gün başı turu sürüyor: ilk incele beklemeden sonra yaklaşır. */
+  private turda = false;
+  private turBekleme?: Phaser.Time.TimerEvent;
   /** Ekran pikseli / sanat pikseli. */
   private readonly O: number;
   /** Pencere tuvali (sanat pikseli) ve kaldırım çizgisi. */
@@ -150,8 +167,18 @@ export class Sokak {
       this.tonla(p);
       if (k.hasar) this.hasarVer(yer, k.hasar, false);
     });
-    // Gün başında sokağın başından başlanır; ilk dosyada sıradaki parsele kayılır (sokak bir kez gözden geçer).
-    this.odakla(0, 0, 0, undefined, INCELE_ORAN);
+    this.masa = secenek.tur ?? false;
+    const n = kayitlar.length;
+    if (this.masa && n >= DOLU.esik) {
+      // Gün başı turu: dolu sokak (sığmazsa en son damgalananlar) küçük ölçekte; ilk dosyada binaya yaklaşılır.
+      const sigan = Math.floor((this.penW / TUR.minOlcek - 16) / PARSEL);
+      const i0 = Math.max(-1, n + 1 - sigan);
+      this.odakla(i0, n, 0, undefined, 0.5, TUR.minOlcek);
+      this.turda = true;
+    } else {
+      // Gün başında sokağın başından başlanır; ilk dosyada sıradaki parsele kayılır (sokak bir kez gözden geçer).
+      this.odakla(0, 0, 0, undefined, INCELE_ORAN);
+    }
   }
 
   /** Damgalı bina sayısı (sıradaki boş parsel). */
@@ -177,9 +204,25 @@ export class Sokak {
     this.scene.tweens.add({ targets: p.kap, alpha: 1, duration: 450 });
     const arsa = this.arsalar.get(yer);
     if (arsa) this.scene.tweens.add({ targets: arsa, alpha: 0, duration: 300 });
-    const hedef = this.konum((yer + 0.5) * PARSEL, 1, INCELE_ORAN);
-    const uzak = Math.abs(this.kok.x - hedef.x) / (PARSEL * this.O);
-    this.odakla(yer, yer, Math.min(2200, 300 + 140 * uzak), undefined, INCELE_ORAN);
+    // Dolu sokakta (masa penceresi) yarı boy: incelenen bina sağda, solunda geçmiş kararlar.
+    const dolu = this.masa && yer >= DOLU.esik;
+    const s = dolu ? DOLU.olcek : 1;
+    const oran = dolu ? DOLU.oran : INCELE_ORAN;
+    const c = (yer + 0.5) * PARSEL;
+    this.turBekleme?.remove();
+    this.turBekleme = undefined;
+    if (this.turda) {
+      // Gün başı turu: sokak bir an bütün görünür, sonra binaya yaklaşılır.
+      this.turda = false;
+      this.turBekleme = this.scene.time.delayedCall(TUR.bekle, () => {
+        this.turBekleme = undefined;
+        this.git(c, s, oran, TUR.yaklas);
+      });
+      return;
+    }
+    const hedef = this.konum(c, s, oran);
+    const uzak = Math.abs(this.kok.x - hedef.x) / (PARSEL * this.O * s);
+    this.git(c, s, oran, Math.min(2200, 300 + 140 * uzak));
   }
 
   /** İncelenen bina damgalandı: işareti canlandırarak yerine oturur ve sokakta kalır. */
@@ -205,6 +248,13 @@ export class Sokak {
     const genislik = (i1 - i0 + 1) * PARSEL + 16;
     const s = Phaser.Math.Clamp(this.penW / genislik, Math.min(minOlcek, 1), 1);
     const c = ((i0 + i1 + 1) / 2) * PARSEL;
+    this.turBekleme?.remove();
+    this.turBekleme = undefined;
+    this.git(c, s, oran, sure, bitince);
+  }
+
+  /** Kökü c (sanat pikseli, sokak boyunca) pencerenin oran noktasına ve s ölçeğine götürür. */
+  private git(c: number, s: number, oran: number, sure: number, bitince?: () => void): void {
     const hedef = this.konum(c, s, oran);
     this.kaydirma?.stop();
     if (sure <= 0) {

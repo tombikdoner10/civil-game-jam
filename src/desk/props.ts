@@ -6,7 +6,7 @@ import { PAL } from './palette';
 import { PX, rastgele, snap, Tuval } from './pixel';
 
 /** Ahşap masa: kalaslar, damarlar, kenarlarda karartma. */
-export function masaCiz(scene: Phaser.Scene, y: number): void {
+export function masaCiz(scene: Phaser.Scene, y: number): Phaser.GameObjects.Image {
   const W = 1920 / PX;
   const H = (1080 - y) / PX;
   const t = new Tuval(scene, W, H, 'masa');
@@ -34,7 +34,7 @@ export function masaCiz(scene: Phaser.Scene, y: number): void {
   t.dither(0, 2, W, 2, '#1a1512');
   t.dither(0, 0, 3, H, '#1a1512');
   t.dither(W - 3, 0, 3, H, '#1a1512', 1);
-  t.goruntu(0, y).setOrigin(0).setDepth(0);
+  return t.goruntu(0, y).setOrigin(0).setDepth(0);
 }
 
 /** Kural kitabı: masada kapalı, pasif (içeriği G4). */

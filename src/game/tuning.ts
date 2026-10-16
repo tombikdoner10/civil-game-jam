@@ -58,7 +58,14 @@ export const TUNING = {
    * Mesai: gün başına gerçek süre (sn, 09.00-17.00 arasına denk gelir; dosya gelip giderken saat durur)
    * ve dosya sayısı. Gün 1 = ilk eleman. Gün 1 kısa: jüri 2 dakikada bitirsin (GDD "Jüri yolu").
    */
-  mesai: { sure: [90, 180, 200, 220, 240], baslangicSaat: 9, bitisSaat: 17, dosyaSayisi: [3, 5, 6, 7, 8] },
+  mesai: {
+    sure: [90, 180, 200, 220, 240],
+    baslangicSaat: 9,
+    bitisSaat: 17,
+    dosyaSayisi: [3, 5, 6, 7, 8],
+    /** Gün 1'de inceleme ipucu ekrandayken (ilk Space'e kadar) saatin hızı. */
+    ipucuHiz: 0.5,
+  },
 
   /** Gün sonu parası (yer tutucu değerler; aile bütçesi yok). */
   para: { baslangic: 0, maas: 20, ceza: 10 },

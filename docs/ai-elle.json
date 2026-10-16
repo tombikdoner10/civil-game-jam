@@ -92,5 +92,12 @@
     "yer": "src/game/session.ts, src/desk/props.ts, src/scenes/DayEndScene.ts, GameScene.ts, MenuScene.ts, NewspaperScene.ts, ResultScene.ts, package.json",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-16T20:20:23.183Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G4c/G13: belge yerleşimi, sokak turu, fiş yeri, menü masa tarzı (bir kısmı sed ve küçük düzenleme betiğiyle yapıldı)",
+    "yer": "src/desk, src/scenes, src/ui",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-16T20:43:02.360Z"
   }
 ]

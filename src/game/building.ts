@@ -409,5 +409,8 @@ export function gunDosyalari(tohum: number, gun: number, adet: number, secenek: 
     const i = rng.pick(serbest);
     dosyalar[i] = kusurluBinaKur(rng, [], ek(i));
   }
+  // Sahte belge kuralı gelmeden mühür yılı yapım yılıyla aynı: fark, oyuncuya kusur gibi görünmesin.
+  const sahteGunu = KURALLAR.find((k) => k.kusurlar.includes('sahteBelge'))?.ilkGun ?? Infinity;
+  if (gun < sahteGunu) for (const b of dosyalar) if (!b.gercek.ruhsatSahte) b.belgeler.ruhsat.muhurYili = b.yil;
   return dosyalar;
 }

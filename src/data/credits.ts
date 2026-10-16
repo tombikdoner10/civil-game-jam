@@ -37,10 +37,11 @@ export interface AiCredit {
   where: string;
 }
 
-// TODO: Takım üyelerinin adlarını ve rollerini yaz.
+// TODO(takım): Üç üyenin adlarını ve rollerini yaz (köşeli parantezli metinler yer tutucu). Temsilci: Egemen.
 export const MEMBERS: Member[] = [
-  { name: 'Takım üyesi 1', role: 'Yönetim, oyun tasarımı kararları, test' },
-  { name: 'Takım üyesi 2', role: 'Test, video, sunum' },
+  { name: '[Takım üyesi 1: Egemen]', role: 'Takım temsilcisi · [rol]' },
+  { name: '[Takım üyesi 2]', role: '[rol]' },
+  { name: '[Takım üyesi 3]', role: '[rol]' },
 ];
 
 /**

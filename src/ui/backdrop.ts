@@ -1,23 +1,25 @@
 // @beyan görsel
 import * as Phaser from 'phaser';
-import { COLORS, HEIGHT, WIDTH } from '../config';
-import { TEX } from '../systems/textures';
+import { HEIGHT, WIDTH } from '../config';
+import { masaCiz } from '../desk/props';
 
-/** Menü ekranlarının sade arka planı: yavaşça yükselen ışık lekeleri. Tema belli olunca değiştir. */
-export function addBackdrop(scene: Phaser.Scene, color: number = COLORS.accent): void {
-  scene.add
-    .particles(0, 0, TEX.soft, {
-      x: { min: 0, max: WIDTH },
-      y: { min: HEIGHT * 0.1, max: HEIGHT + 60 },
-      lifespan: 9000,
-      speedY: { min: -50, max: -15 },
-      speedX: { min: -10, max: 10 },
-      scale: { start: 2, end: 0.3 },
-      alpha: { start: 0.14, end: 0 },
-      tint: color,
-      frequency: 140,
-      advance: 9000,
-      blendMode: Phaser.BlendModes.ADD,
-    })
-    .setDepth(-10);
+/**
+ * Menü ekranlarının arka planı: denetçinin masası (oyundaki masanın aynısı, tam ekran) ve kenarlarda hafif
+ * karartma (masa lambasının ışığı ortada).
+ */
+export function addBackdrop(scene: Phaser.Scene): void {
+  scene.cameras.main.setRoundPixels(true);
+  masaCiz(scene, 0).setDepth(-20);
+  const g = scene.add.graphics().setDepth(-19);
+  // Kenarlardan ortaya doğru azalan karartma (4 px'lik bantlar, piksel tarzı).
+  const adim = 8;
+  for (let i = 0; i < adim; i++) {
+    const a = 0.07 * (adim - i) / adim;
+    const pay = i * 24;
+    g.fillStyle(0x000000, a);
+    g.fillRect(0, 0, WIDTH, pay + 24);
+    g.fillRect(0, HEIGHT - pay - 24, WIDTH, pay + 24);
+    g.fillRect(0, 0, pay + 24, HEIGHT);
+    g.fillRect(WIDTH - pay - 24, 0, pay + 24, HEIGHT);
+  }
 }

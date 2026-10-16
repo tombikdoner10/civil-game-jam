@@ -1,7 +1,8 @@
 // @beyan görsel
 import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
-import { COLORS } from '../config';
+import { num, PAL } from '../desk/palette';
+import { PX, snap } from '../desk/pixel';
 
 /** Tıklanıp sürüklenebilen 0..1 değer çubuğu (ses ayarları için). */
 export class ValueBar extends Phaser.GameObjects.Container {
@@ -53,13 +54,23 @@ export class ValueBar extends Phaser.GameObjects.Container {
     this.setValue((p.x - left) / this.barWidth);
   }
 
+  /** Masa tarzı: koyu oluk, damga sarısı dolgu, piksel sürgü (köşesiz, 4 px ızgarası). */
   private draw(): void {
     const w = this.barWidth;
-    const h = 18;
-    const filled = Math.max(h, w * this.value);
-    this.gfx.clear();
-    this.gfx.fillStyle(COLORS.panelHi).fillRoundedRect(-w / 2, -h / 2, w, h, h / 2);
-    if (this.value > 0) this.gfx.fillStyle(COLORS.primary).fillRoundedRect(-w / 2, -h / 2, filled, h, h / 2);
-    this.gfx.fillStyle(COLORS.text).fillCircle(-w / 2 + w * this.value, 0, 20);
+    const h = 24;
+    const x0 = -w / 2;
+    const filled = snap(w * this.value);
+    const g = this.gfx;
+    g.clear();
+    g.fillStyle(num(PAL.cerceveKoyu)).fillRect(x0 - PX, -h / 2 - PX, w + PX * 2, h + PX * 2);
+    g.fillStyle(num(PAL.tezgahKoyu)).fillRect(x0, -h / 2, w, h);
+    if (filled > 0) {
+      g.fillStyle(num(PAL.damgaGuclendir)).fillRect(x0, -h / 2, filled, h);
+      g.fillStyle(0xd0ad52).fillRect(x0, -h / 2, filled, PX);
+    }
+    const sx = snap(x0 + filled);
+    g.fillStyle(num(PAL.cerceveKoyu)).fillRect(sx - 12, -28, 24, 56);
+    g.fillStyle(num(PAL.kremAcik)).fillRect(sx - 8, -24, 16, 48);
+    g.fillStyle(num(PAL.kremKoyu)).fillRect(sx - 8, 16, 16, 8);
   }
 }

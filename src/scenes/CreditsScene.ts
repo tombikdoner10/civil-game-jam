@@ -1,9 +1,11 @@
 import * as Phaser from 'phaser';
-import { COLORS, HEIGHT, SUBTITLE, TEAM, WIDTH } from '../config';
+import { SUBTITLE, TEAM, WIDTH } from '../config';
+import { num, PAL } from '../desk/palette';
 import { AI, ASSETS, CATEGORIES, MEMBERS, type Category } from '../data/credits';
 import { fadeIn, goTo } from '../systems/transition';
 import { addBackdrop } from '../ui/backdrop';
 import { Button } from '../ui/Button';
+import { kagitPanel } from '../ui/kagit';
 import { MenuNav } from '../ui/MenuNav';
 import { label, type LabelOptions } from '../ui/text';
 import { SCENES } from './keys';
@@ -25,23 +27,26 @@ export class CreditsScene extends Phaser.Scene {
   create(): void {
     fadeIn(this);
     addBackdrop(this);
-    label(this, WIDTH / 2, 120, 'Emeği Geçenler', { size: 96 });
+    this.cameras.main.setRoundPixels(true);
+    // Masada büyük bir kâğıt: başlık şeridi, kayan beyan metni, altta Geri.
+    kagitPanel(this, WIDTH / 2, 556, 1440, 984, { serit: 120, tohum: 41 });
+    label(this, WIDTH / 2, 132, 'Emeği Geçenler', { size: 80, color: num(PAL.kremAcik) });
 
     const left = WIDTH / 2 - COLUMN / 2;
     this.content = this.add.container(left, TOP);
     let y = 0;
     const add = (text: string, o: LabelOptions = {}, gap = 14): void => {
-      const t = label(this, 0, y, text, { size: 38, align: 'left', wrap: COLUMN, ...o }).setOrigin(0, 0);
+      const t = label(this, 0, y, text, { size: 38, align: 'left', wrap: COLUMN, color: num(PAL.murekkep), ...o }).setOrigin(0, 0);
       this.content.add(t);
       y += t.height + gap;
     };
     const header = (text: string): void => {
       y += 30;
-      add(text, { size: 48, color: COLORS.primary }, 18);
+      add(text, { size: 48, color: num(PAL.basikSerit) }, 18);
     };
 
     add(TEAM, { size: 60 }, 4);
-    add(`${SUBTITLE} için 48 saatte geliştirildi.`, { color: COLORS.muted });
+    add(`${SUBTITLE} için 48 saatte geliştirildi.`, { color: num(PAL.murekkepSoluk) });
     header('Takım');
     MEMBERS.forEach((m) => add(`${m.name}  ·  ${m.role}`));
     // Teslim formundaki gibi: beş kategorinin her biri için Kullanıldı / Kullanılmadı.
@@ -50,14 +55,14 @@ export class CreditsScene extends Phaser.Scene {
       for (const { id, label } of CATEGORIES) {
         const items = data[id];
         if (items.length === 0) {
-          add(`${label}: Kullanılmadı`, { size: 34, color: COLORS.muted }, 12);
+          add(`${label}: Kullanılmadı`, { size: 34, color: num(PAL.murekkepSoluk) }, 12);
           continue;
         }
         add(`${label}: Kullanıldı`, { size: 38 }, 6);
         for (const item of items) {
           const [main, detail] = describe(item);
           add(main, { size: 34 }, 4);
-          add(detail, { size: 30, color: COLORS.muted }, 16);
+          add(detail, { size: 30, color: num(PAL.murekkepSoluk) }, 16);
         }
       }
     };
@@ -68,7 +73,7 @@ export class CreditsScene extends Phaser.Scene {
     this.content.setMask(maskShape.createGeometryMask());
     this.maxScroll = Math.max(0, y - VIEW_HEIGHT);
     if (this.maxScroll > 0) {
-      label(this, WIDTH / 2, TOP + VIEW_HEIGHT + 40, 'Kaydırmak için fare tekerleği ya da ↑ / ↓', { size: 32, color: COLORS.muted });
+      label(this, WIDTH / 2, TOP + VIEW_HEIGHT + 40, 'Kaydırmak için fare tekerleği ya da ↑ / ↓', { size: 32, color: num(PAL.murekkepSoluk) });
     }
 
     this.input.on(Phaser.Input.Events.POINTER_WHEEL, (_p: Phaser.Input.Pointer, _over: unknown, _dx: number, dy: number) => this.scrollBy(dy));

@@ -1,0 +1,45 @@
+// @beyan görsel
+import * as Phaser from 'phaser';
+import { PAL } from '../desk/palette';
+import { PX, rastgele, snap, Tuval } from '../desk/pixel';
+
+export interface KagitSecenek {
+  /** Kâğıt rengi ve kenar/benek rengi (varsayılan krem). */
+  renk?: string;
+  koyu?: string;
+  /** Üstte koyu kırmızı başlık şeridi (ruhsattaki gibi), ekran pikseli yüksekliği. 0 = yok. */
+  serit?: number;
+  tohum?: number;
+}
+
+/**
+ * Menü ekranlarının kâğıdı: masa belgeleriyle aynı dil (benekli krem kâğıt, koyu kenar, alt gölge, kıvrık köşe).
+ * (x, y) ortası; boyut 4 px ızgarasına yuvarlanır. Kap döner (gölge + kâğıt).
+ */
+export function kagitPanel(scene: Phaser.Scene, x: number, y: number, w: number, h: number, o: KagitSecenek = {}): Phaser.GameObjects.Container {
+  const renk = o.renk ?? PAL.krem;
+  const koyu = o.koyu ?? PAL.kremKoyu;
+  const W = Math.round(snap(w) / PX);
+  const H = Math.round(snap(h) / PX);
+  const t = new Tuval(scene, W, H, 'menu-kagit');
+  const rnd = rastgele(o.tohum ?? W * 131 + H);
+  t.rect(0, 0, W, H, renk);
+  t.benek(0, 0, W, H, koyu, 0.035, rnd);
+  t.benek(0, 0, W, H, '#ffffff10', 0.02, rnd);
+  t.frame(0, 0, W, H, koyu);
+  t.dither(1, H - 2, W - 2, 1, koyu);
+  t.dither(W - 2, 1, 1, H - 2, koyu, 1);
+  // Sağ üstte kıvrık köşe
+  for (let i = 0; i < 4; i++) t.ctx.clearRect(W - 4 + i, 0, 1, 4 - i);
+  for (let i = 0; i < 4; i++) t.rect(W - 5, i, i + 1, 1, koyu);
+  t.rect(W - 4, 4, 4, 1, koyu);
+  const serit = Math.round((o.serit ?? 0) / PX);
+  if (serit > 0) {
+    t.rect(3, 3, W - 9, serit, PAL.basikSerit);
+    t.dither(3, 3 + serit, W - 9, 1, PAL.basikSerit);
+  }
+  const kap = scene.add.container(snap(x), snap(y));
+  kap.add(scene.add.rectangle(PX, PX * 2, W * PX, H * PX, 0x000000, 0.4));
+  kap.add(t.goruntu(0, 0));
+  return kap;
+}

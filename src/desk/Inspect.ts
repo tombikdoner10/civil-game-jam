@@ -6,6 +6,7 @@ import type { Kusur } from '../game/building';
 import type { SecimRef } from '../game/rules';
 import type { IncelemeSonucu } from '../game/session';
 import { punch } from '../systems/fx';
+import { MASA } from './DocumentCard';
 import { num, PAL } from './palette';
 import { PX, snap, Tuval } from './pixel';
 import { BANT_H, MASA_Y } from './Window';
@@ -358,7 +359,8 @@ export class Inspect extends Phaser.Events.EventEmitter {
     let enPuan = Infinity;
     let enR = new Phaser.Geom.Rectangle();
     adaylar.forEach(([cx, cy], i) => {
-      const x = snap(Phaser.Math.Clamp(cx, w / 2 + 8, 1920 - w / 2 - 8));
+      // Masa sınırı içinde: damga çubuğu açıkken onun sol kenarına kadar.
+      const x = snap(Phaser.Math.Clamp(cx, MASA.x + w / 2 + 8, Math.max(MASA.x + w / 2 + 8, MASA.x + MASA.w - w / 2 - 8)));
       const y = snap(Phaser.Math.Clamp(cy, MASA_Y + h / 2 + 8, 1080 - h / 2 - 8));
       const r = new Phaser.Geom.Rectangle(x - w / 2, y - h / 2, w, h);
       let puan = 0;

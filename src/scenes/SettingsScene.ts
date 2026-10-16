@@ -1,10 +1,12 @@
 import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
-import { COLORS, HEIGHT, WIDTH } from '../config';
+import { HEIGHT, WIDTH } from '../config';
+import { num, PAL } from '../desk/palette';
 import { settings, type Settings } from '../systems/settings';
 import { fadeIn, goTo } from '../systems/transition';
 import { addBackdrop } from '../ui/backdrop';
 import { Button } from '../ui/Button';
+import { kagitPanel } from '../ui/kagit';
 import { MenuNav } from '../ui/MenuNav';
 import { label } from '../ui/text';
 import { ValueBar } from '../ui/ValueBar';
@@ -34,14 +36,17 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.cameras.main.setRoundPixels(true);
     if (this.overlay) {
-      this.add.rectangle(0, 0, WIDTH, HEIGHT, COLORS.bg, 0.88).setOrigin(0).setInteractive();
+      this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x000000, 0.65).setOrigin(0).setInteractive();
     } else {
       fadeIn(this);
       addBackdrop(this);
     }
 
-    label(this, WIDTH / 2, 150, 'Ayarlar', { size: 88, weight: 'bold', baslik: true });
+    // Masada (ya da duraklatmanın üstünde) bir kâğıt: başlık şeridi, ayar satırları, düğmeler.
+    kagitPanel(this, WIDTH / 2, 548, 1280, 968, { serit: 120, tohum: 31 });
+    label(this, WIDTH / 2, 136, 'Ayarlar', { size: 80, weight: 'bold', baslik: true, color: num(PAL.kremAcik) });
 
     const rows: [string, VolumeKey, string][] = [
       ['Ana ses', 'master', 'click'],
@@ -51,8 +56,8 @@ export class SettingsScene extends Phaser.Scene {
     const navButtons: Button[] = [];
     rows.forEach(([name, key, preview], i) => {
       const y = 320 + i * 120;
-      label(this, 420, y, name, { size: 48, align: 'left' });
-      const percent = label(this, 1500, y, '', { size: 40, color: COLORS.muted, align: 'left' });
+      label(this, 420, y, name, { size: 48, align: 'left', color: num(PAL.murekkep) });
+      const percent = label(this, 1460, y, '', { size: 40, color: num(PAL.murekkepSoluk), align: 'left' });
       const showPercent = (v: number): void => void percent.setText(`%${Math.round(v * 100)}`);
       const bar = new ValueBar(this, 1110, y, 440, settings.get()[key], (v) => {
         settings.set({ [key]: v } as Partial<Settings>);
