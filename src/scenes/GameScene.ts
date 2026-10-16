@@ -1,16 +1,17 @@
 import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
-import { COLORS, DEV, HEIGHT, WIDTH } from '../config';
-import { DocumentCard, KART_W, MASA } from '../desk/DocumentCard';
-import { belgeKur, SIRA } from '../desk/documents';
-import { StampBar } from '../desk/StampBar';
-import type { Damga } from '../game/building';
+import { DEV } from '../config';
+import { DocumentCard, MASA, ustKatman } from '../desk/DocumentCard';
+import { belgeKur, BOY, SIRA } from '../desk/documents';
+import { snap } from '../desk/pixel';
+import { fisDusur, kuralKitabi, masaCiz } from '../desk/props';
+import { DAMGA_ADI, damgaIzi, StampTray } from '../desk/StampTray';
+import { GOZ, MASA_Y, Pencere } from '../desk/Window';
+import type { BelgeTuru, Damga } from '../game/building';
 import { GunOturumu } from '../game/session';
 import { Controls } from '../systems/controls';
-import { floatText, punch } from '../systems/fx';
+import { punch } from '../systems/fx';
 import { fadeIn, goTo } from '../systems/transition';
-import { Button } from '../ui/Button';
-import { label } from '../ui/text';
 import { SCENES } from './keys';
 
 export interface GameData {
@@ -18,9 +19,19 @@ export interface GameData {
   tohum?: number;
 }
 
-const DAMGA_ADI: Record<Damga, string> = { guvenli: 'GÜVENLİ', guclendir: 'GÜÇLENDİR', bosalt: 'BOŞALT' };
+/** Masadaki yerleşim (kart ortası, ekran). Biraz dağınık ama okunur. */
+const YER: Record<BelgeTuru, [number, number]> = {
+  foto: [196, 700],
+  ruhsat: [572, 628],
+  proje: [580, 920],
+  vaziyet: [984, 636],
+  karot: [968, 936],
+  zemin: [1352, 920],
+};
+const KITAP: [number, number] = [1388, 640];
+const FIS: [number, number] = [1300, 576];
 
-/** Masa sahnesi: dosyanın belgeleri masada, damga vurulunca sıradaki dosya gelir. */
+/** Masa sahnesi: üstte belediye penceresi ve gişe, altta masa, belgeler ve damga çubuğu. */
 export class GameScene extends Phaser.Scene {
   private controls!: Controls;
   private oturum!: GunOturumu;
@@ -29,10 +40,10 @@ export class GameScene extends Phaser.Scene {
   private kartlar: DocumentCard[] = [];
   private mesgul = true;
   private bitirildi = false;
-  private saatYazi!: Phaser.GameObjects.Text;
-  private dosyaYazi!: Phaser.GameObjects.Text;
-  private geriBildirim!: Phaser.GameObjects.Text;
-  private damgaBar!: StampBar;
+  private pencere!: Pencere;
+  private tepsi!: StampTray;
+  private fis?: Phaser.GameObjects.Container;
+  private ilkDosya = true;
 
   constructor() {
     super(SCENES.Game);
@@ -51,27 +62,25 @@ export class GameScene extends Phaser.Scene {
     this.kartlar = [];
     this.mesgul = true;
     this.bitirildi = false;
+    this.fis = undefined;
+    this.ilkDosya = true;
   }
 
   create(): void {
     fadeIn(this);
+    this.cameras.main.setRoundPixels(true);
     this.controls = new Controls(this);
     this.oturum = new GunOturumu(this.gun, this.tohum);
     if (DEV) this.input.keyboard?.on('keydown-ENTER', () => this.bitir());
 
-    // Masa ve üst şerit
-    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x262a33).setOrigin(0);
-    this.add.rectangle(MASA.x, MASA.y, MASA.w, MASA.h - 0, 0x30353f).setOrigin(0).setStrokeStyle(3, 0x454c5a);
-    this.add.rectangle(0, 0, WIDTH, 100, COLORS.panel).setOrigin(0).setDepth(1500);
-    label(this, 40, 50, `Gün ${this.gun}`, { size: 44, weight: 'bold', align: 'left' }).setDepth(1501);
-    this.saatYazi = label(this, WIDTH / 2, 50, '09:00', { size: 52, weight: 'bold', mono: true, color: COLORS.primary }).setDepth(1501);
-    this.dosyaYazi = label(this, WIDTH - 40, 50, '', { size: 36, align: 'right', color: COLORS.muted }).setDepth(1501);
-    this.geriBildirim = label(this, WIDTH / 2, 150, '', { size: 36, weight: 'bold', stroke: true }).setDepth(1600).setAlpha(0);
-
-    // Sağ sütun: kural kitabı (G4) ve damgalar
-    const kk = new Button(this, 1770, 230, 'Kural kitabı', () => undefined, { width: 270, height: 80, fontSize: 30, color: COLORS.muted });
-    kk.setEnabled(false).setDepth(2000);
-    this.damgaBar = new StampBar(this, 1770, 600, (d) => this.damgala(d));
+    MASA.x = 0;
+    MASA.y = MASA_Y;
+    MASA.w = 1880;
+    MASA.h = 1080 - MASA_Y;
+    masaCiz(this, MASA_Y);
+    kuralKitabi(this, KITAP[0], KITAP[1]);
+    this.pencere = new Pencere(this, this.gun);
+    this.tepsi = new StampTray(this, (d) => this.damgala(d));
 
     this.dosyaGetir();
 
@@ -97,27 +106,39 @@ export class GameScene extends Phaser.Scene {
         return;
       }
     }
-    this.saatYazi.setText(this.oturum.saatMetni());
+    this.pencere.setSaat(this.oturum.saatMetni());
   }
 
-  /** Sıradaki dosyanın belgelerini masaya getir. */
+  /** Sıradaki dosya: siluet gişeye gelir, bina pencerede görünür, belgeler gişe gözünden masaya kayar. */
   private dosyaGetir(): void {
     const bina = this.oturum.mevcut;
     if (!bina) return;
-    this.dosyaYazi.setText(`Dosya ${this.oturum.no}/${this.oturum.toplam}`);
-    const kolonX = [300, 800, 1300];
-    const satirY = [330, 710];
+    this.pencere.setDosya(this.oturum.no, this.oturum.toplam);
+    this.pencere.binaGoster(bina);
+    this.pencere.siluetGelsin(this.tohum + this.oturum.no * 7919);
+    const gecikme = 350;
     this.kartlar = SIRA.map((tur, i) => {
-      const hx = kolonX[i % 3] + (i % 2 === 0 ? -6 : 6);
-      const hy = satirY[Math.floor(i / 3)];
-      const k = belgeKur(this, tur, bina, hx, hy - 900);
-      k.setDepth(10 + i);
-      this.tweens.add({ targets: k, y: hy, duration: 380, delay: i * 70, ease: 'Cubic.easeOut' });
-      this.input.setDraggable(k);
+      const [hx, hy] = YER[tur];
+      const k = belgeKur(this, tur, bina, GOZ.x, GOZ.y - BOY[tur][1] / 2);
+      k.setDepth(ustKatman()).setAlpha(0);
+      this.tweens.add({ targets: k, alpha: 1, duration: 120, delay: gecikme + i * 80 });
+      this.tweens.add({
+        targets: k,
+        x: snap(hx),
+        y: snap(hy),
+        duration: 420,
+        delay: gecikme + i * 80,
+        ease: 'Cubic.easeOut',
+        onStart: () => sfx.play('whoosh'),
+      });
       return k;
     });
-    this.time.delayedCall(380 + SIRA.length * 70, () => {
+    this.time.delayedCall(gecikme + 420 + SIRA.length * 80, () => {
       this.mesgul = false;
+      if (this.ilkDosya) {
+        this.ilkDosya = false;
+        this.tepsi.ac();
+      }
     });
   }
 
@@ -127,31 +148,50 @@ export class GameScene extends Phaser.Scene {
     if (!sonuc) return;
     this.mesgul = true;
 
-    const dugme = this.damgaBar.dugmeler.get(damga);
-    sfx.play('thud');
-    punch(this, 0.015, 120);
-    if (dugme) this.tweens.add({ targets: dugme, scale: { from: 0.85, to: 1 }, duration: 200, ease: 'Back.easeOut' });
+    // Tokmak iner, mürekkep ruhsata basılır.
+    const ruhsat = this.kartlar.find((k) => k.tur === 'ruhsat');
+    this.tepsi.bas(damga);
+    this.time.delayedCall(70, () => {
+      sfx.play('thud');
+      punch(this, 0.01, 110);
+      if (ruhsat?.active) {
+        ruhsat.one();
+        const iz = damgaIzi(this, damga, this.tohum + this.oturum.kararlar.length * 131);
+        iz.setPosition(-ruhsat.w / 2 + 152, ruhsat.h / 2 - 60);
+        ruhsat.add(iz);
+      }
+    });
 
-    const metin = sonuc.dogru ? 'Doğru' : `Yanlış: doğrusu ${DAMGA_ADI[sonuc.dogruDamga]}`;
-    this.geriBildirim.setText(metin).setColor(sonuc.dogru ? '#06d6a0' : '#ef476f').setAlpha(1);
-    this.tweens.add({ targets: this.geriBildirim, alpha: 0, delay: 1000, duration: 400 });
-    floatText(this, WIDTH / 2, 230, sonuc.dogru ? '+1' : '0', sonuc.dogru ? COLORS.success : COLORS.danger, 48);
+    // Uyarı fişi (yer tutucu geri bildirim).
+    this.time.delayedCall(450, () => {
+      this.fis?.destroy();
+      const metin = sonuc.dogru ? 'Doğru karar' : `Yanlış karar:\ndoğrusu ${DAMGA_ADI[sonuc.dogruDamga]}`;
+      this.fis = fisDusur(this, sonuc.dogru, metin, FIS[0], FIS[1]);
+      sfx.play(sonuc.dogru ? 'confirm' : 'error');
+    });
 
-    // Belgeler masadan kayarak çıkar.
+    // Belgeler toplanıp gişeden geri verilir, mal sahibi ayrılır.
     const eski = this.kartlar;
     this.kartlar = [];
-    eski.forEach((k, i) => {
-      this.input.setDraggable(k, false);
-      this.tweens.add({
-        targets: k,
-        x: -KART_W,
-        duration: 350,
-        delay: i * 40,
-        ease: 'Cubic.easeIn',
-        onComplete: () => k.destroy(),
+    const topla = 1300;
+    this.time.delayedCall(topla, () => {
+      this.pencere.siluetGitsin();
+      eski.forEach((k, i) => {
+        this.input.setDraggable(k, false);
+        k.disableInteractive();
+        this.tweens.add({
+          targets: k,
+          x: GOZ.x,
+          y: GOZ.y - k.h / 2 - 40,
+          duration: 380,
+          delay: i * 50,
+          ease: 'Cubic.easeIn',
+          onComplete: () => k.destroy(),
+        });
       });
+      sfx.play('whoosh');
     });
-    this.time.delayedCall(350 + eski.length * 40 + 80, () => {
+    this.time.delayedCall(topla + 380 + eski.length * 50 + 120, () => {
       if (this.oturum.bitti) this.bitir();
       else this.dosyaGetir();
     });
@@ -176,4 +216,3 @@ export class GameScene extends Phaser.Scene {
     goTo(this, SCENES.Result, { score, won, title: 'Gün bitti' });
   }
 }
-

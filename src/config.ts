@@ -14,8 +14,9 @@ export const GAME_ID = 'pe-cgj26';
 export const WIDTH = 1920;
 export const HEIGHT = 1080;
 
-export const FONT = '"Rubik Variable", "Segoe UI", system-ui, sans-serif';
-export const MONO = '"JetBrains Mono Variable", Consolas, monospace';
+/** Arayüz ve başlıklar: Pixelify Sans. Belge değerleri ve saat: VT323. İkisi de piksel yazı tipi (SIL OFL 1.1). */
+export const FONT = '"Pixelify Sans", "Segoe UI", system-ui, sans-serif';
+export const MONO = '"VT323", Consolas, monospace';
 
 /** Renk paleti (Phaser sayı biçimi). Metin rengi gerekirse css() ile dönüştür. */
 export const COLORS = {

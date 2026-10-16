@@ -56,7 +56,15 @@ export const AI = Object.fromEntries(
 
 /** Hazır kaynaklar: başkasının üretip kullanıma açtığı her şey. */
 export const ASSETS: Record<Category, AssetCredit[]> = {
-  visual: [],
+  visual: [
+    {
+      name: 'Tiny Town',
+      author: 'Kenney (www.kenney.nl)',
+      url: 'https://kenney.nl/assets/tiny-town',
+      license: 'Creative Commons CC0 1.0',
+      usage: 'Bina cepheleri ve sokak; renk paleti değiştirildi, karolardan cephe kuruldu',
+    },
+  ],
   audio: [],
   code: [
     {
@@ -82,6 +90,20 @@ export const ASSETS: Record<Category, AssetCredit[]> = {
       url: 'https://github.com/JetBrains/JetBrainsMono',
       license: 'SIL Open Font License 1.1',
       usage: 'Takım logosu ve teknik yazılar, değiştirilmedi',
+    },
+    {
+      name: 'Pixelify Sans (yazı tipi)',
+      author: 'The Pixelify Sans Project Authors',
+      url: 'https://fonts.google.com/specimen/Pixelify+Sans',
+      license: 'SIL Open Font License 1.1',
+      usage: 'Arayüz ve belge başlıkları yazı tipi, değiştirilmedi',
+    },
+    {
+      name: 'VT323 (yazı tipi)',
+      author: 'The VT323 Project Authors',
+      url: 'https://fonts.google.com/specimen/VT323',
+      license: 'SIL Open Font License 1.1',
+      usage: 'Belge değerleri, saat ve paneller yazı tipi, değiştirilmedi',
     },
   ],
 };

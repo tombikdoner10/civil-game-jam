@@ -7,7 +7,7 @@ otomatik kaydı) ve `docs/ai-elle.json` (elle eklenenler). Teslim formunda her k
 
 - **Araç:** Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5)
 - **Amaç:** Arayüz görsellerini (butonlar, menü efektleri, parçacıklar) kodla çizen kodu yazdı
-- **Kullanıldığı yer:** Menüler, arayüz ve efektler (jam öncesi şablon), src/desk/ (3 dosya)
+- **Kullanıldığı yer:** Menüler, arayüz ve efektler (jam öncesi şablon), src/desk/ (9 dosya)
 
 ## Ses: Kullanıldı
 

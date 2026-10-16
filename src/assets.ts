@@ -10,11 +10,14 @@ import type * as Phaser from 'phaser';
  * kaydettiği dosyalar hazır kaynak değildir. Yeniden dağıtımı yasak dosyaları repoya koyma (kural 3.6).
  */
 
+// Kenney Tiny Town (CC0 1.0): bina cepheleri ve sokak; renkler çalışma anında palete boyanır (src/desk/tiles.ts).
+import tinyTown from './art/tiny-town/tilemap_packed.png';
 // import oyuncu from './art/oyuncu.png';
 // import patlama from './art/patlama.png';
 // import muzik from './sounds/muzik.mp3';
 
 export function loadAssets(_load: Phaser.Loader.LoaderPlugin): void {
+  _load.image('tiny-town', tinyTown);
   // _load.image('oyuncu', oyuncu);
   // _load.spritesheet('patlama', patlama, { frameWidth: 64, frameHeight: 64 });
   // _load.audio('muzik', muzik);

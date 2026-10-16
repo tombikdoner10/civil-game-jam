@@ -53,12 +53,14 @@ Tema açıklanmadan önceki son commit: _tema açıklanınca eklenecek_
 
 | Kategori | Durum | Kaynak ve sağlayıcı | Bağlantı | Lisans | Kullanım ve değişiklik |
 |---|---|---|---|---|---|
-| Görsel | Kullanılmadı | | | | |
+| Görsel | Kullanıldı | Tiny Town, Kenney (www.kenney.nl) | https://kenney.nl/assets/tiny-town | Creative Commons CC0 1.0 | Bina cepheleri ve sokak; renk paleti değiştirildi, karolardan cephe kuruldu (`src/art/tiny-town/`) |
 | Ses | Kullanılmadı | | | | |
 | Kod | Kullanıldı | Phaser 3.90, Richard Davey / Phaser Studio Inc. | https://phaser.io | MIT | Oyun motoru, değiştirilmedi |
 | Metin | Kullanılmadı | | | | |
 | Diğer | Kullanıldı | Rubik yazı tipi, The Rubik Project Authors (Fontsource paketi) | https://github.com/googlefonts/rubik | SIL Open Font License 1.1 | Arayüz yazı tipi, değiştirilmedi |
 | Diğer | Kullanıldı | JetBrains Mono yazı tipi, The JetBrains Mono Project Authors (Fontsource paketi) | https://github.com/JetBrains/JetBrainsMono | SIL Open Font License 1.1 | Takım logosu ve teknik yazılar, değiştirilmedi |
+| Diğer | Kullanıldı | Pixelify Sans yazı tipi, The Pixelify Sans Project Authors (Fontsource paketi) | https://fonts.google.com/specimen/Pixelify+Sans | SIL Open Font License 1.1 | Arayüz ve belge başlıkları yazı tipi, değiştirilmedi |
+| Diğer | Kullanıldı | VT323 yazı tipi, The VT323 Project Authors (Fontsource paketi) | https://fonts.google.com/specimen/VT323 | SIL Open Font License 1.1 | Belge değerleri, saat ve paneller yazı tipi, değiştirilmedi |
 
 - Repoda bulunmayan dosyalar: Phaser ve yazı tipleri `npm install` ile kurulur. Lisansları yeniden dağıtıma izin verir; ZIP sürümünün içine gömülüdürler.
 - Yalnızca derlemede kullanılan, oyuna dahil olmayan araçlar: Vite (MIT), TypeScript (Apache-2.0), fflate (MIT, ZIP oluşturma).
@@ -69,7 +71,7 @@ Tema açıklanmadan önceki son commit: _tema açıklanınca eklenecek_
 <!-- AI-BEYAN:BASLA -->
 | Kategori | Durum | Araç | Amaç | Kullanıldığı yer |
 |---|---|---|---|---|
-| Görsel | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5) | Arayüz görsellerini (butonlar, menü efektleri, parçacıklar) kodla çizen kodu yazdı | Menüler, arayüz ve efektler (jam öncesi şablon), src/desk/ (3 dosya) |
+| Görsel | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5) | Arayüz görsellerini (butonlar, menü efektleri, parçacıklar) kodla çizen kodu yazdı | Menüler, arayüz ve efektler (jam öncesi şablon), src/desk/ (9 dosya) |
 | Ses | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5) | Ses efektlerini ve müziği kodla üreten sentezleyiciyi ve ses ayarlarını yazdı | Ses efektleri ve müzik altyapısı (jam öncesi şablon) |
 | Kod | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5) | Oyunun kodunu yazdı | Jam öncesi şablonun bütün kodu, src/game/ (4 dosya), src/scenes/GameScene.ts |
 | Metin | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5) | Arayüz metinlerini, README'yi ve BENIOKU'yu yazdı | Menü ve ayar yazıları, README, BENIOKU |

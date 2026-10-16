@@ -1,5 +1,8 @@
 import '@fontsource-variable/rubik';
 import '@fontsource-variable/jetbrains-mono';
+import '@fontsource/pixelify-sans/400.css';
+import '@fontsource/pixelify-sans/700.css';
+import '@fontsource/vt323/400.css';
 import * as Phaser from 'phaser';
 import { COLORS, HEIGHT, TEAM, TITLE, WIDTH } from './config';
 import { BootScene } from './scenes/BootScene';
