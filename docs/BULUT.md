@@ -21,17 +21,19 @@ Bilgisayar uyurken (gece) Claude Code bulut oturumları teknik işlere devam ede
 Rutinin promptu (özet):
 
 ```
-CIVIL GAME JAM bulut oturumusun. Önce CLAUDE.md ve docs/BULUT.md'yi oku, sonra `node scripts/durum.mjs` çalıştır.
-Faz "gelistirme" değilse hiçbir şey yapma ve dur.
-TASKS.md'de "Sırada" bölümündeki [bulut] etiketli görevleri sırayla al (en fazla 3). Her biri için:
-gelistirici ajanını görev promptu şablonuyla çağır, sonra test-oyuncusu ajanıyla doğrula.
-Hepsini bulut/<tarih-saat> dalında commit'le, dalı push'la ve PR aç. Başlık: "Bulut: <görevler>".
-TASKS.md'de görevleri "Bitti (PR bekliyor)" diye işaretle, JOURNAL.md'ye tek satır yaz.
-main'e push yapma, yaratıcı içerik üretme.
+1. CLAUDE.md ve docs/BULUT.md'yi oku, `node scripts/durum.mjs` çalıştır. Faz "gelistirme" değilse dur.
+2. Aynı işi tekrarlama: main'e birleşmemiş origin/bulut/* dallarının TASKS.md'sinde "PR bekliyor"
+   diye işaretli görevleri atla.
+3. Kalan [bulut] görev yoksa dur. Varsa en fazla 3'ünü al; main'den bulut/<tarih-saat> dalı aç;
+   her biri için gelistirici, sonra test-oyuncusu ajanı.
+4. Görevleri "Bitti (PR bekliyor)" diye işaretle, JOURNAL.md'ye yaz, commit, dalı push'la, PR aç.
+Kesin: main'e push yok, yaratıcı içerik yok, hazır kaynak yok, kancaları aşma, gizli bilgiye dokunma.
 ```
 
-## Kurulum (bir kez)
+Lider sabah PR'ı test ettirip `gh pr merge <no> --merge --delete-branch` ile birleştirir. Dal silinmezse bulut o görevleri hâlâ bekliyor sayar.
 
-1. claude.ai/code üzerinde GitHub hesabının (tombikdoner10) bağlı olduğundan ve repoya erişim verildiğinden emin ol.
-2. Masaüstü oturumunda `/schedule` ile yukarıdaki promptu ve saatleri kullanarak rutini oluştur; ilk çalışma tema açıklandıktan sonra olsun.
-3. Kredi takibi: her rutin çalışması bulut kredisinden düşer. %80 kuralı burada da geçerli; kredi azalınca rutinin sıklığını düşür.
+## Notlar
+
+- Bulut oturumu yalnızca GitHub'daki `main`'i görür; yatmadan önce yerel işler push'lanmış ve bulut görevleri `[bulut]` etiketiyle `TASKS.md`'ye yazılmış olmalı.
+- Rutinin dal push'layıp PR açabilmesi için claude.ai/code'daki GitHub bağlantısının bu repoya yazma izni olmalı.
+- Her çalışma bulut kredisinden düşer; görev yoksa birkaç saniyede biter. %80 kuralı burada da geçerli: kredi azalınca rutinin sıklığını düşür.
