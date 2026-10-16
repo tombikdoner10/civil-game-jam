@@ -1,7 +1,7 @@
 // @beyan görsel
 import * as Phaser from 'phaser';
 import { FONT } from '../config';
-import { binaEtiketi, ETIKET_BUYUK } from '../desk/BinaEtiketi';
+import { binaEtiketi, ETIKET_BUYUK, type BinaEtiketi } from '../desk/BinaEtiketi';
 import { PAL } from '../desk/palette';
 import { Quake } from '../desk/Quake';
 import { Sokak, type SokakYeri } from '../desk/Street';
@@ -34,6 +34,13 @@ export interface KisaYol {
 }
 
 const SOKAK_D = 10;
+/**
+ * Kısa yol etiketleri (G21b): sokakla birlikte küçülmez; ekrandaki ölçekleri sokağın ölçeğini izler ama ETIKET_EN_AZ'ın
+ * altına inmez (genel görünümde 1280×720'de de okunur). Yan yana etiketler çakışmasın diye ETIKET_ARA ile açılır;
+ * binasından kayan etiket ince bir çubukla binaya bağlanır.
+ */
+const ETIKET_EN_AZ = 0.8;
+const ETIKET_ARA = 16;
 
 /** Oyuncunun binasının deprem sonucunun rengi: içinde insan varken ağır sonuç kırmızı, boş binada gri. */
 export function sonucRengi(s: DepremBinaSonucu): string {
@@ -59,6 +66,9 @@ export class QuakeScene extends Phaser.Scene {
   init(data: DepremData): void {
     this.veri = data;
     this.sonucEtiketleri = [];
+    this.etiketler = [];
+    this.sokak = undefined;
+    this.bagCizgi = undefined;
   }
 
   create(): void {
@@ -87,10 +97,13 @@ export class QuakeScene extends Phaser.Scene {
       const sizin = binalar.filter((b) => juri.has(b.bina.id));
       const kalan = binalar.filter((b) => !juri.has(b.bina.id));
       gruplar = [sizin, ...Quake.gruplar(kalan)].filter((g) => g.length > 0);
+      this.sokak = sokak;
+      this.bagCizgi = this.add.graphics().setDepth(SOKAK_D + 5);
       for (const b of sizin) {
         const s = sonucu.get(b.bina.id);
-        if (s) this.etiketKur(sokak, b, s);
+        if (s) this.etiketKur(b, s);
       }
+      this.etiketYerlestir();
     }
     quake.hazirla(binalar, gruplar);
 
@@ -154,18 +167,63 @@ export class QuakeScene extends Phaser.Scene {
 
   /** Kısa yolda sonuç etiketleri (ilk grup tepki verince görünür). */
   private sonucEtiketleri: (() => void)[] = [];
+  /** Kısa yolda oyuncunun binalarının etiketleri (ekran katmanında; her karede sokağa göre yerleşir). */
+  private etiketler: { e: BinaEtiketi; yer: number }[] = [];
+  private sokak?: Sokak;
+  private bagCizgi?: Phaser.GameObjects.Graphics;
 
   /**
-   * Oyuncunun binasının üstünde: "SENİN DAMGAN" şeridi, damga renginde damga adı ve (gizli) sonuç etiketi.
-   * Sokakla birlikte kayar ve küçülür (yer tutucu metinler, gazete.ts; bileşen BinaEtiketi.ts).
+   * Oyuncunun binasının üstünde: "SENİN DAMGAN" şeridi, damga renginde damga adı ve (gizli) sonuç etiketi
+   * (yer tutucu metinler, gazete.ts; bileşen BinaEtiketi.ts). Sokakla kayar; boyu etiketYerlestir'de.
    */
-  private etiketKur(sokak: Sokak, b: SokakYeri, s: DepremBinaSonucu): void {
+  private etiketKur(b: SokakYeri, s: DepremBinaSonucu): void {
     const e = binaEtiketi(this, b.damga, ETIKET_BUYUK, SENIN_DAMGAN);
+    e.kap.setDepth(SOKAK_D + 6);
     this.sonucEtiketleri.push(() => e.sonucGoster(sonucEtiketi(s), sonucRengi(s)));
-    sokak.ustuneEkle(b.yer, e.kap);
+    this.etiketler.push({ e, yer: b.yer });
+  }
+
+  /** Etiketleri binalarının üstüne yerleştir: sabit en az boy, çakışma yok, kayan etikete bağ çubuğu (G21b). */
+  private etiketYerlestir(): void {
+    const sokak = this.sokak;
+    if (!sokak || this.etiketler.length === 0) return;
+    const g = sokak.gorunum;
+    const sc = Phaser.Math.Clamp(g.olcek, ETIKET_EN_AZ, 1);
+    const ogeler = this.etiketler
+      .map(({ e, yer }) => {
+        const k = sokak.yerelKutu(yer);
+        return { e, ax: g.x + k.centerX * g.olcek, ay: g.y + k.y * g.olcek, w: e.genislik() * sc, x: 0 };
+      })
+      .sort((a, b) => a.ax - b.ax);
+    // Soldan sağa it (çakışmasın), sonra grubu binaların ortasına geri kaydır ve ekrana sığdır.
+    ogeler.forEach((o, i) => {
+      o.x = i === 0 ? o.ax : Math.max(o.ax, ogeler[i - 1].x + (ogeler[i - 1].w + o.w) / 2 + ETIKET_ARA);
+    });
+    const n = ogeler.length;
+    let kay = ogeler.reduce((t, o) => t + o.ax - o.x, 0) / n;
+    // Ekrana sığdırma yalnızca bütün binalar görünürken (başka grup taranırken etiketler binalarıyla ekran dışına kayar).
+    if (ogeler[0].ax >= 0 && ogeler[n - 1].ax <= 1920) {
+      const sol = ogeler[0].x + kay - ogeler[0].w / 2;
+      const sag = ogeler[n - 1].x + kay + ogeler[n - 1].w / 2;
+      if (sol < 24) kay += 24 - sol;
+      else if (sag > 1896) kay -= sag - 1896;
+    }
+    const cizgi = this.bagCizgi;
+    cizgi?.clear();
+    for (const o of ogeler) {
+      const x = Math.round(o.x + kay);
+      const dx = x - o.ax;
+      const kalk = Math.min(60, Math.abs(dx)) * sc;
+      o.e.kap.setPosition(x, Math.round(o.ay - kalk)).setScale(sc);
+      if (cizgi && Math.abs(dx) > 2) {
+        cizgi.lineStyle(4 * sc, 0x0e0d10, 0.9);
+        cizgi.lineBetween(x, o.ay - kalk, o.ax, o.ay);
+      }
+    }
   }
 
   update(): void {
+    this.etiketYerlestir();
     if (this.controls.justDown('pause')) this.duraklat();
   }
 

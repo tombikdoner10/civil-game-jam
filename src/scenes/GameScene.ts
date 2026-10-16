@@ -22,7 +22,8 @@ import type { Ifade, IsteAlani } from '../game/kisi';
 import { oncuEtiketi } from '../game/gazete';
 import { KUSUR_BILGI } from '../game/rules';
 import { ornekKayitlar } from '../game/ornek';
-import { GunOturumu, sokakKayitlari, type GunKaydi, type SarsintiKaydi } from '../game/session';
+import { gunAyar } from '../game/days';
+import { GunOturumu, gunHesabi, sokakKayitlari, type GunKaydi, type SarsintiKaydi } from '../game/session';
 import { TUNING } from '../game/tuning';
 import type { DayEndData } from './DayEndScene';
 import { Controls } from '../systems/controls';
@@ -108,7 +109,11 @@ export class GameScene extends Phaser.Scene {
       if (q.has('gun') && Number.isFinite(g) && g >= 1) this.gun = Math.floor(g);
       if (t !== null && Number.isFinite(Number(t))) this.tohum = Number(t);
       // ?dev&gun=N&sokak: önceki günler örnek kararlarla dolu gelsin (sokak ve deprem testleri için).
-      if (q.has('sokak')) this.kayitlar = ornekKayitlar(this.tohum, this.gun);
+      if (q.has('sokak')) {
+        this.kayitlar = ornekKayitlar(this.tohum, this.gun);
+        // Para da örnek günlerin toplamı (sonuç ekranındaki birikmiş para tablo toplamıyla tutarlı olsun).
+        this.para += this.kayitlar.reduce((n, k) => n + gunHesabi(k.kararlar, gunAyar(k.gun).dosyaSayisi).toplam, 0);
+      }
     }
     this.kartlar = [];
     this.giden = [];

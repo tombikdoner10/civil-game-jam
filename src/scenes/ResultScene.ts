@@ -200,9 +200,16 @@ export class ResultScene extends Phaser.Scene {
       gorun(kap, dGec + 100 + i * 120);
     });
 
-    // Değerlendirme (yer tutucu)
+    // Değerlendirme (yer tutucu): tonun renginde dolu şerit, üstünde açık yazı (kâğıt üstünde okunur kontrast).
     const renk = deg.ton === 'iyi' ? PAL.damgaGuvenli : deg.ton === 'orta' ? PAL.damgaGuclendir : PAL.damgaBosalt;
-    const dz = this.sigdir(yaz(L + KAGIT.w / 2, dy + 248, deg.metin, 44, renk, 0.5), KAGIT.w - 80);
+    const dzY = dy + 248;
+    const dz = this.sigdir(yaz(L + KAGIT.w / 2, dzY, deg.metin, 40, '#f4ecd6', 0.5), KAGIT.w - 140);
+    const dzW = snap(dz.width + 48);
+    const dzKap = this.add.container(0, 0);
+    dzKap.add(this.add.rectangle(snap(L + KAGIT.w / 2 - dzW / 2 - PX), snap(dzY - 34), dzW + PX * 2, 68, 0x1d191b, 0.85).setOrigin(0));
+    dzKap.add(this.add.rectangle(snap(L + KAGIT.w / 2 - dzW / 2), snap(dzY - 30), dzW, 60, num(renk)).setOrigin(0));
+    dz.setDepth(1);
+    gorun(dzKap, dGec + 700);
     gorun(dz, dGec + 700);
 
     // Düğmeler
@@ -228,10 +235,12 @@ export class ResultScene extends Phaser.Scene {
         koyu: PAL.cerceve,
       }),
     );
-    for (const d of dugmeler) this.tweens.add({ targets: d, alpha: 1, duration: 200, delay: dGec + 900 });
+    // Düğmeler ekran açılır açılmaz görünür ve tıklanır (G21b); sayılar arkada belirmeye devam eder. Klavye
+    // gazeteden gelen Enter'ın tekrarı yeniden başlatmasın diye kısa bir an sonra.
+    for (const d of dugmeler) this.tweens.add({ targets: d, alpha: 1, duration: 200, delay: 150 });
     const kb = this.input.keyboard;
     const hazir = { v: false };
-    this.time.delayedCall(dGec + 900, () => (hazir.v = true));
+    this.time.delayedCall(350, () => (hazir.v = true));
     const enter = (): void => {
       if (hazir.v) yeniden();
     };

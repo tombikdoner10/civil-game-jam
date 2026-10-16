@@ -44,7 +44,8 @@ const para = (n: number): string => `${n < 0 ? '−' : ''}${Math.abs(n)} TL`;
  * Gün sonu ekranı (Papers, Please'in gün sonu özeti gibi): masada bir rapor kâğıdı. Her dosya için bina,
  * verdiğin damga, doğru damga, inceleme modunda bulduğun kusurlar ve sonuç; altta maaş, ceza, günün
  * toplamı ve birikmiş para (yer tutucu değerler, TUNING.para). "Sonraki gün" (Enter/Space) bir sonraki güne,
- * son günden sonra "Gece" ile büyük depreme geçer (G5).
+ * son günden sonra "Gece" ile büyük depreme geçer (G5). Gün 1'de Enter/Space kısa yol "Depremi şimdi yaşa"
+ * (G21b); "Sonraki gün" N ya da tıklama.
  */
 export class DayEndScene extends Phaser.Scene {
   private veri!: DayEndData;
@@ -188,35 +189,57 @@ export class DayEndScene extends Phaser.Scene {
       yaz(deger, yy, b, i === 3 ? 44 : 36, renk, 1);
     });
 
-    // Sonraki gün düğmesi; gün 1'de yanında kısa yol (G21, jüri yolu): "Depremi şimdi yaşa" (D).
+    // Sonraki gün düğmesi; gün 1'de yanında kısa yol (G21, jüri yolu): "Depremi şimdi yaşa". Gün 1'de kısa yol
+    // birincil (G21b, lider kararı): Enter/Space ve D onu seçer, düğmesi çerçeveli ve nabız gibi atar; "Sonraki gün"
+    // ikincil (gri, tıklama ya da N). Gün 2-5'te Enter/Space yine "Sonraki gün".
     const son = v.gun >= SON_GUN;
     const kisaVar = v.gun === 1 && !son;
     const by = T + KAGIT.h - 64;
-    const dugme = pikselDugme(this, L + KAGIT.w / 2 - (kisaVar ? 300 : 0), by, son ? 'GECE' : 'SONRAKİ GÜN', 'Enter', () => this.devam(yeniPara));
-    this.tweens.add({ targets: dugme, alpha: 1, duration: 200, delay: 400 });
     const kb = this.input.keyboard;
     const tus = (): void => this.devam(yeniPara);
     const kisaTus = (): void => this.devam(yeniPara, true);
-    kb?.on('keydown-ENTER', tus);
-    kb?.on('keydown-SPACE', tus);
+    const dugme = pikselDugme(
+      this,
+      L + KAGIT.w / 2 - (kisaVar ? 300 : 0),
+      by,
+      son ? 'GECE' : 'SONRAKİ GÜN',
+      kisaVar ? 'N' : 'Enter',
+      tus,
+      kisaVar ? { govde: PAL.cerceveAcik, acik: '#7a7466', koyu: PAL.cerceve } : undefined,
+    );
+    this.tweens.add({ targets: dugme, alpha: 1, duration: 200, delay: 400 });
     if (kisaVar) {
-      const kd = pikselDugme(this, L + KAGIT.w / 2 + 300, by, KISA_YOL_DUGME, 'D', kisaTus, {
+      const kx = L + KAGIT.w / 2 + 300;
+      const kd = pikselDugme(this, kx, by, KISA_YOL_DUGME, 'Enter', kisaTus, {
         govde: PAL.damgaBosalt,
         acik: '#c4544a',
         koyu: '#6e2a24',
       });
       this.tweens.add({ targets: kd, alpha: 1, duration: 200, delay: 400 });
+      // Odak çerçevesi: birincil düğmenin çevresinde, nabız gibi.
+      const odak = this.add
+        .rectangle(snap(kx), snap(by), snap(kd.width + 24), snap(kd.height + 24))
+        .setStrokeStyle(PX, num(PAL.damgaBosalt))
+        .setAlpha(0);
+      this.tweens.add({ targets: odak, alpha: { from: 1, to: 0.25 }, duration: 600, delay: 600, yoyo: true, repeat: -1, ease: 'Stepped', easeParams: [3] });
       // Açıklama: öncü sarsıntı satırının altında (yer tutucu).
       const ac = yaz(L + 40, y + 20 + oncuH, KISA_YOL_ACIKLAMA, 32, PAL.damgaBosalt);
       this.sigdir(ac, KAGIT.w - 80);
       ac.setAlpha(0);
       this.tweens.add({ targets: ac, alpha: 1, duration: 160, delay: 400 });
+      kb?.on('keydown-ENTER', kisaTus);
+      kb?.on('keydown-SPACE', kisaTus);
       kb?.on('keydown-D', kisaTus);
+      kb?.on('keydown-N', tus);
+    } else {
+      kb?.on('keydown-ENTER', tus);
+      kb?.on('keydown-SPACE', tus);
     }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      kb?.off('keydown-ENTER', tus);
-      kb?.off('keydown-SPACE', tus);
-      kb?.off('keydown-D', kisaTus);
+      for (const ad of ['keydown-ENTER', 'keydown-SPACE', 'keydown-D', 'keydown-N']) {
+        kb?.off(ad, tus);
+        kb?.off(ad, kisaTus);
+      }
     });
     // Rapor dolarken yanlışlıkla geçilmesin.
     this.time.delayedCall(500, () => (this.hazir = true));

@@ -23,6 +23,8 @@ export interface BinaEtiketi {
   kap: Phaser.GameObjects.Container;
   /** Sonuç çipi (gizli başlar); sonucGoster ile metni ve rengi verilip belirir. */
   sonucGoster: (metin: string, zemin: string) => void;
+  /** Görünen çiplerin en genişinin genişliği (ekran, ölçek 1): yan yana etiketler çakışmasın diye (G21b). */
+  genislik: () => number;
 }
 
 /**
@@ -62,5 +64,13 @@ export function binaEtiketi(scene: Phaser.Scene, damga: Damga, boy: EtiketBoy, u
     p.cerceve.setSize(w + 8, p.cerceve.height);
     scene.tweens.add({ targets: sonuc, alpha: 1, duration: 240, ease: 'Stepped', easeParams: [3] });
   };
-  return { kap, sonucGoster };
+  const genislik = (): number => {
+    let w = 0;
+    for (const c of kap.list) {
+      const p = (c as Phaser.GameObjects.Container).getData?.('parca') as { cerceve: Phaser.GameObjects.Rectangle } | undefined;
+      if (p && (c as Phaser.GameObjects.Container).alpha > 0) w = Math.max(w, p.cerceve.width);
+    }
+    return w;
+  };
+  return { kap, sonucGoster, genislik };
 }
