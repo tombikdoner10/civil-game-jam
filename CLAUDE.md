@@ -13,7 +13,7 @@ Ana oturum liderdir: **Opus 5.5, efor high** (`.claude/settings.json` varsayıla
 - Tema yorumunu, `GDD.md`'yi ve `TASKS.md`'yi yönetir. Görevleri küçük parçalara böler, çalışanlara görev promptu yazar, sonuçları değerlendirir, push'lar.
 - **Yaratıcı kararları takıma bırakır** (madde 4.3, yaratıcılık ve görsel puan): oyun fikri, tema yorumu, görseller, sesler, oyun metinleri. Seçenek sunar, karar takımın. Takımın karar vereceği her şey `TASKS.md`'de `[takım]` etiketiyle "Takım işleri"ne yazılır.
 - **Görsel ve ses kaynakları:** Varsayılan tercih, lisansı yeniden dağıtıma izin veren hazır paketler: tercihen CC0 ve tutarlı tek bir tarz (ör. Kenney). Bunlar "hazır kaynak" olarak beyan edilir ve AI yoğunluğunu artırmaz. Yapay zekâyla görsel ya da ses üretimi yalnızca boşluk doldurmak için ve takımın onayıyla yapılır; AI beyanına girer ve madde 4.3 gereği jürinin görsel/yaratıcılık değerlendirmesini etkileyebilir. Her yeni kaynağı eklemeden önce lisansını kontrol et, `src/data/credits.ts` (`ASSETS`) ve README'ye yaz.
-- **Varlık havuzu:** Jam öncesi indirilmiş 23 Kenney paketi (hepsi CC0; ses, arayüz, efekt ve altı görsel tarz) repo dışında `../varliklar/` klasöründe. Liste ve beyan biçimi: `../varliklar/KAYNAKLAR.md`. Kullanılan dosyayı `src/art/` ya da `src/sounds/` altına kopyala ve beyana ekle. Bulut oturumları bu klasörü göremez; havuzdan dosya gerektiren işler `[bulut]` olamaz.
+- **Varlık havuzu:** Jam öncesi indirilmiş 23 Kenney paketi (hepsi CC0; ses, arayüz, efekt ve altı görsel tarz) repo dışında `../varliklar/` klasöründe. Liste ve beyan biçimi: `../varliklar/KAYNAKLAR.md`. Kullanılan dosyayı `src/art/` ya da `src/sounds/` altına kopyala ve beyana ekle.
 - Kendisi kod yazmaz; işi `gelistirici`ye verir. Küçük belge ve hafıza güncellemelerini kendisi yapar.
 - Döngü: `/basla` ön kontrolleri yapar ve `/loop /jam` döngüsünü açar. Her `/jam` adımı `node scripts/durum.mjs` ile başlar.
 
@@ -69,14 +69,14 @@ Bunların dışında takımı küçük şeylerle bölme; kararları `JOURNAL.md`
 ### Proje hafızası
 
 - `GDD.md`: tema, konsept, ilk 30 saniye, kapsam, görsel/ses yönü, takım üretim listesi
-- `TASKS.md`: görevler (`[teknik]`, `[takım]`, `[bulut]` etiketleri)
+- `TASKS.md`: görevler (`[teknik]`, `[takım]` etiketleri)
 - `JOURNAL.md`: durum satırları (kontrol noktaları, son eleştirmen, kullanım düzeyi) ve her adımın tek satırlık günlüğü
 
 Bağlam sıkıştırılsa da her şey bu dosyalardadır; önemli kararı önce dosyaya yaz. Karar satırları `Karar: … · Neden: …` biçiminde olsun.
 
 ### Jam paneli (kullanıcının izleme ekranı)
 
-`npm run panel` → http://localhost:5180. Faz ve geri sayım, kontrol noktaları, liderin sıradaki işi, görev panosu, ajanların canlı aktivitesi (`.jam/aktivite.jsonl`, her araç çağrısında bir kanca yazar), liderin günlüğü ve kararları, commit'ler ve hangi modelin yaptığı, bulut PR'ları, yayın durumu ve AI beyanı. Kullanıcı panelden izler; bu yüzden günlüğü güncel tut.
+`npm run panel` → http://localhost:5180. Faz ve geri sayım, kontrol noktaları, liderin sıradaki işi, görev panosu, ajanların canlı aktivitesi (`.jam/aktivite.jsonl`, her araç çağrısında bir kanca yazar), liderin günlüğü ve kararları, commit'ler ve hangi modelin yaptığı, yayın durumu ve AI beyanı. Kullanıcı panelden izler; bu yüzden günlüğü güncel tut.
 
 ### AI beyanı (otomatik)
 
@@ -93,9 +93,9 @@ Bağlam sıkıştırılsa da her şey bu dosyalardadır; önemli kararı önce d
 - **Geri alma:** Canlı oyun bozulduysa kullanıcıya söyle ve onay al, sonra geçmişi silmeden geri al: `git revert --no-edit son-saglam..HEAD`, test, push. Sorunu yeni görev olarak yaz.
 - **Acil durum planı** (bilgisayar arızası, internet kesintisi, kullanım sınırı): `docs/ACIL.md`.
 
-### Bulut oturumları
+### Yalnızca bu bilgisayar (takım kararı, 17 Ekim)
 
-Repo public: https://github.com/tombikdoner10/civil-game-jam. Bulut oturumları bu `CLAUDE.md`'yi, ajanları, komutları ve kancaları repodan alır. Kurallar ve rutin promptu: `docs/BULUT.md`. Özetle: yalnızca `[bulut]` etiketli teknik görevler, `bulut/<tarih>` dalında çalışılır, PR açılır, lider birleştirir; yaratıcı iş yok.
+Proje yalnızca bu bilgisayarda yürür. Bulut oturumu, bulut rutini (RemoteTrigger), uzak ajan (`isolation: "remote"`, `target: "cloud"`) ve `[bulut]` görevi yok; bunları açma ya da önerme. GitHub yalnızca jam kuralının istediği public repo, canlı web oyunu (GitHub Pages) ve bilgisayar dışı yedek için kullanılır; push'lar buradan yapılır. Eski gece rutini ("CGJ gece bulut") 17 Ekim 02.05'te kapatıldı.
 
 ## Komutlar
 

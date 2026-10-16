@@ -28,7 +28,7 @@ Kod GitHub'da: https://github.com/tombikdoner10/civil-game-jam. Kurallara göre 
 
 ## Takımın ürettiği dosyalar
 
-- Fotoğrafların ve ses kayıtlarının asıllarını telefonda ve bir bulut klasöründe (Drive vb.) de tutun. Oyuna eklenen kopyaları repoda ve yedeklerde.
+- Takım görsel ya da ses üretmiyor; oyuna eklenen hazır kaynak dosyaları repoda (`src/art/`, `src/sounds/`) ve yerel yedeklerde (`npm run yedek`, `../yedekler/`). Bulut kullanılmıyor.
 
 ## Teslim
 

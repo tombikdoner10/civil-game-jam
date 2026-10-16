@@ -24,7 +24,7 @@ Tema: $ARGUMENTS
 6. **Kontrol 1:** Kullanıcıya sor (AskUserQuestion). Takım seçsin, birleştirsin ya da kendi fikrini getirsin. Seçim yapılmadan devam etme.
 7. Seçimden sonra:
    - `GDD.md`'yi doldur: konsept, çekirdek döngü, temanın yeri, ilk 30 saniye, kapsam (olmazsa olmaz / iyi olur / kesilecekler), görsel ve ses yönü, takım üretim listesi. `Konsept durumu: SEÇİLDİ (<saat>)` yap.
-   - `TASKS.md`'ye ilk görevleri yaz: önce oynanabilir çekirdek döngü (gri kutularla), sonra diğerleri. Her görev `[teknik]` ya da `[takım]` etiketli; bulutta yapılabilecek teknik işler ayrıca `[bulut]`.
+   - `TASKS.md`'ye ilk görevleri yaz: önce oynanabilir çekirdek döngü (gri kutularla), sonra diğerleri. Her görev `[teknik]` ya da `[takım]` etiketli.
    - `JOURNAL.md`: Kontrol 1 → TAMAM (saat), kararın kısa gerekçesi.
    - AI beyanı: `node scripts/beyan.mjs ekle diğer "Tema yorumu için konsept seçenekleri önerdi; seçim ve özgün dokunuş takımın" "Oyun fikri aşaması"`
    - Commit at.

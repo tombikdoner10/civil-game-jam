@@ -16,7 +16,7 @@ console.log(
     `Konsept seçildi mi: ${s.conceptChosen ? 'evet' : 'hayır'}`,
     `Kontrol 1 (konsept): ${s.checkpoints.k1} · Kontrol 2 (ara test): ${s.checkpoints.k2} · Kontrol 3 (teslim): ${s.checkpoints.k3}`,
     `Son eleştirmen: ${s.critic}`,
-    `Açık görevler: ${s.open} (teknik ${s.counts.teknik}, takım ${s.counts.takim}, bulut ${s.counts.bulut})`,
+    `Açık görevler: ${s.open} (teknik ${s.counts.teknik}, takım ${s.counts.takim})`,
     ...s.todo.map((x) => `→ ${x}`),
   ].join('\n'),
 );

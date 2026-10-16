@@ -137,7 +137,7 @@ export function jamStatus(t = now()) {
     criticAge,
     usage,
     open: open.length,
-    counts: { teknik: count('[teknik]'), takim: count('[takım]'), bulut: count('[bulut]') },
+    counts: { teknik: count('[teknik]'), takim: count('[takım]') },
     todo,
   };
 }

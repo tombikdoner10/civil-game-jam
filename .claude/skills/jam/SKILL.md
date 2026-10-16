@@ -12,7 +12,7 @@ Jam döngüsünün bir adımını yürüt. Lider sensin; kurallar `CLAUDE.md`'de
 - **tema-oncesi:** Oyuna özgü hiçbir şey yapma. Tema saatine yakın bir uyanma planla ve adımı bitir.
 - **konsept:** Kullanıcıdan temayı iste ve `/konsept` komutunu (xhigh) çalıştırmasını hatırlat. Kontrol 1 kullanıcıyla yapılır; seçim olmadan geliştirmeye geçme. Uzun bir uyanma planla.
 - **gelistirme:**
-  0. Açık bulut PR'ı varsa (`gh pr list`) önce onu ele al: `test-oyuncusu` ile doğrulat, `gh pr merge <no> --merge --delete-branch`, `git pull`. Gece yatmadan önce bulutun yapabileceği teknik görevlere `[bulut]` etiketi ekle ve push'la; bulut yalnızca GitHub'daki `main`'i görür.
+  0. Bulut yok: proje yalnızca bu bilgisayarda yürür; bulut oturumu, rutin ya da `[bulut]` görevi kullanma.
   1. `TASKS.md`'de "Sırada" bölümündeki en üstteki `[teknik]` görevi al ("Şimdi" bölümüne taşı).
   2. `CLAUDE.md`'deki şablonla görev promptu yaz ve `gelistirici` ajanını çağır (bir anda tek geliştirici).
   3. Bittiğinde `test-oyuncusu` ajanını o göreve uygun bir senaryoyla çağır.

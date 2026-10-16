@@ -15,7 +15,7 @@ Prompt Engineers takımının CIVIL GAME JAM oyununu test ediyorsun. Liderin ver
 2. ZIP sürümü: `npm run build:single`, sonra `npm run smoke`. Oynanış için senaryo: `npm run smoke -- --senaryo <dosya.json>`. Senaryo adımları: `{"bekle": ms}`, `{"tikla": [x, y]}` (oyunun 1920×1080 koordinatları), `{"tus": "ArrowLeft", "sure": 300}`, `{"goruntu": "ad.png"}`. Ekran görüntülerini (`teslim/smoke/`) Read ile aç ve dikkatle incele.
 3. Canlı site: `npm run smoke https://tombikdoner10.github.io/civil-game-jam/`
 4. Masaüstünde etkileşimli test gerekiyorsa: geliştirme sunucusu açıksa tarayıcı panelinde http://localhost:5173 aç. Panel gizliyken oyun ilerlemez; döngüyü elle sür: `window.__drive = setInterval(() => game.step(performance.now(), 1000 / 60), 1000 / 60)` ve sesi kapat: `game.sound.mute = true`. Konsol hatalarını oku.
-5. Bulut oturumunda tarayıcı paneli yok; yalnızca smoke aracı var (gerekirse `CHROME_PATH`). Tarayıcı bulunamazsa bunu raporla, tahmin yürütme.
+5. Tarayıcı paneli yoksa yalnızca smoke aracını kullan (gerekirse `CHROME_PATH`). Tarayıcı bulunamazsa bunu raporla, tahmin yürütme.
 
 ## Rapor
 1. Çalışıyor mu: evet / hayır

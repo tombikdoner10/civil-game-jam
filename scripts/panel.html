@@ -132,8 +132,7 @@
   <footer>
     <span>
       <a href="https://tombikdoner10.github.io/civil-game-jam/" target="_blank" rel="noreferrer">Canlı oyun</a> ·
-      <a href="https://github.com/tombikdoner10/civil-game-jam" target="_blank" rel="noreferrer">Repo</a> ·
-      <a href="https://claude.ai/code/routines/trig_012ypQupnGRG4bbKvXWhSnFV" target="_blank" rel="noreferrer">Bulut rutini</a>
+      <a href="https://github.com/tombikdoner10/civil-game-jam" target="_blank" rel="noreferrer">Repo</a>
     </span>
     <span id="updated">Bağlanıyor…</span>
   </footer>
@@ -193,8 +192,7 @@ function render(d) {
   $('commits').innerHTML = d.commits.slice(0, 14).map((c) => `
     <div class="commit"><code>${esc(c.hash)}</code><span>${esc(c.subject)}<br><span class="model">${tm(c.date, false)}</span></span><span class="model">${esc(c.model)}</span></div>`).join('') || '<p class="empty">—</p>';
   const dep = d.deploy;
-  $('gh').innerHTML = `<dt>Yayın</dt><dd>${dep ? `${dep.conclusion === 'success' ? '<span class="ok">başarılı</span>' : esc(dep.conclusion || dep.status)} · ${esc(dep.displayTitle)}` : '<span class="empty">bilgi yok</span>'}</dd>
-    <dt>Bulut PR'ları</dt><dd>${d.prs.length ? d.prs.map((p) => `<a href="${esc(p.url)}" target="_blank" rel="noreferrer">#${p.number}</a> ${esc(p.title)}`).join('<br>') : '<span class="empty">yok</span>'}</dd>`;
+  $('gh').innerHTML = `<dt>Yayın</dt><dd>${dep ? `${dep.conclusion === 'success' ? '<span class="ok">başarılı</span>' : esc(dep.conclusion || dep.status)} · ${esc(dep.displayTitle)}` : '<span class="empty">bilgi yok</span>'}</dd>`;
   $('ai').innerHTML = Object.entries(CAT).map(([k, label]) => `<span class="${d.beyan[k]?.kullanildi ? 'on' : ''}">${label}: ${d.beyan[k]?.kullanildi ? 'Kullanıldı' : 'Kullanılmadı'}</span>`).join('');
   $('updated').textContent = `3 saniyede bir yenilenir · son: ${tm(new Date().toISOString())}`;
 }

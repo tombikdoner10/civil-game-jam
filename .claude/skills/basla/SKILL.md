@@ -7,7 +7,7 @@ disable-model-invocation: true
 Jam döngüsünü başlat. Lider sensin (rolün `CLAUDE.md`'de).
 
 1. `node scripts/durum.mjs` çalıştır ve çıktıyı oku.
-2. Çalışma dalını güncelle: `git switch main`, `git pull --rebase`. Bekleyen bulut PR'ları varsa (`gh pr list`) `test-oyuncusu` ile doğrulat, uygunsa `gh pr merge <no> --merge --delete-branch` ile birleştir (dal silinmezse bulut aynı işi bekliyor sanır), sonra `git pull`.
+2. Çalışma dalını güncelle: `git switch main`, `git pull --rebase`. Bulut kullanılmıyor; bulut rutini ya da oturumu açma.
 3. `npm install` (gerekirse) ve `npm run check`. Hata varsa önce onu düzelttir.
 4. Kullanımı kontrol et: masaüstünde `get_usage` aracını (ToolSearch ile yükle) çağır. %80'i geçtiyse `CLAUDE.md`'deki indirme sırasını uygula.
 5. `GDD.md`, `TASKS.md`, `JOURNAL.md`'yi oku. `JOURNAL.md`'ye "Döngü başladı" girdisi ekle.

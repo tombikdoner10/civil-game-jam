@@ -5,7 +5,6 @@ Proje hafızası: lider yönetir. Bir görev bir geliştirici çağrısına sı�
 Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 - `[teknik]`: ajanlar yapar (kod, hata, entegrasyon)
 - `[takım]`: takım elle yapar (fikir, görsel, ses, video, sunum); ajanlar yapmaz
-- `[bulut]`: bulut oturumunda yapılabilecek teknik iş (yaratıcı karar ya da takım dosyası gerektirmez)
 
 ## Şimdi
 
@@ -32,10 +31,6 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 - [ ] G11 [teknik] Görsel cila: diğer sahneleri (menü, sonuç, gün sonu) aynı piksel tarza getir; belge ayrıntıları (mühür, imza, tarih damgası).
 
-Bulutta yapılabilecekler
-
-- [ ] G14 [teknik] [bulut] Bina üreticisi ve kural motoru için düğüm (node) test betiği: belirli tohumlarla üretilen binalarda kusur listesi ve doğru damga beklenen değerle eşleşiyor (G1'den sonra).
-- [ ] G15 [teknik] [bulut] Smoke senaryosu: masada bir dosyayı inceleyip damgalayan `npm run smoke -- --senaryo` JSON'u (G2–G3'ten sonra).
 
 ## Takım işleri
 
@@ -82,3 +77,4 @@ Bulutta yapılabilecekler
 - [x] G17b [teknik] Belge hileleri: elle düzeltilmiş rakam (tipp-ex, üstü çizili), ada/parsel uyuşmazlığı (başka binanın belgesi), eksik imza/boş alan; "geçersiz belge" eksik belge gibi işler (İSTE → gerçek/sahte/yok → İADE); kural satırları ve günlere dağılım. (27ca242, Opus/high; adalet 21282 denetim 0 hata)
 - [x] G18 [teknik] Fiziksel kaşe ve yönetmelik klasörü: kayan damga çubuğu yerine masadaki kaşeler (GÜVENLİ / GÜÇLENDİR / BOŞALT / İADE): al, ıstampaya bastır, belgeye vur; yeşil kural kitabı yerine halkalı yönetmelik klasörü; jüri 30 saniyede bulsun. Kaşeler kuralları geldikçe masaya gelsin (İADE gün 3). Ruhsattaki Ada/Parsel ve İmza satırları kuralları gelene kadar (gün 4–5) görünmesin; gün 1 masası sade kalsın. (6343fe3, Opus/high; tek tıklama)
 - [x] G21 [teknik] Depremi şimdi yaşa (T16, takım kararı A + C): gün 1 sonu raporunda "Depremi şimdi yaşa" düğmesi; jürinin kendi 3 binası + hazır doldurulmuş sokakla (ornek.ts) ~30 sn büyük deprem → gazete → sonuç; normal akış (Sonraki gün) de kalır. (6eda7b7 + c96f6aa, Opus/high; kısa yol ~30 sn, adalet 21732 denetim 0 hata)
+- [x] G14, G15: KALDIRILDI (bulut görevleriydi; takım 17 Ekim'de bulutu tamamen kapattı. G14'ün işini scripts/adalet.mjs, G15'inkini geliştiricilerin smoke senaryoları zaten yapıyor)

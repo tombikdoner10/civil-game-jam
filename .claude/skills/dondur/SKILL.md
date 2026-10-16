@@ -7,7 +7,7 @@ effort: xhigh
 
 Kod dondurma planı (hedef: 18 Ekim 15.00 dondurma, 18.00 son teslim).
 
-1. `node scripts/durum.mjs`, `GDD.md`, `TASKS.md`, `JOURNAL.md` ve son eleştirmen raporunu oku. Bulut rutini varsa kapat (`RemoteTrigger` ile `list`, sonra `update` → `enabled: false`); açık bulut PR'larını birleştir ya da kapat.
+1. `node scripts/durum.mjs`, `GDD.md`, `TASKS.md`, `JOURNAL.md` ve son eleştirmen raporunu oku. Bulut kullanılmıyor; `RemoteTrigger` ile `list` yapıp açık bir rutin kalmadığını doğrula.
 2. Gerekirse `elestirmen` ajanını son bir kez çağır (kullanım %80'in üstündeyse `model: "sonnet"` ile).
 3. Planı yaz (`JOURNAL.md`'ye "Dondurma planı" başlığıyla):
    - **Kritik hatalar:** Oyunu bozan ya da ilk 30 saniyeyi zorlaştıranlar. Her biri için tahmini süre. Sadece bunlar düzeltilir.
