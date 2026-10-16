@@ -19,17 +19,16 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 - [ ] G5b [teknik] (küçük düzeltmeler toplu) Eleştirmen 2: öncü sarsıntıda her binanın üstünde vurulan damganın rengi görünsün; oyunu çerçeveleyen tek cümle (gün 1 başında, yer tutucu). G17a testi: tezgâhta bugünün tarihi görünsün (ileri tarihli sahte rapor için); sahte rapordaki boş mühür yeri daha açık okunsun; inceleme modunda damga/zarf tıklanınca mod kendiliğinden kapansın ya da ipucu çıksın; bağlantı çizgisi etiket yazılarını örtmesin; getirilen kart eski kartın üstüne binerken öbür belgeleri örtmesin; sorulan kusurda SOR sönsün. Varsayılan smoke senaryosu oyun ekranını geçiş ortasında yakalıyor (bekleme uzasın). G16 testi: kural kitabı yeni dosyada kapansın; gün sonu Doğru/Yanlış/İade sayıları toplanabilir olsun; doğru kararda fiş kısa gerekçe yazsın; karot ve zemin "Rapor yok" aynı görünümde; İADE ve GÜÇLENDİR mürekkebi koyulaşsın; öncelik kuralı birleşik örnek versin. G5 testi: G5 test bulguları: gazete "Çöken (boşaltılmış: N)" ile sonuçtaki "Boşaltılmış" kutusu farklı şeyleri sayıyor (etiket netleşsin); gazete fotoğrafı sokağın daha geniş bir karesini göstersin; öne çıkan binalar örnek kararlarda hep aynı numara (dev yoluna özgü, düşük); inceleme modunda kapalı kitabın üstündeki belgeye tıklayınca kitap açılıyor; kullanılmayan Rubik ve JetBrains Mono importları ve beyanları kaldırılsın (ZIP küçülür).
 
-Ara test sonrası (takım kararı 23.53; sıra: G16 → G17 → G18 → G19 → G20)
+Ara test sonrası (sıra 01.30: G18 → G21 → G5b → G22 → G19 → G20; özellik dondurma Cumartesi 24.00)
 
-- [ ] G19 [teknik] Saha testi: SAHA düğmesi (günde sınırlı hak, zaman harcar); Schmidt çekici mini oyunu (beton yüzeyine vur, geri tepme değeri → dayanım) ve el burgusu (zemin katmanları); sonuç masaya "saha notu" olarak düşer ve kanıt sayılır.
-- [ ] G20 [teknik] Takip denetimi: gün 3'ten itibaren önceki GÜÇLENDİR binalarından biri geri gelir; fotoğraf ve güçlendirme raporu; yapıldı mı, iskele kurulup bırakıldı mı; kural ve damga.
+- [ ] G21 [teknik] Depremi şimdi yaşa (T16, takım kararı A + C): gün 1 sonu raporunda "Depremi şimdi yaşa" düğmesi; jürinin kendi 3 binası + hazır doldurulmuş sokakla (ornek.ts) ~30 sn büyük deprem → gazete → sonuç; normal akış (Sonraki gün) de kalır.
+- [ ] G22 [teknik] Zarfın bedeli (takım kararı 01.30): zarfı kabul eden oyuncu kişinin istediği damgayı vurmak zorunda (diğer kaşeler kilitli, "zarf aldın" ipucu); bina sokakta küçük bir iz taşır; doğru/yanlış ve deprem gerçek damgaya göre; gazete ve sonuçta görünür.
+
+- [ ] G19 [teknik] Saha testi, yalnızca Schmidt çekici (takım kararı 01.30): karot yoksa ya da geçersizse SAHA ile beton yüzeyine vurma mini oyunu (geri tepme değeri → dayanım), günde sınırlı hak, zaman harcar; sonuç masaya "saha notu" olarak düşer ve kanıt sayılır (bilgiEdin karot, saha). Burgu YOK.
+- [ ] G20 [teknik] Takip denetimi (küçük): gün 3'ten itibaren önceki GÜÇLENDİR binalarından biri geri gelir; fotoğrafta iskele var ya da yok (bırakılmış), güçlendirme raporu; kural ve damga.
 
 Araçlar ve derinlik (ara test sonrası saha testi bunların yerini alıyor; düşük öncelik)
 
-- [ ] G6 [teknik] Büyüteç: fotoğrafı büyütünce gizli kusur görünür (çapraz çatlak, pas, deniz kabuğu; yer tutucu çizimler).
-- [ ] G7 [teknik] (araçlardan yalnızca biri yapılacak: büyüteç ya da cetvel; eleştirmen) Cetvel: vaziyet planında sürükleyerek mesafe ölçme; kurala bağlı.
-- [ ] G9 [teknik] Baskı olayı: müteahhidin zarfı (kabul/ret) ve mal sahibi sözü; aile bütçesi kesildi ya da tek satır (eleştirmen).
-- [ ] G10 [teknik] Son gün "kendi binan" dosyası ve sonlara etkisi.
 
 Görsel, ses, cila (takım paketleri onaylayınca)
 
@@ -51,10 +50,11 @@ Bulutta yapılabilecekler
 - [ ] T13 [takım] Ara testte ayarla: maaş/ceza değerleri ve para birimi (şu an doğru 20, yanlış 10 TL), gün süreleri (90/180/200/220/240 sn), dosya sayıları (3/5/6/7/8); karot "Rapor yok" kusur sayılsın mı?
 - [ ] T14 [takım] Öncü sarsıntı: doğru BOŞALT damgalanan zayıf bina da "boş" olarak çatlıyor; böyle mi kalsın, yoksa boşaltılanlar sağlam mı görünsün? Öncü şiddeti/süresi (TUNING.oncu). İskele, şerit, çatlak çizimleri onayı. Tavanda sallanan lamba istenir mi?
 - [ ] T15 [takım] Büyük deprem ağırlığı: örnek oyunda 29 binadan 14'ü çöktü (10'u boşaltılmıştı). Doğru BOŞALT damgalı ağır kusurlu binalar çöksün mü, ağır hasarlı mı kalsın (TUNING.buyukDeprem.kademe.bosaltKusur 3 → 2)? Gazete ve sonuç metinleri src/game/gazete.ts (T4 ile).
-- [ ] T16 [takım] Jüri büyük depremi normal yolla göremiyor (5 gün ~8–10 dk). Seçenekler: menüde "Depremi göster" düğmesi, kısa mod, ya da yalnızca sunum/video için ?dev&deprem adresi. Karar takımın (tema ve yaratıcılık puanı).
+- [x] T16 [takım] KARAR A + C (01.30): gün 1 sonunda "Depremi şimdi yaşa" (G21) + video/anlatım. Jüri büyük depremi normal yolla göremiyor (5 gün ~8–10 dk). Seçenekler: menüde "Depremi göster" düğmesi, kısa mod, ya da yalnızca sunum/video için ?dev&deprem adresi. Karar takımın (tema ve yaratıcılık puanı).
 - [ ] T17 [takım] Diyalog metinleri: mal sahiplerinin bahaneleri, itirafları, zarf teklifleri, belge getirme/getirememe cümleleri (G17 yer tutucuları). Kural kitabı satırlarının son metni (G16).
 - [ ] T18 [takım] G16 sonrası: fay kuralı (şu an dere gibi zemine bağlı; TUNING.fayKurali "bosalt" yapılabilir), gün 4'te sıvılaşma sıklığı (yakinZemin.sivilasma 0.3 → 0.2?), İADE rengi ve sesi, sahte belge cezası (şu an GÜÇLENDİR).
 - [ ] T19 [takım] G17a: portreleri ?dev&portreler ile onayla; diyalog metinleri src/game/diyalog.ts (T17); zarf sıklığı (gün 5'te %60, TUNING.kisi.zarf); konuşma/zarf seslerini dinle; oyun içi takvim (TAKVIM). Zarf alınca damga yine DOĞRU sayılıyor (rüşvetin ağırlığı düşük): sonuçta ceza, gazetede iz ya da müfettiş olayı istenir mi? İnceleme modunda saat akmaya devam ediyor (zaman baskısı); yavaşlasın mı?
+- [ ] T20 [takım] TAKVİM (takım kararı 01.30): bütün metinler (oyun adı, diyalog, kural metinleri, gazete, gün 1 çerçeve cümlesi, Emeği Geçenler isimleri) Cumartesi 18.00'e kadar; özellik dondurma Cumartesi 24.00; video Pazar 10.00–12.00; kod dondurma Pazar 15.00.
 - [ ] T11 [takım] Pencere sokağı, gişedeki siluet ve renk paleti onayı; uyarı fişi metinleri ("Doğru karar" / "Yanlış karar: doğrusu X" yer tutucu).
 - [ ] T6 [takım] Sesleri ara testte dinle; Claude'un seçtiği Kenney adaylarını onayla ya da değiştir.
 - [ ] T7 [takım] Kararlar: imar affı belgesi olacak mı. (Deprem günü ve kaçak kat 21.49'da karara bağlandı.)

@@ -66,6 +66,13 @@ Ara testte takım oyunu fazla Papers, Please'e benzer buldu. Seçilenlerin hepsi
 5. **Takip denetimi:** Önceki günlerde GÜÇLENDİR damgası vurulan binalar yeniden gelir; güçlendirme gerçekten yapıldı mı, iskele kurulup bırakıldı mı?
 6. Ayrıca: kalıcı sokak, öncü sarsıntı, büyük deprem ve gazete (Papers, Please'te yok). Sunumda ilham kaynağı açıkça söylenir.
 
+### Ara test sonrası ek kararlar (takım, 17 Ekim 01.30)
+
+- Jüri yolu: gün 1 sonu raporunda "Depremi şimdi yaşa" düğmesi (jürinin kendi binaları + hazır sokak); sunumda anlatıcı bunu söyler, video depremi gösterir.
+- Saha testi yalnızca Schmidt çekici (burgu yok).
+- Zarfın bedeli: zarfı alan, kişinin istediği damgayı vurmak zorunda; sonuç sokakta ve depremde görünür.
+- Takvim: metinler Cumartesi 18.00, özellik dondurma Cumartesi 24.00, video Pazar 10.00–12.00, kod dondurma Pazar 15.00.
+
 ### Kurallar netleşti (takım kararı, 16 Ekim 23.53)
 
 - Kural kitabındaki her kural satırı vurulacak damgayı açıkça yazar (ör. "→ BOŞALT").
