@@ -16,7 +16,7 @@ Tema: $ARGUMENTS
    - Çekirdek döngü (oyuncu 10 saniyede ne yapıyor)
    - **Tema oynanışın neresinde?** (görünüşte değil, kararlarda)
    - İlk 30 saniye: oyuncu hiçbir şey okumadan ne yapacağını nasıl anlıyor
-   - Takımın elle üreteceği görseller ve sesler (çizim gerektirmeyen yollar: fotoğraf, kâğıt kesme, gerçek nesne, telefonla ses kaydı)
+   - Görsel ve ses kaynağı: hangi hazır paket ailesiyle yapılabilir (tercihen CC0, tek tutarlı tarz); yapay zekâ üretimi gerekiyorsa nerede (madde 4.3 riski)
    - 48 saatlik kapsam riski: düşük / orta / yüksek
    - Puan tahmini: tema, oynanabilirlik, yaratıcılık
    Jürinin iki inşaat mühendisi üyesi olduğunu unutma, ama temayı zorla inşaata bağlama.

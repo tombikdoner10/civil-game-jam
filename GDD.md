@@ -38,15 +38,15 @@ Jüri oyunu 3 dakikalık sunum sırasında oynuyor. Hiçbir şey okumadan:
 
 ## Görsel ve ses yönü
 
-Takım çizim yapmıyor; görseller ve sesler elle ama çizimsiz yollarla üretilir (kural 4.3).
+Takım görsel ya da ses üretmiyor. Kaynaklar: lisanslı hazır paketler (hazır kaynak beyanı; tercihen CC0, tek tutarlı tarz) ve gerekirse takım onayıyla yapay zekâ (AI beyanı, madde 4.3 riski). Seçim takımın.
 
-- **Görsel yöntem:** (fotoğraf, kâğıt kesme, gerçek nesne…)
+- **Görsel kaynağı:** (hangi paket ailesi / yapay zekâ)
 - **Renkler ve hava:**
-- **Ses yöntemi:** (telefonla kayıt…)
+- **Ses kaynağı:**
 
-## Takım üretim listesi
+## Varlık listesi
 
-| Dosya | Ne | Kim | Durum |
-|---|---|---|---|
+| Dosya | Ne | Kaynak (paket / AI) | Lisans | Durum |
+|---|---|---|---|---|
 
 ## Açık sorular

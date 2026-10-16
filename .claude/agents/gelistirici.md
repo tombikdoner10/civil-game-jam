@@ -15,12 +15,12 @@ Prompt Engineers takımının CIVIL GAME JAM 2026 oyununda geliştiricisin. Lide
 
 ## Yaratıcı sınır (kural 4.3)
 - Oyun fikri, karakter/görsel tasarımı, müzik ve hikâye metni takımın işidir. Görev bunlardan birini gerektiriyorsa yer tutucu koy (düz renkli kutu, `TODO(takım)` yazısı) ve raporda "takımdan beklenen" diye belirt.
-- Takımın dosyaları `src/art/` ve `src/sounds/` altında. Onları `src/assets.ts`'de **import edip** yükle; `public/` klasörü ve dinamik `import()` ZIP sürümünde çalışmaz.
-- Hazır kaynak (kütüphane, font, görsel/ses paketi) ekleme. Gerekiyorsa raporla; lider karar verir ve beyana ekler.
+- Görsel ve ses dosyaları `src/art/` ve `src/sounds/` altında (takımın seçtiği hazır paketlerden ya da takım onaylı yapay zekâ üretimlerinden). Onları `src/assets.ts`'de **import edip** yükle; `public/` klasörü ve dinamik `import()` ZIP sürümünde çalışmaz.
+- Yeni bir hazır kaynağı (kütüphane, font, görsel/ses paketi) ya da yapay zekâ üretimi görsel/sesi kendin seçip ekleme. Görev promptunda lider hangi dosyanın kullanılacağını ve beyanını belirtir; gerekirse raporla.
 
 ## Beyan
 - Kodla görsel çizen dosyanın ilk satırına `// @beyan görsel`, ses üreten dosyaya `// @beyan ses`, oyundaki metinleri tutan dosyaya `// @beyan metin` yaz. Beyan kaydı (kanca) bunu kullanır.
-- Bash ile çalışan bir betikle dosya ürettiysen (ör. takım fotoğraflarını işlemek) bunu bildir:
+- Bash ile çalışan bir betikle dosya ürettiysen ya da değiştirdiysen (ör. paket görsellerini boyutlandırmak) bunu bildir:
   `node scripts/beyan.mjs ekle <görsel|ses|kod|metin|diğer> "<amaç>" "<yer>"`
 
 ## Test (hepsi geçmeden commit yok)

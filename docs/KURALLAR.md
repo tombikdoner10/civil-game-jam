@@ -121,7 +121,7 @@ Teslimle ilgili diğer kurallar:
 
 ## Bizim için anlamı (Prompt Engineers)
 
-1. **AI yoğunluğu (4.3):** Kodu Claude yazabilir. Ama oyunun fikri, görselleri ve sesleri takımdan gelirse, jürinin yaratıcılık ve sanat değerlendirmesi (toplam 35 puan) AI yüzünden olumsuz etkilenmez. Öneri: fikir ve tema yorumu takımdan, görseller ve sesler mümkün olduğunca elle; Claude kodu ve teknik işleri yapsın.
+1. **AI yoğunluğu (4.3):** Takım görsel ya da ses üretemiyor. Görseller ve sesler lisanslı hazır paketlerden (tercihen CC0, tek tutarlı tarz) gelirse "hazır kaynak" olarak beyan edilir ve AI yoğunluğunu artırmaz. Yapay zekâyla üretilen görsel ve sesler AI beyanına girer ve jürinin görsel ve yaratıcılık değerlendirmesini (toplam 35 puan) etkileyebilir. Takımın yaratıcı katkısı: fikir, tema yorumu, seçimler, bölüm tasarımı, oyun metinleri. Claude kodu ve teknik işleri yapar.
 2. **ZIP şart:** Web oyunu da olsa build ZIP olarak yüklenir. ZIP'teki oyun internetsiz ve sunucusuz, çift tıklayınca açılmalı. `npm run zip` bunu yapıyor (tek dosyalık `OYNA.html`). Görseller ve sesler `src/assets.ts`'de import edilmeli; `public/` klasöründen dosya yükleme `file://` ile çalışmaz.
 3. **Video:** En fazla 1 dakika, MP4. Aynı video sunumda arkada oynayacağı için trailer gibi kurgulanmalı.
 4. **Sunum 3 dakika ve jüri o sırada oynuyor:** Oyun ilk 30 saniyede anlaşılmalı. Açılış ekranları kısa olmalı, oyun içi ipuçları net olmalı.

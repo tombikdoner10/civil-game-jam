@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Prompt Engineers takımının CIVIL GAME JAM 2026 oyunu. 3 kişilik takım; temsilci Egemen. Kodu Claude yazıyor; takım fikri seçiyor, görselleri ve sesleri elle üretiyor (çizim yapan yok: fotoğraf, kâğıt, gerçek nesne, telefonla ses), test ediyor ve sunumu yapıyor. Kullanıcıyla Türkçe konuş.
+Prompt Engineers takımının CIVIL GAME JAM 2026 oyunu. 3 kişilik takım; temsilci Egemen. Kodu Claude yazıyor; takım fikri ve tema yorumunu seçiyor, görsel ve ses kaynaklarına karar veriyor, test ediyor ve sunumu yapıyor. Takım görsel ya da ses üretmiyor (çizim, fotoğraf, kayıt yok). Kullanıcıyla Türkçe konuş.
 
 Jam kurallarının özeti (kitapçık v09); her kararda önce buna uy, şüphede resmî metne bak: https://game.ktimo.com.tr/kurallar
 
@@ -11,7 +11,8 @@ Jam kurallarının özeti (kitapçık v09); her kararda önce buna uy, şüphede
 Ana oturum liderdir: **Opus 5.5, efor high** (`.claude/settings.json` varsayılanı). Lider için ayrı ajan dosyası yok; görevi burada.
 
 - Tema yorumunu, `GDD.md`'yi ve `TASKS.md`'yi yönetir. Görevleri küçük parçalara böler, çalışanlara görev promptu yazar, sonuçları değerlendirir, push'lar.
-- **Yaratıcı kararları takıma bırakır** (madde 4.3, yaratıcılık ve görsel puan): oyun fikri, tema yorumu, görseller, sesler, oyun metinleri. Seçenek sunar, karar takımın. Takımın üreteceği her şey `TASKS.md`'de `[takım]` etiketiyle "Takım işleri"ne yazılır.
+- **Yaratıcı kararları takıma bırakır** (madde 4.3, yaratıcılık ve görsel puan): oyun fikri, tema yorumu, görseller, sesler, oyun metinleri. Seçenek sunar, karar takımın. Takımın karar vereceği her şey `TASKS.md`'de `[takım]` etiketiyle "Takım işleri"ne yazılır.
+- **Görsel ve ses kaynakları:** Varsayılan tercih, lisansı yeniden dağıtıma izin veren hazır paketler: tercihen CC0 ve tutarlı tek bir tarz (ör. Kenney). Bunlar "hazır kaynak" olarak beyan edilir ve AI yoğunluğunu artırmaz. Yapay zekâyla görsel ya da ses üretimi yalnızca boşluk doldurmak için ve takımın onayıyla yapılır; AI beyanına girer ve madde 4.3 gereği jürinin görsel/yaratıcılık değerlendirmesini etkileyebilir. Her yeni kaynağı eklemeden önce lisansını kontrol et, `src/data/credits.ts` (`ASSETS`) ve README'ye yaz.
 - Kendisi kod yazmaz; işi `gelistirici`ye verir. Küçük belge ve hafıza güncellemelerini kendisi yapar.
 - Döngü: `/basla` ön kontrolleri yapar ve `/loop /jam` döngüsünü açar. Her `/jam` adımı `node scripts/durum.mjs` ile başlar.
 
@@ -136,5 +137,5 @@ Repo public: https://github.com/tombikdoner10/civil-game-jam. Bulut oturumları 
 ## Çalışma düzeni
 
 - Küçük ve sık commit; her commit derlenebilir olsun. Commit mesajları Türkçe; son satırda modeli belirten `Co-Authored-By: Claude ... <noreply@anthropic.com>`.
-- Kapsamı dar tut: önce oynanabilir çekirdek döngü (gri kutularla), sonra takımın görselleri ve sesleri, en son cila.
+- Kapsamı dar tut: önce oynanabilir çekirdek döngü (gri kutularla), sonra seçilen paketlerin görselleri ve sesleri, en son cila.
 - Arayüz metinleri Türkçe.
