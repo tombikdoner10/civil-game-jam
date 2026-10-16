@@ -7,7 +7,7 @@ NASIL ÇALIŞTIRILIR
    İnternet, kurulum ya da hesap gerekmez.
 3. Ekrana bir kez tıklayın. Tarayıcılar ilk tıklamaya kadar sesi açmaz.
 
-Web'de oynamak için: https://KULLANICI.github.io/REPO/
+Web'de oynamak için: https://tombikdoner10.github.io/civil-game-jam/
 
 PLATFORM VE GEREKSİNİMLER
 - Windows bilgisayarda Google Chrome, Microsoft Edge ya da Firefox'un güncel sürümü
@@ -23,5 +23,5 @@ BİLİNEN SORUNLAR
 - Yok.
 
 KAYNAK KOD
-https://github.com/KULLANICI/REPO
+https://github.com/tombikdoner10/civil-game-jam
 Menünün sağ alt köşesindeki "sürüm" yazısı, bu dosyanın derlendiği commit'i gösterir.

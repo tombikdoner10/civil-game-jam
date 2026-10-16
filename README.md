@@ -6,7 +6,7 @@
 
 ## Oyna
 
-- **Web:** https://KULLANICI.github.io/REPO/ (kurulum ya da hesap gerekmez)
+- **Web:** https://tombikdoner10.github.io/civil-game-jam/ (kurulum ya da hesap gerekmez)
 - **İndirilebilir sürüm:** Teslim ZIP'ini çıkar ve `OYNA.html` dosyasına çift tıkla; internet gerekmez.
 
 ## Oyun hakkında
