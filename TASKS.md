@@ -38,8 +38,6 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 Bulutta yapılabilecekler
 
-- [ ] G14 [teknik] [bulut] Bina üreticisi ve kural motoru için düğüm (node) test betiği: belirli tohumlarla üretilen binalarda kusur listesi ve doğru damga beklenen değerle eşleşiyor (G1'den sonra).
-- [ ] G15 [teknik] [bulut] Smoke senaryosu: masada bir dosyayı inceleyip damgalayan `npm run smoke -- --senaryo` JSON'u (G2–G3'ten sonra).
 
 ## Takım işleri
 
@@ -63,6 +61,9 @@ Bulutta yapılabilecekler
 - [ ] T9 [takım] Pazar: 1 dakikalık video (MP4) ve 3 dakikalık sunum.
 
 ## Bitti
+
+- [x] G14 [teknik] [bulut] Bina üreticisi ve kural motoru testi: `npm run kuraltest` (scripts/kural-test.mjs; elle türetilmiş altın tablolar, bağımsız kâhin, determinizm, değişmezler; 16328 denetim 0 hata) (PR bekliyor; 70d6d31)
+- [x] G15 [teknik] [bulut] Smoke senaryosu: `scripts/senaryolar/masa-damga.json` (menü → Oyna → inceleme → damga → 2. dosya); smoke.mjs Linux'ta swiftshader bayrağı (PR bekliyor; 68d50f3)
 
 - [x] G8 [teknik] Karot presi: KESİLDİ (eleştirmen, 16 Ekim 21.23; kapsam)
 
