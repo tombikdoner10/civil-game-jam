@@ -10,9 +10,15 @@ Bilgisayar uyurken (gece) Claude Code bulut oturumları teknik işlere devam ede
 - Tarayıcı paneli yok. Test için `npm run build:single` ve `npm run smoke` (tarayıcı yoksa `CHROME_PATH` ile yol ver; yine yoksa raporda belirt).
 - AI beyanı commit kancasıyla otomatik güncellenir; PR açıklamasına yapılan görevleri yaz.
 
-## Zamanlanmış rutin promptu
+## Zamanlanmış rutin
 
-Rutin, Claude Code'un bulut rutinleriyle (`/schedule`) bu repo üzerinde çalışır. Önerilen saatler (UTC+3): Cumartesi ve Pazar 01.00, 03.30 ve 06.00. Pazar 06.00 sonrası rutin kapatılır.
+**Kuruldu (16 Ekim):** "CGJ gece bulut (Prompt Engineers)", kimlik `trig_012ypQupnGRG4bbKvXWhSnFV`, https://claude.ai/code/routines/trig_012ypQupnGRG4bbKvXWhSnFV
+
+- Model: Claude Sonnet 5.5. Saat: her gün 01.00, 04.00 ve 06.00 (UTC+3); cron `0 22,1,3 * * *` (UTC).
+- Faz "gelistirme" değilse ya da `[bulut]` görevi yoksa hiçbir şey yapmadan biter.
+- Kod dondurmada lider rutini kapatır (`/dondur` adım 1: `RemoteTrigger` `update` → `enabled: false`). Rutinler API ile silinemez; silmek için yukarıdaki bağlantı.
+
+Rutinin promptu (özet):
 
 ```
 CIVIL GAME JAM bulut oturumusun. Önce CLAUDE.md ve docs/BULUT.md'yi oku, sonra `node scripts/durum.mjs` çalıştır.
