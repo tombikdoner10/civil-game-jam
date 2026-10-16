@@ -28,11 +28,6 @@ export interface Alan {
 
 /** Pencerede bir sanat pikseli = 2 ekran pikseli (uzak sokak; masa 4). */
 export const SOKAK_OLCEK = 2;
-const O = SOKAK_OLCEK;
-/** Pencere tuvali (sanat pikseli) ve kaldırım çizgisi. */
-const PEN_W = 584;
-const PEN_H = 180;
-const UFUK = PEN_H - 14;
 /** Parsel genişliği (sanat pikseli): cephe ve iki yanında boşluk. */
 const PARSEL = 124;
 const BOSLUK = (PARSEL - CEPHE_W) / 2;
@@ -45,9 +40,23 @@ const ZEMIN_ALT = 42;
 /** İncelenen bina pencerenin ortasının biraz sağında: solda geçmiş binalardan ikisi tam görünsün. */
 const INCELE_ORAN = 0.58;
 
-const TON = { incelenen: 0xe6dcd4, damgali: 0xa09898, dolgu: 0x6e6874, arsa: 0x8a8480 };
+const TON_GUN = { incelenen: 0xe6dcd4, damgali: 0xa09898, dolgu: 0x6e6874, arsa: 0x8a8480, gok: 0xe6dcd4 };
+/** Gece (G5 büyük deprem): soğuk ve karanlık; binalar lamba ışığında seçilir. */
+const TON_GECE = { incelenen: 0x9a9cb4, damgali: 0x8a8ca6, dolgu: 0x4a4a5e, arsa: 0x5a5a6a, gok: 0xffffff };
 
 export type SokakHasar = HasarDurumu | 'yikik';
+
+/** Sokağa konan kayıt: SokakKaydi, hasar çökük ('yikik') de olabilir (gazete fotoğrafı). */
+export type SokakGirdi = Omit<SokakKaydi, 'hasar'> & { hasar?: SokakHasar };
+
+export interface SokakSecenek {
+  /** Bir sanat pikseli kaç ekran pikseli (varsayılan SOKAK_OLCEK). Pencere tuvali alan / olcek. */
+  olcek?: number;
+  /** Gece görünümü: karanlık gök, ay, yanan lambalar, soğuk tonlar. */
+  gece?: boolean;
+  /** Uzak siluet (arkadaki şehir) çizilsin mi (varsayılan evet; gazete fotoğrafında hayır). */
+  uzak?: boolean;
+}
 
 /** Sokaktaki bir bina yeri (Quake bunlarla çalışır). */
 export interface SokakYeri {
@@ -55,6 +64,8 @@ export interface SokakYeri {
   bina: Bina;
   damga: Damga;
   hasar?: SokakHasar;
+  /** Damgalandığı gün (yeni gelen incelenen binada yok). */
+  gun?: number;
 }
 
 interface Parsel {
@@ -62,6 +73,7 @@ interface Parsel {
   bina: Bina;
   damga?: Damga;
   hasar?: SokakHasar;
+  gun?: number;
   secim: CepheSecim;
   kat: number;
   /** Cephe yüksekliği (sanat pikseli). */
@@ -72,17 +84,16 @@ interface Parsel {
   govde: Phaser.GameObjects.Image;
   karanlik?: Phaser.GameObjects.Image;
   hasarImg?: Phaser.GameObjects.Image;
+  hasarDerece?: HasarDurumu;
   isaret?: Phaser.GameObjects.Image;
   serit?: Phaser.GameObjects.Image;
 }
-
-/** Parselin sol kenarı (kök kabın içinde, ekran pikseli). */
-const parselX = (yer: number): number => yer * PARSEL * O;
 
 /**
  * Pencereden görünen kalıcı sokak: o güne kadar damgalanan her bina damgalanma sırasıyla bir parselde durur.
  * GÜÇLENDİR iskeleli, BOŞALT şeritli ve karanlık; sarsıntıdan kalan hasar çatlak olarak görünür. İncelenen
  * dosyanın binası sıradaki parselde, ortada ve aydınlık. Sokak kaydırılır (ve gerekirse küçültülür): okunur kalsın.
+ * Aynı sınıf G5'te büyük deprem için tam ekran (olcek 3, gece) ve gazete fotoğrafı için küçük kullanılır.
  */
 export class Sokak {
   private readonly kok: Phaser.GameObjects.Container;
@@ -92,18 +103,35 @@ export class Sokak {
   private readonly parseller: Parsel[] = [];
   private readonly dolgular: { kap: Phaser.GameObjects.Container; x0: number }[] = [];
   private readonly arsalar = new Map<number, Phaser.GameObjects.Image>();
-  private readonly lambalar: Phaser.GameObjects.Image[] = [];
+  /** Lamba ışıkları ve taban saydamlıkları (sarsıntıda göz kırpar, sonra tabana döner). */
+  private readonly lambalar: { img: Phaser.GameObjects.Image; alfa: number }[] = [];
+  private uzakImg?: Phaser.GameObjects.Image;
   private incelenen?: Parsel;
   private kaydirma?: Phaser.Tweens.Tween;
+  /** Ekran pikseli / sanat pikseli. */
+  private readonly O: number;
+  /** Pencere tuvali (sanat pikseli) ve kaldırım çizgisi. */
+  private readonly penW: number;
+  private readonly penH: number;
+  private readonly ufuk: number;
+  private readonly gece: boolean;
+  private readonly TON: typeof TON_GUN;
 
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly alan: Alan,
     gun: number,
-    kayitlar: readonly SokakKaydi[],
+    kayitlar: readonly SokakGirdi[],
     derinlik: number,
+    secenek: SokakSecenek = {},
   ) {
-    this.gokCiz(gun).setDepth(derinlik);
+    this.O = secenek.olcek ?? SOKAK_OLCEK;
+    this.penW = Math.round(alan.w / this.O);
+    this.penH = Math.round(alan.h / this.O);
+    this.ufuk = this.penH - 14;
+    this.gece = secenek.gece ?? false;
+    this.TON = this.gece ? TON_GECE : TON_GUN;
+    this.gokCiz(gun, derinlik, secenek.uzak ?? true);
     this.kok = scene.add.container(alan.x, alan.y).setDepth(derinlik + 1);
     this.arka = scene.add.container(0, 0);
     this.binaKap = scene.add.container(0, 0);
@@ -117,10 +145,10 @@ export class Sokak {
     kayitlar.forEach((k, yer) => {
       const p = this.parselKur(k.bina, yer);
       p.damga = k.damga;
-      p.hasar = k.hasar;
+      p.gun = k.gun;
       this.isaretKur(p, false);
-      if (k.hasar) this.hasarKur(p, k.hasar, false);
       this.tonla(p);
+      if (k.hasar) this.hasarVer(yer, k.hasar, false);
     });
     // Gün başında sokağın başından başlanır; ilk dosyada sıradaki parsele kayılır (sokak bir kez gözden geçer).
     this.odakla(0, 0, 0, undefined, INCELE_ORAN);
@@ -133,7 +161,9 @@ export class Sokak {
 
   /** Sokaktaki damgalı binalar (sarsıntı bunlarla oynatılır). */
   damgalilar(): SokakYeri[] {
-    return this.parseller.filter((p) => p.damga).map((p) => ({ yer: p.yer, bina: p.bina, damga: p.damga as Damga, hasar: p.hasar }));
+    return this.parseller
+      .filter((p) => p.damga)
+      .map((p) => ({ yer: p.yer, bina: p.bina, damga: p.damga as Damga, hasar: p.hasar, gun: p.gun }));
   }
 
   /** İncelenen dosyanın binası sıradaki parsele gelir; sokak oraya kayar. */
@@ -148,7 +178,7 @@ export class Sokak {
     const arsa = this.arsalar.get(yer);
     if (arsa) this.scene.tweens.add({ targets: arsa, alpha: 0, duration: 300 });
     const hedef = this.konum((yer + 0.5) * PARSEL, 1, INCELE_ORAN);
-    const uzak = Math.abs(this.kok.x - hedef.x) / (PARSEL * O);
+    const uzak = Math.abs(this.kok.x - hedef.x) / (PARSEL * this.O);
     this.odakla(yer, yer, Math.min(2200, 300 + 140 * uzak), undefined, INCELE_ORAN);
   }
 
@@ -169,11 +199,11 @@ export class Sokak {
 
   /**
    * [i0, i1] parsellerini pencereye al (oran: ortalarının penceredeki yatay yeri, 0.5 = orta); sığmıyorsa
-   * küçült (en az yarı boy).
+   * küçült (en az minOlcek; pencere varsayılanı yarı boy).
    */
-  odakla(i0: number, i1: number, sure = 400, bitince?: () => void, oran = 0.5): void {
+  odakla(i0: number, i1: number, sure = 400, bitince?: () => void, oran = 0.5, minOlcek = 0.5): void {
     const genislik = (i1 - i0 + 1) * PARSEL + 16;
-    const s = Phaser.Math.Clamp(PEN_W / genislik, 0.5, 1);
+    const s = Phaser.Math.Clamp(this.penW / genislik, Math.min(minOlcek, 1), 1);
     const c = ((i0 + i1 + 1) / 2) * PARSEL;
     const hedef = this.konum(c, s, oran);
     this.kaydirma?.stop();
@@ -195,15 +225,22 @@ export class Sokak {
 
   /** Binanın dünyadaki dikdörtgeni (parçacıklar için). */
   dunyaKutu(yer: number): Phaser.Geom.Rectangle {
-    const p = this.parseller.find((q) => q.yer === yer);
+    const r = this.yerelKutu(yer);
     const s = this.kok.scale;
+    return new Phaser.Geom.Rectangle(this.kok.x + r.x * s, this.kok.y + r.y * s, r.width * s, r.height * s);
+  }
+
+  /** Binanın sokak kabındaki (ölçeksiz) dikdörtgeni: kökle birlikte kayan ve küçülen parçacıklar için. */
+  yerelKutu(yer: number): Phaser.Geom.Rectangle {
+    const p = this.parseller.find((q) => q.yer === yer);
     const h = p ? p.h : 60;
-    return new Phaser.Geom.Rectangle(
-      this.kok.x + (parselX(yer) + BOSLUK * O) * s,
-      this.kok.y + (UFUK - h) * O * s,
-      CEPHE_W * O * s,
-      h * O * s,
-    );
+    const O = this.O;
+    return new Phaser.Geom.Rectangle(this.parselX(yer) + BOSLUK * O, (this.ufuk - h) * O, CEPHE_W * O, h * O);
+  }
+
+  /** Sokak kökünün ekrandaki yeri ve ölçeği (parçacık yayıcıları bununla eşlenir). */
+  get gorunum(): { x: number; y: number; olcek: number } {
+    return { x: this.kok.x, y: this.kok.y, olcek: this.kok.scale };
   }
 
   /** Pencerenin ekrandaki dikdörtgeni. */
@@ -211,14 +248,25 @@ export class Sokak {
     return new Phaser.Geom.Rectangle(this.alan.x, this.alan.y, this.alan.w, this.alan.h);
   }
 
+  /** Uzak siluetin saydamlığı (büyük depremde bütün sokak görünürken arkada kalsın). */
+  uzakSoldur(alfa: number, sure = 800): void {
+    if (this.uzakImg) this.scene.tweens.add({ targets: this.uzakImg, alpha: alfa, duration: sure });
+  }
+
+  /** Bir sanat pikselinin ekran boyu. */
+  get olcek(): number {
+    return this.O;
+  }
+
   /** Sarsıntıda binalar yerinde titrer (guc: sanat pikseli; 0 = yerine dön). Lambalar titrer. */
   sallan(guc: number): void {
+    const O = this.O;
     const oynat = (kap: Phaser.GameObjects.Container, x0: number): void => {
       kap.x = x0 + (guc > 0 ? Math.round((Math.random() - 0.5) * 2 * guc) * O : 0);
     };
     for (const p of this.parseller) oynat(p.kap, p.x0);
     for (const d of this.dolgular) oynat(d.kap, d.x0);
-    for (const l of this.lambalar) l.setAlpha(guc > 0 && Math.random() < 0.35 ? 0.15 : 1);
+    for (const l of this.lambalar) l.img.setAlpha(guc > 0 && Math.random() < 0.35 ? l.alfa * 0.15 : l.alfa);
   }
 
   /** Sarsıntı sonucu binaya işlenir: çatlak (hasarli/agirHasar) ya da çökme (yikik). */
@@ -233,34 +281,56 @@ export class Sokak {
 
   // ---- Kurulum ----
 
-  /** Kök kabın yeri: c (sanat pikseli, sokak boyunca) pencerenin oran noktasına gelsin; ızgaraya oturur. */
-  private konum(c: number, s: number, oran = 0.5): { x: number; y: number } {
-    const x = this.alan.x + Math.round((this.alan.w * oran) / O) * O - c * O * s;
-    return { x: Math.round(x / O) * O, y: this.alan.y + UFUK * O * (1 - s) };
+  /** Parselin sol kenarı (kök kabın içinde, ekran pikseli). */
+  private parselX(yer: number): number {
+    return yer * PARSEL * this.O;
   }
 
-  /** Gök, güneş ve uzak siluet (sabit; sokak önünden kayar). */
-  private gokCiz(gun: number): Phaser.GameObjects.Image {
-    const W = PEN_W;
-    const t = new Tuval(this.scene, W, PEN_H, 'gok');
+  /** Kök kabın yeri: c (sanat pikseli, sokak boyunca) pencerenin oran noktasına gelsin; ızgaraya oturur. */
+  private konum(c: number, s: number, oran = 0.5): { x: number; y: number } {
+    const O = this.O;
+    const x = this.alan.x + Math.round((this.alan.w * oran) / O) * O - c * O * s;
+    return { x: Math.round(x / O) * O, y: this.alan.y + this.ufuk * O * (1 - s) };
+  }
+
+  /** Gök, güneş (gece: ay ve yıldızlar) ve ayrı görüntüde uzak siluet (sabit; sokak önünden kayar). */
+  private gokCiz(gun: number, derinlik: number, uzakVar: boolean): void {
+    const W = this.penW;
+    const H = this.penH;
+    const UFUK = this.ufuk;
+    const t = new Tuval(this.scene, W, H, 'gok');
     const rnd = rastgele(0x5eed + gun * 977);
-    const bant = Math.ceil(UFUK / PAL.gok.length);
-    PAL.gok.forEach((c, i) => {
+    const gok: readonly string[] = this.gece ? PAL.gokGece : PAL.gok;
+    const bant = Math.ceil(UFUK / gok.length);
+    gok.forEach((c, i) => {
       t.rect(0, i * bant, W, bant, c);
-      if (i > 0) t.dither(0, i * bant, W, 2, PAL.gok[i - 1]);
+      if (i > 0) t.dither(0, i * bant, W, 2, gok[i - 1]);
     });
-    t.daire(470, UFUK - 40, 9, '#d4b98c');
-    t.dither(458, UFUK - 52, 25, 25, '#c9ad85', 1);
-    t.daire(470, UFUK - 40, 8, '#dcc39a');
+    const gx = Math.round(W * 0.8);
+    if (this.gece) {
+      for (let k = 0; k < W * UFUK * 0.0015; k++) t.px(Math.floor(rnd() * W), Math.floor(rnd() * UFUK * 0.6), rnd() < 0.3 ? '#8a8ca0' : '#5a5c70');
+      t.daire(gx, Math.round(UFUK * 0.25), 7, '#c8c6b4');
+      t.daire(gx + 3, Math.round(UFUK * 0.25) - 2, 6, gok[0]);
+    } else {
+      t.daire(gx, UFUK - 40, 9, '#d4b98c');
+      t.dither(gx - 12, UFUK - 52, 25, 25, '#c9ad85', 1);
+      t.daire(gx, UFUK - 40, 8, '#dcc39a');
+    }
+    t.rect(0, UFUK, W, H - UFUK, PAL.asfalt);
+    t.goruntu(this.alan.x, this.alan.y, this.O).setOrigin(0).setTint(this.TON.gok).setDepth(derinlik);
+    if (!uzakVar) return;
+    const u = new Tuval(this.scene, W, H, 'uzak');
+    const uzak = this.gece ? ['#1e2030', '#191a28'] : [PAL.uzakBina, PAL.uzakBinaKoyu];
+    const isik = this.gece ? PAL.isik : PAL.isikKoyu;
     for (let x = 0; x < W; ) {
       const bw = 14 + Math.floor(rnd() * 26);
       const bh = 26 + Math.floor(rnd() * 56);
-      t.rect(x, UFUK - bh, bw, bh, rnd() < 0.5 ? PAL.uzakBina : PAL.uzakBinaKoyu);
-      for (let k = 0; k < bw * bh * 0.01; k++) t.px(x + 2 + Math.floor(rnd() * (bw - 4)), UFUK - bh + 3 + Math.floor(rnd() * (bh - 6)), PAL.isikKoyu);
+      u.rect(x, UFUK - bh, bw, bh, rnd() < 0.5 ? uzak[0] : uzak[1]);
+      const oran = this.gece ? 0.004 : 0.01;
+      for (let k = 0; k < bw * bh * oran; k++) u.px(x + 2 + Math.floor(rnd() * (bw - 4)), UFUK - bh + 3 + Math.floor(rnd() * (bh - 6)), isik);
       x += bw + Math.floor(rnd() * 6);
     }
-    t.rect(0, UFUK, W, PEN_H - UFUK, PAL.asfalt);
-    return t.goruntu(this.alan.x, this.alan.y, O).setOrigin(0).setTint(0xe6dcd4);
+    this.uzakImg = u.goruntu(this.alan.x, this.alan.y, this.O).setOrigin(0).setTint(this.TON.gok).setDepth(derinlik);
   }
 
   /** Kaldırım, yol ve sokak lambaları (binaların önünde). */
@@ -274,42 +344,57 @@ export class Sokak {
     t.rect(0, 6, W, H - 6, PAL.asfalt);
     for (let x = 4; x < W; x += 24) t.rect(x, 10, 10, 1, PAL.asfaltCizgi);
     t.dither(0, 13, W, 1, '#252324');
-    this.on.add(t.goruntu(parselX(ilk), UFUK * O, O).setOrigin(0).setTint(0xe6dcd4));
+    this.on.add(t.goruntu(this.parselX(ilk), this.ufuk * this.O, this.O).setOrigin(0).setTint(this.TON.incelenen));
     // Her üç parselde bir lamba (parsel arasındaki boşlukta).
-    for (let yer = ilk + 1; yer < son; yer += 3) this.lambaKur(parselX(yer) + O);
+    for (let yer = ilk + 1; yer < son; yer += 3) this.lambaKur(this.parselX(yer) + this.O);
   }
 
   private lambaKur(x: number): void {
+    const O = this.O;
     const l = new Tuval(this.scene, 14, 52, 'lamba');
     l.rect(0, 0, 2, 52, '#1e1c1e');
     l.rect(0, 0, 12, 2, '#1e1c1e');
     l.rect(9, 2, 5, 2, '#1e1c1e');
     l.rect(10, 4, 3, 1, PAL.isik);
-    const y = (UFUK - 52) * O;
-    this.on.add(l.goruntu(x, y, O).setOrigin(0).setTint(0xe6dcd4));
+    const y = (this.ufuk - 52) * O;
+    this.on.add(l.goruntu(x, y, O).setOrigin(0).setTint(this.TON.incelenen));
     const isik = new Tuval(this.scene, 15, 8, 'lamba-isik');
     isik.dither(0, 0, 15, 8, PAL.isik, 1);
     const img = isik.goruntu(x + 4 * O, y + 5 * O, O).setOrigin(0).setTint(0xe6dcd4);
     this.on.add(img);
-    this.lambalar.push(img);
+    this.lambalar.push({ img, alfa: 1 });
+    if (this.gece) {
+      // Gece: lambanın altında kaldırıma düşen ışık.
+      const h = 52 - 6;
+      const k = new Tuval(this.scene, 31, h, 'lamba-koni');
+      for (let j = 0; j < h; j++) {
+        const w = 3 + Math.round((j / h) * 26);
+        k.dither(15 - Math.floor(w / 2), j, w, 1, PAL.isik, j);
+      }
+      const koni = k.goruntu(x + 11 * O - 15 * O, y + 6 * O, O).setOrigin(0).setAlpha(0.18);
+      this.on.add(koni);
+      this.lambalar.push({ img: koni, alfa: 0.18 });
+    }
   }
 
   /** Sokağın başındaki dolgu binalar (soluk, işaretsiz). */
   private dolguKur(yer: number, gun: number): void {
+    const O = this.O;
     const rnd = rastgele(0xd01 + yer * 131 + gun * 7);
     const kat = 3 + Math.floor(rnd() * 4);
     const h = cepheH(kat - 1);
     const t = new Tuval(this.scene, CEPHE_W, h, 'dolgu');
     cepheCiz(this.scene, t.ctx, 0, 0, { kat, kolon: 6, vitrin: [], catlak: 'yok', secim: cepheSecimi(rnd), aksam: true, rnd });
-    const x0 = parselX(yer) + BOSLUK * O;
+    const x0 = this.parselX(yer) + BOSLUK * O;
     const kap = this.scene.add.container(x0, 0);
-    kap.add(t.goruntu(0, (UFUK - h) * O, O).setOrigin(0).setTint(TON.dolgu));
+    kap.add(t.goruntu(0, (this.ufuk - h) * O, O).setOrigin(0).setTint(this.TON.dolgu));
     this.binaKap.add(kap);
     this.dolgular.push({ kap, x0 });
   }
 
   /** Boş arsa: alçak tahta perde (sıradaki binalar buraya gelir). */
   private arsaKur(yer: number): void {
+    const O = this.O;
     const W = PARSEL - 4;
     const H = 12;
     const t = new Tuval(this.scene, W, H, 'arsa');
@@ -318,7 +403,7 @@ export class Sokak {
     for (let x = 2; x < W - 2; x += 9) t.rect(x, 1, 2, H - 2, '#5a5048').px(x, 1, '#6e6458');
     t.rect(2, 3, W - 4, 1, '#5a5048');
     t.rect(2, 6, W - 4, 1, '#5a5048');
-    const img = t.goruntu(parselX(yer) + 2 * O, (UFUK - H) * O, O).setOrigin(0).setTint(TON.arsa);
+    const img = t.goruntu(this.parselX(yer) + 2 * O, (this.ufuk - H) * O, O).setOrigin(0).setTint(this.TON.arsa);
     this.arka.add(img);
     this.arsalar.set(yer, img);
   }
@@ -340,7 +425,7 @@ export class Sokak {
       aksam: true,
       rnd: rastgele(dizgiTohum(bina.id) ^ 0x1a5),
     });
-    const x0 = parselX(yer) + (BOSLUK - KATMAN_PAY.yan) * O;
+    const x0 = this.parselX(yer) + (BOSLUK - KATMAN_PAY.yan) * this.O;
     const kap = this.scene.add.container(x0, 0);
     const govde = this.katmanGoruntu(t, h);
     kap.add(govde);
@@ -363,18 +448,18 @@ export class Sokak {
   }
 
   private katmanGoruntu(t: Tuval, h: number): Phaser.GameObjects.Image {
-    return t.goruntu(0, (UFUK - h - KATMAN_PAY.ust) * O, O).setOrigin(0);
+    return t.goruntu(0, (this.ufuk - h - KATMAN_PAY.ust) * this.O, this.O).setOrigin(0);
   }
 
   private tonla(p: Parsel): void {
-    const ton = p === this.incelenen ? TON.incelenen : TON.damgali;
+    const ton = p === this.incelenen ? this.TON.incelenen : this.TON.damgali;
     for (const o of p.kap.list) (o as Phaser.GameObjects.Image).setTint(ton);
   }
 
   /** Damga işareti: GÜÇLENDİR iskele, BOŞALT karanlık pencereler ve şerit. canlandir: kurulurken görünsün. */
   private isaretKur(p: Parsel, canlandir: boolean): void {
     const { yan, ust } = KATMAN_PAY;
-    const ton = p === this.incelenen ? TON.incelenen : (p.kap.list[0] as Phaser.GameObjects.Image).tintTopLeft;
+    const ton = p === this.incelenen ? this.TON.incelenen : (p.kap.list[0] as Phaser.GameObjects.Image).tintTopLeft;
     if (p.damga === 'guclendir') {
       const t = this.katman(p.h, 'iskele');
       iskeleCiz(t.ctx, yan, ust, p.kat);
@@ -424,12 +509,15 @@ export class Sokak {
     });
   }
 
+  /** Çatlak katmanı; daha ağır hasar gelirse eskisinin yerine yenisi çizilir. */
   private hasarKur(p: Parsel, derece: HasarDurumu, canlandir: boolean): void {
-    if (derece === 'ayakta' || p.hasarImg) return;
+    if (derece === 'ayakta' || p.hasarDerece === derece || p.hasarDerece === 'agirHasar') return;
+    if (p.hasarImg) p.hasarImg.destroy();
     const t = this.katman(p.h, 'hasar');
     hasarCiz(t.ctx, KATMAN_PAY.yan, KATMAN_PAY.ust, p.kat, derece, p.secim, rastgele(dizgiTohum(p.bina.id) ^ 0xc4a7));
     const ton = (p.kap.list[0] as Phaser.GameObjects.Image).tintTopLeft;
     p.hasarImg = this.katmanGoruntu(t, p.h).setTint(ton);
+    p.hasarDerece = derece;
     // Çatlak duvarın üstünde, iskele ve şeridin altında.
     const altinda = p.isaret ?? p.serit;
     if (altinda) p.kap.addAt(p.hasarImg, p.kap.getIndex(altinda));
@@ -443,19 +531,30 @@ export class Sokak {
     }
   }
 
-  /** Çökme (G5): bina yerine oturur, kaldırımda moloz kalır. */
+  /** Çökme (G5): bina çatlar, sarsılarak yere iner; kaldırımda moloz ve kolon kalıntısı kalır. */
   private yik(p: Parsel, canlandir: boolean): void {
+    const O = this.O;
     const t = new Tuval(this.scene, CEPHE_W, 32, 'moloz');
     molozCiz(t.ctx, 0, 32, rastgele(dizgiTohum(p.bina.id) ^ 0x3017));
-    const moloz = t.goruntu(parselX(p.yer) + BOSLUK * O, (UFUK - 32) * O, O).setOrigin(0).setTint(TON.damgali);
+    const moloz = t.goruntu(this.parselX(p.yer) + BOSLUK * O, (this.ufuk - 32) * O, O).setOrigin(0).setTint(this.TON.damgali);
+    // Moloz yolun (önde) arkasında, binaların önünde kalsın.
     this.binaKap.add(moloz);
     const govde = p.kap;
     if (!canlandir) {
       govde.setVisible(false);
       return;
     }
+    this.hasarKur(p, 'agirHasar', false);
     moloz.setAlpha(0);
-    this.scene.tweens.add({ targets: govde, y: p.h * O, duration: 900, ease: 'Quad.easeIn', onComplete: () => govde.setVisible(false) });
-    this.scene.tweens.add({ targets: moloz, alpha: 1, duration: 300, delay: 600 });
+    // Önce bir an titrer ve hafif yan yatar, sonra kat kat çöker (yere inerken alttan kırpılır gibi görünür).
+    this.scene.tweens.add({
+      targets: govde,
+      y: p.h * O,
+      duration: 1100,
+      delay: 250,
+      ease: 'Quad.easeIn',
+      onComplete: () => govde.setVisible(false),
+    });
+    this.scene.tweens.add({ targets: moloz, alpha: 1, duration: 300, delay: 850 });
   }
 }

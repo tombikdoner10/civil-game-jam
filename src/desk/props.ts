@@ -121,3 +121,40 @@ export function fisKaldir(scene: Phaser.Scene, fis: Phaser.GameObjects.Container
     onComplete: () => fis.destroy(),
   });
 }
+
+/**
+ * Masa tarzı piksel düğme (gün sonu, gazete, sonuç): koyu çerçeve, damga renginde gövde, yanında tuş ipucu.
+ * Fareyle tıklanır; tuşu çağıran bağlar. Kap döner (alpha 0'dan açılır).
+ */
+export function pikselDugme(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  metin: string,
+  ipucuMetni: string,
+  is: () => void,
+  renk: { govde: string; acik: string; koyu: string } = { govde: PAL.damgaGuclendir, acik: '#d0ad52', koyu: '#8a6a20' },
+): Phaser.GameObjects.Container {
+  const yazi = scene.add.text(0, 0, metin, { fontFamily: FONT, fontSize: '44px', color: PAL.panel }).setOrigin(0.5);
+  const ipucu = scene.add.text(0, 0, ipucuMetni, { fontFamily: FONT, fontSize: '26px', color: PAL.panel }).setOrigin(0.5);
+  const w = snap(yazi.width + ipucu.width + 96);
+  const h = 72;
+  const tw = w / PX;
+  const th = h / PX;
+  const t = new Tuval(scene, tw, th, 'dugme');
+  t.rect(0, 0, tw, th, PAL.cerceveKoyu);
+  t.rect(1, 1, tw - 2, th - 2, renk.govde);
+  t.rect(1, 1, tw - 2, 1, renk.acik);
+  t.rect(1, th - 2, tw - 2, 1, renk.koyu);
+  const kap = scene.add.container(snap(x), snap(y));
+  kap.add(t.goruntu(0, 0));
+  yazi.setPosition(snap(-ipucu.width / 2 - 16), 0);
+  ipucu.setPosition(snap(w / 2 - ipucu.width / 2 - 24), 4);
+  kap.add([yazi, ipucu]);
+  kap.setSize(w, h).setInteractive({ useHandCursor: true });
+  kap.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => kap.setScale(1.04));
+  kap.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => kap.setScale(1));
+  kap.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, is);
+  kap.setAlpha(0);
+  return kap;
+}

@@ -1,7 +1,7 @@
 import type { Bina, Damga, Kusur, KusurId } from './building';
 import { gunDosyalari } from './building';
 import { gunAyar, type GunAyar } from './days';
-import { dogruDamga, gorunenKusurlar, seciminKusuru, type HasarDurumu, type SecimRef } from './rules';
+import { buyukDepremSonucu, dogruDamga, gorunenKusurlar, seciminKusuru, type HasarDurumu, type SecimRef } from './rules';
 import { TUNING } from './tuning';
 
 export interface Karar {
@@ -62,6 +62,101 @@ export function sokakKayitlari(tohum: number, kayitlar: readonly GunKaydi[]): So
     }
   }
   return out;
+}
+
+/** Büyük depremde tek binanın sonucu (gazete ve sonuç ekranı). */
+export interface DepremBinaSonucu {
+  dosyaId: string;
+  /** Sokaktaki sıra (1 tabanlı; gazetede "Bina 07"). */
+  no: number;
+  /** Damgalandığı gün. */
+  gun: number;
+  damga: Damga;
+  /** Oyuncunun kararı o günün kurallarına göre doğru muydu. */
+  dogru: boolean;
+  /** Damgalandığı günün kurallarıyla görünen kusuru var mıydı. */
+  kusurlu: boolean;
+  durum: HasarDurumu;
+  coktu: boolean;
+  /** Boşaltılmıştı (içeride kimse yoktu). */
+  bos: boolean;
+}
+
+/** Büyük deprem: sokaktaki her bina için sonuç (sokak sırasıyla). Saf; Quake görüntüsü ve gazete bunu kullanır. */
+export function buyukDeprem(tohum: number, kayitlar: readonly GunKaydi[]): DepremBinaSonucu[] {
+  const dogru = new Map<string, boolean>();
+  for (const k of kayitlar) for (const c of k.kararlar) dogru.set(c.dosyaId, c.dogru);
+  return sokakKayitlari(tohum, kayitlar).map((s, i) => {
+    const r = buyukDepremSonucu(s.bina, s.damga, s.gun, { oncuHasar: s.hasar });
+    return {
+      dosyaId: s.bina.id,
+      no: i + 1,
+      gun: s.gun,
+      damga: s.damga,
+      dogru: dogru.get(s.bina.id) ?? false,
+      kusurlu: gorunenKusurlar(s.bina, s.gun).length > 0,
+      durum: r.durum,
+      coktu: r.coker,
+      bos: r.bos,
+    };
+  });
+}
+
+/** Deprem sonrası sokak özeti. "Hasarlı" ayakta kalan hasarlı ve ağır hasarlı binalar; çökenler ayrı. */
+export interface DepremOzeti {
+  toplam: number;
+  ayakta: number;
+  hasarli: number;
+  coken: number;
+  /** Çöken ve boşaltılmış. */
+  cokenBos: number;
+  /** Boşaltılmış binaların hepsi. */
+  bos: number;
+  /** İçinde insan varken çöken (boşaltılmamış). */
+  doluCoken: number;
+  /** İçinde insan varken ağır hasar alan (çökmeyen). */
+  doluAgir: number;
+}
+
+export function depremOzeti(s: readonly DepremBinaSonucu[]): DepremOzeti {
+  const coken = s.filter((b) => b.coktu);
+  return {
+    toplam: s.length,
+    ayakta: s.filter((b) => !b.coktu && b.durum === 'ayakta').length,
+    hasarli: s.filter((b) => !b.coktu && b.durum !== 'ayakta').length,
+    coken: coken.length,
+    cokenBos: coken.filter((b) => b.bos).length,
+    bos: s.filter((b) => b.bos).length,
+    doluCoken: coken.filter((b) => !b.bos).length,
+    doluAgir: s.filter((b) => !b.coktu && !b.bos && b.durum === 'agirHasar').length,
+  };
+}
+
+/** Bütün günlerin toplamı (sonuç ekranı). */
+export interface OyunToplami {
+  dosya: number;
+  dogru: number;
+  yanlis: number;
+  islenmeyen: number;
+  /** İnceleme modunda bulunan kusur ve dosyalardaki (görünen) kusur sayısı. */
+  bulunan: number;
+  kusur: number;
+}
+
+export function oyunToplami(kayitlar: readonly GunKaydi[]): OyunToplami {
+  const t: OyunToplami = { dosya: 0, dogru: 0, yanlis: 0, islenmeyen: 0, bulunan: 0, kusur: 0 };
+  for (const k of kayitlar) {
+    const h = gunHesabi(k.kararlar, gunAyar(k.gun).dosyaSayisi);
+    t.dosya += gunAyar(k.gun).dosyaSayisi;
+    t.dogru += h.dogru;
+    t.yanlis += h.yanlis;
+    t.islenmeyen += h.islenmeyen;
+    for (const c of k.kararlar) {
+      t.bulunan += c.bulunan.length;
+      t.kusur += c.kusurlar.length;
+    }
+  }
+  return t;
 }
 
 export interface IncelemeSonucu {

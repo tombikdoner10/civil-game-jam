@@ -13,6 +13,8 @@ import { DebugScene } from './scenes/DebugScene';
 import { GameScene } from './scenes/GameScene';
 import { GateScene } from './scenes/GateScene';
 import { MenuScene } from './scenes/MenuScene';
+import { NewspaperScene } from './scenes/NewspaperScene';
+import { QuakeScene } from './scenes/QuakeScene';
 import { PauseScene } from './scenes/PauseScene';
 import { PlaygroundScene } from './scenes/PlaygroundScene';
 import { PreloadScene } from './scenes/PreloadScene';
@@ -41,6 +43,8 @@ const game = new Phaser.Game({
     MenuScene,
     GameScene,
     DayEndScene,
+    QuakeScene,
+    NewspaperScene,
     ResultScene,
     CreditsScene,
     PlaygroundScene,

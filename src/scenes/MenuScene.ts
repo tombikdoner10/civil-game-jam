@@ -1,5 +1,8 @@
 import * as Phaser from 'phaser';
 import { COLORS, DEV, HEIGHT, SUBTITLE, TEAM, TITLE, VERSION, WIDTH } from '../config';
+import { gunAyar, SON_GUN } from '../game/days';
+import { ornekKayitlar } from '../game/ornek';
+import { gunHesabi } from '../game/session';
 import { popIn } from '../systems/fx';
 import { fadeIn, goTo } from '../systems/transition';
 import { addBackdrop } from '../ui/backdrop';
@@ -7,6 +10,22 @@ import { Button } from '../ui/Button';
 import { MenuNav } from '../ui/MenuNav';
 import { label } from '../ui/text';
 import { SCENES } from './keys';
+import type { DepremData } from './QuakeScene';
+
+/**
+ * Yalnızca dev: ?dev&deprem[&tohum=N] "Oyna"yı gün 5 sonuna (büyük deprem → gazete → sonuç) bağlar; beş gün
+ * örnek kararlarla (doğru ve yanlış karışık) dolu. Test ve sunum provası için.
+ */
+function devDeprem(): DepremData | null {
+  if (!DEV) return null;
+  const q = new URLSearchParams(location.search);
+  if (!q.has('deprem')) return null;
+  const t = Number(q.get('tohum'));
+  const tohum = q.has('tohum') && Number.isFinite(t) ? t : Math.floor(Math.random() * 1_000_000_000);
+  const kayitlar = ornekKayitlar(tohum, SON_GUN + 1);
+  const para = kayitlar.reduce((n, k) => n + gunHesabi(k.kararlar, gunAyar(k.gun).dosyaSayisi).toplam, 0);
+  return { tohum, para, kayitlar };
+}
 
 export class MenuScene extends Phaser.Scene {
   constructor() {
@@ -22,7 +41,14 @@ export class MenuScene extends Phaser.Scene {
     label(this, WIDTH / 2, 365, SUBTITLE, { size: 40, color: COLORS.muted });
 
     const items: [string, () => void][] = [
-      ['Oyna', () => goTo(this, SCENES.Game)],
+      [
+        'Oyna',
+        () => {
+          const deprem = devDeprem();
+          if (deprem) goTo(this, SCENES.Quake, deprem);
+          else goTo(this, SCENES.Game);
+        },
+      ],
       ['Ayarlar', () => goTo(this, SCENES.Settings, { from: SCENES.Menu })],
       ['Emeği Geçenler', () => goTo(this, SCENES.Credits)],
     ];

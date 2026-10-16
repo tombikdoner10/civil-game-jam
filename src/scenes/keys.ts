@@ -6,6 +6,8 @@ export const SCENES = {
   Menu: 'Menu',
   Game: 'Game',
   DayEnd: 'DayEnd',
+  Quake: 'Quake',
+  Newspaper: 'Newspaper',
   Result: 'Result',
   Credits: 'Credits',
   Playground: 'Playground',

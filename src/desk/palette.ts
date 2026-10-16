@@ -59,6 +59,8 @@ export const PAL = {
 
   // Dışarısı (akşamüstü)
   gok: ['#4f4c5c', '#5e5866', '#6f656c', '#857470', '#9c8676', '#b29a7e', '#c2a986'],
+  /** Gece göğü (G5 büyük deprem, 04.17): tepeden ufka doğru açılır. */
+  gokGece: ['#0c0d16', '#10111c', '#141622', '#181a28', '#1d1f2e', '#232434', '#2a2a3a'],
   uzakBina: '#4a4552',
   uzakBinaKoyu: '#3e3a46',
   isik: '#c9a85a',

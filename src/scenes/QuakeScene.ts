@@ -1,0 +1,124 @@
+// @beyan görsel
+import * as Phaser from 'phaser';
+import { FONT } from '../config';
+import { PAL } from '../desk/palette';
+import { Quake } from '../desk/Quake';
+import { Sokak } from '../desk/Street';
+import { SON_GUN } from '../game/days';
+import { buyukDeprem, sokakKayitlari, type GunKaydi } from '../game/session';
+import { TUNING } from '../game/tuning';
+import { GECE_SAATI } from '../game/gazete';
+import { Controls } from '../systems/controls';
+import { goTo } from '../systems/transition';
+import { SCENES } from './keys';
+import type { NewspaperData } from './NewspaperScene';
+
+/** Gün 5 sonundan büyük depreme taşınan durum. */
+export interface DepremData {
+  tohum: number;
+  /** Birikmiş para (5 günün sonu). */
+  para: number;
+  /** Beş günün kayıtları (sokak bunlardan kurulur). */
+  kayitlar: GunKaydi[];
+}
+
+const SOKAK_D = 10;
+/** Sahne zamanlaması (ms): saat yazısı, perdenin açılması, depremin başlaması, gazeteye geçiş. */
+const ZAMAN = { saatGel: 400, saatGit: 2600, perde: 3000, perdeSure: 1600, deprem: 5200, sonra: 2400 };
+
+/**
+ * Büyük deprem (G5): gece geçişi (kararma, saat), sonra oyuncunun kararlarıyla dolan sokak tam ekran ve gece.
+ * Sokak binalık gruplarla taranır, her bina adalet kurallarıyla (session.buyukDeprem) tepki verir; sonunda bütün
+ * sokak görünür ve gazeteye geçilir. Girdi yok; Esc duraklatır (gürleme susar, sekans durur).
+ */
+export class QuakeScene extends Phaser.Scene {
+  private veri!: DepremData;
+  private controls!: Controls;
+
+  constructor() {
+    super(SCENES.Quake);
+  }
+
+  init(data: DepremData): void {
+    this.veri = data;
+  }
+
+  create(): void {
+    const cam = this.cameras.main;
+    cam.setBackgroundColor(0x000000).setRoundPixels(true);
+    this.input.enabled = true;
+    this.controls = new Controls(this);
+    const v = this.veri;
+    const B = TUNING.buyukDeprem;
+
+    const sonuclar = buyukDeprem(v.tohum, v.kayitlar);
+    const sonucu = new Map(sonuclar.map((s) => [s.dosyaId, s]));
+    // Sokak ekrandan biraz taşar: kamera sarsıntısında kenarlarda boşluk görünmesin (kaldırım yine y=1038'de).
+    const sokak = new Sokak(this, { x: -48, y: -48, w: 2016, h: 1128 }, SON_GUN, sokakKayitlari(v.tohum, v.kayitlar), SOKAK_D, {
+      olcek: 3,
+      gece: true,
+    });
+    const binalar = sokak.damgalilar();
+    const quake = new Quake(this, sokak, SOKAK_D);
+    quake.hazirla(binalar);
+
+    // Gece geçişi: kararma, saat (yer tutucu), perde açılır; sessiz sokak bir an durur.
+    const perde = this.add.rectangle(0, 0, 1920, 1080, 0x000000).setOrigin(0).setDepth(100);
+    const saat = this.add
+      .text(960, 540, GECE_SAATI, { fontFamily: FONT, fontSize: '112px', color: PAL.saat })
+      .setOrigin(0.5)
+      .setDepth(101)
+      .setAlpha(0);
+    this.tweens.add({ targets: saat, alpha: 1, duration: 500, delay: ZAMAN.saatGel, ease: 'Stepped', easeParams: [4] });
+    this.tweens.add({ targets: saat, alpha: 0, duration: 400, delay: ZAMAN.saatGit, ease: 'Stepped', easeParams: [4] });
+    this.tweens.add({ targets: perde, alpha: 0, duration: ZAMAN.perdeSure, delay: ZAMAN.perde, ease: 'Stepped', easeParams: [8] });
+    // Köşede küçük saat: deprem boyunca.
+    const kose = this.add
+      .text(48, 44, GECE_SAATI, { fontFamily: FONT, fontSize: '44px', color: PAL.panelYazi })
+      .setOrigin(0, 0.5)
+      .setDepth(90)
+      .setAlpha(0);
+    this.tweens.add({ targets: kose, alpha: 0.8, duration: 400, delay: ZAMAN.perde + ZAMAN.perdeSure });
+
+    this.time.delayedCall(ZAMAN.deprem, () =>
+      quake.oynat(
+        1,
+        binalar,
+        () => {
+          this.time.delayedCall(ZAMAN.sonra, () => {
+            const data: NewspaperData = { ...v, sonuclar };
+            goTo(this, SCENES.Newspaper, data, 600);
+          });
+        },
+        {
+          sure: B.sureMs,
+          genlik: B.sarsinti,
+          sesGucu: B.sesGucu,
+          cokme: true,
+          buyuk: true,
+          hesap: (b) => {
+            const s = sonucu.get(b.bina.id);
+            return s ? { durum: s.durum, bos: s.bos, coker: s.coktu } : { durum: 'ayakta', bos: b.damga === 'bosalt' };
+          },
+        },
+      ),
+    );
+
+    // Pencere odağı kaçarsa duraklat.
+    const onBlur = (): void => {
+      if (this.scene.isActive()) this.duraklat();
+    };
+    this.game.events.on(Phaser.Core.Events.BLUR, onBlur);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.game.events.off(Phaser.Core.Events.BLUR, onBlur));
+  }
+
+  update(): void {
+    if (this.controls.justDown('pause')) this.duraklat();
+  }
+
+  private duraklat(): void {
+    // "Yeniden Başla" depremi aynı sokakla baştan oynatır.
+    this.scene.launch(SCENES.Pause, { from: SCENES.Quake, yeniden: this.veri });
+    this.scene.pause();
+  }
+}

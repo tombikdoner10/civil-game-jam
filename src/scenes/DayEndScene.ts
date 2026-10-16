@@ -4,7 +4,7 @@ import { sfx } from '../audio/sfx';
 import { FONT } from '../config';
 import { num, PAL } from '../desk/palette';
 import { PX, rastgele, snap, Tuval } from '../desk/pixel';
-import { masaCiz } from '../desk/props';
+import { masaCiz, pikselDugme } from '../desk/props';
 import { DAMGA_ADI, DAMGA_RENK } from '../desk/StampTray';
 import type { Damga } from '../game/building';
 import { SON_GUN } from '../game/days';
@@ -14,7 +14,7 @@ import { TUNING } from '../game/tuning';
 import { fadeIn, goTo } from '../systems/transition';
 import type { GameData } from './GameScene';
 import { SCENES } from './keys';
-import type { ResultData } from './ResultScene';
+import type { DepremData } from './QuakeScene';
 
 export interface DayEndData {
   gun: number;
@@ -42,7 +42,7 @@ const para = (n: number): string => `${n < 0 ? '−' : ''}${Math.abs(n)} TL`;
  * Gün sonu ekranı (Papers, Please'in gün sonu özeti gibi): masada bir rapor kâğıdı. Her dosya için bina,
  * verdiğin damga, doğru damga, inceleme modunda bulduğun kusurlar ve sonuç; altta maaş, ceza, günün
  * toplamı ve birikmiş para (yer tutucu değerler, TUNING.para). "Sonraki gün" (Enter/Space) bir sonraki güne,
- * son günden sonra sonuç ekranına geçer (büyük deprem G5).
+ * son günden sonra "Gece" ile büyük depreme geçer (G5).
  */
 export class DayEndScene extends Phaser.Scene {
   private veri!: DayEndData;
@@ -169,7 +169,8 @@ export class DayEndScene extends Phaser.Scene {
 
     // Sonraki gün düğmesi
     const son = v.gun >= SON_GUN;
-    this.dugmeKur(L + KAGIT.w / 2, T + KAGIT.h - 64, son ? 'SONUÇ' : 'SONRAKİ GÜN', () => this.devam(yeniPara));
+    const dugme = pikselDugme(this, L + KAGIT.w / 2, T + KAGIT.h - 64, son ? 'GECE' : 'SONRAKİ GÜN', 'Enter', () => this.devam(yeniPara));
+    this.tweens.add({ targets: dugme, alpha: 1, duration: 200, delay: 400 });
     const kb = this.input.keyboard;
     const tus = (): void => this.devam(yeniPara);
     kb?.on('keydown-ENTER', tus);
@@ -195,10 +196,9 @@ export class DayEndScene extends Phaser.Scene {
     if (v.oncu) kayit.oncu = v.oncu;
     const kayitlar: GunKaydi[] = [...v.kayitlar, kayit];
     if (v.gun >= SON_GUN) {
-      const toplam = kayitlar.reduce((n, g) => n + g.kararlar.length, 0);
-      const dogru = kayitlar.reduce((n, g) => n + g.kararlar.filter((k) => k.dogru).length, 0);
-      const data: ResultData = { score: yeniPara, won: toplam > 0 && dogru / toplam >= 0.5, title: `Gün ${v.gun} bitti` };
-      goTo(this, SCENES.Result, data);
+      // Son gün: gece ve büyük deprem (gece geçişi QuakeScene'de; buradan daha yavaş kararır).
+      const data: DepremData = { tohum: v.tohum, para: yeniPara, kayitlar };
+      goTo(this, SCENES.Quake, data, 600);
       return;
     }
     const data: GameData = { gun: v.gun + 1, tohum: v.tohum, para: yeniPara, kayitlar };
@@ -246,30 +246,5 @@ export class DayEndScene extends Phaser.Scene {
       t.px(x + 1, 24, '#7a4a42');
     }
     t.goruntu(KAGIT.x, KAGIT.y).setOrigin(0);
-  }
-
-  private dugmeKur(x: number, y: number, metin: string, is: () => void): void {
-    const yazi = this.add.text(0, 0, metin, { fontFamily: FONT, fontSize: '44px', color: PAL.panel }).setOrigin(0.5);
-    const ipucu = this.add.text(0, 0, 'Enter', { fontFamily: FONT, fontSize: '26px', color: PAL.panel }).setOrigin(0.5);
-    const w = snap(yazi.width + ipucu.width + 96);
-    const h = 72;
-    const tw = w / PX;
-    const th = h / PX;
-    const t = new Tuval(this, tw, th, 'gunsonu-dugme');
-    t.rect(0, 0, tw, th, PAL.cerceveKoyu);
-    t.rect(1, 1, tw - 2, th - 2, PAL.damgaGuclendir);
-    t.rect(1, 1, tw - 2, 1, '#d0ad52');
-    t.rect(1, th - 2, tw - 2, 1, '#8a6a20');
-    const kap = this.add.container(snap(x), snap(y));
-    kap.add(t.goruntu(0, 0));
-    yazi.setPosition(snap(-ipucu.width / 2 - 16), 0);
-    ipucu.setPosition(snap(w / 2 - ipucu.width / 2 - 24), 4);
-    kap.add([yazi, ipucu]);
-    kap.setSize(w, h).setInteractive({ useHandCursor: true });
-    kap.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => kap.setScale(1.04));
-    kap.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => kap.setScale(1));
-    kap.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, is);
-    kap.setAlpha(0);
-    this.tweens.add({ targets: kap, alpha: 1, duration: 200, delay: 400 });
   }
 }

@@ -16,6 +16,7 @@
     "smoke": "node scripts/smoke.mjs",
     "beyan": "node scripts/beyan.mjs",
     "durum": "node scripts/durum.mjs",
+    "adalet": "node scripts/adalet.mjs",
     "yedek": "node scripts/yedek.mjs",
     "panel": "node scripts/panel.mjs",
     "preview": "vite preview"

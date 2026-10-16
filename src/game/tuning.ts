@@ -70,6 +70,26 @@ export const TUNING = {
    */
   oncu: { siddet: 2.5, sureMs: 9000, sarsinti: 0.006 },
 
+  /**
+   * Büyük deprem (gün 5 sonu, G5). Sonuç risk sayısıyla değil, kademeyle (adil ve öngörülebilir):
+   * 0 ayakta, 1 hasarlı, 2 ağır hasar, 3 çöker. Taban kademe binanın damgalandığı günün kurallarıyla görünen
+   * kusurlardan: kusursuz bina hep ayakta (gizli zayıflık sayılmaz). Kusurlu binada gizli zayıflık (düz demir,
+   * deniz kumu, kuralı henüz gelmemiş kusur) ve öncü sarsıntı çatlağı birer kademe ekler. GÜÇLENDİR kademeyi
+   * düşürür ve en fazla hasarlı bırakır; BOŞALT sonucu değiştirmez ama bina boştur.
+   */
+  buyukDeprem: {
+    sureMs: 20000,
+    sarsinti: 0.012,
+    sesGucu: 2,
+    kademe: { guclendirKusur: 2, bosaltKusur: 3 },
+    gizliKademe: 1,
+    oncuKademe: 1,
+    guclendirIndirim: 2,
+    guclendirTavan: 1,
+    /** Tarama: görünüm sokakta kaçar binalık gruplarla ilerler. */
+    grup: 5,
+  },
+
   /** Deprem riski (0..1). */
   risk: {
     taban: 0.05,

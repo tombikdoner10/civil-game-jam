@@ -163,6 +163,51 @@ export function depremSonucu(b: Bina, damga: Damga, siddet = 1, gizli = true): D
   return { durum, bos: damga === 'bosalt', risk };
 }
 
+// ---- Büyük deprem (G5) ----
+
+const KADEME: HasarDurumu[] = ['ayakta', 'hasarli', 'agirHasar'];
+
+export interface BuyukDepremSonucu {
+  durum: HasarDurumu;
+  /** Bina çöktü mü (ağır hasarın ötesi; kademe 3). */
+  coker: boolean;
+  /** Bina boşaltılmış mı (içeride kimse yok). */
+  bos: boolean;
+  /** 0 ayakta, 1 hasarlı, 2 ağır hasar, 3 çöker. */
+  kademe: number;
+}
+
+/** Belgelerde görünmeyen zayıflık: düz demir, deniz kumu ya da o günün kurallarıyla görünmeyen gerçek kusur. */
+export function gizliZayiflik(b: Bina, gun: number): boolean {
+  return b.gercek.demir === 'duz' || b.gercek.denizKumu || gercekKusurlar(b).length > gorunenKusurlar(b, gun).length;
+}
+
+/**
+ * Büyük deprem sonucu (kademe kuralları TUNING.buyukDeprem'de). Adalet: belgelerdeki kusurlara göre doğru
+ * damgalanan bina haksız cezalandırılmaz. gun: binanın damgalandığı gün (o günün kuralları). oncuHasar: öncü
+ * sarsıntıdan kalan hasar (bir kademe ekler; kalan hasar geri gitmez).
+ */
+export function buyukDepremSonucu(
+  b: Bina,
+  damga: Damga,
+  gun: number,
+  secenek: { gizli?: boolean; oncuHasar?: HasarDurumu } = {},
+): BuyukDepremSonucu {
+  const B = TUNING.buyukDeprem;
+  const kusurlar = gorunenKusurlar(b, gun);
+  const onceki = secenek.oncuHasar ? KADEME.indexOf(secenek.oncuHasar) : 0;
+  let kademe = 0;
+  if (kusurlar.length > 0) {
+    kademe = kusurlar.some((k) => k.ciddiyet === 'bosalt') ? B.kademe.bosaltKusur : B.kademe.guclendirKusur;
+    if ((secenek.gizli ?? true) && gizliZayiflik(b, gun)) kademe += B.gizliKademe;
+    if (onceki > 0) kademe += B.oncuKademe;
+    kademe = Math.min(3, kademe);
+    if (damga === 'guclendir') kademe = Math.min(B.guclendirTavan, Math.max(0, kademe - B.guclendirIndirim));
+  }
+  kademe = Math.max(kademe, onceki);
+  return { durum: KADEME[Math.min(kademe, 2)], coker: kademe >= 3, bos: damga === 'bosalt', kademe };
+}
+
 // ---- İnceleme modu (G3) ----
 
 /** İnceleme modunda seçilebilen öğe: belge alanı ya da kural kitabındaki bir kural satırı. */

@@ -44,3 +44,17 @@
 {"zaman":"2026-10-16T19:46:34.194Z","kategori":"audio","dosya":"src/audio/audio.ts","arac":"Edit","ajan":"gelistirici"}
 {"zaman":"2026-10-16T19:48:26.770Z","kategori":"audio","dosya":"src/audio/sesler.ts","arac":"Write","ajan":"gelistirici"}
 {"zaman":"2026-10-16T19:53:58.506Z","kategori":"text","dosya":"docs/SESLER.md","arac":"Write","ajan":"gelistirici"}
+{"zaman":"2026-10-16T20:04:01.072Z","kategori":"code","dosya":"src/game/tuning.ts","arac":"Edit","ajan":"gelistirici"}
+{"zaman":"2026-10-16T20:04:01.380Z","kategori":"code","dosya":"src/game/rules.ts","arac":"Edit","ajan":"gelistirici"}
+{"zaman":"2026-10-16T20:04:29.762Z","kategori":"code","dosya":"src/game/ornek.ts","arac":"Write","ajan":"gelistirici"}
+{"zaman":"2026-10-16T20:06:25.432Z","kategori":"visual","dosya":"src/desk/Street.ts","arac":"Write","ajan":"gelistirici"}
+{"zaman":"2026-10-16T20:06:39.779Z","kategori":"visual","dosya":"src/desk/palette.ts","arac":"Edit","ajan":"gelistirici"}
+{"zaman":"2026-10-16T20:07:43.993Z","kategori":"visual","dosya":"src/desk/Quake.ts","arac":"Write","ajan":"gelistirici"}
+{"zaman":"2026-10-16T20:09:11.400Z","kategori":"visual","dosya":"src/scenes/QuakeScene.ts","arac":"Write","ajan":"gelistirici"}
+{"zaman":"2026-10-16T20:09:27.993Z","kategori":"text","dosya":"src/game/gazete.ts","arac":"Write","ajan":"gelistirici"}
+{"zaman":"2026-10-16T20:09:50.886Z","kategori":"code","dosya":"src/scenes/keys.ts","arac":"Edit","ajan":"gelistirici"}
+{"zaman":"2026-10-16T20:09:51.149Z","kategori":"code","dosya":"src/main.ts","arac":"Edit","ajan":"gelistirici"}
+{"zaman":"2026-10-16T20:09:51.377Z","kategori":"code","dosya":"src/main.ts","arac":"Edit","ajan":"gelistirici"}
+{"zaman":"2026-10-16T20:10:49.783Z","kategori":"visual","dosya":"src/scenes/NewspaperScene.ts","arac":"Write","ajan":"gelistirici"}
+{"zaman":"2026-10-16T20:11:34.446Z","kategori":"visual","dosya":"src/scenes/ResultScene.ts","arac":"Write","ajan":"gelistirici"}
+{"zaman":"2026-10-16T20:19:46.990Z","kategori":"code","dosya":"scripts/adalet.mjs","arac":"Write","ajan":"gelistirici"}

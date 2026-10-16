@@ -14,7 +14,7 @@ import { Quake } from '../desk/Quake';
 import { GOZ, MASA_Y, Pencere, SOKAK_DERINLIK } from '../desk/Window';
 import { yerlesim, type Yerlesim } from '../desk/yerlesim';
 import type { Damga, Kural } from '../game/building';
-import { depremSonucu, dogruDamga } from '../game/rules';
+import { ornekKayitlar } from '../game/ornek';
 import { GunOturumu, sokakKayitlari, type GunKaydi, type SarsintiKaydi } from '../game/session';
 import { TUNING } from '../game/tuning';
 import type { DayEndData } from './DayEndScene';
@@ -35,35 +35,6 @@ export interface GameData {
 
 /** Öncü sarsıntı şeridi (yer tutucu metin; takım yazacak). */
 const ONCU_YAZI = '[Öncü sarsıntı. Asıl deprem gelecek.]';
-
-/**
- * Yalnızca dev: gün 1'den (gun - 1)'e kadar örnek kayıtlar. Kararlar çoğunlukla doğru, her dördüncü dosya
- * yanlışlıkla GÜVENLİ; öncü sarsıntılı günlerde sarsıntı sonucu da hesaplanır (oyundaki kuralla).
- */
-function ornekKayitlar(tohum: number, gun: number): GunKaydi[] {
-  const out: GunKaydi[] = [];
-  const O = TUNING.oncu;
-  for (let g = 1; g < gun; g++) {
-    const o = new GunOturumu(g, tohum);
-    for (let i = 0; o.mevcut && !o.bitti; i++) {
-      const b = o.mevcut;
-      o.damgala(i % 4 === 1 ? 'guvenli' : dogruDamga(b, g));
-    }
-    const kayit: GunKaydi = { gun: g, kararlar: o.kararlar.slice() };
-    if (o.ayar.oncuSarsinti) {
-      kayit.oncu = {
-        siddet: O.siddet,
-        sonuclar: o.kararlar.map((k) => {
-          const b = o.dosyalar.find((x) => x.id === k.dosyaId);
-          const s = b ? depremSonucu(b, k.damga, O.siddet, false) : { durum: 'ayakta' as const, bos: false };
-          return { dosyaId: k.dosyaId, durum: s.durum === 'agirHasar' ? 'hasarli' : s.durum, bos: s.bos };
-        }),
-      };
-    }
-    out.push(kayit);
-  }
-  return out;
-}
 
 /** Masada boş yer yoksa uyarı fişi gişe camının altına düşer (belgeleri örtmez). */
 const FIS_GISE = { x: 1568, alt: 384, derinlik: 3500 };
