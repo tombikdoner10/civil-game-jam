@@ -39,9 +39,10 @@
         "src/game/session.ts, rules.ts, building.ts, gazete.ts; src/scenes/GameScene.ts, DayEndScene.ts, ResultScene.ts, NewspaperScene.ts; scripts/adalet.mjs",
         "src/game/ (8 dosya)",
         "src/scenes/ (5 dosya)",
-        "scripts/ (2 dosya)",
+        "scripts/ (3 dosya)",
         "src/desk/yerlesim.ts",
-        "src/main.ts"
+        "src/main.ts",
+        "package.json"
       ]
     },
     "text": {
