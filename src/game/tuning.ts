@@ -27,6 +27,11 @@ export const TUNING = {
   /** Dere ve fay mesafe eşikleri (m). Altı kusur. */
   dereMinM: 30,
   fayMinM: 150,
+  /**
+   * Fay yakını kuralı (takım T12'de doğrulayacak). 'zemin': dere gibi zemin etüdüne bağlı (sağlam ya da orta
+   * GÜÇLENDİR, sıvılaşma BOŞALT, etüt yok İADE). 'bosalt': faya yakın bina her zaman BOŞALT.
+   */
+  fayKurali: 'zemin' as 'zemin' | 'bosalt',
   dereIyi: { min: 60, max: 400 },
   dereKotu: { min: 5, max: 25 },
   fayIyi: { min: 250, max: 1500 },
@@ -48,8 +53,13 @@ export const TUNING = {
     duzDemirEski: 0.5,
     duzDemirYeni: 0.05,
     denizKumu: 0.1,
-    /** Kusursuz binada karot raporunun eksik olması. */
-    karotYok: 0.15,
+    /**
+     * Eksik belgenin (karot, zemin etüdü) arkasında gerçek kusur saklı olma olasılığı: düşük beton ya da
+     * sıvılaşma. Belgede görünmez; İADE edilen bina depremde bununla sınanır.
+     */
+    eksikBelgeSakliKusur: 0.4,
+    /** Dereye ya da faya yakın binada zemin: sıvılaşma ve etüt yok olasılıkları (kalanı sağlam ya da orta). */
+    yakinZemin: { sivilasma: 0.3, etutYok: 0.3 },
     /** Zemin kusursuzsa sağlam olma olasılığı (kalanı orta). */
     zeminSaglam: 0.6,
   },

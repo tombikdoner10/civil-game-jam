@@ -6,13 +6,17 @@ import type { Damga } from '../game/building';
 import { PAL } from './palette';
 import { PX, rastgele, Tuval } from './pixel';
 
-export const DAMGA_ADI: Record<Damga, string> = { guvenli: 'GÜVENLİ', guclendir: 'GÜÇLENDİR', bosalt: 'BOŞALT' };
+export const DAMGA_ADI: Record<Damga, string> = { guvenli: 'GÜVENLİ', guclendir: 'GÜÇLENDİR', bosalt: 'BOŞALT', iade: 'İADE' };
 export const DAMGA_RENK: Record<Damga, string> = {
   guvenli: PAL.damgaGuvenli,
   guclendir: PAL.damgaGuclendir,
   bosalt: PAL.damgaBosalt,
+  iade: PAL.damgaIade,
 };
-const SIRA: Damga[] = ['guvenli', 'guclendir', 'bosalt'];
+const SIRA: Damga[] = ['guvenli', 'guclendir', 'bosalt', 'iade'];
+/** Tokmak yuvaları (ekran pikseli, çubuğun üstünden): ilk tokmağın ortası ve aralık. */
+const YUVA = { ilk: 76, ara: 144 };
+const tokmakY = (d: Damga): number => YUVA.ilk + Math.max(0, SIRA.indexOf(d)) * YUVA.ara;
 
 const TRAY = { x: 1544, y: 472, w: 376, h: 600, tutamak: 40 };
 const KAPALI_X = 1920 - TRAY.tutamak;
@@ -21,7 +25,7 @@ export const TEPSI_SOL = { acik: TRAY.x, kapali: KAPALI_X } as const;
 
 /**
  * Sağ kenardan kayarak açılan damga çubuğu. Kapalıyken yalnızca tutamak görünür;
- * tutamağa tıklayınca ya da Tab ile açılır. Üç tokmak: GÜVENLİ / GÜÇLENDİR / BOŞALT.
+ * tutamağa tıklayınca ya da Tab ile açılır. Dört tokmak: GÜVENLİ / GÜÇLENDİR / BOŞALT / İADE.
  */
 export class StampTray extends Phaser.GameObjects.Container {
   acik = false;
@@ -55,7 +59,10 @@ export class StampTray extends Phaser.GameObjects.Container {
       [govdeW - 4, H - 5],
     ])
       g.rect(x, y, 2, 2, '#6a665c').px(x, y, '#8a8578');
-    for (let i = 1; i < 3; i++) g.rect(4, i * 50, govdeW - 6, 1, PAL.cerceveKoyu).rect(4, i * 50 + 1, govdeW - 6, 1, '#4a4741');
+    for (let i = 1; i < SIRA.length; i++) {
+      const y = (YUVA.ilk - YUVA.ara / 2 + i * YUVA.ara) / PX;
+      g.rect(4, y, govdeW - 6, 1, PAL.cerceveKoyu).rect(4, y + 1, govdeW - 6, 1, '#4a4741');
+    }
     this.add(g.goruntu(TRAY.tutamak - PX, 0).setOrigin(0));
 
     // Tutamak
@@ -79,13 +86,13 @@ export class StampTray extends Phaser.GameObjects.Container {
     tut.setInteractive({ useHandCursor: true }).on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => this.degistir());
 
     // Tokmaklar
-    SIRA.forEach((d, i) => {
+    SIRA.forEach((d) => {
       const cx = TRAY.tutamak + (TRAY.w - TRAY.tutamak) / 2;
-      const cy = 112 + i * 200;
+      const cy = tokmakY(d);
       const golge = new Tuval(scene, 56, 6, 'tgolge');
       golge.dither(2, 0, 52, 6, '#000000');
       golge.rect(4, 1, 48, 4, '#00000080');
-      this.add(golge.goruntu(cx, cy + 72).setAlpha(0.6));
+      this.add(golge.goruntu(cx, cy + 60).setAlpha(0.6));
       const kap = this.tokmakCiz(d, cx, cy);
       this.tokmaklar.set(d, kap);
     });
@@ -98,34 +105,36 @@ export class StampTray extends Phaser.GameObjects.Container {
 
   private tokmakCiz(d: Damga, cx: number, cy: number): Phaser.GameObjects.Container {
     const s = this.scene;
-    const t = new Tuval(s, 60, 40, 'tokmak');
+    // Dört tokmak sığsın diye kısa: topuz 9, sap 4, gövde 14, lastik 5 sanat pikseli (34 → 136 ekran pikseli).
+    const t = new Tuval(s, 60, 34, 'tokmak');
     const renk = DAMGA_RENK[d];
     // Tahta topuz
-    t.rect(22, 0, 16, 10, KONT());
-    t.rect(23, 1, 14, 8, '#6b4a35');
+    t.rect(22, 0, 16, 9, KONT());
+    t.rect(23, 1, 14, 7, '#6b4a35');
     t.rect(24, 1, 10, 2, '#8a6448');
-    t.rect(23, 7, 14, 2, '#553a2a');
+    t.rect(23, 6, 14, 2, '#553a2a');
     // Sap
-    t.rect(27, 10, 6, 8, KONT());
-    t.rect(28, 10, 4, 8, '#77736a');
-    t.rect(28, 10, 1, 8, '#9a958a');
+    t.rect(27, 9, 6, 4, KONT());
+    t.rect(28, 9, 4, 4, '#77736a');
+    t.rect(28, 9, 1, 4, '#9a958a');
     // Metal gövde
-    t.rect(2, 18, 56, 16, KONT());
-    t.rect(3, 19, 54, 14, '#6a665d');
-    t.rect(3, 19, 54, 1, '#8e897d');
-    t.rect(3, 32, 54, 1, '#4f4c45');
+    t.rect(2, 13, 56, 15, KONT());
+    t.rect(3, 14, 54, 13, '#6a665d');
+    t.rect(3, 14, 54, 1, '#8e897d');
+    t.rect(3, 26, 54, 1, '#4f4c45');
     // Lastik (mürekkepli taban)
-    t.rect(4, 34, 52, 5, KONT());
-    t.rect(5, 34, 50, 4, renk);
-    t.dither(5, 37, 50, 1, '#00000060');
+    t.rect(4, 28, 52, 5, KONT());
+    t.rect(5, 28, 50, 4, renk);
+    t.dither(5, 31, 50, 1, '#00000060');
     const kap = s.add.container(cx, cy);
     kap.add(t.goruntu(0, 0));
+    // Gövdenin ortası: (13 + 28) / 2 sanat pikseli; görüntü ortası 17.
     const lbl = s.add
-      .text(0, 24 + 4, DAMGA_ADI[d], { fontFamily: FONT, fontSize: '36px', color: '#f0ead8' })
+      .text(0, ((13 + 28) / 2 - 17) * PX + 4, DAMGA_ADI[d], { fontFamily: FONT, fontSize: '36px', color: '#f0ead8' })
       .setOrigin(0.5)
       .setShadow(0, 4, '#00000080', 0);
     kap.add(lbl);
-    kap.setSize(240, 160);
+    kap.setSize(240, 136);
     kap.setInteractive({ useHandCursor: true });
     kap.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => {
       if (this.acik && !this.kilitli) this.onStamp(d);
@@ -138,7 +147,7 @@ export class StampTray extends Phaser.GameObjects.Container {
   bas(d: Damga): void {
     const kap = this.tokmaklar.get(d);
     if (!kap) return;
-    const y0 = 112 + Math.max(0, ['guvenli', 'guclendir', 'bosalt'].indexOf(d)) * 200;
+    const y0 = tokmakY(d);
     this.scene.tweens.killTweensOf(kap);
     kap.y = y0;
     this.scene.tweens.chain({

@@ -9,6 +9,7 @@ Kısaltmalar: **I** impact-sounds, **R** rpg-audio, **IF** interface-sounds, **U
 | Olay (ad) | Nerede çalar | Dosya(lar) ve ayar | Alternatif adaylar |
 |---|---|---|---|
 | Damga tokmağı (`damga`) | `GameScene.damgala`, tokmak inince; Ayarlar'da efekt düzeyi önizlemesi | I `impactPunch_heavy_000/001/002` (rate 0.85) + I `impactWood_heavy_000/001/002` (masa) | I `impactSoft_heavy_*`, I `impactPlate_heavy_001/003`, R `bookPlace1-3` (kâğıt katmanı) |
+| İADE damgası (`iade`) | `GameScene.damgala`, İADE tokmağı inince (`damga` yerine) | I `impactPunch_heavy_000/001/002` (rate 1.05, daha hafif) + R `bookClose` (dosya kapanır, 0.08 sn sonra); yeni dosya yok | I `impactSoft_medium_*`, R `bookPlace1-3` |
 | Belge gişeden kayar (`kagitKay`) | `GameScene.dosyaGetir`, `notGetir`; gün sonu raporu, gazete ve sonuç ekranı açılınca | R `bookFlip2`, `bookFlip3` (rate 1.1) | R `cloth2`, `cloth4`, IF `scratch_004/005` |
 | Belgeyi tut (`kagitAl`) | `DocumentCard`, `RuleNote` (fareye basınca) | R `bookFlip3` (sessiz, rate 1.25) | R `handleSmallLeather`, R `cloth4` |
 | Belgeyi bırak / belge masaya iner (`kagitBirak`) | `DocumentCard`, `RuleNote` (sürükleme bitince); son belge masaya inince | R `bookPlace1/2/3` (sessiz, rate 1.3) | R `dropLeather`, I `impactSoft_medium_*` |

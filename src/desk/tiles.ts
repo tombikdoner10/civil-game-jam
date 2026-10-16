@@ -399,6 +399,26 @@ export function seritCiz(ctx: CanvasRenderingContext2D, x0: number, y0: number, 
   serit(zy + 15, 3);
 }
 
+/**
+ * İADE: bina denetlenmedi; zemin katın ortasında, kirişin altında bantla tutturulmuş küçük beyaz kâğıt
+ * (üstünde birkaç satır). İskele ya da şerit yok: içinde insanlar oturmaya devam eder.
+ */
+export function iadeCiz(ctx: CanvasRenderingContext2D, x0: number, y0: number, kat: number): void {
+  const h = cepheH(Math.max(0, kat - 1));
+  const zy = y0 + h - ZEMIN_H;
+  const w = 9;
+  const kh = 12;
+  const x = x0 + Math.round(CEPHE_W / 2 - w / 2);
+  const y = zy + 6;
+  dolgu(ctx, x - 1, y - 1, w + 2, kh + 2, KONTUR);
+  dolgu(ctx, x, y, w, kh, '#f2efe6');
+  dolgu(ctx, x, y + kh - 1, w, 1, '#c9c4b6');
+  // Bant
+  dolgu(ctx, x + 2, y - 2, w - 4, 2, '#b8b29a');
+  // Satırlar
+  for (let i = 0; i < 4; i++) dolgu(ctx, x + 2, y + 3 + i * 2, i === 0 ? w - 4 : w - 4 - (i % 2) * 2, 1, '#6a645c');
+}
+
 /** BOŞALT: ışıklar sönük; pencere camları karanlık, zemin kat içi kararmış, cephe hafif koyu. */
 export function karanlikCiz(ctx: CanvasRenderingContext2D, x0: number, y0: number, kat: number, secim: CepheSecim): void {
   const ust = Math.max(0, kat - 1);

@@ -11,6 +11,7 @@ import {
   cepheH,
   cepheSecimi,
   hasarCiz,
+  iadeCiz,
   iskeleCiz,
   karanlikCiz,
   KATMAN_PAY,
@@ -103,7 +104,7 @@ interface Parsel {
 
 /**
  * Pencereden görünen kalıcı sokak: o güne kadar damgalanan her bina damgalanma sırasıyla bir parselde durur.
- * GÜÇLENDİR iskeleli, BOŞALT şeritli ve karanlık; sarsıntıdan kalan hasar çatlak olarak görünür. İncelenen
+ * GÜÇLENDİR iskeleli, BOŞALT şeritli ve karanlık, İADE (denetlenmedi) kapısında beyaz kâğıtla; sarsıntıdan kalan hasar çatlak olarak görünür. İncelenen
  * dosyanın binası sıradaki parselde, ortada ve aydınlık. Sokak kaydırılır (ve gerekirse küçültülür): okunur kalsın.
  * Aynı sınıf G5'te büyük deprem için tam ekran (olcek 3, gece) ve gazete fotoğrafı için küçük kullanılır.
  */
@@ -506,7 +507,7 @@ export class Sokak {
     for (const o of p.kap.list) (o as Phaser.GameObjects.Image).setTint(ton);
   }
 
-  /** Damga işareti: GÜÇLENDİR iskele, BOŞALT karanlık pencereler ve şerit. canlandir: kurulurken görünsün. */
+  /** Damga işareti: GÜÇLENDİR iskele, BOŞALT karanlık pencereler ve şerit, İADE kapıda beyaz kâğıt. canlandir: kurulurken görünsün. */
   private isaretKur(p: Parsel, canlandir: boolean): void {
     const { yan, ust } = KATMAN_PAY;
     const ton = p === this.incelenen ? this.TON.incelenen : (p.kap.list[0] as Phaser.GameObjects.Image).tintTopLeft;
@@ -531,6 +532,16 @@ export class Sokak {
         p.karanlik.setAlpha(0);
         this.scene.tweens.add({ targets: p.karanlik, alpha: 1, duration: 600, delay: 100, ease: 'Stepped', easeParams: [4] });
         this.acil(p.serit, 'saga', 500, 650);
+      }
+    } else if (p.damga === 'iade') {
+      // Denetlenmedi: kapıda küçük beyaz kâğıt; bina sokakta olduğu gibi (içi dolu) kalır.
+      const t = this.katman(p.h, 'iade');
+      iadeCiz(t.ctx, yan, ust, p.kat);
+      p.isaret = this.katmanGoruntu(t, p.h).setTint(ton);
+      p.kap.add(p.isaret);
+      if (canlandir) {
+        p.isaret.setAlpha(0);
+        this.scene.tweens.add({ targets: p.isaret, alpha: 1, duration: 300, delay: 200, ease: 'Stepped', easeParams: [3] });
       }
     }
   }

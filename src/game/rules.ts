@@ -1,4 +1,4 @@
-import type { AlanRef, Bina, Damga, Kural, Kusur, KusurId } from './building';
+import type { AlanRef, Bina, Ciddiyet, Damga, Kural, Kusur, KusurId, Zemin } from './building';
 import { TUNING } from './tuning';
 
 /** Kusur başına yer tutucu etiket, ciddiyet ve kanıt alanları. */
@@ -18,6 +18,11 @@ export const KUSUR_BILGI: Record<KusurId, Omit<Kusur, 'id'>> = {
     ciddiyet: 'bosalt',
     kanit: [{ belge: 'karot', alan: 'mpa' }],
   },
+  karotYok: {
+    etiket: 'Karot raporu yok',
+    ciddiyet: 'iade',
+    kanit: [{ belge: 'karot', alan: 'mpa' }],
+  },
   dereyeYakin: {
     etiket: 'Dereye yakın',
     ciddiyet: 'guclendir',
@@ -30,7 +35,7 @@ export const KUSUR_BILGI: Record<KusurId, Omit<Kusur, 'id'>> = {
   },
   zeminEtuduYok: {
     etiket: 'Zemin etüdü yok',
-    ciddiyet: 'guclendir',
+    ciddiyet: 'iade',
     kanit: [{ belge: 'zemin', alan: 'rapor' }],
   },
   sivilasma: {
@@ -52,29 +57,59 @@ export const KUSUR_BILGI: Record<KusurId, Omit<Kusur, 'id'>> = {
 
 export const KUSUR_IDLERI = Object.keys(KUSUR_BILGI) as KusurId[];
 
+/** Eksik belge kusurları (ciddiyet 'iade'): bilgi başka yoldan edinilmediyse doğru damga İADE. */
+export const EKSIK_BELGE: readonly KusurId[] = ['karotYok', 'zeminEtuduYok'];
+
+const fayMetni = (): string =>
+  TUNING.fayKurali === 'bosalt'
+    ? `[Kural: fay hattına ${TUNING.fayMinM} m'den yakınsa → BOŞALT]`
+    : `[Kural: fay hattına ${TUNING.fayMinM} m'den yakınsa zemin etüdüne bak: sağlam ya da orta → GÜÇLENDİR, sıvılaşma → BOŞALT, etüt yok → İADE]`;
+
 /**
- * Kural kitabı (gün planı, GDD). Metinler yer tutucu; takım yazacak. Gün 4'te saha kuralları ayrı
- * satırlar: inceleme modunda tek alanlı kusur, alan + kendi kural satırıyla kanıtlanır.
+ * Kural kitabı (gün planı, GDD). Metinler yer tutucu; takım yazacak. Her satır sonunda vurulacak damgayı yazar
+ * (takım kararı 16 Ekim 23.53). Tek alanlı kusur, inceleme modunda alan + kendi kural satırıyla kanıtlanır.
  */
 export const KURALLAR: Kural[] = [
   {
     id: 'kat',
     ilkGun: 1,
     kusurlar: ['kacakKat'],
-    metin: `[Kural: ruhsattaki kat sayısı (zemin dahil) fotoğraftakiyle aynı olmalı. 1 fazla kat: GÜÇLENDİR, ${TUNING.kacakKatBosaltFark}+: BOŞALT]`,
+    metin: `[Kural: ruhsattaki kat sayısı (zemin dahil) fotoğraftakiyle aynı olmalı. +1 kat → GÜÇLENDİR, +${TUNING.kacakKatBosaltFark} ve üstü → BOŞALT]`,
   },
   {
     id: 'kolon',
     ilkGun: 2,
     kusurlar: ['kesikKolon', 'caprazCatlak'],
-    metin: '[Kural: zemin katta kolon kesilmemiş, gövdede çapraz çatlak olmamalı]',
+    metin: '[Kural: zemin katta kesik kolon ya da gövdede çapraz çatlak varsa → BOŞALT]',
   },
-  { id: 'beton', ilkGun: 3, kusurlar: ['dusukBeton'], metin: `[Kural: beton dayanımı en az ${TUNING.betonEsikMpa} MPa]` },
-  { id: 'dere', ilkGun: 4, kusurlar: ['dereyeYakin'], metin: `[Kural: dere yatağına en az ${TUNING.dereMinM} m]` },
-  { id: 'fay', ilkGun: 4, kusurlar: ['fayaYakin'], metin: `[Kural: fay hattına en az ${TUNING.fayMinM} m]` },
-  { id: 'zeminEtudu', ilkGun: 4, kusurlar: ['zeminEtuduYok'], metin: '[Kural: dosyada zemin etüdü olmalı]' },
-  { id: 'sivilasma', ilkGun: 4, kusurlar: ['sivilasma'], metin: '[Kural: zeminde sıvılaşma riski olmamalı]' },
-  { id: 'belge', ilkGun: 5, kusurlar: ['sahteBelge'], metin: '[Kural: belge tarihleri ve mühür tutarlı olmalı]' },
+  {
+    id: 'oncelik',
+    ilkGun: 2,
+    kusurlar: [],
+    metin: '[Kural: birden çok kusurda en ağır damga: BOŞALT, sonra İADE, sonra GÜÇLENDİR. Kusur yoksa → GÜVENLİ]',
+  },
+  { id: 'beton', ilkGun: 3, kusurlar: ['dusukBeton'], metin: `[Kural: beton dayanımı en az ${TUNING.betonEsikMpa} MPa; altındaysa → BOŞALT]` },
+  {
+    id: 'karot',
+    ilkGun: 3,
+    kusurlar: ['karotYok'],
+    metin: '[Kural: karot raporu yoksa sahibinden iste; getiremezse saha testi yap ya da → İADE]',
+  },
+  {
+    id: 'dere',
+    ilkGun: 4,
+    kusurlar: ['dereyeYakin'],
+    metin: `[Kural: dere yatağına ${TUNING.dereMinM} m'den yakınsa zemin etüdüne bak: sağlam ya da orta → GÜÇLENDİR, sıvılaşma → BOŞALT, etüt yok → İADE]`,
+  },
+  { id: 'fay', ilkGun: 4, kusurlar: ['fayaYakin'], metin: fayMetni() },
+  {
+    id: 'zeminEtudu',
+    ilkGun: 4,
+    kusurlar: ['zeminEtuduYok'],
+    metin: '[Kural: zemin etüdü yoksa sahibinden iste; getiremezse saha testi yap ya da → İADE]',
+  },
+  { id: 'sivilasma', ilkGun: 4, kusurlar: ['sivilasma'], metin: '[Kural: zeminde sıvılaşma riski varsa → BOŞALT]' },
+  { id: 'belge', ilkGun: 5, kusurlar: ['sahteBelge'], metin: '[Kural: mühür yılı yapım yılından sonraysa belge sahte → GÜÇLENDİR]' },
 ];
 
 /** Gün 1 kural notunun ilk satırı: oyunun hedefi (yer tutucu, takım yazacak). */
@@ -94,51 +129,130 @@ export function kacakKatKusuru(fark: number): Kusur {
   };
 }
 
-/** Kurallardan bağımsız: binadaki bütün gerçek kusurlar. */
-export function gercekKusurlar(b: Bina): Kusur[] {
+/** Dere ya da fay yakınlığının ciddiyeti: zemine bağlı (sıvılaşma BOŞALT, değilse GÜÇLENDİR; bkz. TUNING.fayKurali). */
+function yakinlikCiddiyeti(id: 'dereyeYakin' | 'fayaYakin', zemin: Zemin | null): Ciddiyet {
+  if (id === 'fayaYakin' && TUNING.fayKurali === 'bosalt') return 'bosalt';
+  return zemin === 'sivilasma' ? 'bosalt' : 'guclendir';
+}
+
+/**
+ * Binanın kusurları. belge: belgelerde görünenler (eksik belgenin arkasındaki kusur görünmez; dere/fay ciddiyeti
+ * zemin etüdündeki türe göre). gercek: binanın gerçek durumu; eksik belge kusurları da listede (ciddiyet 'iade').
+ */
+function kusurListesi(b: Bina, mod: 'belge' | 'gercek'): Kusur[] {
   const g = b.gercek;
+  const B = b.belgeler;
   const out: Kusur[] = [];
-  const fark = g.kat - b.belgeler.ruhsat.kat;
+  const fark = g.kat - B.ruhsat.kat;
   if (fark !== 0) out.push(kacakKatKusuru(fark));
-  const ids: KusurId[] = [];
-  if (g.kesikKolonlar.length > 0) ids.push('kesikKolon');
-  if (g.betonMpa < TUNING.betonEsikMpa) ids.push('dusukBeton');
-  if (g.dereMesafeM < TUNING.dereMinM) ids.push('dereyeYakin');
-  if (g.fayMesafeM < TUNING.fayMinM) ids.push('fayaYakin');
-  if (b.belgeler.zemin === null) ids.push('zeminEtuduYok');
-  if (g.zemin === 'sivilasma') ids.push('sivilasma');
-  if (g.catlak === 'capraz') ids.push('caprazCatlak');
-  if (g.ruhsatSahte) ids.push('sahteBelge');
-  return out.concat(ids.map(kusur));
+  const ekle = (id: KusurId, ciddiyet?: Ciddiyet): void => {
+    const k = kusur(id);
+    if (ciddiyet) k.ciddiyet = ciddiyet;
+    out.push(k);
+  };
+  const zemin = mod === 'gercek' ? g.zemin : (B.zemin?.tur ?? null);
+  const mpa = mod === 'gercek' ? g.betonMpa : B.karot?.mpa;
+  if (g.kesikKolonlar.length > 0) ekle('kesikKolon');
+  if (mpa !== undefined && mpa < TUNING.betonEsikMpa) ekle('dusukBeton');
+  if (B.karot === null) ekle('karotYok');
+  if (g.dereMesafeM < TUNING.dereMinM) ekle('dereyeYakin', yakinlikCiddiyeti('dereyeYakin', zemin));
+  if (g.fayMesafeM < TUNING.fayMinM) ekle('fayaYakin', yakinlikCiddiyeti('fayaYakin', zemin));
+  if (B.zemin === null) ekle('zeminEtuduYok');
+  if (zemin === 'sivilasma') ekle('sivilasma');
+  if (g.catlak === 'capraz') ekle('caprazCatlak');
+  if (g.ruhsatSahte) ekle('sahteBelge');
+  return out;
+}
+
+/** Kurallardan bağımsız: binadaki bütün gerçek kusurlar (eksik belgenin arkasında saklananlar dahil). */
+export function gercekKusurlar(b: Bina): Kusur[] {
+  return kusurListesi(b, 'gercek');
 }
 
 export function aktifKurallar(gun: number): Kural[] {
   return KURALLAR.filter((k) => k.ilkGun <= gun);
 }
 
-/** O güne kadar aktif kurallara göre görünen (yakalanabilir) kusurlar. */
-export function gorunenKusurlar(b: Bina, gun: number): Kusur[] {
-  const kapsam = new Set<KusurId>();
-  for (const k of aktifKurallar(gun)) for (const id of k.kusurlar) kapsam.add(id);
-  return gercekKusurlar(b).filter((k) => kapsam.has(k.id));
+function kapsam(gun: number): Set<KusurId> {
+  const out = new Set<KusurId>();
+  for (const k of aktifKurallar(gun)) for (const id of k.kusurlar) out.add(id);
+  return out;
 }
 
-/** Aktif kusurların en ağırına göre doğru damga. */
-export function dogruDamga(b: Bina, gun: number): Damga {
-  const kusurlar = gorunenKusurlar(b, gun);
+/** O güne kadar aktif kurallara göre belgelerde görünen (yakalanabilir) kusurlar; eksik belgeler dahil. */
+export function gorunenKusurlar(b: Bina, gun: number): Kusur[] {
+  const k = kapsam(gun);
+  return kusurListesi(b, 'belge').filter((x) => k.has(x.id));
+}
+
+/**
+ * Binanın o günün kurallarıyla fiziksel kusurları: eksik belge kusurları hariç, eksik belgenin arkasında
+ * saklananlar dahil (deprem sonucu bununla). Dosya eksiksizse görünen kusurlarla aynıdır.
+ */
+export function fizikselKusurlar(b: Bina, gun: number): Kusur[] {
+  const k = kapsam(gun);
+  return gercekKusurlar(b).filter((x) => k.has(x.id) && x.ciddiyet !== 'iade');
+}
+
+/** Dosyada (o günün kurallarıyla) eksik belge var mı. */
+export function eksikBelgeVar(b: Bina, gun: number): boolean {
+  return gorunenKusurlar(b, gun).some((k) => k.ciddiyet === 'iade');
+}
+
+/**
+ * Oyuncunun eksik belge yerine başka yoldan edindiği bilgi (G17 İSTE, G19 saha testi dolduracak). Alan varsa o
+ * bilgi edinilmiş sayılır; doğru damga binanın GERÇEK durumuna göre hesaplanır (sahte belgeye inanmak yanlıştır).
+ */
+export interface EdinilenBilgi {
+  karot?: number;
+  zemin?: Zemin;
+}
+
+/** Eksik belgeleri, bilgisi edinilmiş alanlar için gerçek durumla tamamlanmış bina kopyası. */
+export function bilgiyleTamamla(b: Bina, bilgi: EdinilenBilgi): Bina {
+  const B = b.belgeler;
+  return {
+    ...b,
+    belgeler: {
+      ...B,
+      karot: B.karot ?? (bilgi.karot !== undefined ? { mpa: b.gercek.betonMpa } : null),
+      zemin: B.zemin ?? (bilgi.zemin !== undefined ? { tur: b.gercek.zemin } : null),
+    },
+  };
+}
+
+/**
+ * Görünen kusurlara göre asıl doğru damga. Öncelik: BOŞALT > İADE (eksik belge) > GÜÇLENDİR > GÜVENLİ. BOŞALT
+ * gerektiren kusur zaten görünüyorsa eksik belge kararı değiştirmez. bilgi verilirse eksik belgeler tamamlanır.
+ */
+export function dogruDamga(b: Bina, gun: number, bilgi?: EdinilenBilgi): Damga {
+  const kusurlar = gorunenKusurlar(bilgi ? bilgiyleTamamla(b, bilgi) : b, gun);
   if (kusurlar.some((k) => k.ciddiyet === 'bosalt')) return 'bosalt';
+  if (kusurlar.some((k) => k.ciddiyet === 'iade')) return 'iade';
   if (kusurlar.length > 0) return 'guclendir';
   return 'guvenli';
 }
 
 /**
+ * Kabul edilen damgalar (çoklu doğru cevap); ilk eleman asıl doğru damga. Eksik belgeli dosyada İADE; oyuncu
+ * eksik bilgiyi başka yoldan edindiyse (bilgi) gerçek duruma göre damga da doğru. Dosya eksiksizse İADE yanlış.
+ */
+export function dogruDamgalar(b: Bina, gun: number, bilgi?: EdinilenBilgi): Damga[] {
+  const ana = dogruDamga(b, gun);
+  if (ana !== 'iade' || !bilgi) return [ana];
+  const tam = dogruDamga(b, gun, bilgi);
+  return tam === ana ? [ana] : [ana, tam];
+}
+
+/**
  * Kurallardan bağımsız deprem riski (0-1). gizli: belgelerde kusur olarak görünmeyen zayıflıklar (düz demir,
  * deniz kumu, eski yönetmelik) da sayılsın mı (öncü sarsıntı saymaz: yalnızca kusurların bedeli görünsün).
+ * Eksik belge fiziksel bir kusur değildir; arkasında saklanan gerçek kusur sayılır.
  */
 export function riskHesapla(b: Bina, gizli = true): number {
   const R = TUNING.risk;
   let r = R.taban;
-  for (const k of gercekKusurlar(b)) r += k.ciddiyet === 'bosalt' ? R.bosalt : R.guclendir;
+  for (const k of gercekKusurlar(b)) if (k.ciddiyet !== 'iade') r += k.ciddiyet === 'bosalt' ? R.bosalt : R.guclendir;
   if (!gizli) return Math.min(1, r);
   if (b.gercek.demir === 'duz') r += R.duzDemir;
   if (b.gercek.denizKumu) r += R.denizKumu;
@@ -154,7 +268,10 @@ export interface DepremSonucu {
   risk: number;
 }
 
-/** Oyuncunun damgasına göre deprem sonucu. siddet: risk çarpanı (varsayılan 1). gizli: bkz. riskHesapla. */
+/**
+ * Oyuncunun damgasına göre deprem sonucu. siddet: risk çarpanı (varsayılan 1). gizli: bkz. riskHesapla.
+ * İADE edilen bina denetlenmemiştir: GÜVENLİ damgalıymış gibi (güçlendirme yok, içinde insanlar var).
+ */
 export function depremSonucu(b: Bina, damga: Damga, siddet = 1, gizli = true): DepremSonucu {
   const R = TUNING.risk;
   let risk = riskHesapla(b, gizli) * siddet;
@@ -177,15 +294,18 @@ export interface BuyukDepremSonucu {
   kademe: number;
 }
 
-/** Belgelerde görünmeyen zayıflık: düz demir, deniz kumu ya da o günün kurallarıyla görünmeyen gerçek kusur. */
+/** Belgelerde görünmeyen zayıflık: düz demir, deniz kumu ya da o günün kurallarıyla kapsanmayan gerçek kusur. */
 export function gizliZayiflik(b: Bina, gun: number): boolean {
-  return b.gercek.demir === 'duz' || b.gercek.denizKumu || gercekKusurlar(b).length > gorunenKusurlar(b, gun).length;
+  const fiziksel = gercekKusurlar(b).filter((k) => k.ciddiyet !== 'iade').length;
+  return b.gercek.demir === 'duz' || b.gercek.denizKumu || fiziksel > fizikselKusurlar(b, gun).length;
 }
 
 /**
  * Büyük deprem sonucu (kademe kuralları TUNING.buyukDeprem'de). Adalet: belgelerdeki kusurlara göre doğru
- * damgalanan bina haksız cezalandırılmaz. gun: binanın damgalandığı gün (o günün kuralları). oncuHasar: öncü
- * sarsıntıdan kalan hasar (bir kademe ekler; kalan hasar geri gitmez).
+ * damgalanan bina haksız cezalandırılmaz. Taban kademe fiziksel kusurlardan (dosya eksiksizse görünen kusurlarla
+ * aynı). İADE edilen bina denetlenmemiştir: gerçek kusurlarıyla GÜVENLİ damgalıymış gibi sonuç alır, içi dolu.
+ * gun: binanın damgalandığı gün (o günün kuralları). oncuHasar: öncü sarsıntıdan kalan hasar (bir kademe ekler;
+ * kalan hasar geri gitmez).
  */
 export function buyukDepremSonucu(
   b: Bina,
@@ -194,7 +314,7 @@ export function buyukDepremSonucu(
   secenek: { gizli?: boolean; oncuHasar?: HasarDurumu } = {},
 ): BuyukDepremSonucu {
   const B = TUNING.buyukDeprem;
-  const kusurlar = gorunenKusurlar(b, gun);
+  const kusurlar = fizikselKusurlar(b, gun);
   const onceki = secenek.oncuHasar ? KADEME.indexOf(secenek.oncuHasar) : 0;
   let kademe = 0;
   if (kusurlar.length > 0) {

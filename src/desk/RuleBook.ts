@@ -200,14 +200,15 @@ export class RuleBook {
     );
 
     // Kural satırları sayfalara dağıtılır: her biri inceleme modunda seçilebilir bir öğe.
-    const genislik = SAYFA.w - 48 - 32;
+    // Kural metni numaranın sağında (iki haneli numara da sığsın: "10.").
+    const genislik = SAYFA.w - 56 - 32;
     let sayfa = s.add.container(0, 0);
     this.sayfalar.push(sayfa);
     let y = ust + ICERIK_UST;
     aktifKurallar(this.gun).forEach((k, i) => {
       const yeni = k.ilkGun === this.gun;
       const yazi = s.add
-        .text(sol + 56, y + 4, k.metin, {
+        .text(sol + 64, y + 4, k.metin, {
           fontFamily: FONT,
           fontSize: '30px',
           color: PAL.murekkep,

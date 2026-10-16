@@ -55,6 +55,8 @@ export const PAL = {
   damgaGuvenli: '#3f7a4a',
   damgaGuclendir: '#b08a2c',
   damgaBosalt: '#a8352d',
+  /** İADE: gri-mavi (dosya geri çevrildi, karar yok). */
+  damgaIade: '#55677d',
   fay: '#c0504a',
 
   // Dışarısı (akşamüstü)

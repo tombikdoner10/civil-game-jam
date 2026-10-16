@@ -26,7 +26,7 @@ const para = (n: number): string => `${n < 0 ? '−' : ''}${Math.abs(n)} TL`;
 
 /**
  * Oyun sonu (G5): masada "Denetçi dosyası". Beş günün doğru/yanlış toplamı, bulunan kusurlar, birikmiş para,
- * büyük depremde sokağın özeti (ayakta / hasarlı / çöken / boşaltılmış) ve kısa bir değerlendirme satırı (yer
+ * büyük depremde sokağın özeti (ayakta / hasarlı / çöken / boşaltılmış / iade) ve kısa bir değerlendirme satırı (yer
  * tutucu). "Yeniden oyna" (Enter) gün 1'den yeni sokakla başlar; "Ana menü" (Esc).
  */
 export class ResultScene extends Phaser.Scene {
@@ -127,8 +127,10 @@ export class ResultScene extends Phaser.Scene {
       ['HASARLI', oz.hasarli, PAL.damgaGuclendir],
       ['ÇÖKEN', oz.coken, PAL.damgaBosalt, oz.coken > 0 ? `${oz.cokenBos} boşaltılmıştı` : undefined],
       ['BOŞALTILMIŞ', oz.bos, PAL.murekkepSoluk],
+      // İADE: denetlenmeden kalan binalar (içleri doluydu); kaçının çöktüğü alt satırda.
+      ['İADE', oz.iade, PAL.damgaIade, oz.iade > 0 ? (oz.iadeCoken > 0 ? `${oz.iadeCoken} çöktü` : 'denetlenmedi') : undefined],
     ];
-    const kw = 288;
+    const kw = 232;
     const kara = (KAGIT.w - 80 - kutular.length * kw) / (kutular.length - 1);
     kutular.forEach(([ad, n, renk, alt], i) => {
       const x = L + 40 + i * (kw + kara);

@@ -151,7 +151,14 @@ export class DayEndScene extends Phaser.Scene {
     const sol = L + 40;
     yaz(sol, hy + 24, `Doğru: ${hesap.dogru}`, 36, PAL.damgaGuvenli);
     yaz(sol, hy + 72, `Yanlış: ${hesap.yanlis}`, 36, PAL.damgaBosalt);
-    if (hesap.islenmeyen > 0) yaz(sol, hy + 120, `İşlenmedi: ${hesap.islenmeyen}`, 36, PAL.murekkepSoluk);
+    let sy = hy + 120;
+    if (hesap.islenmeyen > 0) {
+      yaz(sol, sy, `İşlenmedi: ${hesap.islenmeyen}`, 36, PAL.murekkepSoluk);
+      sy += 48;
+    }
+    // İADE edilen dosyalar: denetlenmeden kaldı (binalar sokakta, içleri dolu).
+    const iade = v.kararlar.filter((k) => k.damga === 'iade').length;
+    if (iade > 0) yaz(sol, sy, `İade: ${iade} (denetlenmedi)`, 36, PAL.damgaIade);
     const ad = L + 640;
     const deger = L + KAGIT.w - 40;
     const satirlar: [string, string, string][] = [

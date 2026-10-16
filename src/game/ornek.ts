@@ -4,11 +4,12 @@ import { GunOturumu, type GunKaydi } from './session';
 import { TUNING } from './tuning';
 
 /** Doğru damga yerine verilen yanlış damga (dev örnekleri: aşırı temkin ya da eksik önlem). */
-const YANLIS: Record<Damga, Damga> = { guvenli: 'bosalt', guclendir: 'bosalt', bosalt: 'guclendir' };
+const YANLIS: Record<Damga, Damga> = { guvenli: 'bosalt', guclendir: 'bosalt', bosalt: 'guclendir', iade: 'guvenli' };
 
 /**
  * Yalnızca dev: gün 1'den (gun - 1)'e kadar örnek kayıtlar (sokak ve deprem testleri, sunum provası).
- * Kararlar çoğunlukla doğru; her dördüncü dosya yanlışlıkla GÜVENLİ, her altıncı başka bir yanlış damga.
+ * Kararlar çoğunlukla doğru (eksik belgeli dosyalar İADE); her dördüncü dosya yanlışlıkla GÜVENLİ, her altıncı başka
+ * bir yanlış damga, her yedinci (gün 3'ten) İADE (dosya eksiksizse yanlış).
  * Doğru kararlarda kusurlar bulunmuş sayılır. Öncü sarsıntılı günlerde sarsıntı sonucu oyundaki kuralla.
  */
 export function ornekKayitlar(tohum: number, gun: number): GunKaydi[] {
@@ -18,7 +19,7 @@ export function ornekKayitlar(tohum: number, gun: number): GunKaydi[] {
     const o = new GunOturumu(g, tohum);
     for (let i = 0; o.mevcut && !o.bitti; i++) {
       const dogru = dogruDamga(o.mevcut, g);
-      o.damgala(i % 4 === 1 ? 'guvenli' : i % 6 === 4 ? YANLIS[dogru] : dogru);
+      o.damgala(i % 4 === 1 ? 'guvenli' : i % 6 === 4 ? YANLIS[dogru] : g >= 3 && i % 7 === 5 ? 'iade' : dogru);
     }
     const kararlar = o.kararlar.map((k) => ({ ...k, bulunan: k.dogru ? k.kusurlar.slice() : [] }));
     const kayit: GunKaydi = { gun: g, kararlar };

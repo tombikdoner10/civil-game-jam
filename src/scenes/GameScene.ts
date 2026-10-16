@@ -326,7 +326,7 @@ export class GameScene extends Phaser.Scene {
     const ruhsat = this.kartlar.find((k) => k.tur === 'ruhsat');
     this.tepsi.bas(damga);
     this.time.delayedCall(70, () => {
-      sfx.play('damga');
+      sfx.play(damga === 'iade' ? 'iade' : 'damga');
       this.pencere.damgaVur(damga);
       punch(this, 0.01, 110);
       if (ruhsat?.active) {
@@ -341,7 +341,8 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(450, () => {
       if (this.fis) fisKaldir(this, this.fis);
       // Yanlış kararda doğrusu ve dosyadaki kusurlar (atlanan ya da olmadığı halde görülen).
-      const kusurlar = sonuc.etiketler.join('\n') || 'Kusur yok';
+      // Eksiksiz dosyayı İADE etmek: gerekçe "dosya eksiksiz" (yer tutucu metin).
+      const kusurlar = sonuc.etiketler.join('\n') || (damga === 'iade' ? 'Kusur yok, dosya eksiksiz' : 'Kusur yok');
       const metin = sonuc.dogru ? 'Doğru karar' : `Yanlış karar\nDoğrusu: ${DAMGA_ADI[sonuc.dogruDamga]}\n${kusurlar}`;
       const fis = fisKur(this, sonuc.dogru, metin);
       // Masanın boş yerine; yer yoksa gişe camının altına (belge değerlerini örtmesin).

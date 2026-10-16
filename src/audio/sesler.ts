@@ -26,6 +26,16 @@ export function seslerKur(): void {
     'thud',
   );
 
+  // İADE damgası: daha hafif ve tiz bir tokmak + dosya kapanır (geri çevrildi). Yeni dosya yok.
+  t(
+    'iade',
+    [
+      { dosya: ['impactPunch_heavy_000', 'impactPunch_heavy_001', 'impactPunch_heavy_002'], volume: 0.8, rate: 1.05, bas: 0.008 },
+      { dosya: ['bookClose'], volume: 0.7, rate: 0.9, gecikme: 0.08, bas: 0.06 },
+    ],
+    'thud',
+  );
+
   // Kâğıt: gişeden kayma, elde tutma, masaya bırakma, toplanıp geri verilme.
   t('kagitKay', { dosya: ['bookFlip2', 'bookFlip3'], volume: 0.9, rate: 1.1, oynama: 0.08, bas: 0.02 }, 'whoosh');
   t('kagitAl', { dosya: ['bookFlip3'], volume: 0.45, rate: 1.25, oynama: 0.08, bas: 0.025 }, 'click');

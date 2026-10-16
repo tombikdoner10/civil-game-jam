@@ -8,13 +8,16 @@ import { HIKAYELER, hikayeBinasiKur } from './stories';
 export type Zemin = 'saglam' | 'orta' | 'sivilasma';
 export type Demir = 'nervurlu' | 'duz';
 export type Catlak = 'yok' | 'kilcal' | 'capraz';
-export type Damga = 'guvenli' | 'guclendir' | 'bosalt';
-export type Ciddiyet = 'guclendir' | 'bosalt';
+/** Damgalar. İADE: dosya eksik ve tamamlanamadı; bina denetlenmeden geri çevrilir (içinde insanlar kalır). */
+export type Damga = 'guvenli' | 'guclendir' | 'bosalt' | 'iade';
+/** Kusurun gerektirdiği damga. 'iade': eksik belge (karot ya da zemin etüdü yok). */
+export type Ciddiyet = 'guclendir' | 'bosalt' | 'iade';
 
 export type KusurId =
   | 'kacakKat'
   | 'kesikKolon'
   | 'dusukBeton'
+  | 'karotYok'
   | 'dereyeYakin'
   | 'fayaYakin'
   | 'zeminEtuduYok'
@@ -150,7 +153,11 @@ export interface BinaEk {
   kendiBinan?: boolean;
 }
 
-const CATISAN: [KusurId, KusurId][] = [['sivilasma', 'zeminEtuduYok']];
+/** Aynı binada birlikte olamayan kusurlar (eksik belge, arkasında saklanan kusurla birlikte seçilmez). */
+const CATISAN: [KusurId, KusurId][] = [
+  ['sivilasma', 'zeminEtuduYok'],
+  ['dusukBeton', 'karotYok'],
+];
 
 function catisir(a: KusurId, secili: KusurId[]): boolean {
   return CATISAN.some(([x, y]) => (a === x && secili.includes(y)) || (a === y && secili.includes(x)));
@@ -196,7 +203,9 @@ export function kusurluBinaKur(rng: Rng, kusurlar: readonly KusurId[], ek: BinaE
     kesik.push(...idx.sort((a, b) => a - b));
   }
 
-  const betonMpa = has('dusukBeton')
+  // Eksik belgenin arkasında gerçek kusur saklı olabilir (İADE edilen bina depremde gerçek durumuyla sınanır).
+  const sakliBeton = has('karotYok') && rng.chance(T.olasilik.eksikBelgeSakliKusur);
+  const betonMpa = has('dusukBeton') || sakliBeton
     ? rng.int(T.betonDusuk.min, T.betonDusuk.max)
     : rng.int(T.betonIyi.min, T.betonIyi.max);
 
@@ -207,7 +216,8 @@ export function kusurluBinaKur(rng: Rng, kusurlar: readonly KusurId[], ek: BinaE
     ? rng.int(T.fayKotu.min, T.fayKotu.max)
     : rng.int(T.fayIyi.min, T.fayIyi.max);
 
-  const zemin: Zemin = has('sivilasma')
+  const sakliZemin = has('zeminEtuduYok') && rng.chance(T.olasilik.eksikBelgeSakliKusur);
+  const zemin: Zemin = has('sivilasma') || sakliZemin
     ? 'sivilasma'
     : rng.chance(T.olasilik.zeminSaglam)
       ? 'saglam'
@@ -243,13 +253,12 @@ export function kusurluBinaKur(rng: Rng, kusurlar: readonly KusurId[], ek: BinaE
     ? yil + rng.int(T.sahteMuhurFark.min, T.sahteMuhurFark.max)
     : yil - rng.int(T.gercekMuhurFark.min, T.gercekMuhurFark.max);
 
-  const karotVar = has('dusukBeton') || !rng.chance(T.olasilik.karotYok);
 
   const belgeler: Belgeler = {
     ruhsat: { kat: ruhsatKat, yil, muhurYili },
     proje: { zeminKolonSayisi: kolonSayisi },
     foto: fotografUret(gercek),
-    karot: karotVar ? { mpa: betonMpa } : null,
+    karot: has('karotYok') ? null : { mpa: betonMpa },
     zemin: has('zeminEtuduYok') ? null : { tur: zemin },
     vaziyet: { dereM: dereMesafeM, fayM: fayMesafeM },
   };
@@ -353,8 +362,17 @@ function gunPlani(rng: Rng, gun: number, adet: number): Plan[] {
 function plandanBina(rng: Rng, gun: number, plan: Plan, ek: BinaEk): Bina {
   if (plan === 'temiz') return kusurluBinaKur(rng, [], ek);
   const secili: KusurId[] = [plan];
+  const aktif = aktifKusurlar(gun);
+  // Dere ve fay kuralı zemin etüdüne bağlı: yakın binalarda zemin üç durumdan biri (sağlam/orta, sıvılaşma, etüt yok).
+  if ((plan === 'dereyeYakin' || plan === 'fayaYakin') && aktif.includes('sivilasma') && aktif.includes('zeminEtuduYok')) {
+    const Z = TUNING.olasilik.yakinZemin;
+    const r = rng.next();
+    if (r < Z.sivilasma) secili.push('sivilasma');
+    else if (r < Z.sivilasma + Z.etutYok) secili.push('zeminEtuduYok');
+    return kusurluBinaKur(rng, secili, ek);
+  }
   if (rng.chance(TUNING.olasilik.ikinciKusur)) {
-    const aday = rng.shuffle(aktifKusurlar(gun)).find((k) => k !== plan && !catisir(k, secili));
+    const aday = rng.shuffle(aktif).find((k) => k !== plan && !catisir(k, secili));
     if (aday) secili.push(aday);
   }
   return kusurluBinaKur(rng, secili, ek);

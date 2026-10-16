@@ -1,14 +1,41 @@
-import type { Bina, Damga, Kusur, KusurId } from './building';
+import type { Bina, Damga, Kusur, KusurId, Zemin } from './building';
 import { gunDosyalari } from './building';
 import { gunAyar, type GunAyar } from './days';
-import { buyukDepremSonucu, dogruDamga, gorunenKusurlar, seciminKusuru, type HasarDurumu, type SecimRef } from './rules';
+import {
+  buyukDepremSonucu,
+  dogruDamgalar,
+  fizikselKusurlar,
+  gorunenKusurlar,
+  seciminKusuru,
+  type EdinilenBilgi,
+  type HasarDurumu,
+  type SecimRef,
+} from './rules';
 import { TUNING } from './tuning';
+
+export type { EdinilenBilgi } from './rules';
+
+/** Bilginin kaynağı: dosyadaki belge, gişedeki kişiden isteme (G17) ya da saha testi (G19). */
+export type BilgiKaynak = 'belge' | 'iste' | 'saha';
+/** Eksik olabilen belgelerin bilgisi. */
+export type BilgiAlani = 'karot' | 'zemin';
+
+/** Dosya başına edinilen bilgi ve kaynağı (G17 İSTE ve G19 saha testi `bilgiEdin` ile doldurur). */
+export interface DosyaBilgisi {
+  bilgi: EdinilenBilgi;
+  kaynak: Partial<Record<BilgiAlani, BilgiKaynak>>;
+}
 
 export interface Karar {
   dosyaId: string;
   damga: Damga;
+  /** Gösterilecek doğru damga: karar doğruysa verilen damga, değilse asıl doğru damga. */
   dogruDamga: Damga;
   dogru: boolean;
+  /** Kabul edilen damgalar (eksik belgeli dosyada İADE ve bilgi edinildiyse gerçek damga). */
+  kabul?: Damga[];
+  /** Eksik bilgi başka yoldan edinildiyse kaynakları. */
+  kaynak?: DosyaBilgisi['kaynak'];
   /** O günün kurallarına göre dosyadaki kusurlar (geri bildirim fişi için). */
   kusurlar: KusurId[];
   /** Oyuncunun inceleme modunda bu dosyada bulduğu kusurlar (gün sonu ekranı için). */
@@ -74,7 +101,7 @@ export interface DepremBinaSonucu {
   damga: Damga;
   /** Oyuncunun kararı o günün kurallarına göre doğru muydu. */
   dogru: boolean;
-  /** Damgalandığı günün kurallarıyla görünen kusuru var mıydı. */
+  /** Damgalandığı günün kurallarıyla fiziksel kusuru var mıydı (eksik belgenin arkasında saklananlar dahil). */
   kusurlu: boolean;
   durum: HasarDurumu;
   coktu: boolean;
@@ -94,7 +121,7 @@ export function buyukDeprem(tohum: number, kayitlar: readonly GunKaydi[]): Depre
       gun: s.gun,
       damga: s.damga,
       dogru: dogru.get(s.bina.id) ?? false,
-      kusurlu: gorunenKusurlar(s.bina, s.gun).length > 0,
+      kusurlu: fizikselKusurlar(s.bina, s.gun).length > 0,
       durum: r.durum,
       coktu: r.coker,
       bos: r.bos,
@@ -116,11 +143,21 @@ export interface DepremOzeti {
   doluCoken: number;
   /** İçinde insan varken ağır hasar alan (çökmeyen). */
   doluAgir: number;
+  /** İADE edilmiş (denetlenmeden kalmış) binalar. */
+  iade: number;
+  /** İADE edilmiş ve çöken. */
+  iadeCoken: number;
+  /** İADE edilmiş ve ağır hasar alan (çökmeyen). */
+  iadeAgir: number;
 }
 
 export function depremOzeti(s: readonly DepremBinaSonucu[]): DepremOzeti {
   const coken = s.filter((b) => b.coktu);
+  const iade = s.filter((b) => b.damga === 'iade');
   return {
+    iade: iade.length,
+    iadeCoken: iade.filter((b) => b.coktu).length,
+    iadeAgir: iade.filter((b) => !b.coktu && b.durum === 'agirHasar').length,
     toplam: s.length,
     ayakta: s.filter((b) => !b.coktu && b.durum === 'ayakta').length,
     hasarli: s.filter((b) => !b.coktu && b.durum !== 'ayakta').length,
@@ -172,7 +209,10 @@ export function gunDosyaSayisi(gun: number): number {
 /** Damga sonucu (uyarı fişi için). */
 export interface DamgaSonucu {
   dogru: boolean;
+  /** Asıl doğru damga (fişte "Doğrusu"). */
   dogruDamga: Damga;
+  /** Kabul edilen bütün damgalar. */
+  kabul: Damga[];
   kusurlar: KusurId[];
   /** Kusurların fişte görünen etiketleri (kaçak katta fazla kat sayısıyla). */
   etiketler: string[];
@@ -207,6 +247,8 @@ export class GunOturumu {
   private gecenSn = 0;
   /** Mevcut dosyada bulunan kusurlar (bulunma sırasıyla). Dosya damgalanınca sıfırlanır. */
   private bulunan: KusurId[] = [];
+  /** Mevcut dosyanın bilgisi (belgelerden ve başka yollardan edinilen). Dosya damgalanınca yenilenir. */
+  private bilgi: DosyaBilgisi = { bilgi: {}, kaynak: {} };
 
   constructor(
     readonly gun: number,
@@ -214,6 +256,48 @@ export class GunOturumu {
   ) {
     this.ayar = gunAyar(gun);
     this.dosyalar = gunDosyalari(tohum, gun, this.ayar.dosyaSayisi);
+    this.bilgiSifirla();
+  }
+
+  /** Mevcut dosyada belgeden gelen bilgi ve (varsa) başka yoldan edinilen bilgi. */
+  get edinilenBilgi(): Readonly<DosyaBilgisi> {
+    return this.bilgi;
+  }
+
+  /**
+   * Eksik belgenin bilgisini edin (G17 İSTE: kişi gerçek belgeyi getirdi; G19 saha testi). Alan edinilince
+   * eksik belgeli dosyada gerçek duruma göre damga da doğru sayılır (bkz. rules.dogruDamgalar).
+   */
+  bilgiEdin(alan: 'karot', deger: number, kaynak: BilgiKaynak): void;
+  bilgiEdin(alan: 'zemin', deger: Zemin, kaynak: BilgiKaynak): void;
+  bilgiEdin(alan: BilgiAlani, deger: number | Zemin, kaynak: BilgiKaynak): void {
+    if (!this.mevcut || this.bitti) return;
+    if (alan === 'karot') this.bilgi.bilgi.karot = deger as number;
+    else this.bilgi.bilgi.zemin = deger as Zemin;
+    this.bilgi.kaynak[alan] = kaynak;
+  }
+
+  private bilgiSifirla(): void {
+    const B = this.mevcut?.belgeler;
+    const d: DosyaBilgisi = { bilgi: {}, kaynak: {} };
+    if (B?.karot) {
+      d.bilgi.karot = B.karot.mpa;
+      d.kaynak.karot = 'belge';
+    }
+    if (B?.zemin) {
+      d.bilgi.zemin = B.zemin.tur;
+      d.kaynak.zemin = 'belge';
+    }
+    this.bilgi = d;
+  }
+
+  /** Belge dışından edinilen bilgi (yalnızca İSTE / saha; belgeden gelenler eksik belgeyi tamamlamaz). */
+  private disBilgi(): EdinilenBilgi | undefined {
+    const { bilgi, kaynak } = this.bilgi;
+    const out: EdinilenBilgi = {};
+    if (kaynak.karot && kaynak.karot !== 'belge') out.karot = bilgi.karot;
+    if (kaynak.zemin && kaynak.zemin !== 'belge') out.zemin = bilgi.zemin;
+    return out.karot !== undefined || out.zemin !== undefined ? out : undefined;
   }
 
   get mevcut(): Bina | undefined {
@@ -276,13 +360,26 @@ export class GunOturumu {
   damgala(damga: Damga): DamgaSonucu | null {
     const b = this.mevcut;
     if (!b || this.bitti) return null;
-    const dogru = dogruDamga(b, this.gun);
+    const dis = this.disBilgi();
+    const kabul = dogruDamgalar(b, this.gun, dis);
     const gorunen = gorunenKusurlar(b, this.gun);
     const kusurlar = gorunen.map((k) => k.id);
-    const sonuc: DamgaSonucu = { dogru: dogru === damga, dogruDamga: dogru, kusurlar, etiketler: gorunen.map((k) => k.etiket) };
-    this.kararlar.push({ dosyaId: b.id, damga, dogruDamga: dogru, dogru: sonuc.dogru, kusurlar, bulunan: this.bulunan.slice() });
+    const dogru = kabul.includes(damga);
+    const sonuc: DamgaSonucu = { dogru, dogruDamga: kabul[0], kabul, kusurlar, etiketler: gorunen.map((k) => k.etiket) };
+    const karar: Karar = {
+      dosyaId: b.id,
+      damga,
+      dogruDamga: dogru ? damga : kabul[0],
+      dogru,
+      kabul,
+      kusurlar,
+      bulunan: this.bulunan.slice(),
+    };
+    if (dis) karar.kaynak = { ...this.bilgi.kaynak };
+    this.kararlar.push(karar);
     this.bulunan = [];
     this.idx++;
+    this.bilgiSifirla();
     return sonuc;
   }
 }
