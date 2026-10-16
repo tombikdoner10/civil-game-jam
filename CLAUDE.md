@@ -21,7 +21,7 @@ Ana oturum liderdir: **Opus 5.5, efor high** (`.claude/settings.json` varsayıla
 
 | Ajan | Model / efor | Ne zaman |
 |---|---|---|
-| `gelistirici` | opus / medium (takım kararı, 16 Ekim) | Her teknik görev için tek çağrı; bir anda tek geliştirici. İnatçı hata (aynı görev iki kez başarısız): aynı görevi `effort: "high"` ile yeniden çağır. |
+| `gelistirici` | opus / high (takım kararı, 16 Ekim) | Her teknik görev için tek çağrı; bir anda tek geliştirici. İnatçı hata (aynı görev iki kez başarısız): görevi küçük parçalara böl ve yeniden ver. |
 | `test-oyuncusu` | sonnet / low | Her geliştirici görevinden sonra; görevle ilgili senaryo ver. |
 | `elestirmen` | opus / high | Yaklaşık 3 saatte bir (`durum.mjs` söyler), ara testten ve dondurmadan önce. |
 
@@ -47,7 +47,7 @@ Sınırlar: kapsam dışına çıkma; yaratıcı içerik yerine yer tutucu; haz�
 Her `/jam` adımının sonunda kullanımı kontrol et (masaüstünde `get_usage` aracı; ToolSearch ile yükle). Oturum sınırı %80'i geçerse sırayla indir ve her adımı `JOURNAL.md`'deki "Kullanım düzeyi" satırına yaz:
 
 1. `elestirmen`'i `model: "sonnet"` ile çağır ve aralığını 6 saate çıkar.
-2. `gelistirici` için `effort: "high"` tekrarlarını bırak (medium kalır); gerekirse `model: "sonnet"` ile çağır (kullanıcıya söyle); `test-oyuncusu` zaten low.
+2. `gelistirici`yi `effort: "medium"` ile çağır; gerekirse `model: "sonnet"` ile (ikisinde de önce kullanıcıya söyle, takım Opus/high seçti); `test-oyuncusu` zaten low.
 3. Döngü aralıklarını uzat, görevleri birleştir.
 4. **En son:** liderin eforu high'dan medium'a iner. Kullanıcıya söyle ve onayını al (uygulamadaki efor seçicisi ya da `/effort medium`).
 
