@@ -39,7 +39,7 @@ const IGNORE = [
   /^docs\/(ai-kayit\.jsonl|ai-elle\.json|AI_BEYAN\.md)$/,
   /^src\/data\/ai-beyan\.json$/,
   /^(GDD|TASKS|JOURNAL|CLAUDE)\.md$/,
-  /^docs\/(KURALLAR|TESLIM|TESLIM_FORMU|BULUT)\.md$/,
+  /^docs\/(KURALLAR|TESLIM|TESLIM_FORMU|BULUT|ACIL)\.md$/,
   /^\.claude\//,
   /^\.jam\//,
   /^(node_modules|dist|dist-single|teslim)\//,

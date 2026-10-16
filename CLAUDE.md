@@ -79,6 +79,14 @@ Bağlam sıkıştırılsa da her şey bu dosyalardadır; önemli kararı önce d
 - Kancanın göremediği kullanımları (Bash betikleri, konsept önerileri) elle ekle: `node scripts/beyan.mjs ekle <görsel|ses|kod|metin|diğer> "<amaç>" "<yer>"`
 - Hazır kaynak beyanı ayrı: `src/data/credits.ts` (`ASSETS`) ve README tablosu.
 
+### Güvenlik ve yedek
+
+- **Yedek:** `npm run yedek` bütün git geçmişini ve commit edilmemiş değişiklikleri (yeni dosyalar dahil) repo dışındaki `../yedekler/` klasörüne tek dosya olarak yazar; son 30 yedek tutulur. `Stop` kancası her tur sonunda, son yedek 30 dakikadan eskiyse bunu kendiliğinden yapar. GitHub ikinci, bilgisayar dışı yedektir.
+- **Tehlikeli komutlar** (zorla push, `reset --hard`, `git clean`, `branch -D`, toplu geri alma ya da silme, geçmişi yeniden yazma) kanca tarafından engellenir. Gerekirse: önce `npm run yedek`, kullanıcıya açıkla ve onay al, sonra tek kullanımlık `.jam/tehlikeli-izin` dosyasını oluştur.
+- **Son sağlam sürüm:** Test edilip canlıda doğrulanan her push'tan sonra `son-saglam` etiketi taşınır.
+- **Geri alma:** Canlı oyun bozulduysa kullanıcıya söyle ve onay al, sonra geçmişi silmeden geri al: `git revert --no-edit son-saglam..HEAD`, test, push. Sorunu yeni görev olarak yaz.
+- **Acil durum planı** (bilgisayar arızası, internet kesintisi, kullanım sınırı): `docs/ACIL.md`.
+
 ### Bulut oturumları
 
 Repo public: https://github.com/tombikdoner10/civil-game-jam. Bulut oturumları bu `CLAUDE.md`'yi, ajanları, komutları ve kancaları repodan alır. Kurallar ve rutin promptu: `docs/BULUT.md`. Özetle: yalnızca `[bulut]` etiketli teknik görevler, `bulut/<tarih>` dalında çalışılır, PR açılır, lider birleştirir; yaratıcı iş yok.

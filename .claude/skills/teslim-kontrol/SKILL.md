@@ -23,4 +23,8 @@ Son teslim kontrolü. Son teslim 18 Ekim 18.00; teslimi kullanıcı (temsilci) y
    - Forma yapıştıracağı metinler
    - Teslimden sonra makbuzu (numara, sürüm, kayıt zamanı, dosya adları) kontrol etmesi
    - 18.00'den önce yüklemeyi başlatması
-5. `JOURNAL.md`: Kontrol 3 → TAMAM (saat), teslim edilen commit ve ZIP adı. Bundan sonra push yok.
+5. Kullanıcı makbuzu aldıktan sonra teslim yedeği:
+   - `npm run yedek`
+   - ZIP'i GitHub sürümü olarak sakla: `gh release create teslim-<commit> teslim/<zip> --title "Teslim <saat>" --notes "CIVIL GAME JAM teslimi, commit <hash>"`
+   - ZIP'i ve kullanıcının video dosyasını repo dışındaki `../teslim-yedek/` klasörüne kopyala.
+6. `JOURNAL.md`: Kontrol 3 → TAMAM (saat), teslim edilen commit ve ZIP adı. Bundan sonra push yok.

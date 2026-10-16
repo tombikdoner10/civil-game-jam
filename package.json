@@ -16,6 +16,7 @@
     "smoke": "node scripts/smoke.mjs",
     "beyan": "node scripts/beyan.mjs",
     "durum": "node scripts/durum.mjs",
+    "yedek": "node scripts/yedek.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

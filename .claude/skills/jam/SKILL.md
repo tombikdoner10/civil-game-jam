@@ -16,7 +16,7 @@ Jam döngüsünün bir adımını yürüt. Lider sensin; kurallar `CLAUDE.md`'de
   1. `TASKS.md`'de "Sırada" bölümündeki en üstteki `[teknik]` görevi al ("Şimdi" bölümüne taşı).
   2. `CLAUDE.md`'deki şablonla görev promptu yaz ve `gelistirici` ajanını çağır (bir anda tek geliştirici).
   3. Bittiğinde `test-oyuncusu` ajanını o göreve uygun bir senaryoyla çağır.
-  4. Test geçtiyse: `git push` (canlı oyun güncellenir), görevi "Bitti"ye taşı. Geçmediyse hatayı yeni görev olarak yaz ya da aynı görevi tekrar ver. İkinci başarısızlıkta `gelistirici`yi bu görev için `effort: "high"` ile çağır.
+  4. Test geçtiyse: `git push` (canlı oyun güncellenir), yayın bitince canlı siteyi `npm run smoke <canlı adres>` ile kontrol et; sağlamsa `git tag -f son-saglam && git push -f origin son-saglam`. Görevi "Bitti"ye taşı. Canlı oyun bozulduysa `CLAUDE.md`'deki geri alma adımını uygula. Geçmediyse hatayı yeni görev olarak yaz ya da aynı görevi tekrar ver. İkinci başarısızlıkta `gelistirici`yi bu görev için `effort: "high"` ile çağır.
   5. Durum çıktısı "Eleştirmen zamanı" diyorsa `elestirmen` ajanını çağır. Raporunu `JOURNAL.md`'ye özetle, teknik önerileri `TASKS.md`'ye ekle, yaratıcı önerileri "Takım işleri"ne yaz. `JOURNAL.md`'deki "Son eleştirmen" satırını güncelle.
   6. İlk oynanabilir çekirdek döngü hazırsa ve Kontrol 2 bekliyorsa: döngüyü duraklat, kullanıcıdan oyunu oynamasını iste (Kontrol 2). Geri bildirimi `JOURNAL.md`'ye ve görevlere işle.
   7. `[takım]` görevlerini asla kendin ya da ajanlarla yapma. Takımdan gelen dosyalar `src/art/` ya da `src/sounds/` altına düştüyse onları oyuna bağlamayı teknik görev olarak ekle.
