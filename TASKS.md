@@ -17,6 +17,8 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 
 
+- [ ] G5b [teknik] G5 test bulguları: gazete "Çöken (boşaltılmış: N)" ile sonuçtaki "Boşaltılmış" kutusu farklı şeyleri sayıyor (etiket netleşsin); gazete fotoğrafı sokağın daha geniş bir karesini göstersin; öne çıkan binalar örnek kararlarda hep aynı numara (dev yoluna özgü, düşük).
+
 Araçlar ve derinlik
 
 - [ ] G6 [teknik] Büyüteç: fotoğrafı büyütünce gizli kusur görünür (çapraz çatlak, pas, deniz kabuğu; yer tutucu çizimler).
@@ -44,6 +46,7 @@ Bulutta yapılabilecekler
 - [ ] T13 [takım] Ara testte ayarla: maaş/ceza değerleri ve para birimi (şu an doğru 20, yanlış 10 TL), gün süreleri (90/180/200/220/240 sn), dosya sayıları (3/5/6/7/8); karot "Rapor yok" kusur sayılsın mı?
 - [ ] T14 [takım] Öncü sarsıntı: doğru BOŞALT damgalanan zayıf bina da "boş" olarak çatlıyor; böyle mi kalsın, yoksa boşaltılanlar sağlam mı görünsün? Öncü şiddeti/süresi (TUNING.oncu). İskele, şerit, çatlak çizimleri onayı. Tavanda sallanan lamba istenir mi?
 - [ ] T15 [takım] Büyük deprem ağırlığı: örnek oyunda 29 binadan 14'ü çöktü (10'u boşaltılmıştı). Doğru BOŞALT damgalı ağır kusurlu binalar çöksün mü, ağır hasarlı mı kalsın (TUNING.buyukDeprem.kademe.bosaltKusur 3 → 2)? Gazete ve sonuç metinleri src/game/gazete.ts (T4 ile).
+- [ ] T16 [takım] Jüri büyük depremi normal yolla göremiyor (5 gün ~8–10 dk). Seçenekler: menüde "Depremi göster" düğmesi, kısa mod, ya da yalnızca sunum/video için ?dev&deprem adresi. Karar takımın (tema ve yaratıcılık puanı).
 - [ ] T11 [takım] Pencere sokağı, gişedeki siluet ve renk paleti onayı; uyarı fişi metinleri ("Doğru karar" / "Yanlış karar: doğrusu X" yer tutucu).
 - [ ] T6 [takım] Sesleri ara testte dinle; Claude'un seçtiği Kenney adaylarını onayla ya da değiştir.
 - [ ] T7 [takım] Kararlar: imar affı belgesi olacak mı. (Deprem günü ve kaçak kat 21.49'da karara bağlandı.)

@@ -5,7 +5,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 ## Durum
 
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
-- Kontrol 2 (ara oyun testi): BEKLİYOR
+- Kontrol 2 (ara oyun testi): SÜRÜYOR (16 Ekim 23.25, takım oynuyor)
 - Kontrol 3 (son teslim): BEKLİYOR
 - Son eleştirmen: 2026-10-16T21:23+03:00
 - Kullanım düzeyi: normal
@@ -43,3 +43,5 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 22:57 · Test (G4+G4b, sabit kopya): akış sağlam, hata yok; öncü sarsıntı "jüri için en güçlü an"; bulgular G4c'ye yazıldı (kırpılan belgeler, dolu sokak görünmüyor, mühür yılı karışıklığı, etiket/fiş örtme, saat) · Karar: 7818e01 + c207380 yayına · Neden: test geçti; G12 sesleri geliştirici ses düzeyi ölçümüyle doğruladı · Sıradaki: G5 sürüyor, sonra G4c
 - 22:58 · 3d8ac00 canlıda (sokak, öncü sarsıntı, Kenney sesleri), smoke hatasız, son-saglam taşındı · Sıradaki: G5 sonucu
 - 23:22 · G5 bitti (d7424e7, Opus/high): gece geçişi, ~20 sn büyük deprem (gruplarla tarama, çökme, toz), adalet kuralları (npm run adalet: 4644 denetim 0 hata), piksel gazete, Denetçi Dosyası sonuç ekranı, ?dev&deprem kısayolu · Çekirdek döngü tamam (5 gün + öncü + büyük deprem + gazete) · Karar: test-oyuncusu G5'i sabit kopyada (teslim/test-d7424e7), paralelde G4c + G13 (açılış kısaltma) · Neden: zaman · Sıradaki: Kontrol 2 için takıma sor
+- 23:25 · Karar: Kontrol 2 (ara test) şimdi; takım teslim/test-d7424e7/index.html ile tam oyunu oynuyor · Neden: çekirdek döngü tamam, takım şimdi seçti · Sıradaki: geri bildirimi bekle; G4c+G13 ve G5 testi sürüyor, yeni özellik başlatılmıyor
+- 23:34 · Test (G5 + tam oyun, sabit kopya): 6 smoke hatasız; deprem, gazete, sonuç tutarlı, kurban yok, adalet doğru; Yeniden Başla depremi baştan oynatıyor; bulgular: yer tutucu metinler teslim blokajı (takım), jüri büyük depremi göremez (T16), gazete/sonuç boşaltılmış sayısı etiketi (G5b) · Karar: G5 yayına · Sıradaki: takım geri bildirimi (Kontrol 2)
