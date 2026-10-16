@@ -35,11 +35,17 @@ _Bizim yorumumuz (takımın kararı):_ Afete hazırlığın en kritik ama görü
 
 | Gün | Yeni kural | Yeni araç |
 |---|---|---|
-| 1 | Ruhsattaki kat sayısı gerçekle aynı olmalı | İnceleme modu |
+| 1 | Ruhsattaki kat sayısı (zemin dahil) gerçekle aynı olmalı; 1 kaçak kat GÜÇLENDİR, 2 ve üstü BOŞALT (takım kararı 21.49) | İnceleme modu |
 | 2 | Zemin katta kolon kesilmemiş olmalı; çapraz (kesme) çatlak yok | Fotoğraf büyüteci |
 | 3 | Beton dayanımı eşiğin üstünde olmalı | Karot sonucu |
 | 4 | Dere yatağı ve fay hattına en az X metre; zemin etüdü var ve sıvılaşma riski yok | Vaziyet planı + cetvel |
 | 5 | Hepsi + sahte belge | Tarih / mühür kontrolü |
+
+### Jüri yolu ve sokak (takım kararı, 16 Ekim 21.49)
+
+- **Sorun (eleştirmen):** Jüri en fazla 2 dakika oynuyor; deprem 5. gün sonunda olursa kararların sonucunu hiç görmez.
+- **Karar:** Gün 1 kısa (3 dosya, ~90 sn) ve sonunda kısa bir **öncü sarsıntı** (yaklaşık 10 sn): pencerede sokak sallanır, damgalanan binaların zayıflığı görünür (çatlak, toz). Büyük deprem 5. gün sonunda.
+- **Karar:** Pencere bir **sokağa / şehre dönüşür**: damgalanan her bina sokakta kalıcı olarak yerini alır; güçlendirilene iskele, boşaltılana şerit. Günler geçtikçe sokak oyuncunun kararlarıyla dolar. Öncü sarsıntı ve büyük deprem bu sokakta yaşanır. Hazırlık gözle görülür; Papers, Please'te olmayan bir şey.
 
 ### Gerilim ve duygu
 
@@ -59,7 +65,8 @@ Jüri oyunu 3 dakikalık sunum sırasında oynuyor. Hiçbir şey okumadan:
 
 1. Gün 1, tek kural, iki dosya. İlk dosya temiz: GÜVENLİ damgası, tok bir "küt" sesi.
 2. İkinci dosyada fotoğraftaki fazladan kat göze batar; ruhsattaki kat sayısına ve fotoğrafa tıklanır, "Kaçak kat" etiketi çıkar.
-3. BOŞALT damgası; kural okunmadan anlaşılmış olur. Gün 2'de büyüteç gelir.
+3. Bir kaçak kat: GÜÇLENDİR damgası (iki ve üstü olsaydı BOŞALT); kural okunmadan anlaşılmış olur.
+4. Gün 1 kısa (3 dosya, yaklaşık 90 sn) ve öncü sarsıntıyla biter: pencerede sokak sallanır, onaylanan zayıf binalar çatlar. Jüri kararlarının bedelini 2 dakika içinde görür.
 
 ## Kontroller
 
@@ -88,7 +95,7 @@ Takım görsel ya da ses üretmiyor. Kaynaklar: lisanslı hazır paketler (hazı
 - **Görsel kaynağı (takım kararı):** Bina cepheleri ve sokak Kenney Tiny Town'dan (CC0), Papers Please paletine boyanarak (değişiklik: renk paleti, parçalardan cephe kurma). Kâğıt, masa, damga, mühür ve siluet kodla çizilir (AI beyanı: görsel, kodla çizim).
 - **Fontlar (takım kararı):** Arayüz ve başlıklar Pixelify Sans, belgelerdeki değerler VT323 (ikisi de SIL OFL 1.1, Türkçe karakterli).
 - **Renkler ve hava (öneri, takım değiştirebilir):** Koyu kahve-gri masa, krem ve kirli beyaz kâğıtlar, soluk mavi plan, mürekkepte kırmızı (BOŞALT), hardal (GÜÇLENDİR), yeşil (GÜVENLİ); dışarıda soluk akşamüstü.
-- **Ses kaynağı (öneri):** Kenney Impact Sounds (damga), Interface Sounds (kâğıt, tık), Music Jingles (gün sonu).
+- **Ses kaynağı (takım kararı 21.49):** Claude havuzdaki Kenney CC0 ses paketlerinden (Impact, Interface, UI Audio, Music Jingles) aday seçip bağlar; takım ara testte dinleyip değiştirir. Hazır kaynak olarak beyan edilir.
 
 ## Varlık listesi
 

@@ -7,7 +7,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
 - Kontrol 2 (ara oyun testi): BEKLİYOR
 - Kontrol 3 (son teslim): BEKLİYOR
-- Son eleştirmen: YOK
+- Son eleştirmen: 2026-10-16T21:23+03:00
 - Kullanım düzeyi: normal
 
 ## Günlük
@@ -28,3 +28,10 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 20:43 · b33036e canlıda (Papers, Please masası), smoke hatasız, son-saglam taşındı; G2c Opus geliştiricide (model doğrulandı) · Not: ruhsatta mühür yılının yapım yılından önce olması kasıtlı (gerçek ruhsat inşaattan önce), kural kitabı bunu anlatmalı (G4/T2) · Sıradaki: G2c sonucu
 - 20:47 · Karar: Geliştirici eforu high (Opus 5.5 / high); medium çalışan G2c durduruldu, yarım değişiklikleri (okunurluk, smoke bayrakları) çalışma ağacında, yeni ajan kaldığı yerden devam ediyor · Neden: takım istedi · Sıradaki: G2c (Opus/high)
 - 21:07 · G2c bitti (c82bcab, Opus/high): okunurluk (gövde VT323, Pixelify yalnız büyük başlık), kat bantları + "zemin dahil", gün 1 dosya 1 temiz / dosya 2 kaçak kat, masa sınırı, kesik kolon vitrini, fiş kusur adıyla, smoke donması çözüldü · Karar: G2c için ayrı test-oyuncusu yok, G3 ile birlikte test · Neden: G2c test bulgularının düzeltmesi, geliştirici HD smoke ile doğruladı, lider ekran görüntülerini inceledi; kullanım tasarrufu · Sıradaki: yayın, G3 inceleme modu
+- 21:10 · b7c67df canlıda (G2c), smoke hatasız, son-saglam taşındı; G3 (inceleme modu + en küçük kural kitabı) Opus/high geliştiricide; kullanım %12 (5 saatlik pencere) · Sıradaki: G3 sonucu, ardından G2c+G3 testi ve eleştirmen
+- 21:21 · G3 bitti (cf78f50, Opus/high): inceleme modu (Space/İNCELE, iki alan → kırmızı çizgi + etiket), tek alanlı kusurlar kural kitabı satırıyla, ipucu · Karar: test-oyuncusu (G2c+G3) ve ilk eleştirmen paralel; eleştirmen tarayıcı paneli yerine ekran görüntüsü ve smoke kullanıyor · Neden: oyun ilk kez oynanabilir, ara testten önce yön kontrolü; panel çakışmasın · Sıradaki: rapor sonrası yayın ve G4
+- 21:23 · Eleştirmen (cf78f50): toplam ~56/100 (oynanabilirlik 13, tema 14, yaratıcılık 9, görsel 9, teknik 11). Bulgular: 30 sn testi sınırda (hedef söylenmiyor, gün 1'de 6 belge ama tek kural); jüri 2 dk'da depremi göremiyor; inceleme hiçbir şeyi etkilemiyor; Papers, Please ayrışması zayıf; menü/sonuç şablon, sesler bip · Sıradaki: takım kararları (jüri yolu, pencere-şehir, kaçak kat, sesler), G4
+- 21:49 · Test (G2c+G3): 6/6 senaryo geçti, hata yok; bulgular: kural kitabı damga çubuğunu örtüyor, etiket/fiş belge değerlerini örtüyor, gün 2 dağılımı tekdüze, hedef söylenmiyor
+- 21:49 · Karar: Gün 1 kısa (3 dosya, ~90 sn) + sonunda öncü sarsıntı; büyük deprem 5. gün sonu · Neden: jüri 2 dk'da kararlarının bedelini görsün (takım seçti)
+- 21:49 · Karar: Pencere sokağa dönüşür, damgalanan binalar kalıcı (iskele/şerit), depremler bu sokakta · Neden: hazırlık görünür olsun, Papers, Please'ten ayrışma (takım seçti)
+- 21:49 · Karar: Kaçak kat 1 kat GÜÇLENDİR, 2+ BOŞALT; sesleri Claude Kenney'den seçer, takım ara testte onaylar · Neden: takım seçti · Sıradaki: yayın (cf78f50), G4
