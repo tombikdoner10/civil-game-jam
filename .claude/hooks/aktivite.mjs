@@ -45,7 +45,7 @@ try {
   mkdirSync(join(ROOT, '.jam'), { recursive: true });
   appendFileSync(
     join(ROOT, '.jam', 'aktivite.jsonl'),
-    JSON.stringify({ zaman: new Date().toISOString(), ajan: input.agent_type ?? 'lider', arac: tool.replace(/^mcp__[^_]+__/, ''), ozet }) + '\n',
+    JSON.stringify({ zaman: new Date().toISOString(), ajan: input.agent_type ?? 'lider', arac: tool.replace(/^mcp__.+?__/, ''), ozet }) + '\n',
   );
 } catch {
   // Panel kaydı çalışmayı asla durdurmasın.
