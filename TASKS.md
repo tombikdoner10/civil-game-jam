@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G31 [teknik] (sürüyor, Opus/high) Metinleri oyuna yerleştir (docs/TAKIM_CEVAPLARI.md, lider onaylı): adlar, gün 1/rapor/deprem/gazete metinleri, diyaloglarda köşeli parantez kaldırma, ev kademeleri ve Senin evin, Ruhsat tarihi + ruhsatsız kuralı + sadeleştirme satırı + saha ön değerlendirme, hikâye binaları, Takımın kararları, BENIOKU amaç ve başlık, AI beyanı Metin özeti; yer tutucu üyeler gizli; npm run yer-tutucu ≈ 0; 720p/1080p taşma yok.
+- [ ] G31b [teknik] (sürüyor, Opus/high) Ruhsat diyaloglarında mühür → ruhsat tarihi; klasörde Kural: tekrarı; ev kademe adları büyük harf.
 
 ## Sırada
 
@@ -74,6 +74,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G31 Lider onaylı metinler oyunda: Kâğıt Üstünde, Dereboyu Postası, yer tutucu 553 → 0, Ruhsat tarihi / Ruhsatsız yapı, sadeleştirme satırı, ev metinleri, hikâye binaları, Takımın kararları, dürüst AI beyanı; adalet 567025/0 (766b2d8 + 473cea7, Opus/high; test sürüyor)
 - [x] G45 Gün 1 son kusurlu dosyada zarf kendiliğinden (60–100 TL, ayrı RNG), soyut ev 0/1/2/3 = ağır/hasarlı/hafif/hasarsız, kendi apartman her taksitte bir kademe, EVİN kartında Alındı, bağlam cümlesi, çöken evde sabitleme cümlesi yok; adalet 567025/0 (457f759 + c500b38, Opus/high; test geçti)
 - [x] G44 Kısmi taksit (2/3) kendi apartmanda bir kademe iyileştirir; dev ?ev= harcananı şişirmez; adalet 563136/0, bina dağılımı aynı (f44cb01, Opus/high; test geçti)
 - [x] G43 Ekonomi kademeli: 3 kademe × 3 kalem (toplam 560 TL), güçlendirme 3 taksit, kart ilerlemesi, Senin evin kademeye göre, kendi apartman yalnız 3/3te GÜÇLENDİR; adalet 561060/0, bina dağılımı aynı; kusursuz dürüst oyuncu gün gün 2/4/6/7/9 kademe (759a6aa + 421e7f4, Opus/high; test geçti)
