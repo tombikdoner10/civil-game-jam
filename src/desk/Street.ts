@@ -35,8 +35,10 @@ export const SOKAK_OLCEK = 2;
 const PARSEL = 124;
 const BOSLUK = (PARSEL - CEPHE_W) / 2;
 /** Sokağın başında (solda) dolgu binalar ve sonunda (sağda) boş arsalar. */
-const DOLGU = 6;
+const DOLGU_SAYI = 6;
 const ARSA = 14;
+/** Moloz yığınının ortadaki yüksekliği (sanat pikseli; tiles.molozCiz yaklaşık 18-22). */
+const MOLOZ_TEPE = 18;
 /** Zemin şeridi kaldırım çizgisinin altında ne kadar uzar (küçültülünce pencerenin altı boş kalmasın). */
 const ZEMIN_ALT = 42;
 
@@ -50,9 +52,14 @@ const DOLU = { esik: 3, olcek: 0.5, oran: 0.76 };
 /** Gün başı turu: sokağın tamamı (ya da son kısmı) küçük ölçekte; bekle, sonra incelenen binaya yaklaş. */
 const TUR = { minOlcek: 0.25, bekle: 1300, yaklas: 1400 };
 
-const TON_GUN = { incelenen: 0xe6dcd4, damgali: 0xa09898, dolgu: 0x6e6874, arsa: 0x8a8480, gok: 0xe6dcd4 };
+const TON_GUN = { incelenen: 0xe6dcd4, damgali: 0xa09898, dolgu: 0x4a4654, arsa: 0x8a8480, gok: 0xe6dcd4 };
 /** Gece (G5 büyük deprem): soğuk ve karanlık; binalar lamba ışığında seçilir. */
-const TON_GECE = { incelenen: 0x9a9cb4, damgali: 0x8a8ca6, dolgu: 0x4a4a5e, arsa: 0x5a5a6a, gok: 0xffffff };
+const TON_GECE = { incelenen: 0x9a9cb4, damgali: 0x8a8ca6, dolgu: 0x2e3044, arsa: 0x5a5a6a, gok: 0xffffff };
+/**
+ * Dolgu (dekor) binalar gerçek binalardan ayrılsın (G23): daha alçak, koyu ve hafif saydam (gök biraz geçer,
+ * kontrast düşer); uzakta duruyormuş gibi.
+ */
+const DOLGU = { katEn: 2, katAralik: 3, alfa: 0.85 };
 
 export type SokakHasar = HasarDurumu | 'yikik';
 
@@ -163,8 +170,8 @@ export class Sokak {
     this.kok.add([this.arka, this.binaKap, this.on]);
 
     const son = kayitlar.length + ARSA;
-    this.zeminCiz(-DOLGU - 2, son + 2);
-    for (let yer = -DOLGU; yer < 0; yer++) this.dolguKur(yer, gun);
+    this.zeminCiz(-DOLGU_SAYI - 2, son + 2);
+    for (let yer = -DOLGU_SAYI; yer < 0; yer++) this.dolguKur(yer, gun);
     for (let yer = kayitlar.length; yer < son; yer++) this.arsaKur(yer);
     kayitlar.forEach((k, yer) => {
       const p = this.parselKur(k.bina, yer);
@@ -295,6 +302,17 @@ export class Sokak {
     const h = p ? p.h : 60;
     const O = this.O;
     return new Phaser.Geom.Rectangle(this.parselX(yer) + BOSLUK * O, (this.ufuk - h) * O, CEPHE_W * O, h * O);
+  }
+
+  /**
+   * Binanın şu anki üst kenarı (sokak kabında, ölçeksiz y): ayaktaysa cephenin üstü; çöküyorsa inen gövdenin üstü,
+   * en altta moloz yığınının tepesi (G23: çöken binanın etiket çubuğu havada kalmasın).
+   */
+  ustKenar(yer: number): number {
+    const k = this.yerelKutu(yer);
+    const p = this.parseller.find((q) => q.yer === yer);
+    if (!p || p.hasar !== 'yikik') return k.y;
+    return Math.min(k.y + p.kap.y, (this.ufuk - MOLOZ_TEPE) * this.O);
   }
 
   /**
@@ -450,13 +468,13 @@ export class Sokak {
   private dolguKur(yer: number, gun: number): void {
     const O = this.O;
     const rnd = rastgele(0xd01 + yer * 131 + gun * 7);
-    const kat = 3 + Math.floor(rnd() * 4);
+    const kat = DOLGU.katEn + Math.floor(rnd() * DOLGU.katAralik);
     const h = cepheH(kat - 1);
     const t = new Tuval(this.scene, CEPHE_W, h, 'dolgu');
     cepheCiz(this.scene, t.ctx, 0, 0, { kat, kolon: 6, vitrin: [], catlak: 'yok', secim: cepheSecimi(rnd), aksam: true, rnd });
     const x0 = this.parselX(yer) + BOSLUK * O;
     const kap = this.scene.add.container(x0, 0);
-    kap.add(t.goruntu(0, (this.ufuk - h) * O, O).setOrigin(0).setTint(this.TON.dolgu));
+    kap.add(t.goruntu(0, (this.ufuk - h) * O, O).setOrigin(0).setTint(this.TON.dolgu).setAlpha(DOLGU.alfa));
     this.binaKap.add(kap);
     this.dolgular.push({ kap, x0 });
   }

@@ -7,13 +7,35 @@ import { label } from '../ui/text';
 import { SCENES } from './keys';
 
 let shown = false;
+/** Açılış geçişi sırasında (Gate kararırken) tıklama ya da tuş geldi: logo hemen geçilsin (G23). */
+let atlaIstendi = false;
+
+/**
+ * Gate'ten Splash'e geçiş sürerken (Phaser girdisi kapalıyken) gelen tıklama ve tuşları yakalar; Splash açılınca
+ * hemen menüye geçer. Girdi tarayıcı düzeyinde dinlenir, oyuna (menü düğmelerine) iletilmez.
+ */
+export function splashAtlaDinle(): void {
+  const dinle = (): void => {
+    atlaIstendi = true;
+    temizle();
+  };
+  const temizle = (): void => {
+    window.removeEventListener('pointerdown', dinle);
+    window.removeEventListener('keydown', dinle);
+  };
+  window.addEventListener('pointerdown', dinle);
+  window.addEventListener('keydown', dinle);
+  // Splash kendi girdisini dinlemeye başlayınca bu dinleyici kalkar (en geç 1 sn sonra).
+  window.setTimeout(temizle, 1000);
+}
 
 /** Logo süreleri (ms): yazmaya başlama, harf başına, yazı bitince bekleme. Toplam ~1,1 sn (+ geçişler). */
-const SURE = { bas: 100, harf: 28, bekle: 520 };
+const SURE = { bas: 100, harf: 28, bekle: 420 };
 
 /**
  * Takım logosu: komut satırına yazılıyormuş gibi "> PROMPT ENGINEERS". Oturumda bir kez; tıklayınca ya da bir
- * tuşa basınca hemen geçilir. Kısa tutuldu: jüri oyunu 3 dakikalık sunum sırasında oynuyor.
+ * tuşa basınca hemen geçilir (Gate'ten geçiş sürerken gelen girdi de sayılır, G23). Kısa tutuldu: jüri oyunu 3
+ * dakikalık sunum sırasında oynuyor.
  */
 export class SplashScene extends Phaser.Scene {
   constructor() {
@@ -21,7 +43,10 @@ export class SplashScene extends Phaser.Scene {
   }
 
   create(): void {
-    if (shown) {
+    if (shown || atlaIstendi) {
+      // Oturumda bir kez; geçiş sırasında tıklandıysa (G23) logo hiç beklemeden geçilir.
+      shown = true;
+      atlaIstendi = false;
       this.scene.start(SCENES.Menu);
       return;
     }

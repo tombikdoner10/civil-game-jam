@@ -200,9 +200,10 @@ export interface DepremOzeti {
   iadeCoken: number;
   /** İADE edilmiş ve ağır hasar alan (çökmeyen). */
   iadeAgir: number;
-  /** Zarf alınan binalar ve bunların hasar gören (ya da çöken) olanları (G22). */
+  /** Zarf alınan binalar ve bunların hasar gören (ya da çöken) olanları (G22); zarfCoken: bunlardan çökenler (G23). */
   zarf: number;
   zarfHasar: number;
+  zarfCoken: number;
 }
 
 export function depremOzeti(s: readonly DepremBinaSonucu[]): DepremOzeti {
@@ -212,6 +213,7 @@ export function depremOzeti(s: readonly DepremBinaSonucu[]): DepremOzeti {
   return {
     zarf: zarf.length,
     zarfHasar: zarf.filter((b) => b.coktu || b.durum !== 'ayakta').length,
+    zarfCoken: zarf.filter((b) => b.coktu).length,
     iade: iade.length,
     iadeCoken: iade.filter((b) => b.coktu).length,
     iadeAgir: iade.filter((b) => !b.coktu && b.durum === 'agirHasar').length,

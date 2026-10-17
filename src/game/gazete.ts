@@ -27,6 +27,9 @@ const durumAdi = (b: DepremBinaSonucu): string =>
 const gecmis = (b: DepremBinaSonucu): string =>
   b.damga === 'iade' ? 'iade edilmişti, denetlenmeden kaldı' : `denetimden ${DAMGA_AD[b.damga]} geçmişti`;
 
+/** Gazetede zarf alınan binanın satırına eklenen kısım (yer tutucu). */
+const ZARF_SATIR_EK = ', zarf alınmıştı';
+
 /** Ana manşet: duruma göre dört şablondan biri. */
 export function manset(o: DepremOzeti): string {
   if (o.toplam === 0) return '[Manşet: sokakta denetlenmiş bina yoktu]';
@@ -54,8 +57,9 @@ const agirlik = (b: DepremBinaSonucu): number => (b.coktu ? 3 : b.durum === 'agi
  */
 export function oneCikanlar(s: readonly DepremBinaSonucu[], oncelik?: ReadonlySet<string>): { satirlar: string[]; odak?: DepremBinaSonucu } {
   const out: { b: DepremBinaSonucu; metin: string }[] = [];
+  // Zarf alınan binanın satırında zarf da geçer (G23): "[Bina 02 çöktü; denetimden GÜVENLİ geçmişti, zarf alınmıştı]".
   const ekle = (b: DepremBinaSonucu | undefined, metin: (b: DepremBinaSonucu) => string): void => {
-    if (b && out.length < 3 && !out.some((x) => x.b === b)) out.push({ b, metin: metin(b) });
+    if (b && out.length < 3 && !out.some((x) => x.b === b)) out.push({ b, metin: b.zarf ? metin(b).replace(/\]$/, `${ZARF_SATIR_EK}]`) : metin(b) });
   };
   if (oncelik)
     for (const b of s.filter((x) => oncelik.has(x.dosyaId)).sort((a, c) => agirlik(c) - agirlik(a) || a.no - c.no))
@@ -92,7 +96,7 @@ export function oneCikanlar(s: readonly DepremBinaSonucu[], oncelik?: ReadonlySe
  * ve ton kötüye döner; zarf alındı ama binalar sağlamsa yalnızca not düşülür.
  */
 export function degerlendirme(o: DepremOzeti): { metin: string; ton: 'iyi' | 'orta' | 'kotu' } {
-  const z = o.zarfHasar > 0 ? ' · zarf aldığın binalar hasar gördü' : o.zarf > 0 ? ' · zarf aldın' : '';
+  const z = o.zarfHasar > 0 ? ` · ${zarfSonucu('zarf aldığın', o.zarfCoken, o.zarfHasar - o.zarfCoken)}` : o.zarf > 0 ? ' · zarf aldın' : '';
   const d = (metin: string, ton: 'iyi' | 'orta' | 'kotu'): { metin: string; ton: 'iyi' | 'orta' | 'kotu' } => ({
     metin: `[Değerlendirme: ${metin}${z}]`,
     ton: o.zarfHasar > 0 ? 'kotu' : ton,
@@ -111,11 +115,22 @@ export function zarfSatiri(s: readonly DepremBinaSonucu[]): string | null {
   return s.some((b) => b.zarf && (b.coktu || b.durum !== 'ayakta')) ? ZARF_GAZETE : null;
 }
 
+/**
+ * Zarf alınan binaların deprem sonucu (G23: binanın sonucuna göre; çöken "çöktü", ayakta kalıp hasar gören
+ * "hasar gördü"). kim: "zarf alınan" ya da "zarf aldığın".
+ */
+function zarfSonucu(kim: string, coken: number, hasarli: number): string {
+  if (coken > 0 && hasarli > 0) return `${kim} binalardan ${coken} tanesi çöktü, ${hasarli} tanesi hasar gördü`;
+  if (coken > 0) return `${kim} ${coken} bina depremde çöktü`;
+  return `${kim} ${hasarli} bina depremde hasar gördü`;
+}
+
 /** Sonuç ekranındaki zarf satırı (kabul edilen zarf yoksa null). */
 export function zarfOzeti(adet: number, toplam: number, s: readonly DepremBinaSonucu[]): string | null {
   if (adet === 0) return null;
-  const hasar = s.filter((b) => b.zarf && (b.coktu || b.durum !== 'ayakta')).length;
-  return `[Kabul edilen zarf: ${adet}, toplam ${toplam} TL${hasar > 0 ? ` · zarf alınan ${hasar} bina depremde hasar gördü` : ''}]`;
+  const coken = s.filter((b) => b.zarf && b.coktu).length;
+  const hasarli = s.filter((b) => b.zarf && !b.coktu && b.durum !== 'ayakta').length;
+  return `[Kabul edilen zarf: ${adet}, toplam ${toplam} TL${coken + hasarli > 0 ? ` · ${zarfSonucu('zarf alınan', coken, hasarli)}` : ''}]`;
 }
 
 // ---- G21 kısa yol ("Depremi şimdi yaşa") ----

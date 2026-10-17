@@ -25,6 +25,8 @@ export interface BinaEtiketi {
   sonucGoster: (metin: string, zemin: string) => void;
   /** Görünen çiplerin en genişinin genişliği (ekran, ölçek 1): yan yana etiketler çakışmasın diye (G21b). */
   genislik: () => number;
+  /** Binaya inen çubuk (G23: etiket yana kayınca çubuk binanın üstünde kalsın diye ayrı konumlanır). */
+  cubuk: Phaser.GameObjects.Rectangle;
 }
 
 /**
@@ -48,7 +50,8 @@ export function binaEtiketi(scene: Phaser.Scene, damga: Damga, boy: EtiketBoy, u
   };
   const a = boy.aralik;
   let y = -boy.cubuk - boy.damga / 2;
-  kap.add(scene.add.rectangle(0, -boy.cubuk / 2, 4, boy.cubuk, 0x0e0d10, 0.9));
+  const cubuk = scene.add.rectangle(0, -boy.cubuk / 2, 4, boy.cubuk, 0x0e0d10, 0.9);
+  kap.add(cubuk);
   kap.add(cip(Math.round(y), ek ? `${DAMGA_ADI[damga]} ${ek}` : DAMGA_ADI[damga], DAMGA_RENK[damga], '#f0e6cc', boy.damga));
   if (ust) {
     y -= a;
@@ -57,13 +60,20 @@ export function binaEtiketi(scene: Phaser.Scene, damga: Damga, boy: EtiketBoy, u
   y -= a + (boy.sonuc - boy.damga);
   const sonuc = cip(Math.round(y), '', PAL.damgaGuvenli, '#f0e6cc', boy.sonuc).setAlpha(0);
   kap.add(sonuc);
+  /** Sonuç çipinin alt kenarı: çok satırlı metinde çip yukarı doğru büyür (G23: dar pencere camında iki satır). */
+  const sonucAlt = Math.round(y) + (Math.ceil((boy.sonuc + 12) / 4) * 4) / 2;
   const sonucGoster = (metin: string, zemin: string): void => {
     const p = sonuc.getData('parca') as { t: Phaser.GameObjects.Text; ic: Phaser.GameObjects.Rectangle; cerceve: Phaser.GameObjects.Rectangle; size: number };
-    p.t.setText(metin);
+    const ilk = p.t.text === '';
+    p.t.setText(metin).setAlign('center');
     const w = Math.ceil((p.t.width + p.size * 0.7) / 4) * 4;
-    p.ic.setSize(w, p.ic.height).setFillStyle(num(zemin));
-    p.cerceve.setSize(w + 8, p.cerceve.height);
-    scene.tweens.add({ targets: sonuc, alpha: 1, duration: 240, ease: 'Stepped', easeParams: [3] });
+    const tek = Math.ceil((p.size + 12) / 4) * 4;
+    const h = metin.includes('\n') ? Math.max(tek, Math.ceil((p.t.height + 12) / 4) * 4) : tek;
+    p.ic.setSize(w, h).setFillStyle(num(zemin));
+    p.cerceve.setSize(w + 8, h + 8);
+    // Çip alt kenarından yukarı büyüsün (iki satırda damga çipinin üstüne binmesin).
+    sonuc.setY(sonucAlt - h / 2);
+    if (ilk) scene.tweens.add({ targets: sonuc, alpha: 1, duration: 240, ease: 'Stepped', easeParams: [3] });
   };
   const genislik = (): number => {
     let w = 0;
@@ -73,5 +83,5 @@ export function binaEtiketi(scene: Phaser.Scene, damga: Damga, boy: EtiketBoy, u
     }
     return w;
   };
-  return { kap, sonucGoster, genislik };
+  return { kap, sonucGoster, genislik, cubuk };
 }

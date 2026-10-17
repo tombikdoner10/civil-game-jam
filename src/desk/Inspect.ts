@@ -50,6 +50,9 @@ interface Bulunan {
   aday: number;
 }
 
+/** Kâğıdın üstündeki başlık bandının yüksekliği (ekran; belgelerde başlık şeridi ve başlık yazısı). */
+const BASLIK_H = 56;
+
 const D = { ortuMasa: 7, ortuBant: 3010, dugme: 3020, serit: 8000, cizim: 9000, etiket: 9001 };
 const SARI = num(PAL.saat);
 const KIRMIZI = num(PAL.damgaBosalt);
@@ -376,7 +379,7 @@ export class Inspect extends Phaser.Events.EventEmitter {
       if (gor.length === 2) this.kesikli(gor[0], gor[1], KIRMIZI);
       b.etiket.setVisible(gor.length > 0);
       if (gor.length > 0) {
-        const r = this.etiketYeri(b, gor, engeller.concat(etiketler));
+        const r = this.etiketYeri(b, gor, engeller.concat(etiketler), yuzeyler);
         b.etiket.setPosition(r.centerX, r.centerY);
         etiketler.push(r);
       }
@@ -407,10 +410,16 @@ export class Inspect extends Phaser.Events.EventEmitter {
     }
   }
 
-  /** Masadaki bütün görünen alanların (belge değerleri, kural satırları) sınırları. */
+  /**
+   * Masadaki bütün görünen alanların (belge değerleri, kural satırları) ve kâğıtların başlık bantlarının (G23:
+   * "RUHSAT" gibi başlık etiketin altında kalmasın) sınırları.
+   */
   private alanSinirlari(yuzeyler: Yuzey[]): Phaser.Geom.Rectangle[] {
     const out: Phaser.Geom.Rectangle[] = [];
-    for (const yz of yuzeyler) for (const a of yz.alanlar) if (gorunur(a.nesne)) out.push(sinir(a.nesne));
+    for (const yz of yuzeyler) {
+      for (const a of yz.alanlar) if (gorunur(a.nesne)) out.push(sinir(a.nesne));
+      out.push(new Phaser.Geom.Rectangle(yz.sinir.x, yz.sinir.y, yz.sinir.width, Math.min(BASLIK_H, yz.sinir.height)));
+    }
     return out;
   }
 
@@ -419,17 +428,31 @@ export class Inspect extends Phaser.Events.EventEmitter {
    * (belge değerleri) en az örtüşen seçilir. Masa dışına taşan aday masaya çekilir. Eşitlikte önceki aday
    * korunur (etiket zıplamasın), yoksa sıradaki ilk.
    */
-  private etiketYeri(b: Bulunan, gor: Phaser.Geom.Rectangle[], engeller: Phaser.Geom.Rectangle[]): Phaser.Geom.Rectangle {
+  private etiketYeri(b: Bulunan, gor: Phaser.Geom.Rectangle[], engeller: Phaser.Geom.Rectangle[], yuzeyler: Yuzey[]): Phaser.Geom.Rectangle {
     const { w, h } = b;
     const bosluk = 16;
-    const adaylar: [number, number][] = [];
+    /** [x, y, ek puan]: kâğıdın dışına taşan adaylar (G23) kanıttan uzaklığına göre biraz geride. */
+    const adaylar: [number, number, number][] = [];
     for (const r of gor) {
-      adaylar.push([r.centerX, r.top - bosluk - h / 2]);
-      adaylar.push([r.centerX, r.bottom + bosluk + h / 2]);
-      adaylar.push([r.right + bosluk + w / 2, r.centerY]);
-      adaylar.push([r.left - bosluk - w / 2, r.centerY]);
+      adaylar.push([r.centerX, r.top - bosluk - h / 2, 0]);
+      adaylar.push([r.centerX, r.bottom + bosluk + h / 2, 0]);
+      adaylar.push([r.right + bosluk + w / 2, r.centerY, 0]);
+      adaylar.push([r.left - bosluk - w / 2, r.centerY, 0]);
     }
-    if (gor.length === 2) adaylar.push([(gor[0].centerX + gor[1].centerX) / 2, (gor[0].centerY + gor[1].centerY) / 2]);
+    if (gor.length === 2) adaylar.push([(gor[0].centerX + gor[1].centerX) / 2, (gor[0].centerY + gor[1].centerY) / 2, 0]);
+    // Kanıtın kâğıdının dışı (üstü, altı, yanları): kâğıttaki başlık ve değerler örtülmesin.
+    for (const r of gor) {
+      const k = yuzeyler.filter((y) => y.sinir.contains(r.centerX, r.centerY)).sort((a, c) => c.derinlik - a.derinlik)[0]?.sinir;
+      if (!k) continue;
+      const uzak = (x: number, y: number): number => (Math.abs(x - r.centerX) + Math.abs(y - r.centerY)) * 0.5;
+      for (const [x, y] of [
+        [r.centerX, k.top - bosluk / 2 - h / 2],
+        [r.centerX, k.bottom + bosluk / 2 + h / 2],
+        [k.right + bosluk / 2 + w / 2, r.centerY],
+        [k.left - bosluk / 2 - w / 2, r.centerY],
+      ])
+        adaylar.push([x, y, uzak(x, y)]);
+    }
     const kesisim = (a: Phaser.Geom.Rectangle, c: Phaser.Geom.Rectangle): number => {
       const x = Math.min(a.right, c.right) - Math.max(a.left, c.left);
       const y = Math.min(a.bottom, c.bottom) - Math.max(a.top, c.top);
@@ -438,7 +461,7 @@ export class Inspect extends Phaser.Events.EventEmitter {
     let en = -1;
     let enPuan = Infinity;
     let enR = new Phaser.Geom.Rectangle();
-    adaylar.forEach(([cx, cy], i) => {
+    adaylar.forEach(([cx, cy, ek], i) => {
       // Masa sınırı içinde: damga çubuğu açıkken onun sol kenarına kadar.
       const x = snap(Phaser.Math.Clamp(cx, MASA.x + w / 2 + 8, Math.max(MASA.x + w / 2 + 8, MASA.x + MASA.w - w / 2 - 8)));
       const y = snap(Phaser.Math.Clamp(cy, MASA_Y + h / 2 + 8, 1080 - h / 2 - 8));
@@ -446,7 +469,7 @@ export class Inspect extends Phaser.Events.EventEmitter {
       let puan = 0;
       for (const e of engeller) puan += kesisim(r, e);
       // Kanıt alanından uzaklaşan (masaya çekilen) adaylar biraz geride kalsın.
-      puan += (Math.abs(x - cx) + Math.abs(y - cy)) * 2;
+      puan += (Math.abs(x - cx) + Math.abs(y - cy)) * 2 + ek;
       const daha = puan < enPuan || (puan === enPuan && i === b.aday);
       if (daha) {
         en = i;

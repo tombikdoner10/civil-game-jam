@@ -22,6 +22,14 @@ const PEN = { x: 32, y: 32, w: 1168, h: 360 };
 const GISE = { x: 1248, y: 32, w: 640, h: 360 };
 /** Gişe camının alanı (ekran): öncü sarsıntının şerit yazısı burada (G5b). */
 export const GISE_ALAN: Readonly<typeof GISE> = GISE;
+/**
+ * Sokak penceresinin camları (ekran x aralıkları): orta kayıt (duvar görüntüsünde, x 944-960) ve pencere çerçevesi
+ * sokağın önünde. Öncü sarsıntı etiketleri bu aralıklara sıkıştırılır (G23: kayıtta ya da kenarda kırpılmasın).
+ */
+export const PENCERE_CAMLARI: readonly { x0: number; x1: number }[] = [
+  { x0: PEN.x, x1: PEN.x + 912 },
+  { x0: PEN.x + 928, x1: PEN.x + PEN.w },
+];
 /** Belgelerin girip çıktığı gişe gözü (ekran). */
 export const GOZ = { x: 1568, y: BANT_H + 8 };
 

@@ -46,7 +46,8 @@ export class SettingsScene extends Phaser.Scene {
 
     // Masada (ya da duraklatmanın üstünde) bir kâğıt: başlık şeridi, ayar satırları, düğmeler.
     kagitPanel(this, WIDTH / 2, 548, 1280, 968, { serit: 120, tohum: 31 });
-    label(this, WIDTH / 2, 136, 'Ayarlar', { size: 80, weight: 'bold', baslik: true, color: num(PAL.kremAcik) });
+    // Başlık gövde yazı tipinde (G23): Emeği Geçenler, gün sonu ve sonuç başlıklarıyla aynı.
+    label(this, WIDTH / 2, 136, 'Ayarlar', { size: 80, color: num(PAL.kremAcik) });
 
     const rows: [string, VolumeKey, string][] = [
       ['Ana ses', 'master', 'click'],

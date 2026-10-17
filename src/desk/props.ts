@@ -44,10 +44,10 @@ export function masaCiz(scene: Phaser.Scene, y: number): Phaser.GameObjects.Imag
  */
 export function fisKur(scene: Phaser.Scene, dogru: boolean, metin: string): Phaser.GameObjects.Container {
   const yazi = scene.add
-    .text(0, 4, metin, { fontFamily: FONT, fontSize: dogru ? '32px' : '30px', color: PAL.murekkep, align: 'center', lineSpacing: 4 })
+    .text(0, 2, metin, { fontFamily: FONT, fontSize: dogru ? '32px' : '30px', color: PAL.murekkep, align: 'center', lineSpacing: 4 })
     .setOrigin(0.5);
   const W = Math.max(dogru ? 72 : 96, Math.ceil((yazi.width + 48) / PX));
-  const H = Math.max(dogru ? 30 : 44, Math.ceil((yazi.height + 44) / PX));
+  const H = Math.max(dogru ? 30 : 44, Math.ceil((yazi.height + 36) / PX));
   const t = new Tuval(scene, W, H + 2, 'fis');
   const renk = dogru ? PAL.fisYesil : PAL.fisKirmizi;
   const koyu = dogru ? '#9faa8a' : '#b8958a';

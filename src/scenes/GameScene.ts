@@ -11,8 +11,8 @@ import { Klasor } from '../desk/Klasor';
 import { RuleNote } from '../desk/RuleNote';
 import { DAMGA_ADI, damgaIzi, Kaselik, RAF_SOL } from '../desk/Kaselik';
 import { binaEtiketi, ETIKET_KUCUK, ETIKET_KUCUK_YUKSEKLIK, type BinaEtiketi } from '../desk/BinaEtiketi';
-import { Quake } from '../desk/Quake';
-import { GISE_ALAN, GOZ, MASA_Y, Pencere, SOKAK_DERINLIK } from '../desk/Window';
+import { ONCU_SARSINTI_SONU, ONCU_TEPKI_SONU, Quake } from '../desk/Quake';
+import { GISE_ALAN, GOZ, MASA_Y, PENCERE_CAMLARI, Pencere, SOKAK_DERINLIK } from '../desk/Window';
 import { yerlesim, type Yerlesim } from '../desk/yerlesim';
 import { Cekmece, Zarf, ZARF_ALAN } from '../desk/Zarf';
 import { Portre, PORTRE_EKRAN } from '../desk/Portre';
@@ -54,6 +54,9 @@ export interface GameData {
   /** Önceki günlerin kararları (sokak ve deprem günü için; G4b/G5). */
   kayitlar?: GunKaydi[];
 }
+
+/** Etiket metnini iki satıra bölmek için. */
+const SATIR_SONU = String.fromCharCode(10);
 
 /** Öncü sarsıntı şeridi (yer tutucu metin; takım yazacak). */
 const ONCU_YAZI = '[Öncü sarsıntı. Asıl deprem gelecek.]';
@@ -105,6 +108,8 @@ export class GameScene extends Phaser.Scene {
   /** Gişeden kayan zarf (G17) ve onu alan çekmece. */
   private zarf?: Zarf;
   private cekmece!: Cekmece;
+  /** Öncü sarsıntıda binaların üstündeki etiketler (x0: sokak kabındaki ilk yeri; G23 cama sığdırma). */
+  private oncuEtiketler: { e: BinaEtiketi; x0: number; yer: number; sonuc?: string; zemin?: string; bolundu?: boolean }[] = [];
 
   constructor() {
     super(SCENES.Game);
@@ -140,6 +145,7 @@ export class GameScene extends Phaser.Scene {
     this.kitap = undefined;
     this.oncu = undefined;
     this.zarf = undefined;
+    this.oncuEtiketler = [];
   }
 
   create(): void {
@@ -197,7 +203,11 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     if (this.controls.justDown('action')) this.inceleme.degistir();
-    if (this.bitirildi) return;
+    if (this.bitirildi) {
+      // Öncü sarsıntı: sokak odaklanırken etiketler pencere camlarında kalsın.
+      if (this.oncuEtiketler.length > 0) this.oncuEtiketSigdir();
+      return;
+    }
     if (!this.mesgul) {
       // Gün 1 ilk dosyada "Space: İNCELE" ipucu duruyorken (öğrenme anı) saat yavaş akar.
       const hiz = this.ipucu && this.oturum.no === 1 ? TUNING.mesai.ipucuHiz : 1;
@@ -283,15 +293,21 @@ export class GameScene extends Phaser.Scene {
     this.not = not;
   }
 
+  /** Masadaki engeller: belgeler, kural notu ve kitap (pay: her yana genişletme). */
+  private engeller(pay: number): Phaser.Geom.Rectangle[] {
+    const engel: Phaser.Geom.Rectangle[] = this.masadakiKartlar().map((k) => k.sinir());
+    if (this.not?.active) engel.push(this.not.sinir());
+    if (this.kitap) engel.push(this.kitap.sinir);
+    if (pay) engel.forEach((r) => Phaser.Geom.Rectangle.Inflate(r, pay, pay));
+    return engel;
+  }
+
   /**
    * Uyarı fişi için masada boş yer (belge, not ve kitapla örtüşmeyen; birden çoksa gişeye en yakın).
    * Hiç boş yer yoksa null (fiş gişe camına düşer).
    */
   private bosYer(w: number, h: number): [number, number] | null {
-    const engel: Phaser.Geom.Rectangle[] = this.masadakiKartlar().map((k) => k.sinir());
-    if (this.not?.active) engel.push(this.not.sinir());
-    if (this.kitap) engel.push(this.kitap.sinir);
-    engel.forEach((r) => Phaser.Geom.Rectangle.Inflate(r, 12, 12));
+    const engel = this.engeller(12);
     let en: [number, number] | null = null;
     let enPuan = Infinity;
     // 16 px adımlı ızgara; masa kenarlarına ve engellerin kenarlarına dayalı konumlar da denenir (dar boşluklar kaçmasın).
@@ -309,6 +325,52 @@ export class GameScene extends Phaser.Scene {
         const ortu = engel.some((e) => Phaser.Geom.Intersects.RectangleToRectangle(r, e));
         if (ortu) continue;
         const puan = Math.hypot(x - GOZ.x, y - MASA.y);
+        if (puan < enPuan) {
+          enPuan = puan;
+          en = [x, y];
+        }
+      }
+    return en;
+  }
+
+  /**
+   * Fişin sabit yeri (G23): masanın sağ alt köşesi (kaşeliğin solu), sağ ve alt kenara dayalı. Doğru ve yanlış fiş
+   * boyları farklı olsa da hep aynı köşeye düşer. Orası doluysa (belge ya da not taşınmışsa) null.
+   */
+  private fisKosesi(w: number, h: number): [number, number] | null {
+    // Köşe masanın en altına dayalı (kâğıt ekranın alt kenarına iner, 8 px gölgesi dışarıda kalır): yanlış fişin üç
+    // satırı gün 1'de de kural notunun altına tam boy sığsın; belgeler ve kitapla aralık 4 px.
+    const x = MASA.x + MASA.w - 16 - w / 2;
+    const y = MASA.y + MASA.h + 8 - h / 2;
+    const r = new Phaser.Geom.Rectangle(x - w / 2, y - h / 2, w, h);
+    const engel = this.masadakiKartlar().map((k) => Phaser.Geom.Rectangle.Inflate(k.sinir(), 4, 4));
+    if (this.kitap) engel.push(Phaser.Geom.Rectangle.Inflate(this.kitap.sinir, 4, 4));
+    if (this.not?.active) {
+      const n = this.not.sinir();
+      engel.push(new Phaser.Geom.Rectangle(n.x, n.y, n.width, n.height));
+    }
+    return engel.some((e) => Phaser.Geom.Intersects.RectangleToRectangle(r, e)) ? null : [x, y];
+  }
+
+  /**
+   * Masada boş yer yoksa zarf için en az örten yer (G23): belgeler, not ve kitapla en az kesişen konum (eşitlikte
+   * gişeye yakın olan). Çekmecenin önü de engel (zarf oraya konunca alınmış sayılır).
+   */
+  private enAzOrten(w: number, h: number): [number, number] {
+    const engel = this.engeller(0);
+    const A = Cekmece.ALAN;
+    engel.push(new Phaser.Geom.Rectangle(A.x, A.y - 24, A.w, A.h + 24));
+    const kesisim = (a: Phaser.Geom.Rectangle, c: Phaser.Geom.Rectangle): number => {
+      const x = Math.min(a.right, c.right) - Math.max(a.left, c.left);
+      const y = Math.min(a.bottom, c.bottom) - Math.max(a.top, c.top);
+      return x > 0 && y > 0 ? x * y : 0;
+    };
+    let en: [number, number] = [GOZ.x - 300, MASA_Y + 140];
+    let enPuan = Infinity;
+    for (let y = MASA.y + h / 2 + 4; y <= MASA.y + MASA.h - h / 2; y += 8)
+      for (let x = MASA.x + w / 2 + 8; x <= MASA.x + MASA.w - w / 2 - 8; x += 8) {
+        const r = new Phaser.Geom.Rectangle(x - w / 2, y - h / 2, w, h);
+        const puan = engel.reduce((n, e) => n + kesisim(r, e), 0) * 100 + Math.hypot(x - GOZ.x, y - MASA.y);
         if (puan < enPuan) {
           enPuan = puan;
           en = [x, y];
@@ -437,7 +499,7 @@ export class GameScene extends Phaser.Scene {
       geri: ZARF_DUGME.geri,
     });
     z.setDepth(ustKatman()).setAlpha(0);
-    const yer = this.bosYer(ZARF_ALAN.w, ZARF_ALAN.h) ?? [GOZ.x - 300, MASA_Y + 140];
+    const yer = this.bosYer(ZARF_ALAN.w, ZARF_ALAN.h) ?? this.enAzOrten(ZARF_ALAN.w, ZARF_ALAN.h);
     this.tweens.add({ targets: z, alpha: 1, duration: 120 });
     this.tweens.add({ targets: z, x: snap(yer[0]), y: snap(yer[1] - ZARF_ALAN.dy), duration: 460, ease: 'Cubic.easeOut' });
     sfx.play('zarfKay');
@@ -580,13 +642,17 @@ export class GameScene extends Phaser.Scene {
       const fis = fisKur(this, sonuc.dogru, metin);
       // Masanın boş yerine; yer yoksa gişe camının altına (belge değerlerini örtmesin).
       // Önce tam boy, sığmazsa biraz küçük; masada hiç yer yoksa gişe camının sol kenarına küçülerek (silueti örtmez).
+      // Önce sabit köşe (G23: doğru ve yanlış fiş aynı yere), doluysa masanın başka boş yeri.
       let yer: [number, number] | null = null;
-      for (const s of [1, 0.75]) {
-        yer = this.bosYer(fis.width * s, fis.height * s);
-        if (yer) {
-          fis.setScale(s);
-          break;
+      for (const bul of [(w: number, h: number) => this.fisKosesi(w, h), (w: number, h: number) => this.bosYer(w, h)]) {
+        for (const s of [1, 0.75]) {
+          yer = bul(fis.width * s, fis.height * s);
+          if (yer) {
+            fis.setScale(s);
+            break;
+          }
         }
+        if (yer) break;
       }
       if (yer) fisDusur(this, fis, yer[0], yer[1]);
       else {
@@ -661,6 +727,7 @@ export class GameScene extends Phaser.Scene {
         const k = sokak.yerelKutu(b.yer);
         olcek = Math.min(olcek, (k.bottom - 8) / (k.height + ETIKET_KUCUK_YUKSEKLIK));
       }
+      this.oncuEtiketler = [];
       const etiketler = new Map<string, BinaEtiketi>();
       for (const b of binalar) {
         const e = binaEtiketi(this, b.damga, ETIKET_KUCUK, undefined, b.zarf ? ZARF_ETIKET : undefined);
@@ -668,13 +735,25 @@ export class GameScene extends Phaser.Scene {
         this.tweens.add({ targets: e.kap, alpha: 1, duration: 240, ease: 'Stepped', easeParams: [3] });
         sokak.ustuneEkle(b.yer, e.kap);
         etiketler.set(b.bina.id, e);
+        this.oncuEtiketler.push({ e, x0: e.kap.x, yer: b.yer });
       }
-      new Quake(this, sokak, SOKAK_DERINLIK).oynat(
+      // Rapora geçiş (G23): sallantı bittikten sonra kısa bir durulma; son bina tepki verdikten sonra Enter, Space
+      // ya da tıklama hemen geçer.
+      let gecildi = false;
+      const gec = (): void => {
+        if (gecildi) return;
+        gecildi = true;
+        this.input.keyboard?.off('keydown-ENTER', atla);
+        this.input.keyboard?.off('keydown-SPACE', atla);
+        this.input.off(Phaser.Input.Events.POINTER_DOWN, atla);
+        devam();
+      };
+      const kontrol = new Quake(this, sokak, SOKAK_DERINLIK).oynat(
         O.siddet,
         binalar,
         (sonuclar) => {
           this.oncu = { siddet: O.siddet, sonuclar: sonuclar.map(({ dosyaId, durum, bos }) => ({ dosyaId, durum, bos })) };
-          this.time.delayedCall(500, devam);
+          gec();
         },
         {
           sure: O.sureMs,
@@ -684,10 +763,74 @@ export class GameScene extends Phaser.Scene {
           yazi: ONCU_YAZI,
           yaziAlan: GISE_ALAN,
           enBuyukOlcek: olcek,
-          binaTepki: (s) => etiketler.get(s.dosyaId)?.sonucGoster(oncuEtiketi(s.bos), s.bos ? PAL.damgaIade : PAL.damgaBosalt),
+          binaTepki: (s) => {
+            const o = this.oncuEtiketler.find((x) => x.e === etiketler.get(s.dosyaId));
+            if (!o) return;
+            o.sonuc = oncuEtiketi(s.bos);
+            o.zemin = s.bos ? PAL.damgaIade : PAL.damgaBosalt;
+            o.e.sonucGoster(o.sonuc, o.zemin);
+            this.oncuEtiketSigdir();
+          },
         },
       );
+      let atlanabilir = false;
+      const atla = (): void => {
+        if (atlanabilir) kontrol.bitir();
+      };
+      this.input.keyboard?.on('keydown-ENTER', atla);
+      this.input.keyboard?.on('keydown-SPACE', atla);
+      this.input.on(Phaser.Input.Events.POINTER_DOWN, atla);
+      this.time.delayedCall(ONCU_TEPKI_SONU * O.sureMs + 400, () => (atlanabilir = true));
+      this.time.delayedCall(ONCU_SARSINTI_SONU * O.sureMs + O.durulmaMs, () => kontrol.bitir());
     });
+  }
+
+  /**
+   * Öncü sarsıntı etiketleri pencere camlarının içinde kalsın (G23): etiket, binasının bulunduğu camın (orta kayıt
+   * ve çerçeve arası) sınırlarına kaydırılır; çubuğu binanın üstünde kalır. Cama hiç sığmayan sonuç iki satıra
+   * bölünür. Sokak odaklanırken her karede çağrılır.
+   */
+  private oncuEtiketSigdir(): void {
+    const sokak = this.pencere.sokak;
+    const g = sokak.gorunum;
+    const pay = 8;
+    const ara = 8;
+    const yer = this.oncuEtiketler.map((o) => {
+      const ax = g.x + o.x0 * g.olcek;
+      const cam =
+        PENCERE_CAMLARI.find((c) => ax >= c.x0 && ax <= c.x1) ??
+        PENCERE_CAMLARI.reduce((a, c) => (Math.min(Math.abs(ax - c.x0), Math.abs(ax - c.x1)) < Math.min(Math.abs(ax - a.x0), Math.abs(ax - a.x1)) ? c : a));
+      let w = o.e.genislik() * g.olcek;
+      const genis = cam.x1 - cam.x0 - pay * 2;
+      if (w > genis && o.sonuc?.includes(' · ') && !o.bolundu) {
+        // Sonuç çipi cama sığmıyor: "[ÇATLADI · İÇİ BOŞ]" iki satır.
+        o.bolundu = true;
+        o.e.sonucGoster(o.sonuc.replace(' · ', SATIR_SONU), o.zemin ?? PAL.damgaIade);
+        w = o.e.genislik() * g.olcek;
+      }
+      const x = w > genis ? (cam.x0 + cam.x1) / 2 : Phaser.Math.Clamp(ax, cam.x0 + pay + w / 2, cam.x1 - pay - w / 2);
+      // Etiketin dikey aralığı (cephenin üstünden etiket boyu kadar yukarı): yan yana etiketler çakışıyor mu.
+      const alt = g.y + sokak.yerelKutu(o.yer).y * g.olcek;
+      return { o, ax, cam, w, x, alt, ust: alt - ETIKET_KUCUK_YUKSEKLIK * g.olcek };
+    });
+    // Aynı camdaki komşu etiketler üst üste binmesin: sağdaki sağa, sığmazsa soldaki sola itilir.
+    const sirali = [...yer].sort((a, b) => a.x - b.x);
+    for (let i = 1; i < sirali.length; i++) {
+      const a = sirali[i - 1];
+      const b = sirali[i];
+      if (a.cam !== b.cam || a.alt < b.ust || b.alt < a.ust) continue;
+      const gerek = a.x + a.w / 2 + ara + b.w / 2;
+      if (b.x >= gerek) continue;
+      b.x = Math.min(gerek, b.cam.x1 - pay - b.w / 2);
+      if (b.x < gerek) a.x = Math.max(a.cam.x0 + pay + a.w / 2, b.x - b.w / 2 - ara - a.w / 2);
+    }
+    for (const { o, ax, x } of yer) {
+      const kayma = Math.round((x - ax) / g.olcek / 2) * 2;
+      o.e.kap.setX(o.x0 + kayma);
+      // Çubuk binanın ortasında kalır; etiket çok kaydıysa etiketin altından çıkacak kadar yana.
+      const yari = Math.max(0, o.e.genislik() / 2 - 12);
+      o.e.cubuk.setX(Phaser.Math.Clamp(-kayma, -yari, yari));
+    }
   }
 
   /** Sekans sırasında belgeler, kural notu, klasör ve kaşelik kilitli. */

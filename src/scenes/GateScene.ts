@@ -7,6 +7,7 @@ import { addBackdrop } from '../ui/backdrop';
 import { kagitPanel } from '../ui/kagit';
 import { label } from '../ui/text';
 import { SCENES } from './keys';
+import { splashAtlaDinle } from './SplashScene';
 
 /**
  * "Başlamak için tıkla" ekranı. Tarayıcılar ilk kullanıcı etkileşiminden önce sesi açmaz; bu ekran sayesinde
@@ -29,6 +30,8 @@ export class GateScene extends Phaser.Scene {
     const start = (): void => {
       sfx.play('confirm');
       goTo(this, SCENES.Splash, undefined, 160);
+      // Kararma sırasında gelen tık ya da tuş logoyu geçsin (G23: girdi kaybolmasın).
+      splashAtlaDinle();
     };
     this.input.once(Phaser.Input.Events.POINTER_UP, start);
     this.input.keyboard?.once(Phaser.Input.Keyboard.Events.ANY_KEY_DOWN, start);

@@ -93,7 +93,8 @@ export class MenuScene extends Phaser.Scene {
 
     const buttons = items.map(([text, action], i) => new Button(this, WIDTH / 2, ust + 352 + i * 112, text, action));
     buttons.forEach((button, i) => popIn(this, button, 80 + i * 50));
-    new MenuNav(this, buttons);
+    // İlk Enter doğrudan "Oyna" (G23: menü ilk girdiye tepki versin).
+    new MenuNav(this, buttons, { varsayilan: 0 });
 
     label(this, 48, HEIGHT - 44, TEAM, { size: 34, color: num(PAL.panelYazi), align: 'left' });
     label(this, WIDTH - 48, HEIGHT - 44, `sürüm ${VERSION}`, { size: 30, color: num(PAL.panelYazi), align: 'right' });

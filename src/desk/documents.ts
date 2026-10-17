@@ -524,12 +524,13 @@ export function raporKur(scene: Phaser.Scene, bina: Bina, rapor: GetirilenRapor,
   // Laboratuvar mührü (sahtede yok: noktalı boş yer)
   etiket(k, 5, 47, 'Lab mührü', 26);
   const bosMuhur = rapor.ipucu === 'muhur';
-  for (let x2 = 40; x2 < t.w - 6; x2 += 2) if (!bosMuhur || x2 < 55 || x2 > 69) t.px(x2, 50, PAL.murekkepAcik);
+  for (let x2 = 40; x2 < t.w - 6; x2 += 2) if (!bosMuhur || x2 < 54 || x2 > 70) t.px(x2, 50, PAL.murekkepAcik);
   if (!bosMuhur) muhurLab(t, 62, 45, rnd, karot ? PAL.lab : PAL.kirliBeyaz);
   else {
-    // Mühür yeri boş (G5b): kesik çizgili boş daire ve içinde soluk "MÜHÜR" (gerçek raporda dolu mühür).
-    kesikDaire(t, 62, 45, 6, PAL.murekkepAcik);
-    etiket(k, 62, 45.5, 'MÜHÜR', 18, PAL.murekkepSoluk, 0.5);
+    // Mühür yeri boş (G5b): kesik çizgili boş daire ve içinde soluk "MÜHÜR" (gerçek raporda dolu mühür). G23: yazı
+    // okunur boyda (25 px: VT323'te tam bir ekran pikseli), daire ona göre büyük.
+    kesikDaire(t, 62, 45, 7, PAL.murekkepAcik);
+    etiket(k, 62, 45.5, 'MÜHÜR', 25, PAL.murekkepSoluk, 0.5);
   }
   bolge(k, 'lab', 38, 42, t.w - 42, 11);
   // Ada / parsel (G17b)

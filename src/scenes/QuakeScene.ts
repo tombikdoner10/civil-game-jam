@@ -41,7 +41,7 @@ const SOKAK_D = 10;
  * binasından kayan etiket ince bir çubukla binaya bağlanır.
  */
 const ETIKET_EN_AZ = 0.8;
-const ETIKET_ARA = 16;
+const ETIKET_ARA = 32;
 
 /** Oyuncunun binasının deprem sonucunun rengi: içinde insan varken ağır sonuç kırmızı, boş binada gri. */
 export function sonucRengi(s: DepremBinaSonucu): string {
@@ -193,7 +193,9 @@ export class QuakeScene extends Phaser.Scene {
     const ogeler = this.etiketler
       .map(({ e, yer }) => {
         const k = sokak.yerelKutu(yer);
-        return { e, ax: g.x + k.centerX * g.olcek, ay: g.y + k.y * g.olcek, w: e.genislik() * sc, x: 0 };
+        // ust: çubuğun indiği yer (çöken binada moloz yığını, G23).
+        const ust = g.y + sokak.ustKenar(yer) * g.olcek;
+        return { e, ax: g.x + k.centerX * g.olcek, ay: g.y + k.y * g.olcek, ust, w: e.genislik() * sc, x: 0 };
       })
       .sort((a, b) => a.ax - b.ax);
     // Soldan sağa it (çakışmasın), sonra grubu binaların ortasına geri kaydır ve ekrana sığdır.
@@ -216,9 +218,9 @@ export class QuakeScene extends Phaser.Scene {
       const dx = x - o.ax;
       const kalk = Math.min(60, Math.abs(dx)) * sc;
       o.e.kap.setPosition(x, Math.round(o.ay - kalk)).setScale(sc);
-      if (cizgi && Math.abs(dx) > 2) {
+      if (cizgi && (Math.abs(dx) > 2 || o.ust - o.ay > 2)) {
         cizgi.lineStyle(4 * sc, 0x0e0d10, 0.9);
-        cizgi.lineBetween(x, o.ay - kalk, o.ax, o.ay);
+        cizgi.lineBetween(x, o.ay - kalk, o.ax, o.ust);
       }
     }
   }

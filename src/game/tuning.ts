@@ -141,9 +141,10 @@ export const TUNING = {
   /**
    * Öncü sarsıntı (gün 1 sonu): risk çarpanı, süre (ms) ve kamera sarsıntısı genliği. Öncüde yalnızca belgelerdeki
    * kusurlar sayılır ve en fazla çatlak olur. 2.5 ile: 1 kaçak katlı bina GÜVENLİ damgalıysa çatlar, GÜÇLENDİR
-   * damgalıysa sağlam kalır; temiz bina sağlam kalır.
+   * damgalıysa sağlam kalır; temiz bina sağlam kalır. durulmaMs (G23): sallantı bittikten sonra rapora geçmeden
+   * önceki bekleme; son bina tepki verdikten sonra Enter/Space/tık hemen geçer.
    */
-  oncu: { siddet: 2.5, sureMs: 9000, sarsinti: 0.006 },
+  oncu: { siddet: 2.5, sureMs: 9000, sarsinti: 0.006, durulmaMs: 1000 },
 
   /**
    * Büyük deprem (gün 5 sonu, G5). Sonuç risk sayısıyla değil, kademeyle (adil ve öngörülebilir):

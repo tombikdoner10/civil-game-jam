@@ -6,6 +6,11 @@ export interface MenuNavOptions {
   horizontal?: boolean;
   /** Esc / Backspace ile çalışacak geri eylemi. */
   back?: () => void;
+  /**
+   * Hiçbir düğme seçili değilken Enter/Boşluk bu düğmeye basar (G23: ana menüde ilk Enter "Oyna"yı açsın, yalnızca
+   * seçmekle kalmasın). Verilmezse ilk Enter yalnızca ilk düğmeyi seçer.
+   */
+  varsayilan?: number;
 }
 
 /** Butonlar arasında klavyeyle gezinme: ↑/↓ (W/S) ile seç, Enter/Boşluk ile bas, Esc ile geri. */
@@ -23,11 +28,13 @@ export class MenuNav {
     const next = opts.horizontal ? ['ArrowRight', 'KeyD'] : ['ArrowDown', 'KeyS'];
 
     const onKey = (event: KeyboardEvent): void => {
-      if (!scene.input.enabled || buttons.length === 0) return;
+      // Basılı tutulan tuşun tekrarı sayılmaz (G23: logoyu geçen tuş menüde düğmeye basmasın).
+      if (!scene.input.enabled || buttons.length === 0 || event.repeat) return;
       if (prev.includes(event.code)) this.move(-1);
       else if (next.includes(event.code)) this.move(1);
       else if (event.code === 'Enter' || event.code === 'NumpadEnter' || event.code === 'Space') {
         if (this.index >= 0) this.buttons[this.index].press();
+        else if (opts.varsayilan !== undefined) this.buttons[opts.varsayilan]?.press();
         else this.select(0);
       } else if (event.code === 'Escape' || event.code === 'Backspace') opts.back?.();
     };

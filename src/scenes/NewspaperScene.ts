@@ -27,6 +27,9 @@ const UZAK = { x: 4000, y: 0 };
 /** Fotoğrafta en çok kaç parsel (fazlası: öne çıkan binanın çevresi). G5b: daha geniş kare. */
 const FOTO_PARSEL = 18;
 
+/** Sonuç ekranına geçişin kararma süresi (ms; ana ve fotoğraf kamerası birlikte). */
+const GECIS_MS = 220;
+
 const MUREKKEP = '#1d1a18';
 const KAGIT_RENK = '#d9d3c1';
 const KAGIT_KOYU = '#bfb8a4';
@@ -40,6 +43,8 @@ export class NewspaperScene extends Phaser.Scene {
   private veri!: NewspaperData;
   private hazir = false;
   private gecildi = false;
+  /** Fotoğrafı gösteren ayrı kamera (geçişte ana kamerayla birlikte söner, G23). */
+  private fotoKamera?: Phaser.Cameras.Scene2D.Camera;
 
   constructor() {
     super(SCENES.Newspaper);
@@ -49,6 +54,7 @@ export class NewspaperScene extends Phaser.Scene {
     this.veri = data;
     this.hazir = false;
     this.gecildi = false;
+    this.fotoKamera = undefined;
   }
 
   create(): void {
@@ -151,7 +157,9 @@ export class NewspaperScene extends Phaser.Scene {
     this.gecildi = true;
     sfx.play('confirm');
     const data: ResultData = { ...this.veri };
-    goTo(this, SCENES.Result, data);
+    // goTo yalnızca ana kamerayı karartır: fotoğraf kamerası da aynı sürede sönsün (siyah ekranda asılı kalmasın).
+    this.fotoKamera?.fadeOut(GECIS_MS, 0, 0, 0);
+    goTo(this, SCENES.Result, data, GECIS_MS);
   }
 
   /**
@@ -184,6 +192,7 @@ export class NewspaperScene extends Phaser.Scene {
     fc.setScroll(UZAK.x, UZAK.y).setRoundPixels(true).setBackgroundColor(0x000000);
     if (this.renderer.type === Phaser.WEBGL) fc.postFX.addColorMatrix().grayscale(1);
     fc.fadeIn(500, 0, 0, 0);
+    this.fotoKamera = fc;
   }
 
   private kagitCiz(): void {

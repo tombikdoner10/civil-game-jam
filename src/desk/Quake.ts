@@ -72,13 +72,24 @@ export interface QuakeSonucu extends SarsintiSonucu {
 const SIRA: HasarDurumu[] = ['ayakta', 'hasarli', 'agirHasar'];
 const TIK = 50;
 
+/** Öncü sarsıntıda sallantının bittiği an (T'nin oranı); sonrası durulma (G23: GameScene erken bitirir). */
+export const ONCU_SARSINTI_SONU = 0.78;
+/** Öncüde son binanın tepki verdiği an (T'nin oranı; tepkiler 0.32-0.52 arasında). */
+export const ONCU_TEPKI_SONU = 0.52;
+
+/** Sekansı dışarıdan erken bitirme (G23: öncü sarsıntıdan sonra Enter/Space/tık). */
+export interface QuakeKontrol {
+  /** Sarsıntıyı hemen bitirir (sesi söndürür, parçacıkları siler) ve bitince'yi çağırır. İkinci çağrı bir şey yapmaz. */
+  bitir: () => void;
+}
+
 /** Öncü sarsıntı zarfı (0..1): yükselir, tepede kalır, söner; son kısım durulma (toz çöker). */
 function zarfOncu(u: number): number {
   if (u < 0.06) return 0;
   if (u < 0.2) return ((u - 0.06) / 0.14) * 0.35;
   if (u < 0.3) return 0.35 + ((u - 0.2) / 0.1) * 0.65;
   if (u < 0.55) return 1;
-  if (u < 0.78) return 1 - (u - 0.55) / 0.23;
+  if (u < ONCU_SARSINTI_SONU) return 1 - (u - 0.55) / (ONCU_SARSINTI_SONU - 0.55);
   return 0;
 }
 
@@ -130,7 +141,12 @@ export class Quake {
     this.sokak.odakla(i0, i0 + n - 1, sure, undefined, 0.5, 0.1);
   }
 
-  oynat(siddet: number, binalar: readonly SokakYeri[], bitince: (sonuclar: QuakeSonucu[]) => void, secenek: SarsintiSecenek = {}): void {
+  oynat(
+    siddet: number,
+    binalar: readonly SokakYeri[],
+    bitince: (sonuclar: QuakeSonucu[]) => void,
+    secenek: SarsintiSecenek = {},
+  ): QuakeKontrol {
     const scene = this.scene;
     const buyuk = secenek.buyuk ?? false;
     const T = secenek.sure ?? 9000;
@@ -316,7 +332,7 @@ export class Quake {
     } else {
       // Hasarlı binalar tepe anında sırayla tepki verir.
       const tepkiBas = 0.32 * T;
-      const tepkiAralik = tepkiler.length > 0 ? (0.2 * T) / tepkiler.length : 0;
+      const tepkiAralik = tepkiler.length > 0 ? ((ONCU_TEPKI_SONU - 0.32) * T) / tepkiler.length : 0;
       tepkiler.forEach((s, j) => scene.time.delayedCall(tepkiBas + j * tepkiAralik, () => tepki(s)));
     }
 
@@ -377,19 +393,28 @@ export class Quake {
           const b = binalar[Math.floor(Math.random() * binalar.length)];
           toz.emitParticleAt(...nokta(b.yer, 1), 1);
         }
-        if (t >= T) {
-          tik.remove();
-          kapat(0.6);
-          this.sokak.sallan(0);
-          const bitir = (): void => {
-            for (const p of [tavan, parca, toz, bulut, dokulme]) p?.destroy();
-            bitince(sonuclar);
-          };
-          if (yazi) scene.tweens.add({ targets: yazi, alpha: 0, duration: 300, onComplete: () => (yazi.destroy(), bitir()) });
-          else bitir();
-        }
+        if (t >= T) son();
       },
     });
+    let bitti = false;
+    /** Sekansın sonu (süre dolunca ya da erken bitirilince): ses söner, şerit yazı kalkar, bitince çağrılır. */
+    const son = (hizli = false): void => {
+      if (bitti) return;
+      bitti = true;
+      tik.remove();
+      kapat(hizli ? 0.25 : 0.6);
+      this.sokak.sallan(0);
+      const bitir = (): void => {
+        for (const p of [tavan, parca, toz, bulut, dokulme]) p?.destroy();
+        bitince(sonuclar);
+      };
+      if (yazi && !hizli) scene.tweens.add({ targets: yazi, alpha: 0, duration: 300, onComplete: () => (yazi.destroy(), bitir()) });
+      else {
+        yazi?.destroy();
+        bitir();
+      }
+    };
+    return { bitir: () => son(true) };
   }
 
   /**

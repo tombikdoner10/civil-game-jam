@@ -30,7 +30,8 @@ const para = (n: number): string => `${n < 0 ? '−' : ''}${Math.abs(n)} TL`;
 /**
  * Oyun sonu (G5): masada "Denetçi dosyası". Beş günün doğru/yanlış toplamı, bulunan kusurlar, birikmiş para,
  * büyük depremde sokağın özeti (ayakta / hasarlı / çöken / boşaltılmış / iade) ve kısa bir değerlendirme satırı (yer
- * tutucu). "Yeniden oyna" (Enter) gün 1'den yeni sokakla başlar; "Ana menü" (Esc).
+ * tutucu). "Yeniden oyna" (Enter) gün 1'den yeni sokakla başlar; "Ana menü" (Esc). Kısa yolda (G21) Enter
+ * "Gün 2'den devam", "Yeniden oyna" R.
  */
 export class ResultScene extends Phaser.Scene {
   private veri!: ResultData;
@@ -225,12 +226,28 @@ export class ResultScene extends Phaser.Scene {
     const by = T + KAGIT.h - 64;
     const ara = kisa ? 440 : 460;
     const dx = kisa ? -ara : -ara / 2;
-    const d1 = pikselDugme(this, L + KAGIT.w / 2 + dx, by, 'YENİDEN OYNA', 'Enter', yeniden);
+    // Kısa yolda (G23) birincil "Gün 2'den devam" (Enter, D); "Yeniden oyna" ikincil (R ya da tık). Normal sonda
+    // Enter = Yeniden oyna.
+    const d1 = pikselDugme(
+      this,
+      L + KAGIT.w / 2 + dx,
+      by,
+      'YENİDEN OYNA',
+      kisa ? 'R' : 'Enter',
+      yeniden,
+      kisa ? { govde: PAL.cerceveAcik, acik: '#7a7466', koyu: PAL.cerceve } : undefined,
+    );
     const dugmeler = [d1];
-    if (kisa)
-      dugmeler.push(
-        pikselDugme(this, L + KAGIT.w / 2, by, "GÜN 2'DEN DEVAM", 'D', surdur, { govde: PAL.damgaGuvenli, acik: '#5a9a66', koyu: '#2a5232' }),
-      );
+    if (kisa) {
+      const d2 = pikselDugme(this, L + KAGIT.w / 2, by, "GÜN 2'DEN DEVAM", 'Enter', surdur, { govde: PAL.damgaGuvenli, acik: '#5a9a66', koyu: '#2a5232' });
+      dugmeler.push(d2);
+      // Odak çerçevesi: birincil düğmenin çevresinde, nabız gibi (gün sonu raporundaki kısa yol düğmesi gibi).
+      const odak = this.add
+        .rectangle(snap(L + KAGIT.w / 2), snap(by), snap(d2.width + 24), snap(d2.height + 24))
+        .setStrokeStyle(PX, num(PAL.damgaGuvenli))
+        .setAlpha(0);
+      this.tweens.add({ targets: odak, alpha: { from: 1, to: 0.25 }, duration: 600, delay: 400, yoyo: true, repeat: -1, ease: 'Stepped', easeParams: [3] });
+    }
     dugmeler.push(
       pikselDugme(this, L + KAGIT.w / 2 + dx + ara * (kisa ? 2 : 1), by, 'ANA MENÜ', 'Esc', menu, {
         govde: PAL.cerceveAcik,
@@ -245,7 +262,9 @@ export class ResultScene extends Phaser.Scene {
     const hazir = { v: false };
     this.time.delayedCall(350, () => (hazir.v = true));
     const enter = (): void => {
-      if (hazir.v) yeniden();
+      if (!hazir.v) return;
+      if (kisa) surdur();
+      else yeniden();
     };
     const esc = (): void => {
       if (hazir.v) menu();
@@ -253,13 +272,18 @@ export class ResultScene extends Phaser.Scene {
     const dTus = (): void => {
       if (hazir.v) surdur();
     };
+    const rTus = (): void => {
+      if (hazir.v && kisa) yeniden();
+    };
     kb?.on('keydown-ENTER', enter);
     kb?.on('keydown-ESC', esc);
     kb?.on('keydown-D', dTus);
+    kb?.on('keydown-R', rTus);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       kb?.off('keydown-ENTER', enter);
       kb?.off('keydown-ESC', esc);
       kb?.off('keydown-D', dTus);
+      kb?.off('keydown-R', rTus);
     });
     sfx.play('kagitKay');
     this.time.delayedCall(dGec + 700, () => sfx.play(deg.ton === 'iyi' ? 'gunIyi' : 'gunKotu'));
