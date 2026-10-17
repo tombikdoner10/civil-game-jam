@@ -63,7 +63,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
-- [x] G29b Beyan model eşlemesi zamana bağlı (geliştirici 17:02Z, test oyuncusu 22:56Z öncesi Sonnet); beyan dosyaları kaydın yer listesine girmiyor; Ses ve Metin yalnızca Opus (d027c0e, Opus/high; test sürüyor)
+- [x] G29b Beyan model eşlemesi zamana bağlı (geliştirici 17:02Z, test oyuncusu 22:56Z öncesi Sonnet); beyan dosyaları kaydın yer listesine girmiyor; Ses ve Metin yalnızca Opus (d027c0e, Opus/high; test geçti)
 - [x] G29 AI beyanı oyunda ve formda kategori başına sade özet (docs/ai-ozet.json); AI_BEYAN.md altta ayrıntılı kayıt eksiksiz (eccc1ac, Opus/high; test geçti)
 - [x] G28b Deprem ipucu sağ üstte (gökyüzü); kısa yol sonucunda İADE kutusu ve içi boş G30 koşuluna bağlı (juriGordukleri ortak yardımcı); 5 günlük yol md5 aynı (325920d, Opus/high; test geçti)
 - [x] G30 Kısa yol gazetesi: önce [Senin binaların], sonra [Bütün sokak]; jürinin görmediği İADE/içi boş gizli; 5 günlük yol bayt bayt aynı (8d908e6, Opus/high; test geçti)
