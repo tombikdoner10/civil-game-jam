@@ -39,7 +39,7 @@ import { KUCUK_DEPREM_SERIT, oncuEtiketi } from '../game/gazete';
 import { KUSUR_BILGI } from '../game/rules';
 import { ornekKayitlar } from '../game/ornek';
 import { gunAyar } from '../game/days';
-import { GunOturumu, gunHesabi, sokakKayitlari, type GunKaydi, type SarsintiKaydi } from '../game/session';
+import { GunOturumu, gunHesabi, isteGecmisi, sokakKayitlari, type GunKaydi, type SarsintiKaydi } from '../game/session';
 import type { SahaSonucu } from '../game/saha';
 import { TUNING } from '../game/tuning';
 import type { DayEndData } from './DayEndScene';
@@ -203,7 +203,7 @@ export class GameScene extends Phaser.Scene {
     fadeIn(this);
     this.cameras.main.setRoundPixels(true);
     this.controls = new Controls(this);
-    this.oturum = new GunOturumu(this.gun, this.tohum);
+    this.oturum = new GunOturumu(this.gun, this.tohum, isteGecmisi(this.kayitlar));
     const ayar = this.oturum.ayar;
     this.yer = yerlesim(this.gun);
     if (DEV) this.input.keyboard?.on('keydown-ENTER', () => this.bitir());

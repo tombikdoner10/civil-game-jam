@@ -135,7 +135,8 @@ for (let tohum = 1; tohum <= 40; tohum++) {
         ['fayaYakin', 'fay'],
       ]) {
         if (!gor.includes(id)) continue;
-        const z = b.belgeler.zemin;
+        // Başka binanın zemin etüdü yok sayılır (etüt yok gibi).
+        const z = BLD.baskaBinaBelgesi(b.belgeler) === 'zemin' ? null : b.belgeler.zemin;
         const bosaltFay = id === 'fayaYakin' && T.fayKurali === 'bosalt';
         const digerBosalt = R.gorunenKusurlar(b, g).some((k) => k.ciddiyet === 'bosalt' && k.id !== id && k.id !== 'sivilasma');
         if (digerBosalt) continue;
@@ -375,9 +376,9 @@ for (let tohum = 1; tohum <= 40; tohum++) {
 }
 // G45: gün 1'de kusurlu dosya olan her oyunda kendiliğinden zarf teklif edildi; gün 2-5'in SOR zarfları G45 öncesiyle
 // aynı (tohum 1-40, bu döngüde G45 öncesi ölçüm: gün 1-5 = 15, 28, 56, 54, 110; gün 1'de yalnızca kendiliğinden zarfın
-// dosyasındaki SOR zarfları düşer).
+// dosyasındaki SOR zarfları düşer). G47 gün 2-5 dosyalarını değiştirdi (tanıtım garantisi): yeni ölçüm 32, 59, 56, 117.
 bak(g45.teklif === 40 - g45.kusursuzGun1, `G45 kendiliğinden zarf ${g45.teklif} ≠ ${40 - g45.kusursuzGun1}`);
-bak(JSON.stringify(g45.sorZarfGun.slice(1)) === JSON.stringify([28, 56, 54, 110]), `G45 gün 2-5 SOR zarfları değişti: ${g45.sorZarfGun}`);
+bak(JSON.stringify(g45.sorZarfGun.slice(1)) === JSON.stringify([32, 59, 56, 117]), `G45 gün 2-5 SOR zarfları değişti: ${g45.sorZarfGun}`);
 console.log('G45 kendiliğinden zarf (tohum 1-40):', JSON.stringify(g45));
 // Deprem sonucu yalnızca vurulan damgaya bağlı (zarf alanı yalnızca işaret); zarflı kararda damga istenen damga,
 // sokakta zarf izi kabul edilen zarflarla aynı (G22).
@@ -877,7 +878,7 @@ for (let tohum = 1; tohum <= 60; tohum++) {
       const bilgi = { karotSaha: sn.mpa };
       const kabul = R.dogruDamgalar(b, g, bilgi);
       const tam = R.dogruDamga(R.bilgiyleTamamla(b, bilgi), g);
-      const yalniz = R.gorunenKusurlar(b, g).every((k) => k.id === 'karotYok' || k.id === 'baskaBina');
+      const yalniz = R.gorunenKusurlar(b, g).every((k) => k.id === 'karotYok' || (k.id === 'baskaBina' && baska));
       if (yalniz) bak(tam === (sn.mpa < esik ? 'bosalt' : 'guclendir'), `${e}: saha kuralı damgası ${tam} (tahmin ${sn.mpa})`);
       if (ana === 'iade') {
         bak(kabul[0] === 'iade' && kabul.includes(tam) && (tam === 'iade' || kabul.length === 2), `${e}: saha kabulü ${kabul}`);
@@ -1221,6 +1222,133 @@ console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19
     console.log(
       `  gün ${t.gun}: +${t.kazanc} TL → ${t.kademe}/${tumu} kademe (çanta ${t.kad[0]}, sabitleme ${t.kad[1]}, güçlendirme ${t.kad[2]}); harcanan ${t.harcanan}, artan ${t.artan} TL`,
     );
+}
+
+const HIK = await server.ssrLoadModule('/src/game/stories.ts');
+// ---- G47 kapsam garantisi: her kusur türü tanıtıldığı gün görünür (tohum 1-1000, gün 1-5) ----
+{
+  const N = 1000;
+  const hepsi = new Set(R.KURALLAR.flatMap((k) => [...k.kusurlar, ...(k.ek?.kusurlar ?? [])]));
+  const g47 = { tamOyun: 0, tanitim: 0, temizGun: 0, kusurluGun: 0, acilis: 0, hikaye: 0, ayniTohum: 0 };
+  for (let t = 1; t <= N; t++) {
+    const ilk = new Map();
+    for (let g = 1; g <= 5; g++) {
+      const ds = BLD.gunDosyalari(t, g, D.gunAyar(g).dosyaSayisi);
+      const gor = ds.map((b) => R.gorunenKusurlar(b, g));
+      const e = `G47 t${t} g${g}`;
+      for (const l of gor) for (const k of l) if (!ilk.has(k.id)) ilk.set(k.id, g);
+      // O gün tanıtılan her kusur o gün en az bir dosyada görünür.
+      for (const id of D.yeniKusurlar(g)) {
+        const var_ = gor.some((l) => l.some((k) => k.id === id));
+        bak(var_, `${e}: tanıtılan ${id} görünmüyor`);
+        if (var_) g47.tanitim++;
+      }
+      // Günde en az bir temiz ve en az bir kusurlu dosya.
+      if (gor.some((l) => l.length === 0)) g47.temizGun++;
+      else bak(false, `${e}: temiz dosya yok`);
+      if (gor.some((l) => l.length > 0)) g47.kusurluGun++;
+      else bak(false, `${e}: kusurlu dosya yok`);
+      // Gün 1 açılışı: dosya 1 temiz, dosya 2 tek kaçak kat (+1), dosya 3 temiz ya da 2+ kaçak kat.
+      if (g === 1) {
+        const [a, b2, c] = gor;
+        const k3 = c.length === 0 || (c.length === 1 && c[0].id === 'kacakKat' && c[0].ciddiyet === 'bosalt');
+        const ok = a.length === 0 && b2.length === 1 && b2[0].id === 'kacakKat' && b2[0].etiket.endsWith('(+1)') && k3;
+        bak(ok, `${e}: açılış planı değişti [${gor.slice(0, 3).map((l) => l.map((k) => k.etiket).join('+') || 'temiz')}]`);
+        if (ok) g47.acilis++;
+      }
+      // Hikâye binaları kendi gününde, ilk iki dosyanın dışında.
+      for (const s of HIK.HIKAYELER.filter((h) => h.gun === g)) {
+        const i = ds.findIndex((b) => b.id === s.id);
+        bak(i >= 2, `${e}: hikâye ${s.id} yerinde değil (${i})`);
+        if (i >= 2) g47.hikaye++;
+      }
+      // Aynı tohum aynı dosyalar.
+      if (t <= 50) {
+        const ayni = JSON.stringify(BLD.gunDosyalari(t, g, D.gunAyar(g).dosyaSayisi)) === JSON.stringify(ds);
+        bak(ayni, `${e}: aynı tohum farklı dosyalar`);
+        if (ayni) g47.ayniTohum++;
+      }
+    }
+    // Her kusur türü oyunda ve tanıtıldığı gün.
+    const tamOyun = [...hepsi].every((id) => {
+      const k = R.KURALLAR.find((x) => x.kusurlar.includes(id) || x.ek?.kusurlar.includes(id));
+      return ilk.get(id) === (k.kusurlar.includes(id) ? k.ilkGun : k.ek.gun);
+    });
+    bak(tamOyun, `G47 t${t}: bir kusur türü tanıtıldığı gün görünmedi`);
+    if (tamOyun) g47.tamOyun++;
+  }
+  bak(g47.tamOyun === N, `G47 bütün kusurları tanıtıldığı gün gören oyun ${g47.tamOyun}/${N}`);
+  for (const [k, v] of Object.entries(g47)) bak(v > 0, `G47 sayaç ${k} sıfır`);
+  console.log(`G47 kapsam (tohum 1-${N}, gün 1-5; tamOyun: 13/13 tür tanıtıldığı gün):`, JSON.stringify(g47));
+}
+
+// ---- G47 sahte rapor garantisi (birim): henüz sahte gelmediyse ikinci İSTE sahte; geldikten sonra doğal ----
+{
+  const g47s = { zorla: 0, ilkDogal: 0, sonraDogal: 0, gunIci: 0, gecmis: 0 };
+  // Eksik belgeli (karot ya da zemin istenebilir) sıradaki dosyaya ilerle; İSTE edilecek alanı döndürür.
+  const ilerle = (o, g) => {
+    while (o.mevcut && !o.bitti) {
+      for (const alan of ['karot', 'zemin']) if (o.istenebilir(alan)) return alan;
+      o.damgala(R.dogruDamga(o.mevcut, g));
+    }
+    return null;
+  };
+  const tur = (o, alan) => o.iste(alan)?.tur;
+  for (let t = 1; t <= 60; t++) {
+    for (const g of [3, 4, 5]) {
+      const e = `G47s t${t} g${g}`;
+      // Önceki günlerde bir İSTE yapılmış, sahte gelmemiş: bu günün ilk İSTE'si (oyunun ikincisi) sahte.
+      const o1 = new S.GunOturumu(g, t, { sayi: 1, sahteGeldi: false });
+      const dogal = new S.GunOturumu(g, t);
+      const a1 = ilerle(o1, g);
+      const a2 = ilerle(dogal, g);
+      if (!a1 || a1 !== a2) continue;
+      const c1 = o1.iste(a1);
+      const d1 = dogal.iste(a2);
+      bak(c1?.tur === 'sahte' && !!c1.rapor?.ipucu && c1.ifade === 'gergin', `${e}: ikinci İSTE sahte değil (${c1?.tur})`);
+      bak(d1 && c1 && c1.secim === d1.secim, `${e}: zorlanan cevap rastgele diziyi değiştirdi`);
+      if (c1?.tur === 'sahte') g47s.zorla++;
+      // Oyunun ilk İSTE'si doğal; sahte geldikten sonra doğal.
+      const o0 = new S.GunOturumu(g, t, { sayi: 0, sahteGeldi: false });
+      const oS = new S.GunOturumu(g, t, { sayi: 4, sahteGeldi: true });
+      const a0 = ilerle(o0, g);
+      const aS = ilerle(oS, g);
+      const c0 = o0.iste(a0);
+      bak(c0?.tur === d1?.tur, `${e}: oyunun ilk İSTE'si doğal değil (${c0?.tur} ≠ ${d1?.tur})`);
+      g47s.ilkDogal++;
+      bak(tur(oS, aS) === d1?.tur, `${e}: sahte geldikten sonra doğal değil`);
+      g47s.sonraDogal++;
+      // Gün içinde: ilk İSTE doğal ve sahte değilse sıradaki İSTE sahte; sahteden sonraki doğal.
+      if (c0?.tur !== 'sahte') {
+        o0.damgala(R.dogruDamga(o0.mevcut, g));
+        dogal.damgala(R.dogruDamga(dogal.mevcut, g));
+        const b0 = ilerle(o0, g);
+        const bD = ilerle(dogal, g);
+        if (b0 && b0 === bD) {
+          const c2 = tur(o0, b0);
+          bak(c2 === 'sahte', `${e}: gün içinde ikinci İSTE sahte değil (${c2})`);
+          if (c2 === 'sahte') g47s.gunIci++;
+          tur(dogal, bD);
+          o0.damgala(R.dogruDamga(o0.mevcut, g));
+          dogal.damgala(R.dogruDamga(dogal.mevcut, g));
+          const b3 = ilerle(o0, g);
+          const b3D = ilerle(dogal, g);
+          if (b3 && b3 === b3D) bak(tur(o0, b3) === tur(dogal, b3D), `${e}: sahteden sonraki İSTE doğal değil`);
+        }
+      }
+    }
+  }
+  // Geçmiş kayıtlardan: İSTE sayısı ve sahte; başka tohumlu örnek kayıtlar sayılmaz.
+  const kr = (iste) => ({ dosyaId: 'x', damga: 'iade', dogruDamga: 'iade', dogru: true, kusurlar: [], bulunan: [], iste });
+  const g1 = S.isteGecmisi([{ gun: 3, kararlar: [kr({ karot: 'gercek' }), kr(undefined)] }]);
+  bak(g1.sayi === 1 && !g1.sahteGeldi, `G47s geçmiş sayımı ${JSON.stringify(g1)}`);
+  const g2 = S.isteGecmisi([{ gun: 3, kararlar: [kr({ karot: 'yok', zemin: 'sahte' })] }, { gun: 4, tohum: 9, kararlar: [kr({ karot: 'gercek' })] }]);
+  bak(g2.sayi === 2 && g2.sahteGeldi, `G47s geçmiş sahte ${JSON.stringify(g2)}`);
+  const g0 = S.isteGecmisi([]);
+  bak(g0.sayi === 0 && !g0.sahteGeldi, 'G47s yeni oyunda geçmiş sıfır değil');
+  g47s.gecmis = 3;
+  for (const [k, v] of Object.entries(g47s)) bak(v > 0, `G47s sayaç ${k} sıfır`);
+  console.log('G47 sahte rapor garantisi (tohum 1-60, gün 3-5):', JSON.stringify(g47s));
 }
 
 console.log(`${sayi} denetim, ${hata} hata`);

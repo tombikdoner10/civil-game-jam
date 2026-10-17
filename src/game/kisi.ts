@@ -244,9 +244,10 @@ function sahteBelge(r: Rng, bina: Bina, alan: 'ruhsat' | 'vaziyet', sakli: boole
 /**
  * İSTE cevabı (binanın gerçeğine göre): saklı kusur varsa sahte rapor daha olası. Sahte rapordaki değer
  * oyuncuyu yanıltacak yönde (düşük beton yüksek, sıvılaşma sağlam görünür). Sahte rapor günü gelmediyse
- * sahte yerine getiremez.
+ * sahte yerine getiremez. zorlaSahte (G47 sahte rapor garantisi; oturum karar verir): sahte raporun mümkün olduğu
+ * günde cevap sahte olur; rastgele dizi doğal cevaptaki gibi tüketilir (sahtenin ayrıntıları doğal sahteyle aynı).
  */
-export function isteCevabi(tohum: number, bina: Bina, kisi: Kisi, alan: IsteAlani, ayar: GunAyar): IsteCevap {
+export function isteCevabi(tohum: number, bina: Bina, kisi: Kisi, alan: IsteAlani, ayar: GunAyar, zorlaSahte = false): IsteCevap {
   const r = rng(tohum, bina, `iste:${alan}`);
   const I = TUNING.kisi.iste;
   const sakli = sakliKusur(bina, alan);
@@ -258,7 +259,8 @@ export function isteCevabi(tohum: number, bina: Bina, kisi: Kisi, alan: IsteAlan
     w.yok += w.sahte;
     w.sahte = 0;
   }
-  const tur = agirlikli<IsteTuru>(r, w);
+  const dogal = agirlikli<IsteTuru>(r, w);
+  const tur: IsteTuru = zorlaSahte && ayar.sahteRapor ? 'sahte' : dogal;
   const secim = r.int(0, 999);
   if (tur === 'yok') return { alan, tur, secim, ifade: 'mahcup' };
   const g = bina.gercek;

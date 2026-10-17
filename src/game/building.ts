@@ -226,6 +226,10 @@ const CATISAN: [KusurId, KusurId][] = [
   ['imzaYok', 'sahteBelge'],
   ['elleDuzeltme', 'kacakKat'],
   ['imzaYok', 'kacakKat'],
+  // G47: dosyada tek geçersiz belge (gişeden gelen sahte ruhsat, öbür geçersiz belgenin ruhsattaki kanıtını
+  // kapatmasın).
+  ['elleDuzeltme', 'baskaBina'],
+  ['imzaYok', 'baskaBina'],
 ];
 
 function catisir(a: KusurId, secili: KusurId[]): boolean {
@@ -442,14 +446,31 @@ export interface GunDosyaSecenekleri {
   hikayeDahil?: boolean;
 }
 
-/** Bir dosyanın planı: temiz ya da ana kusuru (ikinci kusur kurulurken rastgele eklenebilir). */
-type Plan = 'temiz' | KusurId;
+/**
+ * Bir dosyanın planı: temiz ya da ana kusur. ikinci: zorunlu ikinci kusur (tanıtım birleşmesi; yoksa kurulurken
+ * olasılıkla eklenir). tanitim: dosya o günün yeni kusurunu (ana ve varsa ikinci) tanıtır (G47).
+ */
+interface Plan {
+  ana: 'temiz' | KusurId;
+  ikinci?: KusurId;
+  tanitim?: boolean;
+}
+
+const P = (ana: Plan['ana']): Plan => ({ ana });
+
+/** Planın tanıttığı kusurlar. */
+function tanitilan(p: Plan): KusurId[] {
+  if (!p.tanitim || p.ana === 'temiz') return [];
+  return p.ikinci ? [p.ana, p.ikinci] : [p.ana];
+}
 
 /**
  * Günün dosya planı (deterministik). Kurallar:
  * - Gün 1 (GDD "İlk 30 saniye"): dosya 1 temiz, dosya 2 bir kaçak kat, dosya 3 tohuma göre temiz ya da
  *   2+ kaçak kat; sonrası (varsa) karışık.
  * - Gün 2+: o günün yeni kuralının bir kusuru ilk iki dosyadan birinde; öbürü temiz ya da eski bir kusur.
+ * - Tanıtım garantisi (G47): o gün gelen her yeni kusur en az bir dosyada. Yer yetmezse dere / fay yakını zemin
+ *   kusuruyla (sıvılaşma ya da etüt yok) aynı dosyada birleşir, sonra temiz hedefi iner (günde en az bir temiz).
  *   Kalan dosyalar torbadan: aktif kusurlar sırayla tükenir (aynı kusur üst üste gelmez), temiz oranı tutar.
  */
 function gunPlani(rng: Rng, gun: number, adet: number): Plan[] {
@@ -457,51 +478,81 @@ function gunPlani(rng: Rng, gun: number, adet: number): Plan[] {
   const yeni = KURALLAR.flatMap((k) => yeniKusurlari(k, gun));
   const eski = aktif.filter((k) => !yeni.includes(k));
   const plan: Plan[] = [];
+  let tanitim: KusurId[] = [];
   if (gun === 1) {
-    plan.push('temiz', 'kacakKat', rng.chance(0.5) ? 'temiz' : 'kacakKat');
+    plan.push(P('temiz'), P('kacakKat'), P(rng.chance(0.5) ? 'temiz' : 'kacakKat'));
   } else if (yeni.length > 0) {
     const yeniYer = rng.int(0, 1);
-    const ilk: Plan[] = ['temiz', 'temiz'];
-    ilk[yeniYer] = rng.pick(yeni);
-    if (eski.length > 0 && rng.chance(0.4)) ilk[1 - yeniYer] = rng.pick(eski);
+    const ilk: Plan[] = [P('temiz'), P('temiz')];
+    const ilkYeni = rng.pick(yeni);
+    ilk[yeniYer] = { ana: ilkYeni, tanitim: true };
+    if (eski.length > 0 && rng.chance(0.4)) ilk[1 - yeniYer] = P(rng.pick(eski));
     plan.push(...ilk);
+    tanitim = rng.shuffle(yeni.filter((k) => k !== ilkYeni));
   }
   plan.length = Math.min(plan.length, adet);
 
-  // Kalan dosyalar: temiz sayısı orana göre (günde en az bir temiz), kusurlar torbadan.
+  // Kalan dosyalar: önce tanıtım dosyaları, sonra temizler (orana göre, günde en az bir temiz), sonra torba.
   const kalan = adet - plan.length;
   if (kalan <= 0) return plan;
+  const birimler: Plan[] = tanitim.map((k) => ({ ana: k, tanitim: true }));
+  const temizVar = plan.filter((p) => p.ana === 'temiz').length;
   const temizHedef = Math.max(1, Math.round(adet * TUNING.olasilik.temiz));
-  const temizKalan = Math.max(0, Math.min(kalan, temizHedef - plan.filter((p) => p === 'temiz').length));
+  let temizKalan = Math.max(0, Math.min(kalan, temizHedef - temizVar));
+  const temizEnAz = temizVar > 0 ? 0 : 1;
+  // Yer yoksa: dere / fay yakını, zemin kusuruyla aynı dosyada (zemin etüdüne bağlı kural) tanıtılır.
+  const birlestir = (): boolean => {
+    const yakin = birimler.filter((p) => (p.ana === 'dereyeYakin' || p.ana === 'fayaYakin') && !p.ikinci);
+    const zemin = birimler.filter((p) => p.ana === 'sivilasma' || p.ana === 'zeminEtuduYok');
+    if (yakin.length === 0 || zemin.length === 0) return false;
+    const y = rng.pick(yakin);
+    const z = rng.pick(zemin);
+    y.ikinci = z.ana as KusurId;
+    birimler.splice(birimler.indexOf(z), 1);
+    return true;
+  };
+  while (birimler.length + temizKalan > kalan) {
+    if (birlestir()) continue;
+    if (temizKalan > temizEnAz) temizKalan--;
+    else break;
+  }
+  const ek: Plan[] = birimler.slice(0, kalan);
+  for (let i = 0; i < temizKalan && ek.length < kalan; i++) ek.push(P('temiz'));
   // Yeni kurallar o gün torbada iki kez: gün yeni kurala ağırlık versin.
   let torba: KusurId[] = [];
-  const doldur = (): void => {
-    torba = rng.shuffle([...aktif, ...yeni]);
-  };
-  const ek: Plan[] = Array.from({ length: temizKalan }, () => 'temiz' as Plan);
   while (ek.length < kalan) {
-    if (torba.length === 0) doldur();
-    ek.push(torba.pop() as KusurId);
+    if (torba.length === 0) torba = rng.shuffle([...aktif, ...yeni]);
+    ek.push(P(torba.pop() as KusurId));
   }
   // Aynı kusur üst üste gelmesin (temizler hariç): birkaç karıştırma dene, olmazsa yanındakiyle takas et.
-  const yanyana = (l: Plan[]): boolean => l.some((p, i) => i > 0 && p !== 'temiz' && p === l[i - 1]);
+  const ayni = (a: Plan | undefined, b: Plan | undefined): boolean => !!a && !!b && a.ana !== 'temiz' && a.ana === b.ana;
+  const yanyana = (l: Plan[]): boolean => l.some((p, i) => i > 0 && ayni(p, l[i - 1]));
   let tum = [...plan, ...rng.shuffle(ek)];
   for (let deneme = 0; deneme < 24 && yanyana(tum); deneme++) tum = [...plan, ...rng.shuffle(ek)];
   for (let i = Math.max(1, plan.length); i < tum.length; i++) {
-    if (tum[i] === 'temiz' || tum[i] !== tum[i - 1]) continue;
-    const j = tum.findIndex((p, k) => k > i && p !== tum[i] && (k + 1 >= tum.length || tum[k + 1] !== tum[i]));
+    if (!ayni(tum[i], tum[i - 1])) continue;
+    const j = tum.findIndex((p, k) => k > i && p.ana !== tum[i].ana && !ayni(tum[i], tum[k + 1]));
     if (j > 0) [tum[i], tum[j]] = [tum[j], tum[i]];
   }
   return tum;
 }
 
-/** Plandan bina: kusurlu planda ana kusur ve olasılıkla ikinci bir aktif kusur. */
+/** Başka binanın belgesi (vaziyet, karot ya da zemin) yüzünden belgede görünmeyebilecek kusurlar. */
+const GIZLENEBILIR: readonly KusurId[] = ['dereyeYakin', 'fayaYakin', 'dusukBeton', 'sivilasma'];
+
+/**
+ * Plandan bina: kusurlu planda ana kusur ve olasılıkla ikinci bir aktif kusur (zorunlu ikinci varsa o). Tanıtım
+ * dosyasında ikinci kusur ana kusuru belgede gizlemez (başka binanın belgesi dere / fay, beton ya da zemin değerini
+ * geçersiz kılar).
+ */
 function plandanBina(rng: Rng, gun: number, plan: Plan, ek: BinaEk): Bina {
-  if (plan === 'temiz') return kusurluBinaKur(rng, [], ek);
-  const secili: KusurId[] = [plan];
+  if (plan.ana === 'temiz') return kusurluBinaKur(rng, [], ek);
+  if (plan.ikinci) return kusurluBinaKur(rng, [plan.ana, plan.ikinci], ek);
+  const ana = plan.ana;
+  const secili: KusurId[] = [ana];
   const aktif = aktifKusurlar(gun);
   // Dere ve fay kuralı zemin etüdüne bağlı: yakın binalarda zemin üç durumdan biri (sağlam/orta, sıvılaşma, etüt yok).
-  if ((plan === 'dereyeYakin' || plan === 'fayaYakin') && aktif.includes('sivilasma') && aktif.includes('zeminEtuduYok')) {
+  if ((ana === 'dereyeYakin' || ana === 'fayaYakin') && aktif.includes('sivilasma') && aktif.includes('zeminEtuduYok')) {
     const Z = TUNING.olasilik.yakinZemin;
     const r = rng.next();
     if (r < Z.sivilasma) secili.push('sivilasma');
@@ -509,7 +560,8 @@ function plandanBina(rng: Rng, gun: number, plan: Plan, ek: BinaEk): Bina {
     return kusurluBinaKur(rng, secili, ek);
   }
   if (rng.chance(TUNING.olasilik.ikinciKusur)) {
-    const aday = rng.shuffle(aktif).find((k) => k !== plan && !catisir(k, secili));
+    const gizler = (k: KusurId): boolean => !!plan.tanitim && k === 'baskaBina' && GIZLENEBILIR.includes(ana);
+    const aday = rng.shuffle(aktif).find((k) => k !== ana && !catisir(k, secili) && !gizler(k));
     if (aday) secili.push(aday);
   }
   return kusurluBinaKur(rng, secili, ek);
@@ -517,7 +569,8 @@ function plandanBina(rng: Rng, gun: number, plan: Plan, ek: BinaEk): Bina {
 
 /**
  * Aynı tohum ve gün, aynı dosyalar. Dağılım gunPlani'nda. Hikâye binaları ilk iki dosyaya girmez
- * (açılış ve yeni kural yerleri). Her günde en az bir temiz ve en az bir kusurlu dosya bulunur.
+ * (açılış ve yeni kural yerleri) ve bir tanıtım dosyasının yerine ancak onun kusurlarını taşıyorsa geçer. Her günde
+ * en az bir temiz ve en az bir kusurlu dosya bulunur; o gün gelen her yeni kusur en az bir dosyada görünür (G47).
  */
 export function gunDosyalari(tohum: number, gun: number, adet: number, secenek: GunDosyaSecenekleri = {}): Bina[] {
   const rng = new Rng(((tohum >>> 0) ^ Math.imul(gun, 0x9e3779b1)) >>> 0);
@@ -532,16 +585,17 @@ export function gunDosyalari(tohum: number, gun: number, adet: number, secenek: 
   const hikayeYeri = new Map<number, (typeof HIKAYELER)[number]>();
   if (secenek.hikayeDahil !== false) {
     for (const s of HIKAYELER.filter((h) => h.gun === gun)) {
-      const ana = (s.kusurlar.length > 0 ? s.kusurlar[0] : 'temiz') as Plan;
-      const bos = plan.map((_, i) => i).filter((i) => i >= 2 && !hikayeYeri.has(i));
-      const komsuOk = (i: number): boolean => ana === 'temiz' || (plan[i - 1] !== ana && plan[i + 1] !== ana);
-      const iyi = bos.filter((i) => komsuOk(i) && plan[i] === ana);
+      const ana = (s.kusurlar.length > 0 ? s.kusurlar[0] : 'temiz') as Plan['ana'];
+      const kapsar = (i: number): boolean => tanitilan(plan[i]).every((k) => s.kusurlar.includes(k));
+      const bos = plan.map((_, i) => i).filter((i) => i >= 2 && !hikayeYeri.has(i) && kapsar(i));
+      const komsuOk = (i: number): boolean => ana === 'temiz' || (plan[i - 1]?.ana !== ana && plan[i + 1]?.ana !== ana);
+      const iyi = bos.filter((i) => komsuOk(i) && plan[i].ana === ana);
       const orta = bos.filter(komsuOk);
       const sec = iyi.length > 0 ? iyi : orta.length > 0 ? orta : bos;
       if (sec.length === 0) continue;
       const i = rng.pick(sec);
       hikayeYeri.set(i, s);
-      plan[i] = ana;
+      plan[i] = { ana, tanitim: plan[i].tanitim };
     }
   }
 
@@ -551,19 +605,26 @@ export function gunDosyalari(tohum: number, gun: number, adet: number, secenek: 
     if (gun === 1 && i < 3) {
       // Açılış: pencerede ve fotoğrafta iri, sayılabilir bina. Dosya 2 tek kaçak kat; dosya 3 iki ve üstü.
       const e: BinaEk = { ...ek(i), ruhsatKat: rng.int(TUNING.acilisKat.min, TUNING.acilisKat.max) };
-      if (p === 'kacakKat') e.kacakFark = i === 1 ? 1 : rng.int(TUNING.kacakKatBosaltFark, TUNING.kacakKatEkle.max);
-      return kusurluBinaKur(rng, p === 'temiz' ? [] : [p], e);
+      if (p.ana === 'kacakKat') e.kacakFark = i === 1 ? 1 : rng.int(TUNING.kacakKatBosaltFark, TUNING.kacakKatEkle.max);
+      return kusurluBinaKur(rng, p.ana === 'temiz' ? [] : [p.ana], e);
     }
     return plandanBina(rng, gun, p, ek(i));
   });
 
   // Güvenlik: en az bir temiz ve en az bir kusurlu dosya (plan zaten sağlıyor; hikâyeler bozarsa).
   const temiz = (b: Bina): boolean => gorunenKusurlar(b, gun).length === 0;
-  const serbest = dosyalar.map((_, i) => i).filter((i) => i >= 2 && !dosyalar[i].hikaye);
+  const serbest = dosyalar.map((_, i) => i).filter((i) => i >= 2 && !dosyalar[i].hikaye && !plan[i].tanitim);
   if (!dosyalar.some(temiz) && serbest.length > 0) {
     const i = rng.pick(serbest);
     dosyalar[i] = kusurluBinaKur(rng, [], ek(i));
   }
+  // Tanıtım güvencesi (G47): görünmeyen yeni kusurun tanıtım dosyası yalnızca kendi kusurlarıyla yeniden kurulur.
+  if (gun > 1)
+    for (const id of KURALLAR.flatMap((k) => yeniKusurlari(k, gun))) {
+      if (dosyalar.some((b) => gorunenKusurlar(b, gun).some((k) => k.id === id))) continue;
+      const i = plan.findIndex((p, j) => !dosyalar[j].hikaye && tanitilan(p).includes(id));
+      if (i >= 0) dosyalar[i] = kusurluBinaKur(rng, tanitilan(plan[i]), ek(i));
+    }
   // Sahte belge kuralı gelmeden ruhsat tarihi yapım yılıyla aynı: fark, oyuncuya kusur gibi görünmesin.
   const sahteGunu = KURALLAR.find((k) => k.kusurlar.includes('sahteBelge'))?.ilkGun ?? Infinity;
   // (Geçersiz belge hileleri kuralı gelmeden üretilmez: aktifKusurlar.)

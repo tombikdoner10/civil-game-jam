@@ -162,6 +162,11 @@ export const TUNING = {
       /** Sahte raporun tarihi bugünden kaç gün ileri (ipucu "tarih"); öbür raporlar kaç gün önce. */
       sahteTarihIleri: { min: 3, max: 25 },
       gercekTarihOnce: { min: 2, max: 40 },
+      /**
+       * Sahte rapor garantisi (G47): oyunda henüz sahte rapor ya da sahte belge gelmediyse, sahte raporun mümkün olduğu
+       * günlerde oyunun bu sıradaki İSTE'sinden başlayarak cevap sahte olur (ilk İSTE doğal kalsın).
+       */
+      sahteGarantiIste: 2,
     },
   },
 

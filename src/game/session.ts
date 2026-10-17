@@ -120,6 +120,27 @@ export interface SokakKaydi {
   zarf?: boolean;
 }
 
+/** Oyunun önceki günlerindeki İSTE'ler (G47 sahte rapor garantisi): kaç kez istendi, sahte geldi mi. */
+export interface IsteGecmisi {
+  sayi: number;
+  sahteGeldi: boolean;
+}
+
+/** Önceki günlerin kararlarından İSTE geçmişi (başka tohumlu örnek kayıtlar sayılmaz). Yeni oyunda kayıt yok: sıfır. */
+export function isteGecmisi(kayitlar: readonly GunKaydi[]): IsteGecmisi {
+  let sayi = 0;
+  let sahteGeldi = false;
+  for (const k of kayitlar) {
+    if (k.tohum !== undefined) continue;
+    for (const c of k.kararlar)
+      for (const t of Object.values(c.iste ?? {})) {
+        sayi++;
+        if (t === 'sahte') sahteGeldi = true;
+      }
+  }
+  return { sayi, sahteGeldi };
+}
+
 /**
  * Önceki günlerin kararlarından sokak: damgalanan her bina damgalanma sırasıyla. Binalar tohumdan yeniden
  * üretilir (aynı tohum ve gün, aynı dosyalar); hasar, kayıtlı sarsıntılardan (en sonuncusu geçerli).
@@ -433,9 +454,14 @@ export class GunOturumu {
    */
   readonly kendiZarfDosyasi?: string;
 
+  /**
+   * gecmis: oyunun önceki günlerindeki İSTE'ler (G47 sahte rapor garantisi). Verilmezse garanti yok (simülasyonlar ve
+   * örnek kayıtlar doğal cevaplarla).
+   */
   constructor(
     readonly gun: number,
     readonly tohum: number,
+    private readonly gecmis?: IsteGecmisi,
   ) {
     this.ayar = gunAyar(gun);
     this.dosyalar = gunDosyalari(tohum, gun, this.ayar.dosyaSayisi);
@@ -555,7 +581,7 @@ export class GunOturumu {
     const b = this.mevcut;
     const kisi = this.kisiBilgi;
     if (!b || !kisi || !this.istenebilir(alan)) return null;
-    const c = isteCevabi(this.tohum, b, kisi, alan, this.ayar);
+    const c = isteCevabi(this.tohum, b, kisi, alan, this.ayar, this.sahteGarantisi());
     this.istenen[alan] = c;
     if (c.tur === 'gercek' && c.rapor) {
       if (alan === 'karot') this.bilgiEdin('karot', c.rapor.deger as number, 'iste');
@@ -563,6 +589,20 @@ export class GunOturumu {
       else this.bilgiEdin(alan, true, 'iste');
     }
     return c;
+  }
+
+  /**
+   * Sahte rapor garantisi (G47): oyunda henüz sahte rapor ya da sahte belge gelmediyse, sahte raporun mümkün olduğu
+   * günde oyunun TUNING.kisi.iste.sahteGarantiIste'nci İSTE'sinden başlayarak cevap sahte. Geçmiş yoksa garanti yok.
+   */
+  private sahteGarantisi(): boolean {
+    if (!this.gecmis || !this.ayar.sahteRapor || this.gecmis.sahteGeldi) return false;
+    const bugun: IsteTuru[] = [
+      ...this.kararlar.flatMap((k) => Object.values(k.iste ?? {}) as IsteTuru[]),
+      ...Object.values(this.istenen).map((c) => (c as IsteCevap).tur),
+    ];
+    if (bugun.includes('sahte')) return false;
+    return this.gecmis.sayi + bugun.length + 1 >= TUNING.kisi.iste.sahteGarantiIste;
   }
 
   // ---- Saha testi (G19, Schmidt çekici) ----
