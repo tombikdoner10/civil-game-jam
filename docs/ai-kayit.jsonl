@@ -311,3 +311,6 @@
 {"zaman":"2026-10-17T18:35:55.146Z","kategori":"text","dosya":"README.md","arac":"Edit","ajan":"gelistirici"}
 {"zaman":"2026-10-17T18:35:55.484Z","kategori":"code","dosya":"src/scenes/CreditsScene.ts","arac":"Edit","ajan":"gelistirici"}
 {"zaman":"2026-10-17T19:11:38.737Z","kategori":"code","dosya":"src/game/session.ts","arac":"Edit","ajan":"gelistirici"}
+{"zaman":"2026-10-17T20:02:18.895Z","kategori":"code","dosya":"src/game/kisi.ts","arac":"Edit","ajan":"gelistirici"}
+{"zaman":"2026-10-17T20:02:19.200Z","kategori":"text","dosya":"src/game/diyalog.ts","arac":"Edit","ajan":"gelistirici"}
+{"zaman":"2026-10-17T20:14:07.091Z","kategori":"visual","dosya":"src/scenes/ResultScene.ts","arac":"Edit","ajan":"gelistirici"}

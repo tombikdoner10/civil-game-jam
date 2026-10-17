@@ -9,6 +9,7 @@ import {
   isteCevabi,
   kendiZarfCevabi,
   kisiKur,
+  mufettisYakalar,
   sorCevabi,
   sorulabilir,
   type GetirilenRapor,
@@ -58,6 +59,11 @@ export interface ZarfKaydi {
   kabul: boolean;
   /** Kişinin zarfla istediği damga. */
   istenen: ZarfIstek;
+  /**
+   * Müfettiş (G57): zarf kabul edildi, damga yanlıştı ve gün sonunda zarf ortaya çıktı (mufettisYakalar). Zarfa el
+   * konur (para günün toplamına girmez) ve TUNING.mufettis.ceza kesilir. Yakalanmayan ya da bakılmayan zarfta yok.
+   */
+  yakalandi?: true;
 }
 
 export interface Karar {
@@ -204,6 +210,10 @@ export interface DepremBinaSonucu {
   kusurlu: boolean;
   /** Bu dosyada zarf kabul edilmişti. */
   zarf: boolean;
+  /** G57: kabul edilen zarf müfettişe yakalanmıştı (zarfa el konmuştu). */
+  mufettis?: true;
+  /** G57: bu dosyada teklif edilen zarf geri verilmişti. */
+  zarfRet?: true;
   durum: HasarDurumu;
   coktu: boolean;
   /** Boşaltılmıştı (içeride kimse yoktu). */
@@ -243,11 +253,15 @@ export function buyukDeprem(
   const dogru = new Map<string, boolean>();
   const zarf = new Set<string>();
   const kendi = new Set<string>();
+  const mufettis = new Set<string>();
+  const ret = new Set<string>();
   for (const k of kayitlar) for (const c of k.kararlar) dogru.set(c.dosyaId, c.dogru);
   for (const k of zarfKaynak)
     for (const c of k.kararlar) {
       kendi.add(c.dosyaId);
       if (c.zarf?.kabul) zarf.add(c.dosyaId);
+      if (c.zarf?.kabul && c.zarf.yakalandi) mufettis.add(c.dosyaId);
+      if (c.zarf && !c.zarf.kabul) ret.add(c.dosyaId);
     }
   return sokakKayitlari(tohum, kayitlar).map((s, i) => {
     const kendiBinan = !!s.bina.kendiBinan && kendi.has(s.bina.id);
@@ -256,8 +270,10 @@ export function buyukDeprem(
     const payDamga = kendiBinan && (s.damga === 'guvenli' || s.damga === 'iade');
     const payli = payDamga && taksit >= tumu;
     const r = buyukDepremSonucu(s.bina, s.damga, s.gun, { oncuHasar: s.hasar });
-    const ek: Pick<DepremBinaSonucu, 'kendiBinan' | 'evPayi' | 'evKismi'> = {};
+    const ek: Pick<DepremBinaSonucu, 'kendiBinan' | 'evPayi' | 'evKismi' | 'mufettis' | 'zarfRet'> = {};
     if (kendiBinan) ek.kendiBinan = true;
+    if (mufettis.has(s.bina.id)) ek.mufettis = true;
+    if (ret.has(s.bina.id)) ek.zarfRet = true;
     if (payli) ek.evPayi = true;
     // G45: her taksit sonucu bir kademe iyileştirir (1/3 bir, 2/3 iki, 3/3 üç kademe; soyut evle aynı mantık: üçüncü
     // taksit de görünür fayda verir); 3/3 ayrıca en az GÜÇLENDİR sayılır. Öncü hasarın altına inmez.
@@ -426,11 +442,16 @@ export interface GunHesabi {
   islenmeyen: number;
   maas: number;
   ceza: number;
-  /** Kabul edilen zarfların toplamı (G17). */
+  /** Kabul edilen ve müfettişe yakalanmayan zarfların toplamı (G17; G57: el konan zarf girmez). */
   zarf: number;
-  /** Teklif edilen ve kabul edilen zarf sayısı. */
+  /** Teklif edilen ve kabul edilen zarf sayısı (kabul: yakalananlar dahil). */
   zarfTeklif: number;
   zarfKabul: number;
+  /** G57: müfettişe yakalanan zarf sayısı, el konan zarfların toplamı ve kesilen müfettiş cezası. */
+  mufettis: number;
+  zarfElKonan: number;
+  mufettisCeza: number;
+  /** maas − ceza + zarf − mufettisCeza (birikmiş paranın 0 sınırı gün sonu ekranında, G51). */
   toplam: number;
 }
 
@@ -441,7 +462,10 @@ export function gunHesabi(kararlar: readonly Karar[], dosyaSayisi: number): GunH
   const maas = dogru * P.maas;
   const ceza = yanlis * P.ceza;
   const kabul = kararlar.filter((k) => k.zarf?.kabul);
-  const zarf = kabul.reduce((n, k) => n + (k.zarf?.miktar ?? 0), 0);
+  const yakalanan = kabul.filter((k) => k.zarf?.yakalandi);
+  const zarf = kabul.filter((k) => !k.zarf?.yakalandi).reduce((n, k) => n + (k.zarf?.miktar ?? 0), 0);
+  const zarfElKonan = yakalanan.reduce((n, k) => n + (k.zarf?.miktar ?? 0), 0);
+  const mufettisCeza = yakalanan.length * TUNING.mufettis.ceza;
   return {
     dogru,
     yanlis,
@@ -451,8 +475,16 @@ export function gunHesabi(kararlar: readonly Karar[], dosyaSayisi: number): GunH
     zarf,
     zarfTeklif: kararlar.filter((k) => k.zarf).length,
     zarfKabul: kabul.length,
-    toplam: maas - ceza + zarf,
+    mufettis: yakalanan.length,
+    zarfElKonan,
+    mufettisCeza,
+    toplam: maas - ceza + zarf - mufettisCeza,
   };
+}
+
+/** Gün sonundaki birikmiş para (G51): günün toplamı eksiye düşürecekse 0'da kalır (G57 müfettiş cezası dahil). */
+export function birikmisPara(once: number, h: Pick<GunHesabi, 'toplam'>): number {
+  return Math.max(0, once + h.toplam);
 }
 
 /** Bir günün oturumu: dosyalar, sıradaki dosya, kararlar ve mesai saati. Saf TS, Phaser yok. */
@@ -881,7 +913,11 @@ export class GunOturumu {
       bulunan: this.bulunan.slice(),
     };
     if (dis) karar.kaynak = { ...this.bilgi.kaynak };
-    if (this.zarfTeklif) karar.zarf = { miktar: this.zarfTeklif.miktar, kabul: this.zarfTeklif.kabul === true, istenen: this.zarfTeklif.istenen };
+    if (this.zarfTeklif) {
+      karar.zarf = { miktar: this.zarfTeklif.miktar, kabul: this.zarfTeklif.kabul === true, istenen: this.zarfTeklif.istenen };
+      // G57: zarf alınıp yanlış damga vurulduysa müfettiş gün sonunda bakar (tohum ve dosyaya bağlı); doğru damgaya bakmaz.
+      if (karar.zarf.kabul && !dogru && mufettisYakalar(this.tohum, b)) karar.zarf.yakalandi = true;
+    }
     const iste = Object.entries(this.istenen) as [BilgiAlani, IsteCevap][];
     if (iste.length > 0) karar.iste = Object.fromEntries(iste.map(([a, c]) => [a, c.tur]));
     if (this.sorulan.length > 0) karar.sorulan = this.sorulan.slice();

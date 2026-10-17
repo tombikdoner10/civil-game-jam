@@ -371,10 +371,11 @@ for (let tohum = 1; tohum <= 40; tohum++) {
       if (zarf) bak(kr.zarf && kr.zarf.miktar === zarf.miktar && kr.zarf.kabul === false && kr.zarf.istenen === zarf.istenen, `${e}: zarf kaydı`);
       else bak(!kr.zarf, `${e}: zarfsız dosyada zarf kaydı`);
     }
-    // Gün hesabı: zarf toplama eklenir.
+    // Gün hesabı: zarf toplama eklenir (G57: müfettişin el koyduğu zarf eklenmez, müfettiş cezası düşer).
     const h = S.gunHesabi(o.kararlar, o.toplam);
-    const zarfTop = o.kararlar.reduce((n, k) => n + (k.zarf?.kabul ? k.zarf.miktar : 0), 0);
-    bak(h.zarf === zarfTop && h.toplam === h.maas - h.ceza + zarfTop, `t${tohum} g${g}: gün hesabında zarf`);
+    const zarfTop = o.kararlar.reduce((n, k) => n + (k.zarf?.kabul && !k.zarf.yakalandi ? k.zarf.miktar : 0), 0);
+    const yakalanan = o.kararlar.filter((k) => k.zarf?.yakalandi).length;
+    bak(h.zarf === zarfTop && h.toplam === h.maas - h.ceza + zarfTop - yakalanan * T.mufettis.ceza, `t${tohum} g${g}: gün hesabında zarf`);
   }
 }
 // G45: gün 1'de kusurlu dosya olan her oyunda kendiliğinden zarf teklif edildi; gün 2-5'in SOR zarfları G45 öncesiyle
@@ -1366,6 +1367,114 @@ const HIK = await server.ssrLoadModule('/src/game/stories.ts');
   g47s.gecmis = 3;
   for (const [k, v] of Object.entries(g47s)) bak(v > 0, `G47s sayaç ${k} sıfır`);
   console.log('G47 sahte rapor garantisi (tohum 1-60, gün 3-5):', JSON.stringify(g47s));
+}
+
+// ---- G57: müfettiş (zarfın riski) ve dürüstlük övgüsü ----
+// Zarf alınıp YANLIŞ damgalanan dosyada gün sonunda tohum ve dosyaya bağlı olasılıkla (TUNING.mufettis.olasilik) zarf
+// ortaya çıkar: zarfa el konur (para günün toplamına girmez), ayrıca TUNING.mufettis.ceza kesilir; birikmiş para 0'ın
+// altına inmez (G51). Zarf + doğru damgaya bakılmaz. Aynı tohum aynı sonuç. Gazete ve sonuç satırları kayıtlardan.
+{
+  const g57 = { yanlisZarf: 0, yakalanan: 0, dogruZarf: 0, ret: 0 };
+  const DY = { guvenli: 'bosalt', guclendir: 'guvenli', bosalt: 'guvenli', iade: 'guvenli' };
+  for (let tohum = 1; tohum <= 200; tohum++) {
+    for (let g = 1; g <= 5; g++) {
+      const oyna = (zorlaDogru) => {
+        const o = new S.GunOturumu(g, tohum);
+        let i = 0;
+        while (!o.bitti) {
+          const b = o.mevcut;
+          if (o.kendiZarfSirada) o.kendiZarf();
+          else {
+            const k = R.gorunenKusurlar(b, g).find((x) => K.sorulabilir(x.id));
+            if (k) {
+              o.incele(R.kanitOgeleri(k));
+              o.sor(k.id);
+            }
+          }
+          if (o.zarfBekliyor) o.zarfKarar(i % 3 !== 2);
+          const z = o.zarf;
+          // Zarf + doğru damga: istenen damga doğru damgaya çevrilir (oyunda istenen nadiren doğru; kural yine denenir).
+          if (z?.kabul && zorlaDogru) o['zarfTeklif'].istenen = R.dogruDamga(b, g);
+          o.damgala(z?.kabul ? o.zarf.istenen : i % 2 ? R.dogruDamga(b, g) : DY[R.dogruDamga(b, g)]);
+          i++;
+        }
+        return o.kararlar;
+      };
+      const k1 = oyna(false);
+      const k2 = oyna(false);
+      const e = `G57 t${tohum} g${g}`;
+      bak(JSON.stringify(k1) === JSON.stringify(k2), `${e}: müfettiş deterministik değil`);
+      for (const c of k1) {
+        if (c.zarf?.yakalandi) bak(c.zarf.kabul && !c.dogru, `${e} ${c.dosyaId}: kabul edilmeyen ya da doğru damgalı zarf yakalandı`);
+        if (c.zarf?.kabul && !c.dogru) {
+          g57.yanlisZarf++;
+          if (c.zarf.yakalandi) g57.yakalanan++;
+          // Dosya tek başına: yakalanan dosyada maaş yok, ceza ve müfettiş cezası; zarf yok; birikmiş 0'ın altına inmez.
+          const h1 = S.gunHesabi([c], 1);
+          if (c.zarf.yakalandi) {
+            bak(
+              h1.zarf === 0 && h1.zarfElKonan === c.zarf.miktar && h1.mufettis === 1 && h1.toplam === h1.maas - h1.ceza - T.mufettis.ceza,
+              `${e} ${c.dosyaId}: yakalanan dosyanın hesabı ${JSON.stringify(h1)}`,
+            );
+            bak(S.birikmisPara(0, h1) === 0 && S.birikmisPara(100, h1) === 100 + h1.toplam, `${e} ${c.dosyaId}: birikmiş para sınırı`);
+          } else
+            bak(h1.zarf === c.zarf.miktar && h1.mufettis === 0 && h1.toplam === h1.maas - h1.ceza + c.zarf.miktar, `${e} ${c.dosyaId}: yakalanmayan zarfın hesabı`);
+        }
+        if (c.zarf && !c.zarf.kabul) g57.ret++;
+      }
+      for (const c of oyna(true))
+        if (c.zarf?.kabul && c.dogru) {
+          g57.dogruZarf++;
+          bak(!c.zarf.yakalandi, `G57 t${tohum} g${g} ${c.dosyaId}: zarf + doğru damga yakalandı`);
+        }
+    }
+  }
+  const oran = g57.yakalanan / g57.yanlisZarf;
+  bak(g57.yanlisZarf > 100 && oran >= 0.4 && oran <= 0.6, `G57 yakalanma oranı ${oran.toFixed(3)} (${g57.yakalanan}/${g57.yanlisZarf})`);
+  bak(g57.dogruZarf > 0 && g57.ret > 0, `G57 sayaçlar ${JSON.stringify(g57)}`);
+  // Zarfsız ve hepsi doğru oyunda müfettiş yok: hesap G57 öncesiyle aynı.
+  for (let tohum = 1; tohum <= 20; tohum++) {
+    for (const x of O.ornekKayitlar(tohum, 5, 1, true)) {
+      const h = S.gunHesabi(x.kararlar, D.gunAyar(x.gun).dosyaSayisi);
+      bak(h.mufettis === 0 && h.mufettisCeza === 0 && h.zarfElKonan === 0 && h.toplam === h.maas - h.ceza, `G57 t${tohum} g${x.gun}: zarfsız oyunda müfettiş`);
+    }
+  }
+  // Gazete ve sonuç: yakalanan zarf → müfettiş satırı (eski zarf izinin yerine), geri verilen → dürüstlük satırı.
+  const MG = await server.ssrLoadModule('/src/game/diyalog.ts');
+  const bina = (ek) => ({ dosyaId: 'x', no: 1, gun: 1, adres: 'Bina 01', damga: 'guvenli', dogru: false, kusurlu: true, zarf: true, durum: 'agirHasar', coktu: false, bos: false, ...ek });
+  const sat = (s) => G.gazeteZarfSatirlari(s).map((x) => `${x.iyi ? '+' : '-'}${x.metin}`).join('|');
+  bak(sat([bina({ mufettis: true })]) === `-${MG.MUFETTIS_GAZETE}`, `G57 gazete yakalanan: ${sat([bina({ mufettis: true })])}`);
+  bak(sat([bina({})]) === `-${MG.ZARF_GAZETE}`, 'G57 gazete yakalanmayan hasarlı zarf eski satırla değil');
+  bak(sat([bina({ mufettis: true }), bina({ dosyaId: 'y' })]) === `-${MG.MUFETTIS_GAZETE}|-${MG.ZARF_GAZETE}`, 'G57 gazete yakalanan + yakalanmayan');
+  bak(sat([bina({ zarf: false, zarfRet: true })]) === `+${MG.RET_GAZETE}`, 'G57 gazete dürüstlük satırı');
+  bak(sat([bina({ mufettis: true }), bina({ dosyaId: 'y', zarf: false, zarfRet: true })]) === `-${MG.MUFETTIS_GAZETE}|+${MG.RET_GAZETE}`, 'G57 gazete yakalanan + geri verilen');
+  bak(sat([bina({ zarf: false, durum: 'ayakta' })]) === '', 'G57 gazete zarfsız oyunda satır');
+  bak(MG.MUFETTIS_SONUC(1) === 'Müfettiş zarfına el koydu' && MG.MUFETTIS_SONUC(2) === 'Müfettiş 2 zarfına el koydu', 'G57 sonuç müfettiş metni');
+  bak(MG.RET_SONUC(1) === 'Rüşveti geri çevirdin' && MG.RET_SONUC(3) === 'Rüşveti 3 kez geri çevirdin', 'G57 sonuç ret metni');
+  bak(MG.MUFETTIS_RAPOR('Bina 03', T.mufettis.ceza) === 'Müfettiş: Bina 03 dosyasındaki zarf ortaya çıktı. Zarfa el konuldu, 40 TL ceza.', 'G57 rapor metni');
+  // buyukDeprem işaretleri kayıtlardan (kısa yolda yalnızca oyuncunun kayıtları; örnek binalarda yok).
+  const EV = await server.ssrLoadModule('/src/game/ev.ts');
+  for (let tohum = 1; tohum <= 40; tohum++) {
+    const o = new S.GunOturumu(1, tohum);
+    while (!o.bitti) {
+      if (o.kendiZarfSirada) {
+        o.kendiZarf();
+        o.zarfKarar(tohum % 2 === 0);
+      }
+      o.damgala(o.zarf?.kabul ? o.zarf.istenen : 'guvenli');
+    }
+    const kay = [{ gun: 1, kararlar: o.kararlar }];
+    const s = S.buyukDeprem(tohum, [...kay, ...O.kisaYolKayitlari(tohum)], kay);
+    for (const c of o.kararlar) {
+      const r = s.find((x) => x.dosyaId === c.dosyaId);
+      bak(!!r?.mufettis === !!c.zarf?.yakalandi && !!r?.zarfRet === (!!c.zarf && !c.zarf.kabul), `G57 t${tohum} ${c.dosyaId}: deprem sonucunda müfettiş/ret işareti`);
+    }
+    bak(s.filter((x) => !o.kararlar.some((c) => c.dosyaId === x.dosyaId)).every((x) => !x.mufettis && !x.zarfRet), `G57 t${tohum}: örnek binada müfettiş/ret işareti`);
+    // EVİN: el konan zarf parası zarf parası sayılmaz.
+    const elde = o.kararlar.reduce((n, c) => n + (c.zarf?.kabul && !c.zarf.yakalandi ? c.zarf.miktar : 0), 0);
+    bak(EV.zarfToplami([], o.kararlar) === elde, `G57 t${tohum}: EVİN zarf parası el konan zarfı sayıyor`);
+  }
+  console.log('G57 müfettiş (tohum 1-200, gün 1-5):', JSON.stringify(g57), `oran ${oran.toFixed(3)}`);
 }
 
 console.log(`${sayi} denetim, ${hata} hata`);

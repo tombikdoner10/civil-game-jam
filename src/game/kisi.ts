@@ -144,6 +144,14 @@ export function kendiZarfCevabi(tohum: number, bina: Bina, kusur: SorulanKusur, 
 }
 
 /**
+ * Müfettiş (G57): zarfı kabul edilip yanlış damgalanan dosyada zarf ortaya çıkar mı. Tohum ve dosyaya bağlı ayrı bir
+ * dizi (anahtar 'mufettis'): aynı tohum aynı sonuç; oyun RNG'si, SOR ve İSTE cevapları değişmez.
+ */
+export function mufettisYakalar(tohum: number, bina: Bina): boolean {
+  return rng(tohum, bina, 'mufettis').chance(TUNING.mufettis.olasilik);
+}
+
+/**
  * Sahte belgeyi ele veren ipucu: laboratuvar mührü yok, tarih bugünden ileri, değer elle düzeltilmiş; getirilen
  * ruhsatta imza yok ya da getirilen planın ada / parseli yine farklı (G17b).
  */

@@ -7,7 +7,7 @@ import { PX, rastgele, snap, Tuval } from '../desk/pixel';
 import { hazirGostergesi, masaCiz, pikselDugme } from '../desk/props';
 import { Sokak, type SokakGirdi } from '../desk/Street';
 import { SON_GUN } from '../game/days';
-import { DOLGU_BASLIKLAR, FOTO_ALTI, GAZETE_ADI, GAZETE_TARIH, kisaSayiBloklari, manset, oneCikanlar, sayiSatiri, sokakCokenSayisi, zarfSatiri } from '../game/gazete';
+import { DOLGU_BASLIKLAR, FOTO_ALTI, GAZETE_ADI, GAZETE_TARIH, kisaSayiBloklari, manset, oneCikanlar, gazeteZarfSatirlari, sayiSatiri, sokakCokenSayisi, type GazeteSatiri } from '../game/gazete';
 import { evSonucu } from '../game/ev';
 import { EV_GAZETE_BASLIK, evCumleleri, evHarcananSatiri, evTaksitSatiri } from '../game/ev-metin';
 import { depremOzeti, oyuncuOzeti, sokakKayitlari, type DepremBinaSonucu } from '../game/session';
@@ -20,6 +20,9 @@ export interface NewspaperData extends DepremData {
   /** Büyük depremin sonuçları (sokak sırasıyla). */
   sonuclar: DepremBinaSonucu[];
 }
+
+/** Gazetenin zarf satırı rengi (G57): kötü satır koyu kırmızı (eski zarf izi), dürüstlük satırı yeşil. */
+const zarfRengi = (s: GazeteSatiri): string => (s.iyi ? PAL.damgaGuvenli : '#6e2a24');
 
 /** Gazete kâğıdı (ekran pikseli). */
 const KAGIT = { x: 200, y: 24, w: 1360, h: 1032 };
@@ -128,20 +131,30 @@ export class NewspaperScene extends Phaser.Scene {
     const sw = R - 40 - sx;
     const rnd = rastgele(v.tohum * 17 + 3);
     this.add.rectangle(sx - 20, foto.y - 8, PX, foto.h + 56, 0x1d1a18, 0.6).setOrigin(0);
-    // Zarf izi (G17): kabul edilen zarfın binası hasar gördüyse.
-    const zarf = zarfSatiri(v.sonuclar);
+    // Zarf izi (G17): kabul edilen zarfın binası hasar gördüyse. G57: müfettiş satırı (kırmızı) ve geri verilen
+    // zarfın dürüstlük satırı (yeşil); sağ sütuna sığmazsa sondan düşer.
+    const zarf = gazeteZarfSatirlari(v.sonuclar);
     let y: number;
     if (juri) y = this.kisaSayilar(sx, sw, v.sonuclar, juri, zarf);
     else {
       const sayi = this.add
         .text(snap(sx), snap(foto.y), sayiSatiri(oz), { fontFamily: FONT, fontSize: '36px', color: MUREKKEP, wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
         .setOrigin(0, 0);
-      y = snap(foto.y + sayi.height + 16);
-      if (zarf) {
-        const z = this.add
-          .text(snap(sx), y, zarf, { fontFamily: FONT, fontSize: '30px', color: '#6e2a24', wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
-          .setOrigin(0, 0);
-        y = snap(y + z.height + 12);
+      const ust = snap(foto.y + sayi.height + 16);
+      const alt = foto.y + foto.h + 44;
+      const yazilar: Phaser.GameObjects.Text[] = [];
+      for (let n = zarf.length; ; n--) {
+        for (const o of yazilar) o.destroy();
+        yazilar.length = 0;
+        y = ust;
+        for (const z of zarf.slice(0, n)) {
+          const o = this.add
+            .text(snap(sx), y, z.metin, { fontFamily: FONT, fontSize: '30px', color: zarfRengi(z), wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
+            .setOrigin(0, 0);
+          yazilar.push(o);
+          y = snap(y + o.height + 12);
+        }
+        if (y <= alt || n <= 1) break;
       }
     }
     cizgi(y, sx, R - 40);
@@ -253,9 +266,10 @@ ${evTaksitSatiri(s.guclendirme)} · ${evHarcananSatiri(`${s.harcanan} TL`)}`, { 
 
   /**
    * Kısa yolun sayıları (G30, T22): önce jürinin binaları, sonra bütün sokak (başlıklı iki blok), altında zarf izi.
-   * Sağ sütuna (fotoğrafın yanı) sığana kadar hepsi birlikte küçülür. Dönüş: alt çizginin y'si.
+   * Sağ sütuna (fotoğrafın yanı) sığana kadar hepsi birlikte küçülür. G57: en küçük boyda da sığmazsa zarf satırları
+   * sondan düşer (öncelik kırmızı satırda). Dönüş: alt çizginin y'si.
    */
-  private kisaSayilar(sx: number, sw: number, sonuclar: readonly DepremBinaSonucu[], juri: ReadonlySet<string>, zarf: string | null): number {
+  private kisaSayilar(sx: number, sw: number, sonuclar: readonly DepremBinaSonucu[], juri: ReadonlySet<string>, zarfTum: readonly GazeteSatiri[]): number {
     const bloklar = kisaSayiBloklari(sonuclar, juri);
     const alt = this.foto.y + this.foto.h + 44;
     const metin = (y: number, t: string, boy: number, renk: string): Phaser.GameObjects.Text =>
@@ -263,6 +277,7 @@ ${evTaksitSatiri(s.guclendirme)} · ${evHarcananSatiri(`${s.harcanan} TL`)}`, { 
         .text(snap(sx), snap(y), t, { fontFamily: FONT, fontSize: `${boy}px`, color: renk, wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
         .setOrigin(0, 0);
     const yazilar: Phaser.GameObjects.Text[] = [];
+    let zarf = zarfTum;
     for (let boy = 36; ; boy -= 2) {
       for (const t of yazilar) t.destroy();
       yazilar.length = 0;
@@ -273,12 +288,17 @@ ${evTaksitSatiri(s.guclendirme)} · ${evHarcananSatiri(`${s.harcanan} TL`)}`, { 
         yazilar.push(bas, say);
         y = say.y + say.height + (i < bloklar.length - 1 ? 12 : 16);
       });
-      if (zarf) {
-        const z = metin(y, zarf, boy - 6, '#6e2a24');
+      for (const s of zarf) {
+        const z = metin(y, s.metin, boy - 6, zarfRengi(s));
         yazilar.push(z);
         y = z.y + z.height + 12;
       }
-      if (y <= alt || boy <= 26) return snap(y);
+      if (y <= alt) return snap(y);
+      if (boy <= 26) {
+        if (zarf.length <= 1) return snap(y);
+        zarf = zarf.slice(0, -1);
+        boy = 38;
+      }
     }
   }
 

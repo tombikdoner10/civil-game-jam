@@ -62,10 +62,13 @@ export function evHarcanan(ev: EvHazirlik | undefined): number {
   return EV_KALEMLER.reduce((n, k) => n + (ev.alinan[k] ?? []).reduce((m, a) => m + a.fiyat, 0), 0);
 }
 
-/** Kabul edilen zarfların toplamı: önceki günlerin kayıtları ve (varsa) bugünün kararları. */
+/**
+ * Kabul edilen zarfların toplamı: önceki günlerin kayıtları ve (varsa) bugünün kararları. G57: müfettişin el koyduğu
+ * zarf paraya girmediği için sayılmaz (zarf parasıyla alım yalnızca gerçekten eldeki zarf parasından).
+ */
 export function zarfToplami(kayitlar: readonly GunKaydi[], bugun: readonly Karar[] = []): number {
   let n = 0;
-  for (const c of [...kayitlar.flatMap((k) => k.kararlar), ...bugun]) if (c.zarf?.kabul) n += c.zarf.miktar;
+  for (const c of [...kayitlar.flatMap((k) => k.kararlar), ...bugun]) if (c.zarf?.kabul && !c.zarf.yakalandi) n += c.zarf.miktar;
   return n;
 }
 

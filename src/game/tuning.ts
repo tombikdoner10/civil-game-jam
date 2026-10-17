@@ -111,6 +111,13 @@ export const TUNING = {
   para: { baslangic: 0, maas: 20, ceza: 10 },
 
   /**
+   * Müfettiş (G57, takım kararı): gün sonunda zarfı kabul edilip YANLIŞ damgalanan her dosyada bu olasılıkla (tohum ve
+   * dosyaya bağlı, deterministik) zarf ortaya çıkar: zarfa el konur ve ayrıca ceza (TL) kesilir. Zarf alınıp doğru
+   * damga vurulduysa müfettiş bakmaz.
+   */
+  mufettis: { olasilik: 0.5, ceza: 40 },
+
+  /**
    * Kendi evinin hazırlığı (G42, takım fikri; G43 kademeli, takım kararı 17 Ekim; GDD "Ekonomi kademeli"): gün sonu
    * raporunda birikmiş parayla alınan üç kalem, her biri 3 kademe (sırayla; TL, yer tutucu fiyatlar). Güçlendirme payı
    * 3 taksit. Toplam 560 TL: kusursuz dürüst oyuncu (60/100/120/140/160 TL) ancak 5. günün sonunda tamamlar; gün 1'de

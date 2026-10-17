@@ -7,7 +7,7 @@ import { PX, rastgele, snap, Tuval } from '../desk/pixel';
 import { masaCiz, pikselDugme } from '../desk/props';
 import { gunAyar, SON_GUN } from '../game/days';
 import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
-import { ZARF_ETIKET } from '../game/diyalog';
+import { MUFETTIS_SONUC, RET_SONUC, ZARF_ETIKET } from '../game/diyalog';
 import { degerlendirme, juriGordukleri, KISA_SONUC, seninBinalarin, sokakCokenSayisi, sonucEtiketi, zarfOzeti } from '../game/gazete';
 import { EV_KADEME, evSonucu } from '../game/ev';
 import {
@@ -149,18 +149,34 @@ export class ResultScene extends Phaser.Scene {
     // Zarf (G17): kabul edilen zarflar ve hasar gören binaları (yer tutucu metin).
     let zarfAdet = 0;
     let zarfTL = 0;
+    // G57: müfettişin el koyduğu zarflar ve geri verilen zarflar (oyuncunun kendi kayıtlarından).
+    let mufettis = 0;
+    let ret = 0;
     for (const k of gercek) {
       const h = gunHesabi(k.kararlar, gunAyar(k.gun).dosyaSayisi);
       zarfAdet += h.zarfKabul;
-      zarfTL += h.zarf;
+      zarfTL += h.zarf + h.zarfElKonan;
+      mufettis += h.mufettis;
+      ret += h.zarfTeklif - h.zarfKabul;
     }
-    const zarf = zarfOzeti(zarfAdet, zarfTL, kisa ? juriSonuc : v.sonuclar);
+    const zarfOz = zarfOzeti(zarfAdet, zarfTL, kisa ? juriSonuc : v.sonuclar);
+    const muf = mufettis > 0 ? MUFETTIS_SONUC(mufettis) : null;
     // G26: satır "Birikmiş para"nın solundaki boşlukta kalır (arada 40 px); uzunsa en çok iki satıra bölünür ve
-    // küçülür, alttaki çizgiye ve üstteki TOPLAM satırına değmez.
-    if (zarf) {
-      const zarfW = birikmis.x - birikmis.width - 40 - (L + SUTUN.gun);
-      toplamlar.push(this.sigdirSatir(yaz(L + SUTUN.gun, topY + 52, zarf, 32, PAL.damgaBosalt), zarfW, 60));
-    }
+    // küçülür, alttaki çizgiye ve üstteki TOPLAM satırına değmez. G57: müfettiş notu (kırmızı) ve geri verilen zarf
+    // (yeşil) en çok iki satırda: ikisi de varsa müfettiş notu zarf satırının sonunda, yoksa zarf satırının altında;
+    // iki satırda her biri tek satır, alt alta.
+    const zarfW = birikmis.x - birikmis.width - 40 - (L + SUTUN.gun);
+    const zarfSatirlari: [string, string][] = [];
+    if (zarfOz) zarfSatirlari.push([muf && ret > 0 ? `${zarfOz} · ${muf}` : zarfOz, PAL.damgaBosalt]);
+    if (zarfOz && muf && ret === 0) zarfSatirlari.push([muf, PAL.damgaBosalt]);
+    if (ret > 0) zarfSatirlari.push([RET_SONUC(ret), PAL.damgaGuvenli]);
+    if (zarfSatirlari.length === 1) toplamlar.push(this.sigdirSatir(yaz(L + SUTUN.gun, topY + 52, zarfSatirlari[0][0], 32, zarfSatirlari[0][1]), zarfW, 60));
+    else
+      zarfSatirlari.forEach(([m, r], i) => {
+        const o = yaz(L + SUTUN.gun, topY + 52 + (i === 0 ? -16 : 16), m, 28, r);
+        while (o.width > zarfW && parseInt(String(o.style.fontSize), 10) > 18) o.setFontSize(parseInt(String(o.style.fontSize), 10) - 2);
+        toplamlar.push(o);
+      });
     for (const o of toplamlar) gorun(o, 200 + gercek.length * 90 + 80);
 
     // Kısa yol: oyuncunun binaları (damga → depremdeki sonuç) ve özeti.

@@ -1,6 +1,6 @@
 // @beyan metin
 import type { Damga } from './building';
-import { ZARF_GAZETE } from './diyalog';
+import { MUFETTIS_GAZETE, RET_GAZETE, ZARF_GAZETE } from './diyalog';
 import { depremOzeti, oyuncuOzeti, type DepremBinaSonucu, type DepremOzeti } from './session';
 
 /**
@@ -266,10 +266,31 @@ export function degerlendirme(o: DepremOzeti, kisa?: KisaYolBilgisi): { metin: s
 
 /**
  * Zarf izi (G17): kabul edilen zarfın binası depremde hasar gördüyse (ya da çöktüyse) gazetede bir satır.
- * Kabul edilmediyse ya da binalar sağlamsa null.
+ * Kabul edilmediyse ya da binalar sağlamsa null. G57: müfettişin el koyduğu zarfın binası sayılmaz (onun satırı
+ * gazeteZarfSatirlari'nda ayrı).
  */
 export function zarfSatiri(s: readonly DepremBinaSonucu[]): string | null {
-  return s.some((b) => b.zarf && (b.coktu || b.durum !== 'ayakta')) ? ZARF_GAZETE : null;
+  return s.some((b) => b.zarf && !b.mufettis && (b.coktu || b.durum !== 'ayakta')) ? ZARF_GAZETE : null;
+}
+
+/** Gazetenin zarf satırı (G57): metin ve tonu (kötü: kırmızı, iyi: yeşil). */
+export interface GazeteSatiri {
+  metin: string;
+  iyi: boolean;
+}
+
+/**
+ * Gazetenin sağ sütunundaki zarf satırları (G57), öncelik sırasıyla: müfettiş en az bir zarfa el koyduysa kırmızı
+ * satır; yakalanmayan zarflı bina hasar gördüyse eski zarf izi (kırmızı); en az bir zarf geri verildiyse yeşil
+ * dürüstlük satırı. Sığmazsa sondan düşer (öncelik kırmızıda).
+ */
+export function gazeteZarfSatirlari(s: readonly DepremBinaSonucu[]): GazeteSatiri[] {
+  const out: GazeteSatiri[] = [];
+  if (s.some((b) => b.mufettis)) out.push({ metin: MUFETTIS_GAZETE, iyi: false });
+  const z = zarfSatiri(s);
+  if (z) out.push({ metin: z, iyi: false });
+  if (s.some((b) => b.zarfRet)) out.push({ metin: RET_GAZETE, iyi: true });
+  return out;
 }
 
 /**

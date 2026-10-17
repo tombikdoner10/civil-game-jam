@@ -88,6 +88,19 @@ export const SAHA_METIN = {
 export const ZARF_GAZETE = 'Denetçinin masasında zarf bulundu';
 
 /**
+ * Müfettiş ve dürüstlük övgüsü (G57, lider kararı; metinler aynen). Gün sonu raporu: yakalanan her zarf için bir
+ * kırmızı satır; zarf alınıp yanlış damgalanan dosya olduğu hâlde yakalanan yoksa soluk satır. Para tablosunda ayrı
+ * satır. Gazete: yakalanan zarf varsa kırmızı, geri verilen zarf varsa yeşil satır. Sonuç ekranı: sayıya göre.
+ */
+export const MUFETTIS_RAPOR = (bina: string, ceza: number): string => `Müfettiş: ${bina} dosyasındaki zarf ortaya çıktı. Zarfa el konuldu, ${ceza} TL ceza.`;
+export const MUFETTIS_GELMEDI = 'Müfettiş bu akşam gelmedi.';
+export const MUFETTIS_CEZA_SATIR = 'Müfettiş cezası';
+export const MUFETTIS_GAZETE = 'Müfettiş denetçinin zarfına el koymuştu';
+export const RET_GAZETE = 'Denetçi rüşveti geri çevirdi';
+export const MUFETTIS_SONUC = (n: number): string => (n === 1 ? 'Müfettiş zarfına el koydu' : `Müfettiş ${n} zarfına el koydu`);
+export const RET_SONUC = (n: number): string => (n === 1 ? 'Rüşveti geri çevirdin' : `Rüşveti ${n} kez geri çevirdin`);
+
+/**
  * Oyunun takvimi: gün 1'in tarihi. Getirilen raporun tarihi bununla karşılaştırılır; kural kitabında "bugün"
  * olarak yazar.
  */
