@@ -29,10 +29,11 @@ export interface BinaEtiketi {
 
 /**
  * Binanın üstündeki etiket (G21 "SENİN DAMGAN", G5b öncü sarsıntı): en altta damga renginde damga adı, üstünde
- * isteğe bağlı başlık şeridi (ör. "SENİN DAMGAN"), en üstte sarsıntıdan sonra beliren sonuç çipi. Kabın (0, 0)'ı
+ * isteğe bağlı başlık şeridi (ör. "SENİN DAMGAN"), en üstte sarsıntıdan sonra beliren sonuç çipi. ek: damga adının
+ * yanına eklenen kısa metin (G22: zarf alınan binada "[ZARF]"). Kabın (0, 0)'ı
  * cephenin üst kenarının ortasıdır (Sokak.ustuneEkle).
  */
-export function binaEtiketi(scene: Phaser.Scene, damga: Damga, boy: EtiketBoy, ust?: string): BinaEtiketi {
+export function binaEtiketi(scene: Phaser.Scene, damga: Damga, boy: EtiketBoy, ust?: string, ek?: string): BinaEtiketi {
   const kap = scene.add.container(0, 0);
   const cip = (y: number, metin: string, zemin: string, renk: string, size: number): Phaser.GameObjects.Container => {
     const c = scene.add.container(0, y);
@@ -48,7 +49,7 @@ export function binaEtiketi(scene: Phaser.Scene, damga: Damga, boy: EtiketBoy, u
   const a = boy.aralik;
   let y = -boy.cubuk - boy.damga / 2;
   kap.add(scene.add.rectangle(0, -boy.cubuk / 2, 4, boy.cubuk, 0x0e0d10, 0.9));
-  kap.add(cip(Math.round(y), DAMGA_ADI[damga], DAMGA_RENK[damga], '#f0e6cc', boy.damga));
+  kap.add(cip(Math.round(y), ek ? `${DAMGA_ADI[damga]} ${ek}` : DAMGA_ADI[damga], DAMGA_RENK[damga], '#f0e6cc', boy.damga));
   if (ust) {
     y -= a;
     kap.add(cip(Math.round(y), ust, PAL.kremAcik, '#1d1a18', boy.ust));

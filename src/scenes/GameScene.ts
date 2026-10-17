@@ -14,11 +14,25 @@ import { binaEtiketi, ETIKET_KUCUK, ETIKET_KUCUK_YUKSEKLIK, type BinaEtiketi } f
 import { Quake } from '../desk/Quake';
 import { GISE_ALAN, GOZ, MASA_Y, Pencere, SOKAK_DERINLIK } from '../desk/Window';
 import { yerlesim, type Yerlesim } from '../desk/yerlesim';
-import { Cekmece, Zarf, ZARF_BOY } from '../desk/Zarf';
+import { Cekmece, Zarf, ZARF_ALAN } from '../desk/Zarf';
 import { Portre, PORTRE_EKRAN } from '../desk/Portre';
 import type { Damga, KusurId, Kural } from '../game/building';
-import { CERCEVE, DAMGA_TEPKI, ISTE_BELGE_METIN, ISTE_METIN, satir, SELAM, SOR_METIN, ZARF_TEPKI } from '../game/diyalog';
-import type { Ifade, IsteAlani } from '../game/kisi';
+import {
+  CERCEVE,
+  DAMGA_TEPKI,
+  ISTE_BELGE_METIN,
+  ISTE_METIN,
+  satir,
+  SELAM,
+  SOR_METIN,
+  ZARF_DUGME,
+  ZARF_ETIKET,
+  ZARF_IPUCU,
+  ZARF_ISTEK,
+  ZARF_NOT,
+  ZARF_TEPKI,
+} from '../game/diyalog';
+import type { Ifade, IsteAlani, ZarfIstek } from '../game/kisi';
 import { oncuEtiketi } from '../game/gazete';
 import { KUSUR_BILGI } from '../game/rules';
 import { ornekKayitlar } from '../game/ornek';
@@ -158,6 +172,8 @@ export class GameScene extends Phaser.Scene {
       dokunuldu: () => {
         if (this.inceleme.acik) this.inceleme.kapa();
       },
+      // Zarfın bedeli (G22): zarf karar beklerken hiçbir kaşe, zarf alındıysa yalnızca istenen kaşe.
+      izin: (d) => this.oturum.damgaIzinli(d),
     });
 
     this.cekmece = new Cekmece(this);
@@ -226,8 +242,8 @@ export class GameScene extends Phaser.Scene {
       if (!this.mesgul) this.pencere.ifade('gergin');
     });
     this.inceleme.on('ac', () => {
+      // Zarf inceleme modunda da sürüklenir ve düğmeleri tıklanır (G22; inceleme tıklamayı yutmaz: incelemeYok).
       for (const k of this.kartlar) k.disableInteractive(true);
-      this.zarf?.disableInteractive(true);
       this.not?.disableInteractive(true);
       this.kitap?.kilitle(true);
       if (this.ipucu) {
@@ -238,7 +254,6 @@ export class GameScene extends Phaser.Scene {
     });
     this.inceleme.on('kapa', () => {
       for (const k of this.kartlar) if (k.active) k.setInteractive();
-      if (this.zarf?.active && !this.mesgul) this.zarf.setInteractive();
       this.not?.setInteractive();
       this.kitap?.kilitle(false);
     });
@@ -313,6 +328,7 @@ export class GameScene extends Phaser.Scene {
     }
     // Yeni dosyada açık klasör kapanır (G5b): belgeler klasörün altına ya da üstüne karışmasın.
     if (this.kitap?.acik) this.kitap.kapa();
+    this.kaseDurum();
     this.pencere.setDosya(this.oturum.no, this.oturum.toplam);
     this.pencere.binaGoster(bina);
     const kisi = this.oturum.kisi;
@@ -380,53 +396,90 @@ export class GameScene extends Phaser.Scene {
     const c = this.oturum.sor(id);
     if (!c) return;
     const baslik = `SOR · ${KUSUR_BILGI[id].etiket.toLocaleUpperCase('tr-TR')}`;
-    this.pencere.soyle(satir(SOR_METIN[c.kusur][c.tur], c.secim, c.zarf), c.ifade, { baslik });
+    let metin = satir(SOR_METIN[c.kusur][c.tur], c.secim, c.zarf);
+    // Zarf (G22): kişi zarfı uzatırken hangi damgayı istediğini söyler; karar verilene kadar kaşeler kilitli.
+    if (c.zarf !== undefined && c.istenen) metin += `\n${satir(ZARF_ISTEK[c.istenen], c.secim)}`;
+    this.pencere.soyle(metin, c.ifade, { baslik });
     if (c.zarf !== undefined) {
       const miktar = c.zarf;
+      const istenen = c.istenen ?? 'guvenli';
       const dosya = this.oturum.mevcut?.id;
+      this.kaseDurum();
       this.time.delayedCall(700, () => {
-        if (this.oturum.mevcut?.id === dosya && !this.mesgul) this.zarfGetir(miktar);
+        if (this.oturum.mevcut?.id === dosya && !this.mesgul) this.zarfGetir(miktar, istenen);
       });
     }
   }
 
-  /** Zarf gişeden masaya kayar; çekmece açılır. Gişeye geri sürüklenirse ret, çekmeceye konursa kabul. */
-  private zarfGetir(miktar: number): void {
+  /**
+   * Kaşeliğin kilit durumu ve uyarısı (G22): zarf karar bekliyorsa hepsi kilitli ("Önce zarfa karar ver"), zarf
+   * alındıysa yalnızca istenen kaşe açık ("Zarf aldın: GÜVENLİ"); zarf yoksa ya da geri verildiyse hepsi açık.
+   */
+  private kaseDurum(): void {
+    const z = this.oturum.zarf;
+    let uyari: string | null = null;
+    if (z && !this.oturum.bitti) {
+      if (z.kabul === undefined) uyari = ZARF_IPUCU.bekliyor;
+      else if (z.kabul) uyari = ZARF_IPUCU.alindi.replace('{damga}', DAMGA_ADI[z.istenen]);
+    }
+    this.kaselik.durum(uyari);
+  }
+
+  /**
+   * Zarf gişeden masaya kayar; çekmece açılır. Üstünde kişinin istediği damga, altında AL / GERİ VER (G22).
+   * Sürükleme de karar verir: gişeye geri sürüklenirse ret, çekmeceye konursa kabul. İnceleme modunda da çalışır.
+   */
+  private zarfGetir(miktar: number, istenen: ZarfIstek): void {
     this.cekmece.ac(ustKatman());
-    const z = new Zarf(this, miktar, GOZ.x, GOZ.y - 24);
+    const z = new Zarf(this, miktar, GOZ.x, GOZ.y - 24, {
+      not: ZARF_NOT.replace('{damga}', DAMGA_ADI[istenen]),
+      al: ZARF_DUGME.al,
+      geri: ZARF_DUGME.geri,
+    });
     z.setDepth(ustKatman()).setAlpha(0);
-    const yer = this.bosYer(ZARF_BOY.w, ZARF_BOY.h) ?? [GOZ.x - 300, MASA_Y + 100];
+    const yer = this.bosYer(ZARF_ALAN.w, ZARF_ALAN.h) ?? [GOZ.x - 300, MASA_Y + 140];
     this.tweens.add({ targets: z, alpha: 1, duration: 120 });
-    this.tweens.add({ targets: z, x: snap(yer[0]), y: snap(yer[1]), duration: 460, ease: 'Cubic.easeOut' });
+    this.tweens.add({ targets: z, x: snap(yer[0]), y: snap(yer[1] - ZARF_ALAN.dy), duration: 460, ease: 'Cubic.easeOut' });
     sfx.play('zarfKay');
     z.on('birakildi', (x: number, y: number) => this.zarfBirakildi(z, x, y));
-    if (this.inceleme.acik) z.disableInteractive(true);
+    z.on('karar', (kabul: boolean) => (kabul ? this.zarfAl(z) : this.zarfGeriVer(z)));
     this.zarf = z;
+    this.kaseDurum();
   }
 
   private zarfBirakildi(z: Zarf, x: number, y: number): void {
     if (this.mesgul || this.zarf !== z) return;
-    if (y < MASA_Y + 8) {
-      // Gişeye geri verildi: ret.
-      this.oturum.zarfKarar(false);
-      this.zarf = undefined;
-      z.disableInteractive();
-      this.tweens.add({ targets: z, x: GOZ.x, y: GOZ.y - 60, alpha: 0, duration: 380, ease: 'Cubic.easeIn', onComplete: () => z.destroy() });
-      sfx.play('zarfRet');
-      this.cekmece.kapa(200);
-      const t = this.oturum.kisi?.selam ?? 0;
-      this.pencere.soyle(satir(ZARF_TEPKI.ret, t), t % 2 === 0 ? 'kizgin' : 'mahcup');
-    } else if (this.cekmece.icinde(x, y)) {
-      this.oturum.zarfKarar(true);
-      this.zarfCekmeceye(z);
-      this.pencere.soyle(satir(ZARF_TEPKI.kabul, this.oturum.kisi?.selam ?? 0), 'sevincli');
-    }
+    if (y < MASA_Y + 8) this.zarfGeriVer(z);
+    else if (this.cekmece.icinde(x, y)) this.zarfAl(z);
+  }
+
+  /** Zarf geri verildi (ret): kişi kızgın ya da mahcup, kaşeler açılır; oyuncu özgürce karar verir. */
+  private zarfGeriVer(z: Zarf): void {
+    if (this.mesgul || this.zarf !== z || !this.oturum.zarfBekliyor) return;
+    this.oturum.zarfKarar(false);
+    this.zarf = undefined;
+    z.kilitle();
+    this.tweens.add({ targets: z, x: GOZ.x, y: GOZ.y - 60, alpha: 0, duration: 380, ease: 'Cubic.easeIn', onComplete: () => z.destroy() });
+    sfx.play('zarfRet');
+    this.cekmece.kapa(200);
+    const t = this.oturum.kisi?.selam ?? 0;
+    this.pencere.soyle(satir(ZARF_TEPKI.ret, t), t % 2 === 0 ? 'kizgin' : 'mahcup');
+    this.kaseDurum();
+  }
+
+  /** Zarf alındı (kabul): çekmeceye kayar; yalnızca kişinin istediği kaşe açık kalır. */
+  private zarfAl(z: Zarf): void {
+    if (this.mesgul || this.zarf !== z || !this.oturum.zarfBekliyor) return;
+    this.oturum.zarfKarar(true);
+    this.zarfCekmeceye(z);
+    this.pencere.soyle(satir(ZARF_TEPKI.kabul, this.oturum.kisi?.selam ?? 0), 'sevincli');
+    this.kaseDurum();
   }
 
   /** Zarf çekmeceye kayar ve çekmece kapanır (kabul). */
   private zarfCekmeceye(z: Zarf): void {
     if (this.zarf === z) this.zarf = undefined;
-    z.disableInteractive();
+    z.kilitle();
     const [x, y] = this.cekmece.agiz;
     this.tweens.add({ targets: z, x, y, scale: 0.7, duration: 260, ease: 'Cubic.easeIn' });
     this.tweens.add({ targets: z, alpha: 0, delay: 200, duration: 160, onComplete: () => z.destroy() });
@@ -493,17 +546,20 @@ export class GameScene extends Phaser.Scene {
     if (this.mesgul || this.bitirildi) return false;
     const ruhsat = this.kartlar.find((k) => k.tur === 'ruhsat' && k.active);
     if (!ruhsat || !ruhsat.sinir().contains(x, y)) return false;
+    // Örtük kabul yok (G22): zarf karar beklerken ya da alınan zarfın istemediği damga vurulmaz (kaşelik zaten kilitli).
     const sonuc = this.oturum.damgala(damga);
     if (!sonuc) return false;
     this.mesgul = true;
-    // Masada kalan zarf kabul sayıldı (oturum kaydetti): çekmeceye kayar. Kişi damgaya tepki verir.
-    if (this.zarf) this.zarfCekmeceye(this.zarf);
+    const sonKarar = this.oturum.kararlar[this.oturum.kararlar.length - 1];
+    const zarfAlindi = !!sonKarar?.zarf?.kabul;
+    this.kaseDurum();
+    // Kişi damgaya tepki verir.
     const sira = this.oturum.kararlar.length;
     this.time.delayedCall(260, () => this.pencere.soyle(satir(DAMGA_TEPKI[damga], sira + this.tohum), DAMGA_IFADE[damga]));
 
     // Kaşe indi: mürekkep izi ruhsatta, indiği yerde (kart içinde kalacak şekilde).
     sfx.play(damga === 'iade' ? 'iade' : 'damga');
-    this.pencere.damgaVur(damga);
+    this.pencere.damgaVur(damga, zarfAlindi);
     punch(this, 0.01, 110);
     ruhsat.one();
     const iz = damgaIzi(this, damga, this.tohum + this.oturum.kararlar.length * 131);
@@ -607,7 +663,7 @@ export class GameScene extends Phaser.Scene {
       }
       const etiketler = new Map<string, BinaEtiketi>();
       for (const b of binalar) {
-        const e = binaEtiketi(this, b.damga, ETIKET_KUCUK);
+        const e = binaEtiketi(this, b.damga, ETIKET_KUCUK, undefined, b.zarf ? ZARF_ETIKET : undefined);
         e.kap.setAlpha(0);
         this.tweens.add({ targets: e.kap, alpha: 1, duration: 240, ease: 'Stepped', easeParams: [3] });
         sokak.ustuneEkle(b.yer, e.kap);
@@ -642,7 +698,7 @@ export class GameScene extends Phaser.Scene {
       this.ipucu = undefined;
     }
     for (const k of this.masadakiKartlar()) k.disableInteractive(true);
-    this.zarf?.disableInteractive(true);
+    this.zarf?.tiklanmaz();
     this.not?.disableInteractive(true);
     this.kitap?.kilitle(true);
     this.kaselik.kilitle(true);

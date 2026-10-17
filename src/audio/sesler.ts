@@ -73,6 +73,15 @@ export function seslerKur(): void {
   t('kaseAl', { dosya: ['impactWood_light_001'], volume: 0.45, rate: 1.35 }, 'click');
   t('istampa', { dosya: ['bookPlace2'], volume: 0.6, rate: 0.7, bas: 0.01 }, 'thud');
   t('kaseKoy', { dosya: ['impactWood_light_001'], volume: 0.5, rate: 1.05 }, 'click');
+  // Kilitli kaşe (G22: zarf kararı bekleniyor ya da zarf alındı): kısa tık-tık.
+  t(
+    'kaseKilit',
+    [
+      { dosya: ['impactWood_light_001'], volume: 0.45, rate: 1.7 },
+      { dosya: ['impactWood_light_001'], volume: 0.4, rate: 1.8, gecikme: 0.09 },
+    ],
+    'click',
+  );
 
   // Çekmece (zarf): ahşap.
   t('tepsi', { dosya: ['impactWood_light_001'], volume: 0.5, rate: 0.9, gecikme: 0.12 }, 'click');

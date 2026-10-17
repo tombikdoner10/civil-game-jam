@@ -2,7 +2,7 @@
 import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
 import { FONT } from '../config';
-import { PAL } from './palette';
+import { num, PAL } from './palette';
 import { PX, rastgele, snap, Tuval } from './pixel';
 
 const KRAFT = '#b39a6b';
@@ -12,18 +12,35 @@ const PARA = '#7d8f6a';
 
 /** Zarfın boyu (ekran). */
 export const ZARF_BOY = { w: 192, h: 120 };
+/**
+ * Zarf, üstündeki not ve altındaki düğmelerle kapladığı alan (G22): masada boş yer ararken. dy: alanın ortasının
+ * zarfın ortasına göre dikey kayması.
+ */
+export const ZARF_ALAN = { w: 264, h: 236, dy: 18 };
+
+/** Zarfın yazıları (yer tutucu metinler diyalog.ts'de). */
+export interface ZarfYazi {
+  /** Zarfın üstündeki not (kişinin istediği damga). */
+  not: string;
+  al: string;
+  geri: string;
+}
 
 /**
- * Masaya kayan zarf (G17, rüşvet): üstünde para yazar. Masada serbestçe sürüklenir (gişeye ve tezgâha
- * da çıkabilir); bırakılınca 'birakildi' olayı (x, y) yayar. Nereye bırakıldığına GameScene karar verir:
+ * Masaya kayan zarf (G17, rüşvet; G22 bedeli): üstünde para ve kişinin istediği damgayı yazan küçük not, altında
+ * AL / GERİ VER düğmeleri ('karar' olayı: true = al). Masada serbestçe sürüklenir (gişeye ve tezgâha da çıkabilir;
+ * inceleme modunda da); bırakılınca 'birakildi' olayı (x, y) yayar. Nereye bırakıldığına GameScene karar verir:
  * gişe (ret) ya da çekmece (kabul).
  */
 export class Zarf extends Phaser.GameObjects.Container {
+  private readonly dugmeler: Phaser.GameObjects.Container[] = [];
+
   constructor(
     scene: Phaser.Scene,
     readonly miktar: number,
     x: number,
     y: number,
+    yazi: ZarfYazi,
   ) {
     super(scene, x, y);
     const W = ZARF_BOY.w / PX;
@@ -50,8 +67,49 @@ export class Zarf extends Phaser.GameObjects.Container {
         .text(0, 20, `${miktar} TL`, { fontFamily: FONT, fontSize: '44px', color: PAL.murekkep })
         .setOrigin(0.5),
     );
+    // Kişinin istediği damga: zarfa iliştirilmiş küçük krem not (üst kenarın üstüne taşar).
+    const notYazi = scene.add
+      .text(0, 0, yazi.not, { fontFamily: FONT, fontSize: '26px', color: PAL.murekkep })
+      .setOrigin(0.5);
+    const nw = snap(notYazi.width + 20);
+    const ny = -ZARF_BOY.h / 2 - 8;
+    notYazi.setPosition(0, ny - 1);
+    this.add([
+      scene.add.rectangle(4, ny + 4, nw, 40, 0x000000, 0.35),
+      scene.add.rectangle(0, ny, nw + 8, 48, 0x1d191b),
+      scene.add.rectangle(0, ny, nw, 40, 0xe8dcc0),
+      scene.add.rectangle(0, ny - 22, 28, 8, 0xb8b29a),
+      notYazi,
+    ]);
+    // Düğmeler (inceleme modunda da tıklanır).
+    const dy = ZARF_BOY.h / 2 + 34;
+    const dugme = (metin: string, renk: number, kabul: boolean): Phaser.GameObjects.Container => {
+      const t = scene.add.text(0, -1, metin, { fontFamily: FONT, fontSize: '28px', color: '#f0e6cc' }).setOrigin(0.5);
+      const w = snap(t.width + 28);
+      const k = scene.add.container(0, dy);
+      const govde = scene.add.rectangle(0, 0, w, 40, renk);
+      k.add([scene.add.rectangle(0, 0, w + 8, 48, 0x1d191b), govde, scene.add.rectangle(0, -16, w, 4, 0xffffff, 0.18), t]);
+      k.setSize(w + 8, 48);
+      k.setInteractive({ useHandCursor: true }).setData('incelemeYok', true);
+      k.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => govde.setAlpha(0.8));
+      k.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => govde.setAlpha(1));
+      k.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (_p: Phaser.Input.Pointer, _x: number, _y: number, e: Phaser.Types.Input.EventData) => {
+        e.stopPropagation();
+        this.emit('karar', kabul);
+      });
+      this.dugmeler.push(k);
+      return k;
+    };
+    const al = dugme(yazi.al, num(PAL.damgaGuvenli), true);
+    const geri = dugme(yazi.geri, num(PAL.damgaBosalt), false);
+    const ara = 16;
+    const top = al.width + geri.width + ara;
+    al.setX(snap(-top / 2 + al.width / 2));
+    geri.setX(snap(top / 2 - geri.width / 2));
+    this.add([al, geri]);
+
     this.setSize(ZARF_BOY.w, ZARF_BOY.h);
-    this.setInteractive({ draggable: true, useHandCursor: true });
+    this.setInteractive({ draggable: true, useHandCursor: true }).setData('incelemeYok', true);
     scene.add.existing(this);
     this.on('drag', (_p: Phaser.Input.Pointer, dx: number, dy: number) => {
       this.setPosition(
@@ -61,6 +119,21 @@ export class Zarf extends Phaser.GameObjects.Container {
     });
     this.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => sfx.play('kagitAl'));
     this.on('dragend', (p: Phaser.Input.Pointer) => this.emit('birakildi', p.worldX, p.worldY));
+  }
+
+  /** Karar verildi: zarf ve düğmeler artık tıklanmaz, düğmeler söner. */
+  kilitle(): void {
+    this.disableInteractive();
+    for (const d of this.dugmeler) {
+      d.disableInteractive();
+      this.scene.tweens.add({ targets: d, alpha: 0, duration: 120 });
+    }
+  }
+
+  /** Sekans kilidi (öncü sarsıntı): zarf ve düğmeler tıklanmaz. */
+  tiklanmaz(): void {
+    this.disableInteractive();
+    for (const d of this.dugmeler) d.disableInteractive();
   }
 }
 

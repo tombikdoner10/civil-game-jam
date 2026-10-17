@@ -15,6 +15,7 @@ import {
   type IsteCevap,
   type Kisi,
   type SorCevap,
+  type ZarfIstek,
 } from './kisi';
 import {
   bilgiyleTamamla,
@@ -45,10 +46,15 @@ export interface DosyaBilgisi {
   kaynak: Partial<Record<BilgiAlani, BilgiKaynak>>;
 }
 
-/** Gişede teklif edilen zarf (G17). Kabul: çekmeceye kondu ya da damga vurulurken masada kaldı. */
+/**
+ * Gişede teklif edilen zarf (G17, G22). Kabul (AL ya da çekmeceye) ya da ret (GERİ VER ya da gişeye); örtük kabul
+ * yok. Kabul edilince vurulan damga kişinin istediği damgadır.
+ */
 export interface ZarfKaydi {
   miktar: number;
   kabul: boolean;
+  /** Kişinin zarfla istediği damga. */
+  istenen: ZarfIstek;
 }
 
 export interface Karar {
@@ -65,7 +71,7 @@ export interface Karar {
   kusurlar: KusurId[];
   /** Oyuncunun inceleme modunda bu dosyada bulduğu kusurlar (gün sonu ekranı için). */
   bulunan: KusurId[];
-  /** Gişede teklif edilen zarf (damgayı değiştirmez; kabul edilen para gün sonuna eklenir). */
+  /** Gişede teklif edilen zarf (kabul edildiyse damga istenen damgadır; para gün sonuna eklenir). */
   zarf?: ZarfKaydi;
   /** Eksik belge istendiyse kişinin cevabı. */
   iste?: Partial<Record<BilgiAlani, IsteTuru>>;
@@ -102,6 +108,8 @@ export interface SokakKaydi {
   gun: number;
   /** Önceki sarsıntılardan kalan hasar (yoksa sağlam). */
   hasar?: HasarDurumu;
+  /** Bu dosyada zarf kabul edilmişti (G22: sokakta iz, sarsıntıda etiket). */
+  zarf?: boolean;
 }
 
 /**
@@ -116,7 +124,11 @@ export function sokakKayitlari(tohum: number, kayitlar: readonly GunKaydi[]): So
     const binalar = new Map(gunDosyalari(k.tohum ?? tohum, k.gun, gunAyar(k.gun).dosyaSayisi).map((b) => [b.id, b]));
     for (const karar of k.kararlar) {
       const bina = binalar.get(karar.dosyaId);
-      if (bina) out.push({ bina, damga: karar.damga, gun: k.gun, hasar: hasar.get(karar.dosyaId) });
+      if (bina) {
+        const kayit: SokakKaydi = { bina, damga: karar.damga, gun: k.gun, hasar: hasar.get(karar.dosyaId) };
+        if (karar.zarf?.kabul) kayit.zarf = true;
+        out.push(kayit);
+      }
     }
   }
   return out;
@@ -188,12 +200,18 @@ export interface DepremOzeti {
   iadeCoken: number;
   /** İADE edilmiş ve ağır hasar alan (çökmeyen). */
   iadeAgir: number;
+  /** Zarf alınan binalar ve bunların hasar gören (ya da çöken) olanları (G22). */
+  zarf: number;
+  zarfHasar: number;
 }
 
 export function depremOzeti(s: readonly DepremBinaSonucu[]): DepremOzeti {
   const coken = s.filter((b) => b.coktu);
   const iade = s.filter((b) => b.damga === 'iade');
+  const zarf = s.filter((b) => b.zarf);
   return {
+    zarf: zarf.length,
+    zarfHasar: zarf.filter((b) => b.coktu || b.durum !== 'ayakta').length,
     iade: iade.length,
     iadeCoken: iade.filter((b) => b.coktu).length,
     iadeAgir: iade.filter((b) => !b.coktu && b.durum === 'agirHasar').length,
@@ -309,7 +327,7 @@ export class GunOturumu {
   private kisiBilgi?: Kisi;
   private sorulan: KusurId[] = [];
   private istenen: Partial<Record<BilgiAlani, IsteCevap>> = {};
-  private zarfTeklif?: { miktar: number; kabul?: boolean };
+  private zarfTeklif?: { miktar: number; istenen: ZarfIstek; kabul?: boolean };
 
   constructor(
     readonly gun: number,
@@ -326,8 +344,24 @@ export class GunOturumu {
   }
 
   /** Mevcut dosyada teklif edilen zarf (kabul: henüz karar yoksa undefined). */
-  get zarf(): Readonly<{ miktar: number; kabul?: boolean }> | undefined {
+  get zarf(): Readonly<{ miktar: number; istenen: ZarfIstek; kabul?: boolean }> | undefined {
     return this.zarfTeklif;
+  }
+
+  /** Zarf masada, karar bekliyor (G22): karar verilene kadar hiçbir damga vurulamaz. */
+  get zarfBekliyor(): boolean {
+    return !!this.zarfTeklif && this.zarfTeklif.kabul === undefined;
+  }
+
+  /**
+   * Bu damga şu an vurulabilir mi (G22): zarf karar bekliyorsa hiçbiri; zarf alındıysa yalnızca kişinin istediği
+   * damga; zarf yoksa ya da geri verildiyse hepsi (kaşeliğin o günkü kaşeleri).
+   */
+  damgaIzinli(damga: Damga): boolean {
+    const z = this.zarfTeklif;
+    if (!z) return true;
+    if (z.kabul === undefined) return false;
+    return !z.kabul || damga === z.istenen;
   }
 
   /** Bu kusur gişedeki kişiye sorulabilir mi (bulunmuş, sorulmamış, eksik belge değil). */
@@ -337,7 +371,7 @@ export class GunOturumu {
 
   /**
    * SOR: bulunan tutarsızlığı kişiye sor. Cevap (bahane / itiraf / zarf) deterministik; zarf teklifinde zarf
-   * masaya kayar (zarfKarar ile kabul ya da ret; damga vurulurken masada kalırsa kabul).
+   * masaya kayar ve zarfKarar ile kabul ya da ret edilene kadar damga vurulamaz (G22).
    */
   sor(id: KusurId): SorCevap | null {
     const b = this.mevcut;
@@ -346,11 +380,11 @@ export class GunOturumu {
     const ciddiyet = id === 'sahteRapor' ? 'iade' : (this.gorunen(b).find((k) => k.id === id)?.ciddiyet ?? KUSUR_BILGI[id].ciddiyet);
     const c = sorCevabi(this.tohum, b, kisi, id, ciddiyet, this.ayar, this.zarfTeklif !== undefined);
     this.sorulan.push(id);
-    if (c.zarf !== undefined) this.zarfTeklif = { miktar: c.zarf };
+    if (c.zarf !== undefined) this.zarfTeklif = { miktar: c.zarf, istenen: c.istenen ?? 'guvenli' };
     return c;
   }
 
-  /** Zarf kararı (bir kez): ret (gişeye geri) ya da kabul (çekmeceye). */
+  /** Zarf kararı (bir kez): ret (gişeye geri) ya da kabul (çekmeceye; damga kişinin istediği olur). */
   zarfKarar(kabul: boolean): void {
     if (this.zarfTeklif && this.zarfTeklif.kabul === undefined) this.zarfTeklif.kabul = kabul;
   }
@@ -551,9 +585,10 @@ export class GunOturumu {
     return gunHesabi(this.kararlar, this.toplam);
   }
 
+  /** Damga vur. Zarf karar bekliyorsa ya da alınan zarfın istediği damga değilse vurulmaz (null; G22). */
   damgala(damga: Damga): DamgaSonucu | null {
     const b = this.mevcut;
-    if (!b || this.bitti) return null;
+    if (!b || this.bitti || !this.damgaIzinli(damga)) return null;
     const dis = this.disBilgi();
     const kabul = dogruDamgalar(b, this.gun, dis);
     const gorunen = gorunenKusurlar(b, this.gun);
@@ -572,7 +607,7 @@ export class GunOturumu {
       bulunan: this.bulunan.slice(),
     };
     if (dis) karar.kaynak = { ...this.bilgi.kaynak };
-    if (this.zarfTeklif) karar.zarf = { miktar: this.zarfTeklif.miktar, kabul: this.zarfTeklif.kabul ?? true };
+    if (this.zarfTeklif) karar.zarf = { miktar: this.zarfTeklif.miktar, kabul: this.zarfTeklif.kabul === true, istenen: this.zarfTeklif.istenen };
     const iste = Object.entries(this.istenen) as [BilgiAlani, IsteCevap][];
     if (iste.length > 0) karar.iste = Object.fromEntries(iste.map(([a, c]) => [a, c.tur]));
     this.kararlar.push(karar);

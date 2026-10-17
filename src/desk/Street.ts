@@ -18,6 +18,7 @@ import {
   KATMAN_PAY,
   molozCiz,
   seritCiz,
+  zarfCiz,
   type CepheSecim,
 } from './tiles';
 
@@ -80,6 +81,8 @@ export interface SokakYeri {
   hasar?: SokakHasar;
   /** Damgalandığı gün (yeni gelen incelenen binada yok). */
   gun?: number;
+  /** Bu binada zarf alındı (G22). */
+  zarf?: boolean;
 }
 
 interface Parsel {
@@ -88,6 +91,7 @@ interface Parsel {
   damga?: Damga;
   hasar?: SokakHasar;
   gun?: number;
+  zarf?: boolean;
   secim: CepheSecim;
   kat: number;
   /** Cephe yüksekliği (sanat pikseli). */
@@ -101,6 +105,7 @@ interface Parsel {
   hasarDerece?: HasarDurumu;
   isaret?: Phaser.GameObjects.Image;
   serit?: Phaser.GameObjects.Image;
+  zarfImg?: Phaser.GameObjects.Image;
 }
 
 /**
@@ -165,6 +170,7 @@ export class Sokak {
       const p = this.parselKur(k.bina, yer);
       p.damga = k.damga;
       p.gun = k.gun;
+      p.zarf = k.zarf;
       this.isaretKur(p, false);
       this.tonla(p);
       if (k.hasar) this.hasarVer(yer, k.hasar, false);
@@ -192,7 +198,7 @@ export class Sokak {
   damgalilar(): SokakYeri[] {
     return this.parseller
       .filter((p) => p.damga)
-      .map((p) => ({ yer: p.yer, bina: p.bina, damga: p.damga as Damga, hasar: p.hasar, gun: p.gun }));
+      .map((p) => ({ yer: p.yer, bina: p.bina, damga: p.damga as Damga, hasar: p.hasar, gun: p.gun, zarf: p.zarf }));
   }
 
   /** İncelenen dosyanın binası sıradaki parsele gelir; sokak oraya kayar. */
@@ -227,12 +233,13 @@ export class Sokak {
     this.git(c, s, oran, Math.min(2200, 300 + 140 * uzak));
   }
 
-  /** İncelenen bina damgalandı: işareti canlandırarak yerine oturur ve sokakta kalır. */
-  damgala(damga: Damga): void {
+  /** İncelenen bina damgalandı: işareti canlandırarak yerine oturur ve sokakta kalır. zarf: zarf alındı (G22). */
+  damgala(damga: Damga, zarf = false): void {
     const p = this.incelenen;
     if (!p) return;
     this.incelenen = undefined;
     p.damga = damga;
+    p.zarf = zarf || undefined;
     this.isaretKur(p, true);
   }
 
@@ -555,6 +562,17 @@ export class Sokak {
         this.scene.tweens.add({ targets: p.isaret, alpha: 1, duration: 300, delay: 200, ease: 'Stepped', easeParams: [3] });
       }
     }
+    // Zarf izi (G22): damga işaretinin üstünde, kapının yanında küçük sarı zarf.
+    if (p.zarf && !p.zarfImg) {
+      const t = this.katman(p.h, 'zarf-iz');
+      zarfCiz(t.ctx, yan, ust, p.kat);
+      p.zarfImg = this.katmanGoruntu(t, p.h).setTint(ton);
+      p.kap.add(p.zarfImg);
+      if (canlandir) {
+        p.zarfImg.setAlpha(0);
+        this.scene.tweens.add({ targets: p.zarfImg, alpha: 1, duration: 300, delay: 500, ease: 'Stepped', easeParams: [3] });
+      }
+    }
   }
 
   /** Görüntüyü kırparak açar: 'yukari' alttan üste (kat kat), 'saga' soldan sağa. */
@@ -590,8 +608,8 @@ export class Sokak {
     const ton = (p.kap.list[0] as Phaser.GameObjects.Image).tintTopLeft;
     p.hasarImg = this.katmanGoruntu(t, p.h).setTint(ton);
     p.hasarDerece = derece;
-    // Çatlak duvarın üstünde, iskele ve şeridin altında.
-    const altinda = p.isaret ?? p.serit;
+    // Çatlak duvarın üstünde, iskele, şerit ve zarf izinin altında.
+    const altinda = p.isaret ?? p.serit ?? p.zarfImg;
     if (altinda) p.kap.addAt(p.hasarImg, p.kap.getIndex(altinda));
     else p.kap.add(p.hasarImg);
     if (canlandir) {

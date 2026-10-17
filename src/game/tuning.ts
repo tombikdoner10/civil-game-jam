@@ -97,7 +97,8 @@ export const TUNING = {
 
   /**
    * Gişedeki kişi (G17): kişilik, SOR ve İSTE olasılıkları. Gün başına değerler dizide (gün 1 = ilk eleman).
-   * Zarf damgayı değiştirmez; kabul edilen zarf parayı artırır ve kayda girer.
+   * Zarfın bedeli (G22): zarfı alan, kişinin istediği damgayı vurmak zorunda; kabul edilen zarf parayı artırır ve
+   * kayda girer (sokakta ve depremde iz).
    */
   kisi: {
     /** Kişilik ağırlıkları; pazarlıkçı payı güne göre (gün 5'te zarf daha sık). */
@@ -113,6 +114,8 @@ export const TUNING = {
     },
     /** Zarftaki para (TL; maaş dosya başına 20). */
     zarfMiktar: { guclendir: { min: 40, max: 80 }, bosalt: { min: 80, max: 160 }, adim: 10 },
+    /** Zarfla istenen damga (G22): genelde GÜVENLİ; BOŞALT gerektiren kusurda bu olasılıkla GÜÇLENDİR. */
+    zarfIstekGuclendir: 0.4,
     /** Hangi günden itibaren: SOR, İSTE (eksik belgede) ve sahte rapor. */
     sorIlkGun: 1,
     isteIlkGun: 3,

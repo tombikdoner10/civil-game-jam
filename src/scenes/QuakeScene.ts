@@ -9,6 +9,7 @@ import { SON_GUN } from '../game/days';
 import { buyukDeprem, sokakKayitlari, type DepremBinaSonucu, type GunKaydi } from '../game/session';
 import { TUNING } from '../game/tuning';
 import { GECE_SAATI, SENIN_DAMGAN, sonucEtiketi } from '../game/gazete';
+import { ZARF_ETIKET } from '../game/diyalog';
 import { Controls } from '../systems/controls';
 import { goTo } from '../systems/transition';
 import { SCENES } from './keys';
@@ -177,7 +178,7 @@ export class QuakeScene extends Phaser.Scene {
    * (yer tutucu metinler, gazete.ts; bileşen BinaEtiketi.ts). Sokakla kayar; boyu etiketYerlestir'de.
    */
   private etiketKur(b: SokakYeri, s: DepremBinaSonucu): void {
-    const e = binaEtiketi(this, b.damga, ETIKET_BUYUK, SENIN_DAMGAN);
+    const e = binaEtiketi(this, b.damga, ETIKET_BUYUK, SENIN_DAMGAN, b.zarf ? ZARF_ETIKET : undefined);
     e.kap.setDepth(SOKAK_D + 6);
     this.sonucEtiketleri.push(() => e.sonucGoster(sonucEtiketi(s), sonucRengi(s)));
     this.etiketler.push({ e, yer: b.yer });

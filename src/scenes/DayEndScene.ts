@@ -8,6 +8,7 @@ import { masaCiz, pikselDugme } from '../desk/props';
 import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
 import type { Damga } from '../game/building';
 import { SON_GUN } from '../game/days';
+import { ZARF_ETIKET } from '../game/diyalog';
 import { KISA_YOL_ACIKLAMA, KISA_YOL_DUGME } from '../game/gazete';
 import { kisaYolKayitlari } from '../game/ornek';
 import { KUSUR_BILGI } from '../game/rules';
@@ -106,7 +107,10 @@ export class DayEndScene extends Phaser.Scene {
         ogeler.push(...this.damgaCip(L + SUTUN.damga, y, k.damga));
         ogeler.push(...this.damgaCip(L + SUTUN.dogru, y, k.dogruDamga));
         const bulunan = k.bulunan.map((id) => KUSUR_BILGI[id].etiket).join(', ') || '—';
-        ogeler.push(this.sigdir(yaz(L + SUTUN.kusur, y, bulunan, 30), SUTUN.sonuc - SUTUN.kusur - 150));
+        // Zarf alınan dosya (G22): sonuç sütununun solunda kırmızı işaret; kusur yazısı ona yer bırakır.
+        const zarf = !!k.zarf?.kabul;
+        ogeler.push(this.sigdir(yaz(L + SUTUN.kusur, y, bulunan, 30), SUTUN.sonuc - SUTUN.kusur - (zarf ? 250 : 150)));
+        if (zarf) ogeler.push(yaz(L + SUTUN.sonuc - 128, y, ZARF_ETIKET, 30, PAL.damgaBosalt, 1));
         ogeler.push(yaz(L + SUTUN.sonuc, y, k.dogru ? 'DOĞRU' : 'YANLIŞ', 32, k.dogru ? PAL.damgaGuvenli : PAL.damgaBosalt, 1));
       } else {
         ogeler.push(yaz(L + SUTUN.damga, y, '—', 32, PAL.murekkepSoluk));

@@ -87,12 +87,20 @@ export function oneCikanlar(s: readonly DepremBinaSonucu[], oncelik?: ReadonlySe
   return { satirlar: out.map((x) => x.metin), odak: out[0]?.b };
 }
 
-/** Sonuç ekranındaki değerlendirme satırı (üç şablon). */
+/**
+ * Sonuç ekranındaki değerlendirme satırı (üç şablon). Zarf (G22): zarf alınan bina hasar gördüyse satıra eklenir
+ * ve ton kötüye döner; zarf alındı ama binalar sağlamsa yalnızca not düşülür.
+ */
 export function degerlendirme(o: DepremOzeti): { metin: string; ton: 'iyi' | 'orta' | 'kotu' } {
-  if (o.doluCoken > 0 && o.doluCoken === o.iadeCoken) return { metin: '[Değerlendirme: iade ettiğin binalar denetlenmeden çöktü]', ton: 'kotu' };
-  if (o.doluCoken > 0) return { metin: '[Değerlendirme: onayladığın binalar çöktü]', ton: 'kotu' };
-  if (o.doluAgir > 0) return { metin: '[Değerlendirme: yıkım yok ama ağır hasar var]', ton: 'orta' };
-  return { metin: '[Değerlendirme: sokak depreme hazırdı]', ton: 'iyi' };
+  const z = o.zarfHasar > 0 ? ' · zarf aldığın binalar hasar gördü' : o.zarf > 0 ? ' · zarf aldın' : '';
+  const d = (metin: string, ton: 'iyi' | 'orta' | 'kotu'): { metin: string; ton: 'iyi' | 'orta' | 'kotu' } => ({
+    metin: `[Değerlendirme: ${metin}${z}]`,
+    ton: o.zarfHasar > 0 ? 'kotu' : ton,
+  });
+  if (o.doluCoken > 0 && o.doluCoken === o.iadeCoken) return d('iade ettiğin binalar denetlenmeden çöktü', 'kotu');
+  if (o.doluCoken > 0) return d('onayladığın binalar çöktü', 'kotu');
+  if (o.doluAgir > 0) return d('yıkım yok ama ağır hasar var', 'orta');
+  return d('sokak depreme hazırdı', 'iyi');
 }
 
 /**
@@ -107,7 +115,7 @@ export function zarfSatiri(s: readonly DepremBinaSonucu[]): string | null {
 export function zarfOzeti(adet: number, toplam: number, s: readonly DepremBinaSonucu[]): string | null {
   if (adet === 0) return null;
   const hasar = s.filter((b) => b.zarf && (b.coktu || b.durum !== 'ayakta')).length;
-  return `[Kabul edilen zarf: ${adet} · ${toplam} TL${hasar > 0 ? ` · zarf alınan ${hasar} bina depremde hasar gördü` : ''}]`;
+  return `[Kabul edilen zarf: ${adet}, toplam ${toplam} TL${hasar > 0 ? ` · zarf alınan ${hasar} bina depremde hasar gördü` : ''}]`;
 }
 
 // ---- G21 kısa yol ("Depremi şimdi yaşa") ----

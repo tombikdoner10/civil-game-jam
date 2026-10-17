@@ -1,4 +1,4 @@
-// Büyük deprem adalet denetimi (G5, G16, G17): tohum 1-10 ve altı karar biçimi (dev örneği, hepsi doğru, hepsi GÜVENLİ,
+// Büyük deprem adalet denetimi (G5, G16, G17, G22): tohum 1-10 ve altı karar biçimi (dev örneği, hepsi doğru, hepsi GÜVENLİ,
 // hepsi GÜÇLENDİR, hepsi BOŞALT, hepsi İADE) için session.buyukDeprem sonuçlarını kurallara göre denetler. Ayrıca
 // İADE ve eksik belge mantığını (doğru damgalar, bilgi edinme) ve dere/fay + zemin kuralını denetler.
 // İADE edilen kusurlu bina insanlı kalır: oyuncunun bilinçli bıraktığı risktir, adalet ihlali sayılmaz.
@@ -196,10 +196,13 @@ for (let tohum = 1; tohum <= 40; tohum++) {
 }
 
 // ---- G17: gişedeki kişi (SOR, İSTE, zarf) ----
-// Sahte rapora inanmak yanlış; gerçek rapor sonrası gerçek damga doğru; getiremezse İADE doğru; zarf damgayı
-// etkilemez ama parayı artırır; cevaplar deterministik.
+// Sahte rapora inanmak yanlış; gerçek rapor sonrası gerçek damga doğru; getiremezse İADE doğru; cevaplar
+// deterministik. G22 zarfın bedeli: zarf karar beklerken hiçbir damga vurulamaz (örtük kabul yok); zarf alınınca
+// yalnızca kişinin istediği damga vurulur ve doğruluk o damgaya göre (gerçek kurallarla); geri verilince normal
+// kurallar. Kabul edilen zarf parayı artırır.
 const K = await server.ssrLoadModule('/src/game/kisi.ts');
-const g17 = { gercek: 0, sahte: 0, yok: 0, bahane: 0, itiraf: 0, zarf: 0, sahteBulundu: 0 };
+const TUM_DAMGA = ['guvenli', 'guclendir', 'bosalt', 'iade'];
+const g17 = { gercek: 0, sahte: 0, yok: 0, bahane: 0, itiraf: 0, zarf: 0, sahteBulundu: 0, zarfKabul: 0, zarfKabulYanlis: 0, zarfRet: 0, istenenGuclendir: 0 };
 for (let tohum = 1; tohum <= 40; tohum++) {
   for (let g = 1; g <= 5; g++) {
     const o = new S.GunOturumu(g, tohum);
@@ -250,16 +253,43 @@ for (let tohum = 1; tohum <= 40; tohum++) {
         }
         const c = o.sor(k.id);
         const c2 = ikiz.sor(k.id);
-        bak(c && c2 && c.tur === c2.tur && c.secim === c2.secim && c.zarf === c2.zarf, `${e}: SOR deterministik değil`);
+        bak(c && c2 && c.tur === c2.tur && c.secim === c2.secim && c.zarf === c2.zarf && c.istenen === c2.istenen, `${e}: SOR deterministik değil`);
         bak(o.sor(k.id) === null, `${e}: aynı kusur iki kez soruldu`);
         if (c) g17[c.tur]++;
         if (c?.zarf !== undefined) {
           bak(c.zarf > 0 && c.zarf % 10 === 0, `${e}: zarf miktarı ${c.zarf}`);
+          // İstenen damga (G22): GÜVENLİ ya da (BOŞALT gerektiren kusurda) GÜÇLENDİR; kaşelikte var.
+          const cid = k.id === 'sahteRapor' ? 'iade' : k.ciddiyet;
+          bak(c.istenen === 'guvenli' || (c.istenen === 'guclendir' && cid === 'bosalt'), `${e}: istenen damga ${c.istenen} (ciddiyet ${cid})`);
+          bak(o.ayar.kaseler.includes(c.istenen), `${e}: istenen damga kaşelikte yok`);
+          if (c.istenen === 'guclendir') g17.istenenGuclendir++;
+          // Örtük kabul yok: karar verilmeden hiçbir damga vurulmaz.
+          bak(o.zarfBekliyor && TUM_DAMGA.every((d) => !o.damgaIzinli(d) && o.damgala(d) === null), `${e}: zarf karar beklerken damga vuruldu`);
+          bak(o.mevcut === b, `${e}: zarf beklerken dosya ilerledi`);
           o.zarfKarar(tohum % 2 === 0);
           ikiz.zarfKarar(tohum % 2 === 0);
+          bak(!o.zarfBekliyor, `${e}: karar sonrası zarf hâlâ bekliyor`);
         }
       }
       const zarf = o.zarf ? { ...o.zarf } : undefined;
+      // Zarf alındı (G22): yalnızca istenen damga vurulur; doğruluk gerçek kurallara göre.
+      if (zarf?.kabul) {
+        g17.zarfKabul++;
+        for (const d of TUM_DAMGA)
+          if (d !== zarf.istenen) bak(!o.damgaIzinli(d) && o.damgala(d) === null, `${e}: zarf alındı ama ${d} vurulabildi`);
+        bak(o.damgaIzinli(zarf.istenen), `${e}: zarf alındı ama istenen damga kilitli`);
+        const s1 = o.damgala(zarf.istenen);
+        ikiz.damgala(zarf.istenen);
+        bak(s1 && s1.dogru === kabulBeklenen.includes(zarf.istenen), `${e}: zarflı damga (${zarf.istenen}) doğruluğu; kabul=${kabulBeklenen.join(',')}`);
+        if (s1 && !s1.dogru) g17.zarfKabulYanlis++;
+        const kr = o.kararlar[o.kararlar.length - 1];
+        bak(kr.damga === zarf.istenen && kr.zarf?.kabul === true && kr.zarf.istenen === zarf.istenen && kr.zarf.miktar === zarf.miktar, `${e}: zarflı karar kaydı`);
+        continue;
+      }
+      if (zarf) {
+        g17.zarfRet++;
+        bak(TUM_DAMGA.every((d) => o.damgaIzinli(d)), `${e}: zarf geri verildi ama kaşe kilitli`);
+      }
       // Sahte rapora inanmak: sahte değerle tamamlanmış belgeye göre damga (İADE ya da BOŞALT değilse) yanlış.
       if (sahteVar) {
         const sahteler = o.sahteRaporlar;
@@ -284,7 +314,7 @@ for (let tohum = 1; tohum <= 40; tohum++) {
       bak(s1 && s1.dogru, `${e}: doğru damga (${hedef}) yanlış sayıldı; kabul=${kabulBeklenen.join(',')}`);
       ikiz.damgala(hedef);
       const kr = o.kararlar[o.kararlar.length - 1];
-      if (zarf) bak(kr.zarf && kr.zarf.miktar === zarf.miktar && kr.zarf.kabul === (zarf.kabul ?? true), `${e}: zarf kaydı`);
+      if (zarf) bak(kr.zarf && kr.zarf.miktar === zarf.miktar && kr.zarf.kabul === false && kr.zarf.istenen === zarf.istenen, `${e}: zarf kaydı`);
       else bak(!kr.zarf, `${e}: zarfsız dosyada zarf kaydı`);
     }
     // Gün hesabı: zarf toplama eklenir.
@@ -293,16 +323,27 @@ for (let tohum = 1; tohum <= 40; tohum++) {
     bak(h.zarf === zarfTop && h.toplam === h.maas - h.ceza + zarfTop, `t${tohum} g${g}: gün hesabında zarf`);
   }
 }
-// Zarf deprem sonucunu değiştirmez (ornek kayıtlarında zarf alanı sonuçta işaretli, durum aynı kurala göre).
+// Deprem sonucu yalnızca vurulan damgaya bağlı (zarf alanı yalnızca işaret); zarflı kararda damga istenen damga,
+// sokakta zarf izi kabul edilen zarflarla aynı (G22).
 for (let tohum = 1; tohum <= 10; tohum++) {
   const k = O.ornekKayitlar(tohum, 6);
+  for (const c of k.flatMap((x) => x.kararlar))
+    if (c.zarf?.kabul) bak(c.damga === c.zarf.istenen, `t${tohum} ornek ${c.dosyaId}: zarflı kararda damga istenen değil`);
+  const sk = S.sokakKayitlari(tohum, k);
+  bak(sk.filter((x) => x.zarf).length === k.flatMap((x) => x.kararlar).filter((c) => c.zarf?.kabul).length, `t${tohum}: sokakta zarf izi sayısı`);
+  const oz = S.depremOzeti(S.buyukDeprem(tohum, k));
+  bak(oz.zarf === sk.filter((x) => x.zarf).length && oz.zarfHasar <= oz.zarf, `t${tohum}: deprem özetinde zarf`);
   const zarfsiz = k.map((x) => ({ ...x, kararlar: x.kararlar.map(({ zarf: _z, ...c }) => c) }));
   const a1 = S.buyukDeprem(tohum, k);
   const a2 = S.buyukDeprem(tohum, zarfsiz);
   bak(a1.every((r, i) => r.durum === a2[i].durum && r.coktu === a2[i].coktu), `t${tohum}: zarf deprem sonucunu değiştirdi`);
   bak(a1.filter((r) => r.zarf).length === k.flatMap((x) => x.kararlar).filter((c) => c.zarf?.kabul).length, `t${tohum}: deprem sonucunda zarf işareti`);
 }
-console.log('G17 (tohum 1-40, gün 1-5):', JSON.stringify(g17));
+// Kısa yol örnekleri de aynı kuralla (zarflı kararda istenen damga).
+for (let tohum = 1; tohum <= 10; tohum++)
+  for (const c of O.kisaYolKayitlari(tohum).flatMap((x) => x.kararlar))
+    if (c.zarf?.kabul) bak(c.damga === c.zarf.istenen, `t${tohum} kısa yol ${c.dosyaId}: zarflı kararda damga istenen değil`);
+console.log('G17 + G22 (tohum 1-40, gün 1-5):', JSON.stringify(g17));
 
 // ---- G17b: belge hileleri (elle düzeltme, başka binanın belgesi, imza yok) ----
 // Geçersiz belge eksik belge gibi: İADE doğru; kusur incelemede bulunur, SOR ve İSTE çalışır; düzgün belge gelince

@@ -13,7 +13,8 @@ const YANLIS: Record<Damga, Damga> = { guvenli: 'bosalt', guclendir: 'bosalt', b
  * Kararlar çoğunlukla doğru (eksik belgeli dosyalar İADE); her dördüncü dosya yanlışlıkla GÜVENLİ, her altıncı başka
  * bir yanlış damga, her yedinci (gün 3'ten) İADE (dosya eksiksizse yanlış).
  * G17: eksik belgeli her ikinci dosyada belge sahibinden İSTENİR (gerçek rapor gelirse gerçek duruma göre damga);
- * her beşinci dosyada bulunan ilk kusur SORULUR, zarf gelirse çift sırada kabul, tek sırada ret.
+ * her beşinci dosyada bulunan ilk kusur SORULUR, zarf gelirse çift sırada kabul (damga kişinin istediği; G22), tek
+ * sırada ret.
  * G17b: geçersiz belgeli (elle düzeltilmiş, başka binanın, imzasız) her ikinci dosyada kusur bulunur ve belgenin
  * düzgünü İSTENİR (gerçeği gelirse gerçek duruma göre damga, gelmezse İADE).
  * Doğru kararlarda kusurlar bulunmuş sayılır. Öncü sarsıntılı günlerde sarsıntı sonucu oyundaki kuralla.
@@ -54,7 +55,9 @@ export function ornekKayitlar(tohum: number, gun: number, ilk = 1): GunKaydi[] {
         }
       }
       const dogru = dogruDamga(b, g, Object.keys(bilgi).length > 0 ? bilgi : undefined);
-      o.damgala(i % 4 === 1 ? 'guvenli' : i % 6 === 4 ? YANLIS[dogru] : g >= 3 && i % 7 === 5 ? 'iade' : dogru);
+      // Zarf alındıysa damga kişinin istediği (G22).
+      const z = o.zarf;
+      o.damgala(z?.kabul ? z.istenen : i % 4 === 1 ? 'guvenli' : i % 6 === 4 ? YANLIS[dogru] : g >= 3 && i % 7 === 5 ? 'iade' : dogru);
     }
     const kararlar = o.kararlar.map((k) => ({ ...k, bulunan: k.dogru ? k.kusurlar.slice() : [] }));
     const kayit: GunKaydi = { gun: g, kararlar };

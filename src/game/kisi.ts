@@ -1,4 +1,4 @@
-import type { Bina, Ciddiyet, KusurId, Ruhsat, VaziyetPlani, Zemin } from './building';
+import type { Bina, Ciddiyet, Damga, KusurId, Ruhsat, VaziyetPlani, Zemin } from './building';
 import { baskaAda, baskaBinaBelgesi, gecerliRuhsat } from './building';
 import type { IsteTuru, SorTuru, SorulanKusur } from './diyalog';
 import type { GunAyar } from './days';
@@ -64,6 +64,9 @@ export function kisiKur(tohum: number, bina: Bina, ayar: GunAyar): Kisi {
   return { portre: r.int(0, 0x7fffffff), kisilik, selam: r.int(0, 999) };
 }
 
+/** Zarfla istenebilen damgalar (en hafifi; G22). */
+export type ZarfIstek = Extract<Damga, 'guvenli' | 'guclendir'>;
+
 export interface SorCevap {
   kusur: SorulanKusur;
   tur: SorTuru;
@@ -71,6 +74,8 @@ export interface SorCevap {
   secim: number;
   /** Zarf teklifinde miktar (TL). */
   zarf?: number;
+  /** Zarf teklifinde kişinin istediği damga (G22): zarfı alan bunu vurmak zorunda. */
+  istenen?: ZarfIstek;
   /** Cevaptaki yüz ifadesi. */
   ifade: Ifade;
 }
@@ -78,7 +83,7 @@ export interface SorCevap {
 /**
  * SOR cevabı: kişiliğe, binanın gerçeğine (kusurun ağırlığı) ve güne göre. Bahane bilgi vermez, itiraf kusuru
  * doğrular, zarf rüşvet teklifidir (dosya başına en çok bir zarf: zarfVar ise bahane). Gün başına zarf
- * olasılığı TUNING.kisi.zarf (gün 5 daha sık).
+ * olasılığı TUNING.kisi.zarf (gün 5 daha sık). Zarfla kişi bir damga ister (istenen; G22).
  */
 export function sorCevabi(
   tohum: number,
@@ -97,7 +102,9 @@ export function sorCevabi(
     const Z = TUNING.kisi.zarfMiktar[ciddiyet === 'bosalt' ? 'bosalt' : 'guclendir'];
     const adim = TUNING.kisi.zarfMiktar.adim;
     const zarf = Math.round(r.int(Z.min, Z.max) / adim) * adim;
-    return { kusur, tur: 'zarf', secim, zarf, ifade: 'sevincli' };
+    // İstenen damga (G22): genelde GÜVENLİ; BOŞALT gerektiren kusurda bazen GÜÇLENDİR (pazarlık).
+    const istenen: ZarfIstek = ciddiyet === 'bosalt' && r.chance(TUNING.kisi.zarfIstekGuclendir) ? 'guclendir' : 'guvenli';
+    return { kusur, tur: 'zarf', secim, zarf, istenen, ifade: 'sevincli' };
   }
   if (r.chance(S.itiraf)) return { kusur, tur: 'itiraf', secim, ifade: 'mahcup' };
   return { kusur, tur: 'bahane', secim, ifade: 'gergin' };

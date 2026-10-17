@@ -61,6 +61,8 @@ export interface KaselikAyar {
   vur: (d: Damga, x: number, y: number) => boolean;
   /** Kaşeye dokunuldu (tıklama, sürükleme ya da tuş): inceleme modu kapanır. */
   dokunuldu: () => void;
+  /** Bu kaşe şu an alınabilir mi (G22: zarf kararı bekleniyor ya da zarf alındı). Verilmezse hepsi. */
+  izin?: (d: Damga) => boolean;
 }
 
 interface Basili {
@@ -87,6 +89,11 @@ export class Kaselik {
   private kilitli = false;
   private ipucuTweenler: Phaser.Tweens.Tween[] = [];
   private ipucuCerceve?: Phaser.GameObjects.Graphics;
+  /** Kilit uyarısı (G22): rafın üst oyuğunda koyu şerit. */
+  private readonly uyari: Phaser.GameObjects.Container;
+  private readonly uyariYazi: Phaser.GameObjects.Text;
+  private readonly uyariZemin: Phaser.GameObjects.Rectangle;
+  private readonly uyariKenar: Phaser.GameObjects.Rectangle;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -129,6 +136,15 @@ export class Kaselik {
       if (yeni.includes(d)) this.yeniKur(d);
     }
 
+    // Kilit uyarısı (gizli başlar).
+    this.uyariYazi = s.add.text(0, -1, '', { fontFamily: FONT, fontSize: '24px', color: '#f0e6cc' }).setOrigin(0.5);
+    this.uyariKenar = s.add.rectangle(0, 0, 8, 44, 0x1d191b);
+    this.uyariZemin = s.add.rectangle(0, 0, 8, 36, num(PAL.damgaBosalt));
+    this.uyari = s.add
+      .container(RAF.x + RAF.w / 2, RAF.y + 28, [this.uyariKenar, this.uyariZemin, this.uyariYazi])
+      .setDepth(13)
+      .setVisible(false);
+
     const hareket = (p: Phaser.Input.Pointer): void => this.hareket(p);
     const birak = (p: Phaser.Input.Pointer): void => this.birak(p);
     s.input.on(Phaser.Input.Events.POINTER_MOVE, hareket);
@@ -144,6 +160,51 @@ export class Kaselik {
       s.input.off(Phaser.Input.Events.POINTER_UP_OUTSIDE, birak);
       tuslar.forEach((t, i) => kb?.off(`keydown-${t}`, isleyiciler[i]));
     });
+  }
+
+  /**
+   * Kaşelerin kilit durumu (G22): izin vermeyen kaşeler sönük; uyarı metni rafın üstünde (null: gizli).
+   * GameScene zarf teklif edilince, karar verilince ve yeni dosyada çağırır.
+   */
+  durum(uyari: string | null): void {
+    for (const [d, img] of this.kaseler) {
+      if (this.izinli(d)) img.clearTint().setAlpha(1);
+      else img.setTint(0x6a6058).setAlpha(0.7);
+    }
+    if (!uyari) {
+      this.uyari.setVisible(false);
+      return;
+    }
+    this.uyariYazi.setText(uyari);
+    const w = Math.min(RAF.w - 16, snap(this.uyariYazi.width + 24));
+    this.uyariZemin.setSize(w, 36);
+    this.uyariZemin.setDisplayOrigin(w / 2, 18);
+    this.uyariKenar.setSize(w + 8, 44);
+    this.uyariKenar.setDisplayOrigin(w / 2 + 4, 22);
+    if (this.uyariYazi.width > w - 12) this.uyariYazi.setScale((w - 12) / this.uyariYazi.width);
+    else this.uyariYazi.setScale(1);
+    this.uyari.setVisible(true);
+  }
+
+  private izinli(d: Damga): boolean {
+    return this.ayar.izin ? this.ayar.izin(d) : true;
+  }
+
+  /** Kilitli kaşeye dokunuş: kısa "tık-tık", kaşe yerinde sarsılır, uyarı göz kırpar (inceleme modu kapanmaz). */
+  private kilitTik(d: Damga): void {
+    const img = this.kaseler.get(d);
+    sfx.play('kaseKilit');
+    if (img) {
+      const [x] = yuva(d);
+      this.scene.tweens.killTweensOf(img);
+      img.x = x;
+      this.scene.tweens.add({ targets: img, x: x + PX, duration: 40, yoyo: true, repeat: 2, ease: 'Stepped', onComplete: () => (img.x = x) });
+    }
+    if (this.uyari.visible) {
+      this.scene.tweens.killTweensOf(this.uyari);
+      this.uyari.setAlpha(1);
+      this.scene.tweens.add({ targets: this.uyari, alpha: 0.3, duration: 90, yoyo: true, repeat: 2, ease: 'Stepped' });
+    }
   }
 
   /** Masa kilidi (öncü sarsıntı, gün sonu): kaşeler alınmaz; elde olan yerine döner. */
@@ -196,6 +257,10 @@ export class Kaselik {
     if (this.kilitli || this.ucuyor || this.basili) return;
     const img = this.kaseler.get(d);
     if (!img) return;
+    if (!this.izinli(d)) {
+      this.kilitTik(d);
+      return;
+    }
     this.dokun(d);
     this.basili = { d, img, x0: p.worldX, y0: p.worldY, surukle: false };
   }
@@ -240,6 +305,10 @@ export class Kaselik {
   /** Tıklama ya da 1-4: kaşe doğrudan vurur. */
   private tikla(d: Damga): void {
     if (this.kilitli || this.ucuyor || this.basili || !this.kaseler.has(d)) return;
+    if (!this.izinli(d)) {
+      this.kilitTik(d);
+      return;
+    }
     this.dokun(d);
     this.otomatik(d);
   }

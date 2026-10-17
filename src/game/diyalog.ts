@@ -108,6 +108,23 @@ export const ZARF_TEPKI = {
   kabul: ['[Anlaştık o zaman]', '[Teşekkürler, aramızda]'],
 };
 
+/**
+ * Zarfın bedeli (G22). Kişi zarfı uzatırken hangi damgayı istediğini söyler (SOR cevabının ardından); zarfın üstünde
+ * küçük not. {damga}: istenen damganın adı (GameScene doldurur). HEPSİ YER TUTUCU: TODO(takım).
+ */
+export const ZARF_ISTEK: Record<'guvenli' | 'guclendir', string[]> = {
+  guvenli: ['[Bir GÜVENLİ damgası yeter]', '[GÜVENLİ vurun, gerisini unutun]'],
+  guclendir: ['[BOŞALT olmasın, GÜÇLENDİR yeter]', '[Kimseyi çıkarmayalım, GÜÇLENDİR vurun]'],
+};
+/** Zarfın üstündeki not. */
+export const ZARF_NOT = '[{damga} lütfen]';
+/** Zarfın altındaki düğmeler (sürükleme de çalışır: çekmeceye = al, gişeye = geri ver). */
+export const ZARF_DUGME = { al: 'AL', geri: 'GERİ VER' };
+/** Kaşelikteki ipucu: zarf karar beklerken ve zarf alındıktan sonra. */
+export const ZARF_IPUCU = { bekliyor: '[Önce zarfa karar ver]', alindi: '[Zarf aldın: {damga}]' };
+/** Zarf alınan binanın etiket eki (öncü sarsıntı, kısa yol depremi) ve gün sonu raporundaki işaret. */
+export const ZARF_ETIKET = '[ZARF]';
+
 /** Damga vurulunca mal sahibinin tepkisi. */
 export const DAMGA_TEPKI: Record<Damga, string[]> = {
   guvenli: ['[Teşekkürler]', '[Sağ olun, iyi günler]'],

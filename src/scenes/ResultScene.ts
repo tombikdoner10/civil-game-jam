@@ -7,6 +7,7 @@ import { PX, rastgele, snap, Tuval } from '../desk/pixel';
 import { masaCiz, pikselDugme } from '../desk/props';
 import { gunAyar, SON_GUN } from '../game/days';
 import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
+import { ZARF_ETIKET } from '../game/diyalog';
 import { degerlendirme, KISA_SONUC, seninBinalarin, sonucEtiketi, zarfOzeti } from '../game/gazete';
 import { depremOzeti, gunHesabi, oyunToplami } from '../game/session';
 import { fadeIn, goTo } from '../systems/transition';
@@ -160,6 +161,8 @@ export class ResultScene extends Phaser.Scene {
           cx += w + 8;
         };
         cip(DAMGA_ADI[s.damga], DAMGA_RENK[s.damga]);
+        // Zarf alınan bina (G22).
+        if (s.zarf) cip(ZARF_ETIKET, PAL.damgaBosalt);
         const ok = this.add.text(cx, 0, '→', { fontFamily: FONT, fontSize: '32px', color: PAL.murekkepSoluk }).setOrigin(0, 0.5);
         kap.add(ok);
         cx += snap(ok.width + 8);

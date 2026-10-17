@@ -419,6 +419,30 @@ export function iadeCiz(ctx: CanvasRenderingContext2D, x0: number, y0: number, k
   for (let i = 0; i < 4; i++) dolgu(ctx, x + 2, y + 3 + i * 2, i === 0 ? w - 4 : w - 4 - (i % 2) * 2, 1, '#6a645c');
 }
 
+/**
+ * Zarf izi (G22): bu binada zarf alındı. Zemin katın sağında, duvara iliştirilmiş küçük sarı zarf (kapağı V);
+ * damga işaretinin (iskele, şerit, İADE kâğıdı) üstünde kalır.
+ */
+export function zarfCiz(ctx: CanvasRenderingContext2D, x0: number, y0: number, kat: number): void {
+  const h = cepheH(Math.max(0, kat - 1));
+  const zy = y0 + h - ZEMIN_H;
+  const w = 13;
+  const zh = 9;
+  const x = x0 + CEPHE_W - w - 9;
+  const y = zy + 7;
+  dolgu(ctx, x - 1, y - 1, w + 2, zh + 2, KONTUR);
+  dolgu(ctx, x, y, w, zh, '#e2b947');
+  dolgu(ctx, x, y + zh - 1, w, 1, '#a8862c');
+  // Kapak (V)
+  for (let i = 0; i < Math.ceil(w / 2); i++) {
+    const yy = y + Math.floor(i * 0.7);
+    dolgu(ctx, x + i, yy, 1, 1, '#7a5e1c');
+    dolgu(ctx, x + w - 1 - i, yy, 1, 1, '#7a5e1c');
+  }
+  // Kırmızı mühür noktası
+  dolgu(ctx, x + Math.floor(w / 2) - 1, y + 4, 2, 2, '#b8342c');
+}
+
 /** BOŞALT: ışıklar sönük; pencere camları karanlık, zemin kat içi kararmış, cephe hafif koyu. */
 export function karanlikCiz(ctx: CanvasRenderingContext2D, x0: number, y0: number, kat: number, secim: CepheSecim): void {
   const ust = Math.max(0, kat - 1);

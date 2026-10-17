@@ -166,9 +166,9 @@ export class Pencere {
     this.sokak.incele(bina);
   }
 
-  /** Damga basıldı: bina sokaktaki yerine işaretiyle oturur (iskele, şerit). */
-  damgaVur(damga: Damga): void {
-    this.sokak.damgala(damga);
+  /** Damga basıldı: bina sokaktaki yerine işaretiyle oturur (iskele, şerit; zarf alındıysa zarf izi, G22). */
+  damgaVur(damga: Damga, zarf = false): void {
+    this.sokak.damgala(damga, zarf);
   }
 
   /** Gişeye yeni mal sahibi gelir (portre tohumdan; aynı dosya, aynı kişi). */
