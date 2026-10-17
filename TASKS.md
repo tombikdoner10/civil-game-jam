@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G41 [teknik] (sürüyor, Opus/high) Rapordan depreme geçişte basış kaybı (önce yeniden üret); canlıda menüde ilk tıklama kaybı; genel planda soldaki solgun/kırpık etiket; Oyna sonrası fotoğrafın kural notu üstünden kayması.
 
 ## Sırada
 
@@ -37,7 +38,6 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Takım işleri
 
-- [ ] T33 [takım] (isteğe bağlı, G40 için) 5–8 kişi tipi: ör. emekli öğretmen, esnaf, müteahhit, genç çift, yaşlı teyze, memur… her biri için yaş, giyim, bir ayırt edici özellik. Takımın yaratıcı katkısı olarak beyanda görünür.
 - [ ] T32 [takım] Takım üyelerinin adları ve rolleri (src/data/credits.ts MEMBERS, README Takım bölümü; şu an [Takım üyesi 2] · [rol]); BENIOKU Amaç satırı (docs/BENIOKU.txt).
 - [ ] T31 [takım] ÖNCELİKLİ METİNLER (18.00; madde 4.3): oyun adı (config.ts TITLE), gazete adı ve şehir adı, çerçeve cümlesi (diyalog.ts CERCEVE), gün 1 kural notu (rules.ts), manşetler ve değerlendirmeler (gazete.ts; tekil/çoğul T30; kısa yol "senin binaların + sokak" G37), gün 1de görünen selam, damga tepkisi ve zarf cümleleri (diyalog-metin.ts). Diyalog taslaklarını okuyup seç/düzelt (T28). Bitince beyan "AI taslağı, takım düzenledi" olur (G31). G37 yeni yer tutucuları (yer-tutucu betiği görmüyor, elle bak): gazete.ts KISA_SENIN, KISA_SOKAK_COKEN, DEGERLENDIRME_ZARFLI; manşet ve değerlendirme kısa olursa büyük kalır.
 - [ ] T30 [takım] Manşet ve değerlendirme metinlerinin tekil ve çoğul biçimleri (src/game/gazete.ts, {tekil, cogul} çiftleri; G35 yer tutucu yazdı).
@@ -55,6 +55,8 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 - [x] T13 [takım] KAPANDI (10:27, olduğu gibi): Ara testte ayarla: maaş/ceza değerleri ve para birimi (şu an doğru 20, yanlış 10 TL), gün süreleri (90/180/200/220/240 sn), dosya sayıları (3/5/6/7/8); karot "Rapor yok" kusur sayılsın mı?
 - [x] T14 [takım] KAPANDI (10:27, olduğu gibi): Öncü sarsıntı: doğru BOŞALT damgalanan zayıf bina da "boş" olarak çatlıyor; böyle mi kalsın, yoksa boşaltılanlar sağlam mı görünsün? Öncü şiddeti/süresi (TUNING.oncu). İskele, şerit, çatlak çizimleri onayı. Tavanda sallanan lamba istenir mi?
 - [x] T15 [takım] KAPANDI (10:27, olduğu gibi): Büyük deprem ağırlığı: örnek oyunda 29 binadan 14'ü çöktü (10'u boşaltılmıştı). Doğru BOŞALT damgalı ağır kusurlu binalar çöksün mü, ağır hasarlı mı kalsın (TUNING.buyukDeprem.kademe.bosaltKusur 3 → 2)? Gazete ve sonuç metinleri src/game/gazete.ts (T4 ile).
+- [x] T33 [takım] ATLANDI (12:55): portreler yeterli
+- [x] T34 [takım] KARAR (12:55): boş gişe 1 sn kalır; mal sahibi portresi sonuç/gazeteye eklenmez; metinler 18.00e takımdan
 - [x] T29 [takım] KARAR (09:01): gün 1de zarf açık; zarf bedeli böyle; sahte ruhsat İADE (→ G36); iyi saha sonucu GÜVENLİ verdirmez (böyle kalır; kural notu metni T21)
 - [x] T23 [takım] KARAR (07:21): düğme soru kalır, satır "[Kararlarının sonucunu şimdi gör.]" → G32
 - [x] T24 [takım] KARAR (07:21): masa sessiz; gazete ve sonuçta Kenney Music Jingles → G32
