@@ -31,9 +31,11 @@ import {
   type HasarDurumu,
   type SecimRef,
 } from './rules';
+import { sahaSonucu, type SahaSonucu } from './saha';
 import { TUNING } from './tuning';
 
 export type { EdinilenBilgi } from './rules';
+export type { SahaSonucu } from './saha';
 
 /** Bilginin kaynağı: dosyadaki belge, gişedeki kişiden isteme (G17) ya da saha testi (G19). */
 export type BilgiKaynak = 'belge' | 'iste' | 'saha';
@@ -330,6 +332,8 @@ export class GunOturumu {
   private sorulan: KusurId[] = [];
   private istenen: Partial<Record<BilgiAlani, IsteCevap>> = {};
   private zarfTeklif?: { miktar: number; istenen: ZarfIstek; kabul?: boolean };
+  /** Günün kalan saha testi hakkı (G19). */
+  private sahaKalan: number;
 
   constructor(
     readonly gun: number,
@@ -337,6 +341,7 @@ export class GunOturumu {
   ) {
     this.ayar = gunAyar(gun);
     this.dosyalar = gunDosyalari(tohum, gun, this.ayar.dosyaSayisi);
+    this.sahaKalan = this.ayar.sahaHak;
     this.bilgiSifirla();
   }
 
@@ -429,6 +434,65 @@ export class GunOturumu {
     return c;
   }
 
+  // ---- Saha testi (G19, Schmidt çekici) ----
+
+  /** Günün kalan saha testi hakkı. */
+  get sahaHakki(): number {
+    return this.sahaKalan;
+  }
+
+  /**
+   * Bu dosyada saha testi gerekli mi: karot raporu yok (kuralı gelmiş) ya da geçersiz (başka binanın karotu ya da
+   * gişeden gelen sahte karot; ikisi de incelemede bulunmuş olmalı) ve karot bilgisi başka yoldan (İSTE gerçek
+   * rapor, saha testi) edinilmemiş. Hak bitse de gerekli sayılır (düğme sönük görünür).
+   */
+  sahaGerekli(): boolean {
+    const b = this.mevcut;
+    if (!b || this.bitti || this.ayar.sahaHak <= 0) return false;
+    const k = this.bilgi.kaynak.karot;
+    if (k === 'iste' || k === 'saha') return false;
+    if (b.belgeler.karot === null) {
+      if (!gorunenKusurlar(b, this.gun).some((x) => x.id === 'karotYok')) return false;
+      // Sahte karot geldiyse önce sahte olduğu bulunmalı (kart artık "Rapor yok" değil).
+      return !this.sahteRaporlar.some((r) => r.alan === 'karot') || this.bulunan.includes('sahteRapor');
+    }
+    return baskaBinaBelgesi(b.belgeler) === 'karot' && this.bulunan.includes('baskaBina');
+  }
+
+  /** Saha testi şu an yapılabilir mi (gerekli ve hak var). */
+  sahaYapilabilir(): boolean {
+    return this.sahaKalan > 0 && this.sahaGerekli();
+  }
+
+  /** Bulunan kusurun etiketinde SAHA düğmesi çıksın mı: geçersiz karot (başka binanın ya da sahte karot). */
+  sahaKusurda(id: KusurId): boolean {
+    const b = this.mevcut;
+    if (!b || !this.sahaGerekli() || !this.bulunan.includes(id)) return false;
+    if (id === 'baskaBina') return baskaBinaBelgesi(b.belgeler) === 'karot';
+    if (id === 'sahteRapor') return this.sahteRaporlar.some((r) => r.alan === 'karot');
+    return false;
+  }
+
+  /** Mini oyunun göstereceği okumalar ve sonuç (hak harcamaz; VAZGEÇ için). Saha testi yapılamıyorsa null. */
+  sahaOnizle(): SahaSonucu | null {
+    const b = this.mevcut;
+    return b && this.sahaYapilabilir() ? sahaSonucu(this.tohum, b) : null;
+  }
+
+  /**
+   * Saha testi tamamlandı: hak harcanır, mesai saati TUNING.saha.dakika ilerler, tahmini dayanım karot bilgisi
+   * olarak edinilir (kaynak 'saha'; doğru damga saha kuralına göre, bkz. rules.dogruDamgalar).
+   */
+  sahaTamamla(): SahaSonucu | null {
+    const s = this.sahaOnizle();
+    if (!s) return null;
+    this.sahaKalan--;
+    const M = TUNING.mesai;
+    this.ilerle((TUNING.saha.dakika / ((M.bitisSaat - M.baslangicSaat) * 60)) * this.ayar.sure);
+    this.bilgiEdin('karot', s.mpa, 'saha');
+    return s;
+  }
+
   /** Bu dosyada getirilen sahte raporlar. */
   get sahteRaporlar(): GetirilenRapor[] {
     return Object.values(this.istenen)
@@ -487,7 +551,8 @@ export class GunOturumu {
   private disBilgi(): EdinilenBilgi | undefined {
     const { bilgi, kaynak } = this.bilgi;
     const out: EdinilenBilgi = {};
-    if (kaynak.karot && kaynak.karot !== 'belge') out.karot = bilgi.karot;
+    if (kaynak.karot === 'saha') out.karotSaha = bilgi.karot;
+    else if (kaynak.karot && kaynak.karot !== 'belge') out.karot = bilgi.karot;
     if (kaynak.zemin && kaynak.zemin !== 'belge') out.zemin = bilgi.zemin;
     if (kaynak.ruhsat && kaynak.ruhsat !== 'belge') out.ruhsat = true;
     if (kaynak.vaziyet && kaynak.vaziyet !== 'belge') out.vaziyet = true;
@@ -532,7 +597,8 @@ export class GunOturumu {
     const etkin = dis ? bilgiyleTamamla(b, dis) : b;
     const degisen = new Set(this.sahteRaporlar.map((r) => r.alan as string));
     const eski = seciminKusuru(etkin, this.gun, secim);
-    const kusur = this.sahteKaniti(secim) ?? (eski && !eski.kanit.some((k) => degisen.has(k.belge)) ? eski : null);
+    // Saha notu (G19) sahte karotun yerine geçer: saha kusurunun kanıtı sahte kartın alanı sayılmaz.
+    const kusur = this.sahteKaniti(secim) ?? (eski && (eski.id === 'sahaBeton' || !eski.kanit.some((k) => degisen.has(k.belge))) ? eski : null);
     if (!kusur) return null;
     const yeni = !this.bulunan.includes(kusur.id);
     if (yeni) this.bulunan.push(kusur.id);
@@ -548,6 +614,8 @@ export class GunOturumu {
     if (secim.length !== 2) return null;
     const esit = (kanit: SecimRef[]): boolean => kanit.every((k) => secim.some((s) => s.belge === k.belge && s.alan === k.alan));
     for (const r of this.sahteRaporlar) {
+      // Saha notu sahte karotun yerine geçtiyse (G19) kartı masada değil.
+      if (r.alan === 'karot' && this.bilgi.kaynak.karot === 'saha') continue;
       const alan = ipucuAlani(r);
       if (!alan) continue;
       const adaylar: SecimRef[][] = [];
@@ -599,6 +667,12 @@ export class GunOturumu {
     const kusurlar = gorunen.map((k) => k.id);
     const dogru = kabul.includes(damga);
     const sonuc: DamgaSonucu = { dogru, dogruDamga: kabul[0], kabul, kusurlar, etiketler: gorunen.map((k) => k.etiket) };
+    // Saha testi yapıldıysa (G19) fiş saha notuna göre: gerekçe saha kusuruyla, yanlışta "Doğrusu" saha damgası
+    // (İADE değilse). Karar kaydı değişmez.
+    if (dis?.karotSaha !== undefined && kabul.length > 1 && damga !== 'iade') {
+      if (!dogru) sonuc.dogruDamga = kabul[1];
+      sonuc.etiketler = this.gorunen(b).map((k) => k.etiket);
+    }
     const karar: Karar = {
       dosyaId: b.id,
       damga,

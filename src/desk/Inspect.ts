@@ -37,6 +37,21 @@ export interface InspectAyar {
    * tıklanınca 'iste' olayı (kusur kimliği).
    */
   istenebilir?: (id: KusurId) => boolean;
+  /**
+   * Bulunan kusur geçersiz bir karotsa (G19: başka binanın karotu, sahte karot) etikette SAHA düğmesi çıkar:
+   * sahaGoster etiket kurulurken, sahaAcik her karede (hak bitince ya da gerekmeyince sönük). Tıklanınca 'saha'.
+   */
+  sahaGoster?: (id: KusurId) => boolean;
+  sahaAcik?: (id: KusurId) => boolean;
+}
+
+type DugmeTur = 'sor' | 'iste' | 'saha';
+interface EtiketDugme {
+  tur: DugmeTur;
+  sondur: () => void;
+  sondu: () => boolean;
+  /** Yalnızca SAHA: aç / söndür (geri açılabilir). */
+  ayarla?: (acik: boolean) => void;
 }
 
 interface Bulunan {
@@ -94,6 +109,8 @@ export class Inspect extends Phaser.Events.EventEmitter {
   private bulunanlar: Bulunan[] = [];
   /** "Tutarsızlık yok" gösterilirken kısa bekleme: tıklama alınmaz. */
   private beklemede = false;
+  /** Masa başka bir şeyle örtülü (G19 saha testi): kusur işaretleri ve etiketler çizilmez. */
+  private gizli = false;
   private readonly g: Phaser.GameObjects.Graphics;
   private readonly ortular: Phaser.GameObjects.Rectangle[];
   private readonly serit: Phaser.GameObjects.Container;
@@ -177,6 +194,11 @@ export class Inspect extends Phaser.Events.EventEmitter {
     this.emit('kapa');
   }
 
+  /** Masa örtülüyken (G19 saha testi) kusur işaretleri ve etiketleri gizle; kapanınca geri gelir. */
+  gizle(on: boolean): void {
+    this.gizli = on;
+  }
+
   /** Dosya masadan kalktı: bulunan kusur işaretleri ve seçim silinir. */
   dosyaBitti(): void {
     this.secili = [];
@@ -256,9 +278,10 @@ export class Inspect extends Phaser.Events.EventEmitter {
         this.scene.tweens.add({ targets: eski.etiket, scale: 1.15, duration: 90, yoyo: true });
       } else {
         const id = sonuc.kusur.id;
-        const dugmeler: ('sor' | 'iste')[] = [];
+        const dugmeler: DugmeTur[] = [];
         if (this.ayar.sorulabilir?.(id)) dugmeler.push('sor');
         if (this.ayar.istenebilir?.(id)) dugmeler.push('iste');
+        if (this.ayar.sahaGoster?.(id)) dugmeler.push('saha');
         const etiket = this.etiketKur(sonuc.kusur.etiket, id, dugmeler);
         const r = etiket.getBounds();
         this.bulunanlar.push({ kusur: sonuc.kusur, ogeler, etiket, w: snap(r.width), h: snap(r.height), aday: -1 });
@@ -294,10 +317,11 @@ export class Inspect extends Phaser.Events.EventEmitter {
   }
 
   /**
-   * Kusur etiketi: kırmızı kâğıt şerit, koyu kenar. Sağında düğmeler: SOR (G17) ve geçersiz belgede İSTE (G17b).
-   * Tıklanınca 'sor' ya da 'iste' olayı (kusur kimliği) yayılır ve düğme sönükleşir (bir kez).
+   * Kusur etiketi: kırmızı kâğıt şerit, koyu kenar. Sağında düğmeler: SOR (G17), geçersiz belgede İSTE (G17b) ve
+   * geçersiz karotta SAHA (G19). Tıklanınca 'sor', 'iste' ya da 'saha' olayı (kusur kimliği) yayılır; SOR ve İSTE
+   * sönükleşir (bir kez), SAHA oturuma göre açılıp söner (VAZGEÇ hak harcamaz).
    */
-  private etiketKur(metin: string, id: KusurId, dugmeler: readonly ('sor' | 'iste')[] = []): Phaser.GameObjects.Container {
+  private etiketKur(metin: string, id: KusurId, dugmeler: readonly DugmeTur[] = []): Phaser.GameObjects.Container {
     const s = this.scene;
     const yazi = s.add
       .text(0, 0, metin.toLocaleUpperCase('tr-TR'), { fontFamily: FONT, fontSize: '40px', color: '#f0e6cc' })
@@ -305,7 +329,7 @@ export class Inspect extends Phaser.Events.EventEmitter {
     const dw = 88;
     const bosluk = 8;
     const dugmeW = dugmeler.length * (dw + bosluk);
-    const sonduruculer: { tur: 'sor' | 'iste'; sondur: () => void; sondu: () => boolean }[] = [];
+    const sonduruculer: EtiketDugme[] = [];
     const w = snap(yazi.width + 32 + dugmeW);
     const h = 48;
     const kap = s.add.container(0, 0).setDepth(D.etiket);
@@ -317,7 +341,8 @@ export class Inspect extends Phaser.Events.EventEmitter {
     dugmeler.forEach((tur, i) => {
       const dx = snap(w / 2 - 4 - dw / 2 - (dugmeler.length - 1 - i) * (dw + bosluk));
       const kutu = s.add.rectangle(dx, 0, dw, h - 12, KOYU);
-      const dyazi = s.add.text(dx, 0, tur === 'sor' ? 'SOR' : 'İSTE', { fontFamily: FONT, fontSize: '34px', color: PAL.saat }).setOrigin(0.5);
+      const ad = tur === 'sor' ? 'SOR' : tur === 'iste' ? 'İSTE' : 'SAHA';
+      const dyazi = s.add.text(dx, 0, ad, { fontFamily: FONT, fontSize: '34px', color: PAL.saat }).setOrigin(0.5);
       kutu.setInteractive({ useHandCursor: true }).setData('incelemeYok', true);
       kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => kutu.setFillStyle(0x3a2f22));
       kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => kutu.setFillStyle(KOYU));
@@ -331,12 +356,23 @@ export class Inspect extends Phaser.Events.EventEmitter {
       };
       kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (_p: Phaser.Input.Pointer, _x: number, _y: number, e: Phaser.Types.Input.EventData) => {
         e.stopPropagation();
-        sondur();
+        if (tur !== 'saha') sondur();
         sfx.play('sec');
         this.emit(tur, id);
       });
       kap.add([kutu, dyazi]);
-      sonduruculer.push({ tur, sondur, sondu: () => !!dyazi.getData('sondu') });
+      // SAHA: hak bitince ya da artık gerekmeyince söner, yeniden gerekirse açılır (her karede ciz → dugmeleriEsle).
+      const ayarla =
+        tur === 'saha'
+          ? (acik: boolean): void => {
+              if (acik === !!kutu.input?.enabled) return;
+              if (acik) kutu.setInteractive({ useHandCursor: true });
+              else kutu.disableInteractive();
+              kutu.setFillStyle(KOYU, acik ? 1 : 0.6);
+              dyazi.setColor(acik ? PAL.saat : PAL.murekkepAcik);
+            }
+          : undefined;
+      sonduruculer.push({ tur, sondur, sondu: () => !!dyazi.getData('sondu'), ayarla });
     });
     kap.setData('dugmeler', sonduruculer);
     return kap;
@@ -359,6 +395,10 @@ export class Inspect extends Phaser.Events.EventEmitter {
   private ciz(): void {
     const g = this.g;
     g.clear();
+    if (this.gizli) {
+      for (const b of this.bulunanlar) b.etiket.setVisible(false);
+      return;
+    }
     // Bulunan kusurlar: kırmızı çerçeve, kırmızı kesikli çizgi; etiket alanın kenarında, değerleri örtmeyen yerde.
     // Üstüne başka belge ya da açık kitap çekilmiş alanın işareti çizilmez (etiket kitabın üstünde kalmasın).
     const cizgiVar = this.bulunanlar.length > 0 || this.secili.length === 2;
@@ -400,10 +440,14 @@ export class Inspect extends Phaser.Events.EventEmitter {
 
   /** Etiketteki SOR / İSTE düğmeleri: oturum artık izin vermiyorsa söner (bir kez sorulur, bir kez istenir). */
   private dugmeleriEsle(b: Bulunan): void {
-    const liste = b.etiket.getData('dugmeler') as { tur: 'sor' | 'iste'; sondur: () => void; sondu: () => boolean }[] | undefined;
+    const liste = b.etiket.getData('dugmeler') as EtiketDugme[] | undefined;
     // Dosya damgalanıp kalkarken (masa meşgul) oturum sıradaki dosyaya geçmiştir: eşleme yapılmaz.
     if (!liste || !this.ayar.izin()) return;
     for (const d of liste) {
+      if (d.ayarla) {
+        d.ayarla(!!this.ayar.sahaAcik?.(b.kusur.id));
+        continue;
+      }
       if (d.sondu()) continue;
       const izin = d.tur === 'sor' ? this.ayar.sorulabilir?.(b.kusur.id) : this.ayar.istenebilir?.(b.kusur.id);
       if (!izin) d.sondur();

@@ -30,7 +30,7 @@ export interface Kisi {
 export const ISTE_KUSURU: Record<RaporAlani, KusurId> = { karot: 'karotYok', zemin: 'zeminEtuduYok' };
 
 export function sorulabilir(id: KusurId): id is SorulanKusur {
-  return id !== 'karotYok' && id !== 'zeminEtuduYok';
+  return id !== 'karotYok' && id !== 'zeminEtuduYok' && id !== 'sahaBeton';
 }
 
 /** FNV-1a: dizgiden 32 bit tohum. */

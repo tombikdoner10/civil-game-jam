@@ -1,4 +1,4 @@
-// Büyük deprem adalet denetimi (G5, G16, G17, G22): tohum 1-10 ve altı karar biçimi (dev örneği, hepsi doğru, hepsi GÜVENLİ,
+// Büyük deprem adalet denetimi (G5, G16, G17, G19, G22): tohum 1-10 ve altı karar biçimi (dev örneği, hepsi doğru, hepsi GÜVENLİ,
 // hepsi GÜÇLENDİR, hepsi BOŞALT, hepsi İADE) için session.buyukDeprem sonuçlarını kurallara göre denetler. Ayrıca
 // İADE ve eksik belge mantığını (doğru damgalar, bilgi edinme) ve dere/fay + zemin kuralını denetler.
 // İADE edilen kusurlu bina insanlı kalır: oyuncunun bilinçli bıraktığı risktir, adalet ihlali sayılmaz.
@@ -148,7 +148,7 @@ for (let tohum = 1; tohum <= 40; tohum++) {
         const baska = BLD.baskaBinaBelgesi(b.belgeler);
         const bilgi = {};
         if (b.belgeler.karot === null || baska === 'karot') {
-          o2.bilgiEdin('karot', b.gercek.betonMpa, 'saha');
+          o2.bilgiEdin('karot', b.gercek.betonMpa, 'iste');
           bilgi.karot = 0;
         }
         if (b.belgeler.zemin === null || baska === 'zemin') {
@@ -508,6 +508,162 @@ for (let tohum = 1; tohum <= 60; tohum++) {
   bak(R.kuralYeni(kural, 4) && R.kuralYeni(kural, 5) && !R.kuralYeni(kural, 3), 'geçersiz belge kuralı YENİ günleri');
 }
 console.log('G17b (tohum 1-60, gün 1-5):', JSON.stringify(g17b));
+
+// ---- G19: saha testi (Schmidt çekici) ----
+// Karot yok ya da geçersizse saha testi yapılabilir (günde TUNING.saha.gunlukHak); tahmin gerçek dayanıma yakın ve
+// eşiğin hep aynı yanında; saha notu sonrası doğru damga saha kuralına göre (tahmin eşiğin altında BOŞALT, üstünde
+// GÜÇLENDİR), İADE yine doğru; önizleme (VAZGEÇ) hak harcamaz; hak bitince saha yok; geçersiz okumalar sayılmaz;
+// inceleme modunda saha notu + saha kuralı "Düşük beton (saha)" bulur; saha kuralına uyan karar depremde adil.
+const SH = await server.ssrLoadModule('/src/game/saha.ts');
+const g19 = { saha: 0, dusuk: 0, yeterli: 0, iadeYine: 0, hakBitti: 0, gecersizKarot: 0, sahteKarot: 0, enBuyukFark: 0 };
+const esik = T.betonEsikMpa;
+for (let tohum = 1; tohum <= 60; tohum++) {
+  for (let g = 1; g <= 5; g++) {
+    const o = new S.GunOturumu(g, tohum);
+    const ikiz = new S.GunOturumu(g, tohum);
+    bak(o.sahaHakki === (g >= T.saha.ilkGun ? T.saha.gunlukHak : 0), `t${tohum} g${g}: saha hakkı ${o.sahaHakki}`);
+    while (o.mevcut && !o.bitti) {
+      const b = o.mevcut;
+      const e = `t${tohum} g${g} ${b.id}`;
+      const ana = R.dogruDamga(b, g);
+      const baska = BLD.baskaBinaBelgesi(b.belgeler) === 'karot';
+      const karotYok = b.belgeler.karot === null && R.gorunenKusurlar(b, g).some((k) => k.id === 'karotYok');
+      // Saha yalnızca karot yok ya da geçersizken; geçersiz karot önce incelemede bulunmalı.
+      if (baska) {
+        bak(!o.sahaGerekli(), `${e}: başka binanın karotu bulunmadan saha`);
+        const k = R.gorunenKusurlar(b, g).find((x) => x.id === 'baskaBina');
+        o.incele(R.kanitOgeleri(k));
+        bak(o.sahaKusurda('baskaBina'), `${e}: başka binanın karotunda etikette SAHA yok`);
+        g19.gecersizKarot++;
+      }
+      bak(o.sahaGerekli() === ((karotYok || baska) && g >= T.saha.ilkGun), `${e}: saha gerekli ${o.sahaGerekli()}`);
+      if (!o.sahaGerekli()) {
+        bak(o.sahaOnizle() === null && o.sahaTamamla() === null, `${e}: gereksiz saha yapıldı`);
+        o.damgala(ana);
+        ikiz.damgala(ana);
+        continue;
+      }
+      // Hak bitti: saha yok, İADE doğru.
+      if (o.sahaHakki === 0) {
+        g19.hakBitti++;
+        bak(!o.sahaYapilabilir() && o.sahaOnizle() === null && o.sahaTamamla() === null, `${e}: hak bittiği halde saha`);
+        const s = o.damgala(ana);
+        bak(s && s.dogru, `${e}: hak yokken ${ana} yanlış`);
+        ikiz.damgala(ana);
+        continue;
+      }
+      // Önizleme (mini oyun açık, VAZGEÇ) hak harcamaz; aynı okumalar.
+      const hak = o.sahaHakki;
+      const on1 = o.sahaOnizle();
+      const on2 = o.sahaOnizle();
+      bak(on1 && JSON.stringify(on1) === JSON.stringify(on2) && o.sahaHakki === hak, `${e}: önizleme hak harcadı ya da değişti`);
+      const beklenen = SH.sahaSonucu(tohum, b);
+      bak(JSON.stringify(on1) === JSON.stringify(beklenen), `${e}: önizleme saha sonucuyla aynı değil`);
+      // Okumalar: TUNING.saha.okuma tane, ortalama yalnızca geçerli okumalardan; tahmin gerçeğe yakın, eşiğin aynı yanında.
+      const sn = beklenen;
+      const ort = Math.round((sn.okumalar.reduce((a, x) => a + x, 0) / sn.okumalar.length) * 10) / 10;
+      bak(sn.okumalar.length === T.saha.okuma && sn.ortR === ort, `${e}: okumalar ${sn.okumalar} ort ${sn.ortR}`);
+      bak(sn.mpa < esik === b.gercek.betonMpa < esik, `${e}: tahmin ${sn.mpa} eşiğin öbür yanında (gerçek ${b.gercek.betonMpa})`);
+      g19.enBuyukFark = Math.max(g19.enBuyukFark, Math.abs(sn.mpa - b.gercek.betonMpa));
+      bak(Math.abs(sn.mpa - b.gercek.betonMpa) <= 4, `${e}: tahmin ${sn.mpa} gerçekten uzak (${b.gercek.betonMpa})`);
+      bak(sn.pay >= T.saha.payEn, `${e}: pay ${sn.pay}`);
+      // Geçersiz okumalar (sıva, çatlak) sayılmaz: mini oyun gibi karışık vuruşlarla aynı sonuç.
+      const vurus = ['siva', 'temiz', 'catlak', 'temiz', 'temiz', 'siva', 'temiz', 'temiz', 'temiz'];
+      const gecerli = [];
+      let gi = 0;
+      for (const v of vurus) {
+        if (gecerli.length >= T.saha.okuma) break;
+        if (v === 'temiz') gecerli.push(sn.okumalar[gecerli.length]);
+        else SH.gecersizOkuma(tohum, b, gi++, v);
+      }
+      bak(gecerli.join() === sn.okumalar.join(), `${e}: geçersiz okuma sayıldı`);
+      // Tamamla: hak düşer, saat ilerler, ikinci kez yapılamaz.
+      const saat = o.saatMetni();
+      const sonuc = o.sahaTamamla();
+      g19.saha++;
+      bak(sonuc && sonuc.mpa === sn.mpa && o.sahaHakki === hak - 1, `${e}: saha tamamlanmadı ya da hak düşmedi`);
+      bak(o.saatMetni() > saat || o.mesaiBitti, `${e}: saha saati ilerletmedi (${saat} → ${o.saatMetni()})`);
+      bak(!o.sahaGerekli() && o.sahaTamamla() === null, `${e}: saha iki kez`);
+      bak(o.edinilenBilgi.kaynak.karot === 'saha', `${e}: bilgi kaynağı saha değil`);
+      // İnceleme: saha notundaki tahmin + saha kuralı.
+      const r = o.incele([
+        { belge: 'karot', alan: 'mpa' },
+        { belge: 'kural', alan: R.SAHA_KURALI },
+      ]);
+      bak(r?.kusur.id === 'sahaBeton', `${e}: saha notu incelemede bulunmadı`);
+      if (sn.mpa < esik) bak(r?.kusur.etiket.toLocaleUpperCase('tr-TR') === 'DÜŞÜK BETON (SAHA)' && r.kusur.ciddiyet === 'bosalt', `${e}: düşük saha etiketi ${r?.kusur.etiket}`);
+      else bak(r?.kusur.ciddiyet === 'guclendir', `${e}: yeterli saha ciddiyeti ${r?.kusur.ciddiyet}`);
+      // Doğru damgalar: İADE (asıl) ve saha kuralına göre damga.
+      const bilgi = { karotSaha: sn.mpa };
+      const kabul = R.dogruDamgalar(b, g, bilgi);
+      const tam = R.dogruDamga(R.bilgiyleTamamla(b, bilgi), g);
+      const yalniz = R.gorunenKusurlar(b, g).every((k) => k.id === 'karotYok' || k.id === 'baskaBina');
+      if (yalniz) bak(tam === (sn.mpa < esik ? 'bosalt' : 'guclendir'), `${e}: saha kuralı damgası ${tam} (tahmin ${sn.mpa})`);
+      if (ana === 'iade') {
+        bak(kabul[0] === 'iade' && kabul.includes(tam) && (tam === 'iade' || kabul.length === 2), `${e}: saha kabulü ${kabul}`);
+        // İADE yine doğru (ikiz oturumda aynı saha ile).
+        if (ikiz.sahaGerekli() || baska) {
+          if (baska) ikiz.incele(R.kanitOgeleri(R.gorunenKusurlar(b, g).find((x) => x.id === 'baskaBina')));
+          ikiz.sahaTamamla();
+        }
+        const si = ikiz.damgala('iade');
+        bak(si && si.dogru, `${e}: saha sonrası İADE yanlış`);
+        g19.iadeYine++;
+      } else ikiz.damgala(ana);
+      const s = o.damgala(tam);
+      bak(s && s.dogru, `${e}: saha kuralına göre ${tam} yanlış sayıldı (kabul ${s?.kabul})`);
+      if (tam === 'bosalt') g19.dusuk++;
+      if (tam === 'guclendir') g19.yeterli++;
+      // Fiş saha notuna göre (G19): gerekçede saha kusuru.
+      if (tam !== 'iade' && ana === 'iade') bak(s.etiketler.some((x) => x.includes('saha') || x.includes('Saha')), `${e}: fişte saha gerekçesi yok: ${s.etiketler}`);
+      // Depremde adalet: saha kuralına uyan karar insanlı ağır hasar ya da çökme getirmez.
+      const d = R.buyukDepremSonucu(b, tam, g);
+      if (!d.bos && tam !== 'iade') bak(!d.coker && d.durum !== 'agirHasar', `${e}: saha kararı (${tam}) depremde ağır sonuç`);
+    }
+  }
+}
+// Sahte karot (gişeden) bulununca da saha yapılabilir; saha notu sahte kartın yerine geçer.
+for (let tohum = 1; tohum <= 300 && g19.sahteKarot < 20; tohum++) {
+  for (let g = 3; g <= 5; g++) {
+    const o = new S.GunOturumu(g, tohum);
+    while (o.mevcut && !o.bitti) {
+      const b = o.mevcut;
+      const e = `t${tohum} g${g} ${b.id}`;
+      const c = b.belgeler.karot === null && o.istenebilir('karot') ? o.iste('karot') : null;
+      if (c?.tur === 'sahte') {
+        bak(!o.sahaGerekli(), `${e}: sahte karot bulunmadan saha`);
+        const alan = K.ipucuAlani(c.rapor);
+        const kural = c.rapor.ipucu === 'muhur' || c.rapor.ipucu === 'tarih' ? R.RAPOR_KURALI : R.GECERSIZ_KURALI;
+        const r = o.incele([
+          { belge: 'karot', alan },
+          { belge: 'kural', alan: kural },
+        ]);
+        bak(r?.kusur.id === 'sahteRapor' && o.sahaKusurda('sahteRapor'), `${e}: sahte karotta SAHA yok`);
+        if (o.sahaYapilabilir()) {
+          const sn = o.sahaTamamla();
+          const r2 = o.incele([
+            { belge: 'karot', alan: 'mpa' },
+            { belge: 'kural', alan: R.SAHA_KURALI },
+          ]);
+          bak(r2?.kusur.id === 'sahaBeton', `${e}: sahte karot sonrası saha notu bulunmadı`);
+          const tam = R.dogruDamga(R.bilgiyleTamamla(b, { karotSaha: sn.mpa }), g);
+          const s = o.damgala(tam);
+          bak(s && s.dogru, `${e}: sahte karot + saha sonrası ${tam} yanlış`);
+          g19.sahteKarot++;
+          continue;
+        }
+      }
+      o.damgala(R.dogruDamga(b, g));
+    }
+  }
+}
+// Kural kitabı: saha kuralı gün 3'te gelir, BETON bölümünde damgalarını yazar.
+{
+  const k = R.KURALLAR.find((x) => x.id === R.SAHA_KURALI);
+  bak(k && k.ilkGun === T.saha.ilkGun && ['BOŞALT', 'GÜÇLENDİR', String(esik)].every((x) => k.metin.includes(x)), 'saha kuralı metni');
+  bak(k && k.kusurlar.length === 0, 'saha kuralı üreticiye kusur vermemeli');
+}
+console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19));
 
 console.log(`${sayi} denetim, ${hata} hata`);
 console.log(`Kural: fay yakını = ${T.fayKurali === 'bosalt' ? 'her zaman BOŞALT' : 'zemine bağlı (dere gibi)'}`);

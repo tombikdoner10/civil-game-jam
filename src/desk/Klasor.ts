@@ -31,6 +31,8 @@ const KURAL_BOLUMU: Record<string, BolumId> = {
   beton: 'beton',
   karot: 'beton',
   rapor: 'beton',
+  // G19: saha testi (Schmidt çekici) kuralı SAHA bölümünde.
+  saha: 'saha',
   dere: 'saha',
   fay: 'saha',
   zeminEtudu: 'zemin',

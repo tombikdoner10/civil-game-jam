@@ -20,7 +20,7 @@ export const SELAM = ['[Merhaba, dosyam burada]', '[İyi günler, sıra bende]',
 export type SorTuru = 'bahane' | 'itiraf' | 'zarf';
 
 /** Sorulabilen kusurlar (eksik belgede SOR yerine İSTE). */
-export type SorulanKusur = Exclude<KusurId, 'karotYok' | 'zeminEtuduYok'>;
+export type SorulanKusur = Exclude<KusurId, 'karotYok' | 'zeminEtuduYok' | 'sahaBeton'>;
 
 export const SOR_METIN: Record<SorulanKusur, Record<SorTuru, string[]>> = {
   kacakKat: {
@@ -132,6 +132,32 @@ export const DAMGA_TEPKI: Record<Damga, string[]> = {
   bosalt: ['[Boşaltmak mı? Nereye gideceğiz?]', '[Bu kararı kabul etmiyorum]'],
   iade: ['[Eksikleri tamamlayıp gelirim]', '[Yine mi sıra bekleyeceğim?]'],
 };
+
+/**
+ * Saha testi (G19, Schmidt çekici): mini oyunun ve saha notunun yazıları. HEPSİ YER TUTUCU: TODO(takım).
+ * {adres}: binanın adresi, {n}: okuma sayısı, {hak}: kalan hak.
+ */
+export const SAHA_METIN = {
+  dugme: 'SAHA',
+  hakYok: 'HAK YOK',
+  sayac: 'SAHA {hak}',
+  baslik: 'SAHA TESTİ',
+  alt: 'Schmidt çekici · {adres}',
+  ipucu: '[Temiz yüzeye vur, sıva ve çatlaktan kaçın]',
+  ibre: 'GERİ TEPME (R)',
+  okumalar: 'Geçerli okumalar',
+  gecersiz: 'Geçersiz: {n} (sayılmadı)',
+  siva: 'GEÇERSİZ · SIVA',
+  catlak: 'GEÇERSİZ · ÇATLAK',
+  hak: 'Kalan hak: {hak}',
+  vazgec: 'VAZGEÇ (Esc)',
+  notuAl: 'NOTU AL',
+  ortalama: 'Ortalama R',
+  tahmin: 'Tahmini dayanım',
+  notBaslik: 'SAHA NOTU',
+  notAlt: 'Schmidt çekici, {n} okuma',
+  tarih: 'Tarih',
+} as const;
 
 /** Gazete ve sonuç ekranındaki zarf izi (yalnızca kabul edilen zarfın binası depremde hasar gördüyse). */
 export const ZARF_GAZETE = '[Denetçinin masasında zarf bulundu]';

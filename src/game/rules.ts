@@ -7,6 +7,8 @@ import { TUNING } from './tuning';
 export const RAPOR_KURALI = 'rapor';
 /** Geçersiz belge kuralı (G17b: elle düzeltilmiş, başka binaya ait, imzasız). */
 export const GECERSIZ_KURALI = 'gecersiz';
+/** Saha testi kuralı (G19, Schmidt çekici): saha notu ön değerlendirmedir. */
+export const SAHA_KURALI = 'saha';
 
 /** Kusur başına yer tutucu etiket, ciddiyet ve kanıt alanları. */
 export const KUSUR_BILGI: Record<KusurId, Omit<Kusur, 'id'>> = {
@@ -84,6 +86,12 @@ export const KUSUR_BILGI: Record<KusurId, Omit<Kusur, 'id'>> = {
     ciddiyet: 'iade',
     kanit: [{ belge: 'ruhsat', alan: 'imza' }],
   },
+  // G19 saha notu (karot kartının yerinde): tahmini dayanım + saha kuralı. Ciddiyet tahmine göre (sahaKusuru).
+  sahaBeton: {
+    etiket: 'Düşük beton (saha)',
+    ciddiyet: 'bosalt',
+    kanit: [{ belge: 'karot', alan: 'mpa' }],
+  },
 };
 
 export const KUSUR_IDLERI = Object.keys(KUSUR_BILGI) as KusurId[];
@@ -142,6 +150,14 @@ export const KURALLAR: Kural[] = [
     metin: `[Kural: dere yatağına ${TUNING.dereMinM} m'den yakınsa zemin etüdüne bak: sağlam ya da orta → GÜÇLENDİR, sıvılaşma → BOŞALT, etüt yok → İADE]`,
   },
   { id: 'fay', ilkGun: 4, kusurlar: ['fayaYakin'], metin: fayMetni() },
+  {
+    // G19: saha notu ön değerlendirme (SAHA bölümünde dere ve fayın ardından: gün 4'te yeni kurallar önce). Saha
+    // kusuru binanın değil oturumun (üretici seçmesin): kapsam() ekler.
+    id: SAHA_KURALI,
+    ilkGun: TUNING.saha.ilkGun,
+    kusurlar: [],
+    metin: `[Kural: saha notu (Schmidt çekici) ön değerlendirmedir, kesin karar karot ister: tahmini dayanım ${TUNING.betonEsikMpa} MPa'nın altındaysa → BOŞALT, değilse → GÜÇLENDİR]`,
+  },
   {
     id: 'zeminEtudu',
     ilkGun: 4,
@@ -206,6 +222,12 @@ export function kacakKatKusuru(fark: number): Kusur {
   };
 }
 
+/** Saha notundaki tahmine göre saha kusuru (G19): eşiğin altında BOŞALT, üstünde GÜÇLENDİR. */
+export function sahaKusuru(mpa: number): Kusur {
+  const dusuk = mpa < TUNING.betonEsikMpa;
+  return { ...kusur('sahaBeton'), etiket: dusuk ? KUSUR_BILGI.sahaBeton.etiket : 'Saha ön değerlendirmesi', ciddiyet: dusuk ? 'bosalt' : 'guclendir' };
+}
+
 /** Dere ya da fay yakınlığının ciddiyeti: zemine bağlı (sıvılaşma BOŞALT, değilse GÜÇLENDİR; bkz. TUNING.fayKurali). */
 function yakinlikCiddiyeti(id: 'dereyeYakin' | 'fayaYakin', zemin: Zemin | null): Ciddiyet {
   if (id === 'fayaYakin' && TUNING.fayKurali === 'bosalt') return 'bosalt';
@@ -244,7 +266,9 @@ function kusurListesi(b: Bina, mod: 'belge' | 'gercek'): Kusur[] {
   const dere = gercekMod ? g.dereMesafeM : B.vaziyet.dereM;
   const fay = gercekMod ? g.fayMesafeM : B.vaziyet.fayM;
   if (g.kesikKolonlar.length > 0) ekle('kesikKolon');
-  if (mpa !== undefined && mpa < TUNING.betonEsikMpa) ekle('dusukBeton');
+  // Saha notu (G19): tahmin ayrı kuralla (ön değerlendirme); düşük beton kusuru yerine saha kusuru.
+  if (!gercekMod && karot?.saha) out.push(sahaKusuru(karot.mpa));
+  else if (mpa !== undefined && mpa < TUNING.betonEsikMpa) ekle('dusukBeton');
   if (B.karot === null) ekle('karotYok');
   if (plan && dere < TUNING.dereMinM) ekle('dereyeYakin', yakinlikCiddiyeti('dereyeYakin', zemin));
   if (plan && fay < TUNING.fayMinM) ekle('fayaYakin', yakinlikCiddiyeti('fayaYakin', zemin));
@@ -273,7 +297,10 @@ export function aktifKurallar(gun: number): Kural[] {
 
 function kapsam(gun: number): Set<KusurId> {
   const out = new Set<KusurId>();
-  for (const k of aktifKurallar(gun)) for (const id of kuralKusurlari(k, gun)) out.add(id);
+  for (const k of aktifKurallar(gun)) {
+    for (const id of kuralKusurlari(k, gun)) out.add(id);
+    if (k.id === SAHA_KURALI) out.add('sahaBeton');
+  }
   return out;
 }
 
@@ -298,11 +325,15 @@ export function eksikBelgeVar(b: Bina, gun: number): boolean {
 }
 
 /**
- * Oyuncunun eksik belge yerine başka yoldan edindiği bilgi (G17 İSTE, G19 saha testi dolduracak). Alan varsa o
- * bilgi edinilmiş sayılır; doğru damga binanın GERÇEK durumuna göre hesaplanır (sahte belgeye inanmak yanlıştır).
+ * Oyuncunun eksik belge yerine başka yoldan edindiği bilgi (G17 İSTE, G19 saha testi). Alan varsa o bilgi edinilmiş
+ * sayılır; doğru damga binanın GERÇEK durumuna göre hesaplanır (sahte belgeye inanmak yanlıştır). Saha testi
+ * (karotSaha) ise ön değerlendirmedir: doğru damga saha kuralına göre (tahmin eşiğin altında BOŞALT, üstünde
+ * GÜÇLENDİR).
  */
 export interface EdinilenBilgi {
   karot?: number;
+  /** Saha testinin tahmini dayanımı (G19; karot yoksa ya da geçersizse). karot verilmişse o geçerli. */
+  karotSaha?: number;
   zemin?: Zemin;
   /** Düzgün (geçerli) ruhsat ya da vaziyet planı getirildi (G17b). */
   ruhsat?: boolean;
@@ -325,7 +356,12 @@ export function bilgiyleTamamla(b: Bina, bilgi: EdinilenBilgi): Bina {
     belgeler: {
       ...B,
       ruhsat: bilgi.ruhsat ? gecerliRuhsat(B.ruhsat) : B.ruhsat,
-      karot: karotYok && bilgi.karot !== undefined ? { mpa: g.betonMpa, ada } : B.karot,
+      karot:
+        karotYok && bilgi.karot !== undefined
+          ? { mpa: g.betonMpa, ada }
+          : karotYok && bilgi.karotSaha !== undefined
+            ? { mpa: bilgi.karotSaha, ada, saha: true }
+            : B.karot,
       zemin: zeminYok && bilgi.zemin !== undefined ? { tur: g.zemin, ada } : B.zemin,
       vaziyet: baska === 'vaziyet' && bilgi.vaziyet ? { dereM: g.dereMesafeM, fayM: g.fayMesafeM, ada } : B.vaziyet,
     },
@@ -449,6 +485,7 @@ export interface SecimRef {
 
 /** Bu kusuru kapsayan kural (kural kitabındaki satır; genişleyen kuralın ek kusurları dahil). */
 export function kusurKurali(id: KusurId): Kural | undefined {
+  if (id === 'sahaBeton') return KURALLAR.find((k) => k.id === SAHA_KURALI);
   return KURALLAR.find((k) => k.kusurlar.includes(id) || !!k.ek?.kusurlar.includes(id));
 }
 

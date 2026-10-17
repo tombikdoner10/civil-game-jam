@@ -29,7 +29,12 @@ export type KusurId =
   /** Geçersiz belge (G17b): ruhsatta elle düzeltilmiş değer, başka binanın belgesi, imzasız ruhsat. Eksik belge gibi. */
   | 'elleDuzeltme'
   | 'baskaBina'
-  | 'imzaYok';
+  | 'imzaYok'
+  /**
+   * Saha testi ön değerlendirmesi (G19): karot yok ya da geçersizken Schmidt çekiciyle tahmin edilen dayanım.
+   * Eşiğin altında BOŞALT, üstünde GÜÇLENDİR. Oturumun kusuru (saha notu): üretici kullanmaz.
+   */
+  | 'sahaBeton';
 
 export type BelgeTuru = 'ruhsat' | 'proje' | 'foto' | 'karot' | 'zemin' | 'vaziyet';
 
@@ -120,6 +125,8 @@ export interface KarotSonucu {
   mpa: number;
   /** Ada / parsel: ruhsattakinden farklıysa başka binanın belgesi (G17b). */
   ada: string;
+  /** Değer saha testinin tahmini (G19, saha notu): kesin değil, kuralı ayrı. */
+  saha?: boolean;
 }
 export interface ZeminEtudu {
   tur: Zemin;

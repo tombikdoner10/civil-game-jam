@@ -136,6 +136,26 @@ export function seslerKur(): void {
   );
   t('zarfRet', { dosya: ['bookFlip3'], volume: 0.8, rate: 0.9, bas: 0.025 }, 'whoosh');
 
+  // Saha testi (G19, Schmidt çekici): yaylı çekiç betona çarpar (metal plaka + ahşap tok), ibre tıkırdar,
+  // geçersiz okuma (sıva / çatlak) kuru ve boğuk.
+  t(
+    'sahaVurus',
+    [
+      { dosya: ['impactPlate_heavy_001'], volume: 0.55, rate: 1.7 },
+      { dosya: ['impactPunch_heavy_000', 'impactPunch_heavy_001', 'impactPunch_heavy_002'], volume: 0.5, rate: 1.6, oynama: 0.08, bas: 0.008 },
+    ],
+    'hit',
+  );
+  t('sahaIbre', { dosya: ['metalClick'], volume: 0.7, rate: 1.6, bas: 0.05 }, 'click');
+  t(
+    'sahaGecersiz',
+    [
+      { dosya: ['impactWood_light_001'], volume: 0.5, rate: 0.7 },
+      { dosya: ['error_004'], volume: 0.3, rate: 1.1, gecikme: 0.12 },
+    ],
+    'error',
+  );
+
   // Deprem (Quake.ts): gürleme tabanı sfx.gurleme() (kodla), üstüne bunlar.
   t(
     'depremVurus',

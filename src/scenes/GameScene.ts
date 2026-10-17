@@ -2,26 +2,28 @@ import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
 import { DEV, FONT } from '../config';
 import { DocumentCard, MASA, ustKatman } from '../desk/DocumentCard';
-import { belgeKur, BOY, isteDugmesi, raporKur } from '../desk/documents';
+import { belgeKur, BOY, isteDugmesi, raporKur, sahaDugmesi, sahaNotuKur } from '../desk/documents';
+import { SahaTesti } from '../desk/Saha';
 import { PX, snap } from '../desk/pixel';
 import { DUGME, Inspect, type Yuzey } from '../desk/Inspect';
-import { PAL } from '../desk/palette';
+import { num, PAL } from '../desk/palette';
 import { fisDusur, fisKaldir, fisKur, masaCiz } from '../desk/props';
 import { Klasor } from '../desk/Klasor';
 import { RuleNote } from '../desk/RuleNote';
 import { DAMGA_ADI, damgaIzi, Kaselik, RAF_SOL } from '../desk/Kaselik';
 import { binaEtiketi, ETIKET_KUCUK, ETIKET_KUCUK_YUKSEKLIK, type BinaEtiketi } from '../desk/BinaEtiketi';
 import { ONCU_SARSINTI_SONU, ONCU_TEPKI_SONU, Quake } from '../desk/Quake';
-import { GISE_ALAN, GOZ, MASA_Y, PENCERE_CAMLARI, Pencere, SOKAK_DERINLIK } from '../desk/Window';
+import { BANT_H, GISE_ALAN, GOZ, MASA_Y, PENCERE_CAMLARI, Pencere, SOKAK_DERINLIK } from '../desk/Window';
 import { yerlesim, type Yerlesim } from '../desk/yerlesim';
 import { Cekmece, Zarf, ZARF_ALAN } from '../desk/Zarf';
 import { Portre, PORTRE_EKRAN } from '../desk/Portre';
-import type { Damga, KusurId, Kural } from '../game/building';
+import type { Bina, Damga, KusurId, Kural } from '../game/building';
 import {
   CERCEVE,
   DAMGA_TEPKI,
   ISTE_BELGE_METIN,
   ISTE_METIN,
+  SAHA_METIN,
   satir,
   SELAM,
   SOR_METIN,
@@ -38,6 +40,7 @@ import { KUSUR_BILGI } from '../game/rules';
 import { ornekKayitlar } from '../game/ornek';
 import { gunAyar } from '../game/days';
 import { GunOturumu, gunHesabi, sokakKayitlari, type GunKaydi, type SarsintiKaydi } from '../game/session';
+import type { SahaSonucu } from '../game/saha';
 import { TUNING } from '../game/tuning';
 import type { DayEndData } from './DayEndScene';
 import { Controls } from '../systems/controls';
@@ -78,6 +81,9 @@ const ISTE_BASLIK: Record<IsteAlani, string> = {
   vaziyet: 'İSTE · VAZİYET PLANI',
 };
 
+/** Tezgâhtaki saha testi hak sayacı (G19; İNCELE düğmesinin sağı). */
+const SAHA_SAYAC = { x: 1048, y: BANT_H + 24, w: 152, h: 40 };
+
 /** Damgaya göre gişedeki kişinin yüzü. */
 const DAMGA_IFADE: Record<Damga, Ifade> = { guvenli: 'sevincli', guclendir: 'mahcup', bosalt: 'kizgin', iade: 'kizgin' };
 
@@ -110,6 +116,9 @@ export class GameScene extends Phaser.Scene {
   private cekmece!: Cekmece;
   /** Öncü sarsıntıda binaların üstündeki etiketler (x0: sokak kabındaki ilk yeri; G23 cama sığdırma). */
   private oncuEtiketler: { e: BinaEtiketi; x0: number; yer: number; sonuc?: string; zemin?: string; bolundu?: boolean }[] = [];
+  /** Açık saha testi (G19) ve tezgâhtaki hak sayacı. */
+  private saha?: SahaTesti;
+  private sahaSayac?: Phaser.GameObjects.Text;
 
   constructor() {
     super(SCENES.Game);
@@ -146,6 +155,8 @@ export class GameScene extends Phaser.Scene {
     this.oncu = undefined;
     this.zarf = undefined;
     this.oncuEtiketler = [];
+    this.saha = undefined;
+    this.sahaSayac = undefined;
   }
 
   create(): void {
@@ -183,6 +194,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.cekmece = new Cekmece(this);
+    if (ayar.sahaHak > 0) this.sahaSayacKur();
     this.incelemeKur();
     this.dosyaGetir();
     if (DEV && new URLSearchParams(location.search).has('portreler')) this.portreler();
@@ -196,13 +208,16 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number): void {
-    if (this.controls.justDown('pause')) {
+    if (this.saha) {
+      // Saha testi açık (G19): Esc vazgeçer (tamamlandıysa notu alır), Space notu alır; saat işlemeye devam eder.
+      if (this.controls.justDown('pause')) this.saha.esc();
+      else if (this.controls.justDown('action')) this.saha.onay();
+    } else if (this.controls.justDown('pause')) {
       // Esc önce inceleme modunu kapatır, kapalıyken duraklatır.
       if (this.inceleme.acik) this.inceleme.kapa();
       else this.pauseGame();
       return;
-    }
-    if (this.controls.justDown('action')) this.inceleme.degistir();
+    } else if (this.controls.justDown('action')) this.inceleme.degistir();
     if (this.bitirildi) {
       // Öncü sarsıntı: sokak odaklanırken etiketler pencere camlarında kalsın.
       if (this.oncuEtiketler.length > 0) this.oncuEtiketSigdir();
@@ -236,11 +251,15 @@ export class GameScene extends Phaser.Scene {
         return out;
       },
       kontrol: (secim) => this.oturum.incele(secim),
-      izin: () => !this.mesgul && !this.bitirildi,
+      izin: () => !this.mesgul && !this.bitirildi && !this.saha,
       sorulabilir: (id) => this.oturum.sorulabilir(id),
       istenebilir: (id) => this.oturum.isteAlani(id) !== null,
+      // Geçersiz karot (G19): etikette SAHA.
+      sahaGoster: (id) => this.oturum.sahaKusurda(id),
+      sahaAcik: (id) => this.oturum.sahaKusurda(id) && this.oturum.sahaYapilabilir(),
     });
     this.inceleme.on('sor', (id: KusurId) => this.sor(id));
+    this.inceleme.on('saha', () => this.sahaAc());
     // Geçersiz belge (G17b): etiketteki İSTE, belgenin düzgününü ister.
     this.inceleme.on('iste', (id: KusurId) => {
       const alan = this.oturum.isteAlani(id);
@@ -408,8 +427,10 @@ export class GameScene extends Phaser.Scene {
       const [hx, hy] = this.yer.belge[tur];
       const k = belgeKur(this, tur, bina, this.gun, GOZ.x, GOZ.y - BOY[tur][1] / 2);
       k.setDepth(ustKatman()).setAlpha(0);
-      // Eksik belge: sahibinden İSTE (G17).
-      if ((tur === 'karot' || tur === 'zemin') && this.oturum.istenebilir(tur)) isteDugmesi(k, () => this.iste(tur, k));
+      // Eksik belge: sahibinden İSTE (G17); karot yoksa yanında SAHA (G19, Schmidt çekici).
+      const saha = tur === 'karot' && bina.belgeler.karot === null && this.oturum.ayar.sahaHak > 0;
+      if ((tur === 'karot' || tur === 'zemin') && this.oturum.istenebilir(tur)) isteDugmesi(k, () => this.iste(tur, k), saha);
+      if (saha) sahaDugmesi(k, () => this.sahaDurum(), () => this.sahaAc());
       this.tweens.add({ targets: k, alpha: 1, duration: 120, delay: gecikme + i * 80 });
       this.tweens.add({
         targets: k,
@@ -444,7 +465,7 @@ export class GameScene extends Phaser.Scene {
 
   /** Tek tıklamalı kaşenin ineceği yer: ruhsatın sol alt köşesi (mühür yeri). Damga vurulamıyorsa null. */
   private muhurYeri(): [number, number] | null {
-    if (this.mesgul || this.bitirildi) return null;
+    if (this.mesgul || this.bitirildi || this.saha) return null;
     const r = this.kartlar.find((k) => k.tur === 'ruhsat' && k.active);
     if (!r) return null;
     return [snap(r.x - r.genislik / 2 + 152), snap(r.y + r.yukseklik / 2 - 60)];
@@ -600,12 +621,85 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  // ---- Saha testi (G19, Schmidt çekici) ----
+
+  /** Tezgâhta "SAHA 2": günün kalan saha testi hakkı. */
+  private sahaSayacKur(): void {
+    const S = SAHA_SAYAC;
+    this.add.rectangle(S.x, S.y, S.w, S.h, num(PAL.panel)).setStrokeStyle(PX, num(PAL.panelKenar)).setDepth(3004);
+    this.sahaSayac = this.add
+      .text(S.x, S.y, '', { fontFamily: FONT, fontSize: '32px', color: PAL.panelYazi })
+      .setOrigin(0.5)
+      .setDepth(3005);
+    this.sahaSayacGuncelle();
+  }
+
+  private sahaSayacGuncelle(): void {
+    const hak = this.oturum.sahaHakki;
+    this.sahaSayac?.setText(SAHA_METIN.sayac.replace('{hak}', String(hak))).setColor(hak > 0 ? PAL.panelYazi : PAL.murekkepAcik);
+  }
+
+  /** "Rapor yok" kartındaki SAHA düğmesinin durumu. */
+  private sahaDurum(): 'acik' | 'hakYok' | 'yok' {
+    if (this.mesgul || this.bitirildi || this.saha || !this.oturum.sahaGerekli()) return 'yok';
+    return this.oturum.sahaYapilabilir() ? 'acik' : 'hakYok';
+  }
+
+  /**
+   * Saha testi açılır: masa kilitlenir (kaşelik, inceleme, belgeler örtülü), saat işlemeye devam eder. Tamamlanınca
+   * hak harcanır ve saat ilerler; NOTU AL ile saha notu karot kartının yerine masaya düşer. VAZGEÇ hak harcamaz.
+   */
+  private sahaAc(): void {
+    if (this.mesgul || this.bitirildi || this.saha) return;
+    const bina = this.oturum.mevcut;
+    const sonuc = this.oturum.sahaOnizle();
+    if (!bina || !sonuc) return;
+    if (this.inceleme.acik) this.inceleme.kapa();
+    this.inceleme.gizle(true);
+    this.kaselik.kilitle(true);
+    const saha = new SahaTesti(this, { bina, tohum: this.tohum, sonuc, hak: this.oturum.sahaHakki });
+    saha.on('tamamlandi', () => {
+      this.oturum.sahaTamamla();
+      this.sahaSayacGuncelle();
+    });
+    saha.on('kapandi', (s: SahaSonucu | null) => {
+      this.saha = undefined;
+      this.inceleme.gizle(false);
+      if (this.bitirildi) return;
+      this.kaselik.kilitle(false);
+      const edinildi = this.oturum.mevcut?.id === bina.id && this.oturum.edinilenBilgi.kaynak.karot === 'saha';
+      if (s && edinildi) this.sahaNotuDusur(bina, s);
+    });
+    this.saha = saha;
+  }
+
+  /** Saha notu karot kartının (Rapor yok ya da geçersiz karot) yerine masaya düşer; eski kart gişeye döner. */
+  private sahaNotuDusur(bina: Bina, s: SahaSonucu): void {
+    const eski = this.kartlar.find((k) => k.tur === 'karot' && k.active);
+    const hedef = eski ? [eski.x, eski.y] : this.yer.belge.karot;
+    const yeni = sahaNotuKur(this, bina, s, this.gun, hedef[0], hedef[1]);
+    const [hx, hy] = yeni.masadaKonum(hedef[0], hedef[1]);
+    yeni.setPosition(hx, hy - 24).setDepth(ustKatman()).setAlpha(0).setScale(1.08);
+    this.tweens.add({ targets: yeni, alpha: 1, y: hy, scale: 1, duration: 260, ease: 'Cubic.easeOut', onComplete: () => sfx.play('kagitBirak') });
+    sfx.play('kagitKay', { volume: 0.7 });
+    const i = eski ? this.kartlar.indexOf(eski) : -1;
+    if (i >= 0) this.kartlar.splice(i, 1, yeni);
+    else this.kartlar.push(yeni);
+    if (eski) {
+      const h = eski.yukseklik;
+      this.input.setDraggable(eski, false);
+      eski.disableInteractive();
+      eski.setDepth(KAYAN_DERINLIK);
+      this.tweens.add({ targets: eski, x: GOZ.x, y: GOZ.y - h / 2 - 40, alpha: 0, duration: 360, ease: 'Cubic.easeIn', onComplete: () => eski.destroy() });
+    }
+  }
+
   /**
    * Kaşe (x, y) noktasına indi. Ruhsatın üstündeyse damga sayılır (true): mürekkep izi o noktada; değilse
    * (boş masa, başka belge, masa meşgul) false ve kaşe yerine döner.
    */
   private damgala(damga: Damga, x: number, y: number): boolean {
-    if (this.mesgul || this.bitirildi) return false;
+    if (this.mesgul || this.bitirildi || this.saha) return false;
     const ruhsat = this.kartlar.find((k) => k.tur === 'ruhsat' && k.active);
     if (!ruhsat || !ruhsat.sinir().contains(x, y)) return false;
     // Örtük kabul yok (G22): zarf karar beklerken ya da alınan zarfın istemediği damga vurulmaz (kaşelik zaten kilitli).
@@ -701,6 +795,8 @@ export class GameScene extends Phaser.Scene {
     if (this.bitirildi) return;
     this.bitirildi = true;
     this.mesgul = true;
+    // Mesai saha testinde biterse test kapanır (sonuç yok).
+    this.saha?.kapat(null);
     if (this.inceleme.acik) this.inceleme.kapa();
     this.gunSonuOncesi(() => this.gunSonu());
   }

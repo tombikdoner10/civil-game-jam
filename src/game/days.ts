@@ -33,6 +33,8 @@ export interface GunAyar {
   iste: boolean;
   /** İSTE'de sahte rapor gelebilir (kural kitabında rapor kuralı). */
   sahteRapor: boolean;
+  /** Saha testi (G19, Schmidt çekici): günlük hak; 0 ise saha testi yok. */
+  sahaHak: number;
   /** SOR'da taban zarf olasılığı ve pazarlıkçı kişi payı (TUNING.kisi). */
   zarf: number;
   pazarlikci: number;
@@ -88,6 +90,7 @@ export function gunAyar(gun: number): GunAyar {
     sor: g >= TUNING.kisi.sorIlkGun,
     iste: g >= TUNING.kisi.isteIlkGun,
     sahteRapor: g >= TUNING.kisi.sahteRaporIlkGun,
+    sahaHak: g >= TUNING.saha.ilkGun ? TUNING.saha.gunlukHak : 0,
     zarf: listeden(TUNING.kisi.zarf, g),
     pazarlikci: listeden(TUNING.kisi.kisilik.pazarlikci, g),
   };

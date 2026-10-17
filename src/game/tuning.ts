@@ -135,6 +135,39 @@ export const TUNING = {
     },
   },
 
+  /**
+   * Saha testi (G19, yalnızca Schmidt çekici): karot raporu yoksa ya da geçersizse binanın betonu masadan kalkıp
+   * ölçülür. Günde gunlukHak kez; tamamlanınca saat dakika kadar ilerler (VAZGEÇ hak ve süre harcamaz). Okumalar
+   * deterministik: binanın gerçek dayanımına karşılık gelen R değerinin çevresinde ±gurultu; ortalamanın kayması
+   * en çok ±sapma. Tahmin hep eşiğin gerçek dayanımla aynı yanında kalır (adalet). Saha notu ön değerlendirmedir:
+   * tahmin eşiğin altındaysa BOŞALT, üstündeyse GÜÇLENDİR (kesin karar karot ister). Dönüşüm tablosu (R → MPa,
+   * yatay vuruş) yer tutucu: takım TS EN 12504-2 / üretici eğrisiyle doğrulayacak.
+   */
+  saha: {
+    ilkGun: 3,
+    gunlukHak: 2,
+    okuma: 6,
+    dakika: 30,
+    gurultu: 3,
+    sapma: 1,
+    /** Tahminin ± payı (oran; en az payEn MPa). */
+    payOran: 0.2,
+    payEn: 2,
+    donusum: [
+      [10, 4],
+      [20, 11],
+      [25, 17],
+      [30, 25],
+      [35, 33],
+      [40, 41],
+      [45, 50],
+      [55, 66],
+    ] as readonly (readonly [number, number])[],
+    /** Geçersiz okuma: sıva üstünde R düşer (çarpan), çatlakta tutarsız düşük okur (fark). */
+    siva: 0.62,
+    catlak: -9,
+  },
+
   /** Konuşma balonu: harf başına yazma süresi, metin bitince kalış süresi (taban + harf başı), gecikmeler (ms). */
   diyalog: { harfMs: 26, kalisMs: 2600, kalisHarfMs: 40, selamGecikme: 700, raporGecikme: 1000 },
 

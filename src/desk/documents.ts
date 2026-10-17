@@ -2,7 +2,8 @@
 import * as Phaser from 'phaser';
 import { FONT } from '../config';
 import { gecerliRuhsat, type Belgeler, type BelgeTuru, type Bina, type Zemin } from '../game/building';
-import { tarih } from '../game/diyalog';
+import { SAHA_METIN, tarih } from '../game/diyalog';
+import type { SahaSonucu } from '../game/saha';
 import { TUNING } from '../game/tuning';
 import type { GetirilenRapor } from '../game/kisi';
 import { DocumentCard } from './DocumentCard';
@@ -463,13 +464,17 @@ export function belgeKur(scene: Phaser.Scene, tur: BelgeTuru, bina: Bina, gun: n
 /** Eksik belge kartındaki İSTE düğmesinin yeri (kart ortasına göre, ekran). */
 const ISTE_YERI: Partial<Record<BelgeTuru, [number, number]>> = { karot: [0, 72], zemin: [0, 72] };
 
+/** İSTE ile SAHA yan yana (G19): kart ortasından yana kayma. */
+const YAN = 76;
+
 /**
  * "Rapor yok" kartına İSTE düğmesi (G17): tıklanınca is() çağrılır ve düğme "İSTENDİ" olarak söner.
- * İnceleme modunda da çalışır (alan seçimi sayılmaz).
+ * İnceleme modunda da çalışır (alan seçimi sayılmaz). yanda: yanında SAHA düğmesi var (G19), İSTE sola kayar.
  */
-export function isteDugmesi(kart: DocumentCard, is: () => void): void {
+export function isteDugmesi(kart: DocumentCard, is: () => void, yanda = false): void {
   const s = kart.scene;
-  const [x, y] = ISTE_YERI[kart.tur] ?? [0, 0];
+  const [x0, y] = ISTE_YERI[kart.tur] ?? [0, 0];
+  const x = yanda ? x0 - YAN : x0;
   const w = 136;
   const h = 40;
   const kutu = s.add.rectangle(x, y, w, h, 0x151413).setStrokeStyle(PX, 0x57524a);
@@ -485,6 +490,85 @@ export function isteDugmesi(kart: DocumentCard, is: () => void): void {
     is();
   });
   kart.add([kutu, yazi]);
+}
+
+/**
+ * "Rapor yok" karot kartına SAHA düğmesi (G19, İSTE'nin sağında): durum() her karede sorulur; yapılabilirken
+ * "SAHA", hak bitince ya da artık gerekmiyorsa sönük ("HAK YOK" ya da sönük "SAHA"). Tıklanınca is().
+ */
+export function sahaDugmesi(kart: DocumentCard, durum: () => 'acik' | 'hakYok' | 'yok', is: () => void): void {
+  const s = kart.scene;
+  const [x0, y] = ISTE_YERI[kart.tur] ?? [0, 0];
+  const x = x0 + YAN;
+  const w = 136;
+  const h = 40;
+  const kutu = s.add.rectangle(x, y, w, h, 0x151413).setStrokeStyle(PX, 0x57524a);
+  const yazi = s.add.text(x, y, SAHA_METIN.dugme, { fontFamily: FONT, fontSize: '34px', color: PAL.saat }).setOrigin(0.5);
+  kutu.setInteractive({ useHandCursor: true }).setData('incelemeYok', true);
+  kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => kutu.setFillStyle(0x3a2f22));
+  kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => kutu.setFillStyle(0x151413));
+  kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (_p: Phaser.Input.Pointer, _x: number, _y: number, e: Phaser.Types.Input.EventData) => {
+    e.stopPropagation();
+    if (durum() === 'acik') is();
+  });
+  let son = '';
+  const esle = (): void => {
+    if (!kutu.active) return;
+    const d = durum();
+    if (d === son) return;
+    son = d;
+    if (d === 'acik') {
+      kutu.setInteractive({ useHandCursor: true });
+      yazi.setText(SAHA_METIN.dugme).setColor(PAL.saat).setFontSize(34);
+    } else {
+      kutu.disableInteractive();
+      kutu.setFillStyle(0x151413);
+      yazi.setText(d === 'hakYok' ? SAHA_METIN.hakYok : SAHA_METIN.dugme).setColor(PAL.murekkepAcik).setFontSize(d === 'hakYok' ? 28 : 34);
+    }
+  };
+  esle();
+  s.events.on(Phaser.Scenes.Events.POST_UPDATE, esle);
+  kutu.once(Phaser.GameObjects.Events.DESTROY, () => s.events.off(Phaser.Scenes.Events.POST_UPDATE, esle));
+  kart.add([kutu, yazi]);
+}
+
+/**
+ * Saha notu (G19): saha testinden sonra karot kartının yerine masaya düşen kareli defter sayfası. Kurşun kalemle:
+ * "Schmidt çekici, 6 okuma", okumalar, ortalama R, tahmini dayanım (alan 'mpa'; inceleme modunda saha kuralıyla)
+ * ve tarih. Kart türü 'karot' (karot yuvasında durur).
+ */
+export function sahaNotuKur(scene: Phaser.Scene, bina: Bina, sonuc: SahaSonucu, gun: number, x: number, y: number): DocumentCard {
+  const [w] = BOY.karot;
+  const h = RAPOR_H;
+  const c = new DocumentCard(scene, 'karot', w, h, x, y);
+  const t = new Tuval(scene, w / PX, h / PX, 'saha-notu');
+  const rnd = rastgele(dizgiTohum(bina.id + 'saha-notu'));
+  const k: Ctx = { s: scene, c, b: bina.belgeler, bina, t, rnd, gun };
+  const KAGIT = '#dcd8c6';
+  const KARE = '#c3c6c4';
+  const KURSUN = '#3b3a3f';
+  kagit(t, KAGIT, '#bdb8a4', rnd);
+  // Kareli defter: ince ızgara, solda kırmızı kenar çizgisi, üstte spiral delikleri.
+  for (let x2 = 4; x2 < t.w - 2; x2 += 4) t.rect(x2, 2, 1, t.h - 4, KARE);
+  for (let y2 = 4; y2 < t.h - 2; y2 += 4) t.rect(2, y2, t.w - 4, 1, KARE);
+  t.rect(9, 2, 1, t.h - 4, '#c98f86');
+  for (let x2 = 6; x2 < t.w - 6; x2 += 6) t.rect(x2, 1, 2, 2, '#8a8478');
+  etiket(k, 12, 8, SAHA_METIN.notBaslik, BOY_BASLIK, KURSUN);
+  t.rect(12, 13, 46, 1, KURSUN);
+  etiket(k, 12, 18, SAHA_METIN.notAlt.replace('{n}', String(sonuc.okumalar.length)), 26, KURSUN);
+  etiket(k, 12, 26, `R: ${sonuc.okumalar.join(' ')}`, 26, KURSUN);
+  etiket(k, 12, 34, SAHA_METIN.ortalama, 26, KURSUN);
+  deger(k, 50, 34, sonuc.ortR.toFixed(1).replace('.', ','), 30, KURSUN);
+  etiket(k, 12, 43, SAHA_METIN.tahmin, 26, KURSUN);
+  const d = deger(k, 12, 51, `≈ ${sonuc.mpa} MPa (± ${sonuc.pay})`, 36, KALEM);
+  k.c.remove(d);
+  k.c.alanEkle('mpa', d);
+  // Değerin altı iki kez çizilmiş (kurşun).
+  t.rect(12, 55, Math.ceil(d.width / PX), 1, KALEM);
+  etiket(k, 12, 61, SAHA_METIN.tarih, 26, KURSUN);
+  deger(k, 32, 61, tarih(gun), 30, KURSUN);
+  c.zeminEkle(t);
+  return c;
 }
 
 /**
