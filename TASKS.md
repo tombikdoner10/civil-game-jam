@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G29 [teknik] (sürüyor, Opus/high) Emeği Geçenler'de AI beyanı kategori başına kısa özet (araç, amaç, yer); iç görev kodları (G4b…) ve günlük dili oyunda görünmesin. docs/AI_BEYAN.md (teslim formu metni) tam ve doğru kalır; içerik eksilmez.
+- [ ] G29b [teknik] (sürüyor, Opus/high) Beyan betiğinde ajan → model eşlemesi zamana bağlı (geliştirici 16 Ekim 17:02Z öncesi Sonnet, sonra Opus); beyan dosyaları kod kaydının yer listesine girmesin.
 
 ## Sırada
 
@@ -38,6 +38,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 - [ ] T23 [takım] Rapordaki çift ifade: satırda "Varsayalım: büyük deprem bu gece oldu", düğmede "BÜYÜK DEPREM BU GECE OLSAYDI?". (1) düğme soru kalsın, satır kısalsın (2) ikisi de varsayım dili (3) olduğu gibi.
 - [ ] T24 [takım] Ses ortamı: oyunda müzik/ortam sesi yok. (a) kasıtlı sessizlik (b) yalnızca gazete ve sonuçta Kenney Music Jingles (havuzda var, CC0; küçük iş) (c) masa ortam döngüsü (küçük–orta). Ayrıca T6: 42 Kenney sesi dinlenmedi.
 - [ ] T25 [takım] Sunum: anlatıcının ilk cümlesi (ör. "Kurala uymayanı damgala, sonra raporda kırmızı düğme"); jüri bilgisayarında oyun önceden açık olsun ya da ZIP sürümü (canlı sitede ilk yükleme birkaç sn, bu sırada tıklamalar kayboluyor). Gerçekçi jüri yolu 2:00–2:40.
+- [ ] T27 [takım] AI beyanı özetini (docs/AI_BEYAN.md üst bölüm, oyunda Emeği Geçenler) okuyup onayla; teslim formuna bu metin yapıştırılacak. Metinler yeniden yazılınca Metin özetindeki "takım bunları yeniden yazacak" ifadesi güncellenecek.
 - [ ] T26 [takım] "Takımın kararları" metni (README ve Emeği Geçenler; 4–5 madde: tema yorumu, gişede insan, kural kararları, deprem dili, metinler). Madde 4.3: takımın yaratıcı katkısı görünür olsun.
 - [ ] T1 [takım] Oyunun ve kurgusal şehrin adı.
 - [ ] T12 [takım] Eleştirmenin teknik doğruluk soruları (T2 ile): mühür yılı ruhsat mı iskân mı ("Ruhsat tarihi"?); beton eşiği (TBDY 2018 yeni yapıda C25; mevcut yapıda Riskli Yapı Esasları) ve yıl-dayanım ilişkisi; dere 30 m / fay 150 m kaynağı, dere GÜÇLENDİR ile çözülür mü; zemin etüdü yok = dosya iadesi mi; sıvılaşma hep BOŞALT mı; ZA–ZF zemin sınıfları; 6306 sayılı kanun "riskli yapı" dili.
@@ -63,6 +64,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G29 AI beyanı oyunda ve formda kategori başına sade özet (docs/ai-ozet.json); AI_BEYAN.md altta ayrıntılı kayıt eksiksiz (eccc1ac, Opus/high; test sürüyor)
 - [x] G28b Deprem ipucu sağ üstte (gökyüzü); kısa yol sonucunda İADE kutusu ve içi boş G30 koşuluna bağlı (juriGordukleri ortak yardımcı); 5 günlük yol md5 aynı (325920d, Opus/high; test geçti)
 - [x] G30 Kısa yol gazetesi: önce [Senin binaların], sonra [Bütün sokak]; jürinin görmediği İADE/içi boş gizli; 5 günlük yol bayt bayt aynı (8d908e6, Opus/high; test geçti)
 - [x] G28 Deprem hızlandırma: gece kartında yeni basış saklanıyor (≥250 ms koruma, e.repeat yok), 3 sn bekleme kalktı, ipucu büyük/opak/nabız; balon kişi giderken cümleyi anında tamamlıyor (fa082fc, Opus/high; test geçti, ipucu yeri G28b ile düzeldi)
