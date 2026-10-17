@@ -449,5 +449,19 @@
     "yer": "src/data/credits.ts, README.md, docs/ai-elle.json",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T22:41:58.031Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G61b: credits.ts ve README ses beyan metinlerini node betiğiyle güncelleme",
+    "yer": "src/data/credits.ts, README.md",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T22:50:58.917Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G61b: documents.ts Ada/Parsel satır alanlarını node betiğiyle düzenleme",
+    "yer": "src/desk/documents.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T22:52:34.998Z"
   }
 ]

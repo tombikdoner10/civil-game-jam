@@ -105,14 +105,14 @@ export const ASSETS: Record<Category, AssetCredit[]> = {
       author: 'Kenney (www.kenney.nl)',
       url: 'https://kenney.nl/assets/interface-sounds',
       license: 'Creative Commons CC0 1.0',
-      usage: 'Menüde geri sesi, inceleme modunda seçim bırakma, kusur bulundu, "tutarsızlık yok", doğru ve yanlış karar uyarısı; hız ve perde hafifçe değiştirildi (src/sounds/kenney/interface-sounds/)',
+      usage: 'Menüde geri sesi, inceleme modunda seçim bırakma, kusur bulundu, "tutarsızlık yok", doğru ve yanlış karar uyarısı, saha testinde sonuç, geçersiz okuma ve vazgeçme; hız ve perde hafifçe değiştirildi (src/sounds/kenney/interface-sounds/)',
     },
     {
       name: 'Kenney – UI Audio',
       author: 'Kenney (www.kenney.nl)',
       url: 'https://kenney.nl/assets/ui-audio',
       license: 'Creative Commons CC0 1.0',
-      usage: 'Menü düğmeleri (tık, üzerine gelme), duraklatma ve ayarlar, inceleme modunda alan seçimi, gişede konuşma balonunun harf sesi; hız ve perde değiştirildi (src/sounds/kenney/ui-audio/)',
+      usage: 'Menü ve ekran düğmeleri (tık, üzerine gelme), duraklatma ve ayarlar, inceleme modunda alan seçimi, gişede konuşma balonunun harf sesi; hız ve perde değiştirildi (src/sounds/kenney/ui-audio/)',
     },
     {
       name: 'Kenney – Music Jingles',

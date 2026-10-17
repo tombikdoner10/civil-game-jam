@@ -93,6 +93,15 @@ function bolge(k: Ctx, alan: string, ax: number, ay: number, aw: number, ah: num
   k.c.alanEkle(alan, r);
 }
 
+/**
+ * Ada / parsel satırının tamamı (etiket + değer) tek seçilebilir alan (G61b; ruhsattaki gibi): ax0 etiketin solu,
+ * dax değerin sol kenarı, d değer yazısı; alan değerin sağından iki sanat pikseli öteye kadar (sanat pikseli).
+ */
+function satirAlani(k: Ctx, alan: string, ax0: number, d: Phaser.GameObjects.Text, dax: number, ay: number, ah: number): void {
+  const sag = dax + Math.ceil(d.width / PX) + 2;
+  bolge(k, alan, ax0, ay, sag - ax0, ah);
+}
+
 /** Kusur etiketinin örtmemesi gereken çizim (G49: mühür) için görünmez, seçilemeyen dikdörtgen (sanat pikseli). */
 function etiketEngeli(k: Ctx, ax: number, ay: number, aw: number, ah: number): void {
   k.c.add(k.s.add.rectangle(X(k.c, ax), Y(k.c, ay), aw * PX, ah * PX, 0xffffff, 0).setOrigin(0).setData(ETIKET_ENGEL, true));
@@ -365,8 +374,7 @@ function vaziyet(k: Ctx): void {
   if (!adaGorunur(k)) return;
   etiket(k, 9, H, 'Ada/Parsel', 26, PAL.planCizgi);
   const ad = deger(k, 40, H, v.ada, 30, PAL.planCizgi);
-  k.c.remove(ad);
-  k.c.alanEkle('ada', ad);
+  satirAlani(k, 'ada', 7, ad, 40, H - 5, 9);
 }
 
 function karot(k: Ctx): void {
@@ -396,9 +404,9 @@ function karot(k: Ctx): void {
     // Ada / parsel satırı (G17b); kuralı gelmeden sahte satır.
     if (adaGorunur(k)) {
       etiket(k, x0 + 3, y0 + 3 * sat + 4, 'Ada/Parsel', 26);
-      const ad = deger(k, 49, y0 + 3 * sat + 4, b.karot.ada, 30);
-      k.c.remove(ad);
-      k.c.alanEkle('ada', ad);
+      deger(k, 49, y0 + 3 * sat + 4, b.karot.ada, 30);
+      // Satırın tamamı (etiket + değer hücresi) tek alan (G61b).
+      bolge(k, 'ada', x0 + 1, y0 + 3 * sat + 1, x1 - x0 - 1, sat - 1);
     } else {
       sahteSatir(t, x0 + 3, y0 + 3 * sat + 4, 24, PAL.labKoyu, rnd);
       sahteSatir(t, 49, y0 + 3 * sat + 4, 14, PAL.labKoyu, rnd);
@@ -444,8 +452,7 @@ function zemin(k: Ctx): void {
       t.rect(4, 51, t.w - 8, 1, PAL.kirliBeyazKoyu);
       etiket(k, 5, 56, 'Ada/Parsel', 26);
       const ad = deger(k, 34, 56, b.zemin.ada, 30);
-      k.c.remove(ad);
-      k.c.alanEkle('ada', ad);
+      satirAlani(k, 'ada', 4, ad, 34, 52, 8);
     }
   } else {
     sahteSatir(t, 5, 14, 30, PAL.kirliBeyazKoyu, rnd);
@@ -640,8 +647,7 @@ export function raporKur(scene: Phaser.Scene, bina: Bina, rapor: GetirilenRapor,
     for (let x2 = 5; x2 < t.w - 6; x2 += 2) t.px(x2, 54, PAL.murekkepAcik);
     etiket(k, 5, 59, 'Ada/Parsel', 26);
     const ad = deger(k, 40, 59, rapor.ada, 30);
-    k.c.remove(ad);
-    k.c.alanEkle('ada', ad);
+    satirAlani(k, 'ada', 4, ad, 40, 55, 9);
   }
   c.zeminEkle(t);
   return c;
