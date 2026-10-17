@@ -32,6 +32,15 @@ export const ARAC_IPUCU = {
   saha: '< SAHA: Schmidt çekiciyle beton ölç',
 } as const;
 
+/** İnceleme modunda seçilen iki öğe bir kusur kanıtlamıyorsa (G3). */
+export const TUTARSIZLIK_YOK = 'Tutarsızlık yok';
+
+/**
+ * G60 (lider metni): kusur yok ama seçim başka binanın belgesindeki bir değere dokunuyor (mesafeleri ve değerleri
+ * sayılmaz): "Tutarsızlık yok" yerine.
+ */
+export const BASKA_BELGE_IPUCU = 'Bu belge başka binaya ait: ada/parseli ruhsatla karşılaştır';
+
 /** Saha testi bitince tezgâhtaki saatin yanında kısa süre (G24): testin zaman bedeli. {dk}: dakika. */
 export const SAHA_SURE = '+{dk} dk';
 
@@ -103,7 +112,6 @@ export const MUFETTIS_ZARF_OZET = (tutar: string, k: number, m: number): string 
   m >= k ? (m > 1 ? `Zarf: ${m} zarfa el konuldu` : 'Zarf: el konuldu') : `Zarf: +${tutar} (${k} kabul, ${m} el konuldu)`;
 export const MUFETTIS_GAZETE ='Müfettiş denetçinin zarfına el koymuştu';
 export const RET_GAZETE = 'Denetçi rüşveti geri çevirdi';
-export const MUFETTIS_SONUC = (n: number): string => (n === 1 ? 'Müfettiş zarfına el koydu' : `Müfettiş ${n} zarfına el koydu`);
 export const RET_SONUC = (n: number): string => (n === 1 ? 'Rüşveti geri çevirdin' : `Rüşveti ${n} kez geri çevirdin`);
 
 /**

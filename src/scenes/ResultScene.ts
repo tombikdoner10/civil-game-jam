@@ -7,7 +7,7 @@ import { PX, rastgele, snap, Tuval } from '../desk/pixel';
 import { masaCiz, pikselDugme } from '../desk/props';
 import { gunAyar, SON_GUN } from '../game/days';
 import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
-import { MUFETTIS_SONUC, RET_SONUC, ZARF_ETIKET } from '../game/diyalog';
+import { RET_SONUC, ZARF_ETIKET } from '../game/diyalog';
 import { degerlendirme, juriGordukleri, KISA_SONUC, seninBinalarin, sokakCokenSayisi, sonucEtiketi, zarfOzeti } from '../game/gazete';
 import { EV_KADEME, evSonucu } from '../game/ev';
 import {
@@ -39,6 +39,8 @@ const KAGIT = { x: 40, y: 40, w: 1344, h: 1000 };
 /** "Senin evin" kâğıdı (G42). */
 const EV = { x: 1408, y: 40, w: 472, h: 1000 };
 const SATIR_H = 48;
+/** Sonuçtaki zarf satırları (G60): TOPLAM satırından ilk satırın ortasına uzaklık, satır aralığı, yazı boyu. */
+const ZARF_SATIR = { ilk: 36, ara: 30, boy: 30 };
 /** Tablo sütunlarının sağ kenarı (kâğıdın solundan); GÜN sütunu sol hizalı. */
 const SUTUN = { gun: 40, dosya: 420, dogru: 600, yanlis: 780, islenmeyen: 990, kusur: 1180, para: KAGIT.w - 40 };
 
@@ -160,29 +162,25 @@ export class ResultScene extends Phaser.Scene {
       ret += h.zarfTeklif - h.zarfKabul;
     }
     const zarfOz = zarfOzeti(zarfAdet, zarfTL, kisa ? juriSonuc : v.sonuclar, mufettis);
-    const muf = mufettis > 0 ? MUFETTIS_SONUC(mufettis) : null;
-    // G26: satır "Birikmiş para"nın solundaki boşlukta kalır (arada 40 px); uzunsa en çok iki satıra bölünür ve
-    // küçülür, alttaki çizgiye ve üstteki TOPLAM satırına değmez. G57: müfettiş notu (kırmızı) ve geri verilen zarf
-    // (yeşil) en çok iki satırda: ikisi de varsa müfettiş notu zarf satırının sonunda, yoksa zarf satırının altında;
-    // iki satırda her biri tek satır, alt alta.
+    // G60: zarf satırları sol sütunda alt alta, her biri tek satır ve okunur boyda: kabul edilen zarf (el konulan
+    // dahil), zarf alınan binaların deprem sonucu (kırmızı), geri verilen zarf (yeşil). "Birikmiş para"nın solundaki
+    // genişliğe sığmazsa en çok 24 px'e küçülür. Alttaki bölüm (BÜYÜK DEPREM ya da kısa yolda senin binaların)
+    // satırlar uzarsa aşağı kayar.
     const zarfW = birikmis.x - birikmis.width - 40 - (L + SUTUN.gun);
-    const zarfSatirlari: [string, string][] = [];
-    if (zarfOz) zarfSatirlari.push([muf && ret > 0 ? `${zarfOz} · ${muf}` : zarfOz, PAL.damgaBosalt]);
-    if (zarfOz && muf && ret === 0) zarfSatirlari.push([muf, PAL.damgaBosalt]);
+    const zarfSatirlari: [string, string][] = (zarfOz ?? []).map((m) => [m, PAL.damgaBosalt]);
     if (ret > 0) zarfSatirlari.push([RET_SONUC(ret), PAL.damgaGuvenli]);
-    if (zarfSatirlari.length === 1) toplamlar.push(this.sigdirSatir(yaz(L + SUTUN.gun, topY + 52, zarfSatirlari[0][0], 32, zarfSatirlari[0][1]), zarfW, 60));
-    else
-      zarfSatirlari.forEach(([m, r], i) => {
-        const o = yaz(L + SUTUN.gun, topY + 52 + (i === 0 ? -16 : 16), m, 28, r);
-        while (o.width > zarfW && parseInt(String(o.style.fontSize), 10) > 18) o.setFontSize(parseInt(String(o.style.fontSize), 10) - 2);
-        toplamlar.push(o);
-      });
+    let zarfAlt = topY;
+    zarfSatirlari.forEach(([m, r], i) => {
+      const o = this.sigdir(yaz(L + SUTUN.gun, topY + ZARF_SATIR.ilk + i * ZARF_SATIR.ara, m, ZARF_SATIR.boy, r), zarfW);
+      zarfAlt = o.y + o.height / 2;
+      toplamlar.push(o);
+    });
     for (const o of toplamlar) gorun(o, 200 + gercek.length * 90 + 80);
 
     // Kısa yol: oyuncunun binaları (damga → depremdeki sonuç) ve özeti.
     const dGec = 200 + gercek.length * 90 + 400;
+    const jy = Math.max(topY + 112, zarfAlt + 36);
     if (kisa) {
-      const jy = topY + 112;
       cizgi(jy - 24);
       gorun(yaz(L + 40, jy + 16, KISA_SONUC.senin, 34, PAL.etiket), dGec - 200);
       gorun(this.sigdir(yaz(L + KAGIT.w - 40, jy + 16, seninBinalarin(depremOzeti(juriSonuc)), 34, PAL.murekkep, 1), 760), dGec - 200);
@@ -218,7 +216,9 @@ export class ResultScene extends Phaser.Scene {
     }
 
     // Deprem özeti: dört kutu
-    const dy = Math.max(topY + 112 + (kisa ? 176 : 0), T + 600);
+    const dy = Math.max(jy + (kisa ? 176 : 0), T + 600);
+    // G60: zarf satırları bölümü aşağı ittiyse değerlendirme şeridi kutulara yaklaşır (en çok 14 px; düğmelere değmesin).
+    const kayma = Math.min(dy - (T + 600), 14);
     cizgi(dy - 24);
     gorun(yaz(L + 40, dy + 16, kisa ? KISA_SONUC.sokak(oz.toplam, juriSonuc.length) : 'BÜYÜK DEPREM · SOKAK', 34, PAL.etiket), dGec);
     // Kısa yolda (G28b, takım kararı T22; gazeteyle aynı koşul) jürinin görmediği kalemler gizli: İADE kutusu yalnızca
@@ -253,7 +253,7 @@ export class ResultScene extends Phaser.Scene {
 
     // Değerlendirme (yer tutucu): tonun renginde dolu şerit, üstünde açık yazı (kâğıt üstünde okunur kontrast).
     const renk = deg.ton === 'iyi' ? PAL.damgaGuvenli : deg.ton === 'orta' ? PAL.damgaGuclendir : PAL.damgaBosalt;
-    const dzY = dy + 248;
+    const dzY = dy + 248 - Math.max(0, kayma);
     const dz = this.sigdir(yaz(L + KAGIT.w / 2, dzY, deg.metin, 40, '#f4ecd6', 0.5), KAGIT.w - 140);
     const dzW = snap(dz.width + 48);
     const dzKap = this.add.container(0, 0);
@@ -430,17 +430,6 @@ export class ResultScene extends Phaser.Scene {
   private sigdir(t: Phaser.GameObjects.Text, w: number): Phaser.GameObjects.Text {
     let boy = parseInt(String(t.style.fontSize), 10);
     while (t.width > w && boy > 24) {
-      boy -= 2;
-      t.setFontSize(boy);
-    }
-    return t;
-  }
-
-  /** Metni w genişliğinde satırlara böler; yüksekliği h'yi aşarsa küçültür (G26). */
-  private sigdirSatir(t: Phaser.GameObjects.Text, w: number, h: number): Phaser.GameObjects.Text {
-    t.setWordWrapWidth(w, true).setLineSpacing(0);
-    let boy = parseInt(String(t.style.fontSize), 10);
-    while ((t.height > h || t.width > w) && boy > 20) {
       boy -= 2;
       t.setFontSize(boy);
     }

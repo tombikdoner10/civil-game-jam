@@ -423,7 +423,7 @@ for (let tohum = 1; tohum <= 40; tohum++) {
         G.zarfSatiri(sonuc) ?? '',
         ...G.oneCikanlar(sonuc, juri).satirlar,
         G.degerlendirme(S.depremOzeti(juriSonuc)).metin,
-        G.zarfOzeti(h.zarfKabul, h.zarf, juriSonuc) ?? '',
+        (G.zarfOzeti(h.zarfKabul, h.zarf, juriSonuc) ?? []).join(' · '),
       ];
       const zarfGecti = metinler.some((m) => /zarf/i.test(m));
       if (kendiZarf.size === 0) {
@@ -1449,7 +1449,12 @@ const HIK = await server.ssrLoadModule('/src/game/stories.ts');
   bak(sat([bina({ zarf: false, zarfRet: true })]) === `+${MG.RET_GAZETE}`, 'G57 gazete dürüstlük satırı');
   bak(sat([bina({ mufettis: true }), bina({ dosyaId: 'y', zarf: false, zarfRet: true })]) === `-${MG.MUFETTIS_GAZETE}|+${MG.RET_GAZETE}`, 'G57 gazete yakalanan + geri verilen');
   bak(sat([bina({ zarf: false, durum: 'ayakta' })]) === '', 'G57 gazete zarfsız oyunda satır');
-  bak(MG.MUFETTIS_SONUC(1) === 'Müfettiş zarfına el koydu' && MG.MUFETTIS_SONUC(2) === 'Müfettiş 2 zarfına el koydu', 'G57 sonuç müfettiş metni');
+  // G60: sonuç ekranının zarf satırları (müfettiş bilgisi ilk satırda; zarf binalarının sonucu ayrı satır, büyük harfle).
+  const zs = (adet, tl, s, el) => JSON.stringify(G.zarfOzeti(adet, tl, s, el));
+  bak(zs(6, 690, [bina({ coktu: true }), bina({ dosyaId: 'y' })], 3) === JSON.stringify(['Kabul edilen zarf: 6 (690 TL) · el konulan: 3', 'Zarf alınan binalardan 1 tanesi çöktü, 1 tanesi hasar gördü']), `G60 zarf satırları: ${zs(6, 690, [bina({ coktu: true }), bina({ dosyaId: 'y' })], 3)}`);
+  bak(zs(1, 60, [bina({ durum: 'ayakta' })], 1) === JSON.stringify(['Kabul edilen zarf: 1 (60 TL) · el konulan: 1']), `G60 kısa yol zarf satırı: ${zs(1, 60, [bina({ durum: 'ayakta' })], 1)}`);
+  bak(zs(2, 120, [bina({})], 0) === JSON.stringify(['Kabul edilen zarf: 2 (120 TL)', 'Zarf alınan 1 bina depremde hasar gördü']), `G60 el konulansız zarf satırı: ${zs(2, 120, [bina({})], 0)}`);
+  bak(G.zarfOzeti(0, 0, [], 0) === null, 'G60 zarfsız oyunda zarf satırı');
   bak(MG.RET_SONUC(1) === 'Rüşveti geri çevirdin' && MG.RET_SONUC(3) === 'Rüşveti 3 kez geri çevirdin', 'G57 sonuç ret metni');
   bak(MG.MUFETTIS_RAPOR('Bina 03', T.mufettis.ceza) === 'Müfettiş: Bina 03 dosyasındaki zarf ortaya çıktı. Zarfa el konuldu, 40 TL ceza.', 'G57 rapor metni');
   // buyukDeprem işaretleri kayıtlardan (kısa yolda yalnızca oyuncunun kayıtları; örnek binalarda yok).
@@ -1475,6 +1480,41 @@ const HIK = await server.ssrLoadModule('/src/game/stories.ts');
     bak(EV.zarfToplami([], o.kararlar) === elde, `G57 t${tohum}: EVİN zarf parası el konan zarfı sayıyor`);
   }
   console.log('G57 müfettiş (tohum 1-200, gün 1-5):', JSON.stringify(g57), `oran ${oran.toFixed(3)}`);
+}
+
+// G60: başka binanın belgesindeki değer (ada dışı) + kural → kusur yok, ipucu (kaydedilmez); ruhsat ada + belgenin adası
+// → "Başka binanın belgesi" eskisi gibi. Başka binası olmayan dosyada aynı seçim ipucu vermez.
+{
+  const g60 = { ipucu: 0, baskaBina: 0, baskasiz: 0 };
+  const KUR = { vaziyet: 'dere', karot: 'mpa', zemin: 'tur' };
+  for (let tohum = 1; tohum <= 60; tohum++) {
+    for (let g = 1; g <= 5; g++) {
+      const o = new S.GunOturumu(g, tohum);
+      while (o.mevcut && !o.bitti) {
+        const b = o.mevcut;
+        const e = `G60 t${tohum} g${g} ${b.id}`;
+        const baska = BLD.baskaBinaBelgesi(b.belgeler);
+        const kural = R.kusurKurali('dereyeYakin')?.id;
+        if (baska && kural) {
+          const alan = KUR[baska];
+          const r = o.incele([{ belge: baska, alan }, { belge: 'kural', alan: kural }]);
+          bak(r?.ipucu === 'baskaBelge' && o.bulunanKusurlar.length === 0, `${e}: ${baska}.${alan} + dere kuralı → ${JSON.stringify(r)}`);
+          const ada = o.incele([{ belge: baska, alan: 'ada' }, { belge: 'kural', alan: kural }]);
+          bak(ada === null, `${e}: ada alanı + kural ipucu verdi`);
+          const r2 = o.incele(R.kanitOgeleri(R.gorunenKusurlar(b, g).find((x) => x.id === 'baskaBina') ?? 'baskaBina'));
+          bak(r2?.kusur?.id === 'baskaBina', `${e}: başka binanın belgesi bulunmadı (${JSON.stringify(r2)})`);
+          if (r?.ipucu) g60.ipucu++;
+          if (r2?.kusur) g60.baskaBina++;
+        } else if (!baska && kural && b.belgeler.vaziyet.dereM >= T.dereMinM) {
+          bak(o.incele([{ belge: 'vaziyet', alan: 'dere' }, { belge: 'kural', alan: kural }]) === null, `${e}: başka binası olmayan dosyada ipucu`);
+          g60.baskasiz++;
+        }
+        o.damgala(R.dogruDamga(b, g));
+      }
+    }
+  }
+  bak(g60.ipucu > 10 && g60.baskaBina === g60.ipucu && g60.baskasiz > 10, `G60 sayılar ${JSON.stringify(g60)}`);
+  console.log('G60 başka binanın belgesi ipucu (tohum 1-60, gün 1-5):', JSON.stringify(g60));
 }
 
 console.log(`${sayi} denetim, ${hata} hata`);

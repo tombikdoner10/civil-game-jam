@@ -428,5 +428,12 @@
     "yer": "src/scenes/DayEndScene.ts",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T20:55:46.592Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G60 hata düzeltmesi: başka binanın belgesinde inceleme ipucu, sonuç ekranı zarf satırları (Python betiğiyle düzenleme)",
+    "yer": "src/game/session.ts, src/desk/Inspect.ts, src/game/diyalog.ts, src/game/gazete.ts, src/scenes/ResultScene.ts, scripts/adalet.mjs",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T22:39:20.223Z"
   }
 ]

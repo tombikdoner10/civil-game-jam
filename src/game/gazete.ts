@@ -304,15 +304,20 @@ function zarfSonucu(kim: string, coken: number, hasarli: number): string {
 }
 
 /**
- * Sonuç ekranındaki zarf satırı (kabul edilen zarf yoksa null). G57b (lider kararı; metinler aynen): müfettişin el
- * koyduğu zarf varsa toplamın yanında "(el konuldu)" ya da "({elKonan} zarfa el konuldu)".
+ * Sonuç ekranındaki zarf satırları (kabul edilen zarf yoksa null). G60 (lider kararı; metinler aynen): ilki "Kabul
+ * edilen zarf: {adet} ({toplam} TL)", müfettişin el koyduğu zarf varsa sonunda " · el konulan: {elKonan}"; zarf alınan
+ * binalardan çöken ya da hasar gören varsa ikinci satır (ilk harfi büyük).
  */
-export function zarfOzeti(adet: number, toplam: number, s: readonly DepremBinaSonucu[], elKonan = 0): string | null {
+export function zarfOzeti(adet: number, toplam: number, s: readonly DepremBinaSonucu[], elKonan = 0): string[] | null {
   if (adet === 0) return null;
   const coken = s.filter((b) => b.zarf && b.coktu).length;
   const hasarli = s.filter((b) => b.zarf && !b.coktu && b.durum !== 'ayakta').length;
-  const el = elKonan <= 0 ? '' : elKonan >= adet ? ' (el konuldu)' : ` (${elKonan} zarfa el konuldu)`;
-  return `Kabul edilen zarf: ${adet}, toplam ${toplam} TL${el}${coken + hasarli > 0 ? ` · ${zarfSonucu('zarf alınan', coken, hasarli)}` : ''}`;
+  const out = [`Kabul edilen zarf: ${adet} (${toplam} TL)${elKonan > 0 ? ` · el konulan: ${elKonan}` : ''}`];
+  if (coken + hasarli > 0) {
+    const m = zarfSonucu('zarf alınan', coken, hasarli);
+    out.push(m.charAt(0).toLocaleUpperCase('tr-TR') + m.slice(1));
+  }
+  return out;
 }
 
 // ---- G21 kısa yol ("Büyük deprem bu gece olsaydı?") ----

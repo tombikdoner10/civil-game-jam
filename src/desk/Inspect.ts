@@ -3,8 +3,9 @@ import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
 import { FONT } from '../config';
 import type { Kusur, KusurId } from '../game/building';
+import { BASKA_BELGE_IPUCU, TUTARSIZLIK_YOK } from '../game/diyalog';
 import type { SecimRef } from '../game/rules';
-import type { IncelemeSonucu } from '../game/session';
+import type { IncelemeIpucu, IncelemeSonucu } from '../game/session';
 import { punch } from '../systems/fx';
 import { MASA } from './DocumentCard';
 import { num, PAL } from './palette';
@@ -49,7 +50,7 @@ export interface InspectAyar {
   /** Şu an masadaki yüzeyler. */
   yuzeyler: () => Yuzey[];
   /** İki öğe seçilince: kusur kanıtı mı? (Oturum kaydeder.) */
-  kontrol: (secim: SecimRef[]) => IncelemeSonucu | null;
+  kontrol: (secim: SecimRef[]) => IncelemeSonucu | IncelemeIpucu | null;
   /** İnceleme modu şu an açılabilir mi (dosya geliyor ya da gidiyorsa hayır). */
   izin: () => boolean;
   /** Bu kusur gişedeki kişiye sorulabilir mi (G17): etikette SOR düğmesi çıkar, tıklanınca 'sor' olayı. */
@@ -338,7 +339,7 @@ export class Inspect extends Phaser.Events.EventEmitter {
   private degerlendir(): void {
     const ogeler = this.secili.slice();
     const sonuc = this.ayar.kontrol(ogeler.map(({ belge, alan }) => ({ belge, alan })));
-    if (sonuc) {
+    if (sonuc && 'kusur' in sonuc) {
       this.secili = [];
       const eski = this.bulunanlar.find((b) => b.kusur.id === sonuc.kusur.id);
       if (eski) {
@@ -361,13 +362,14 @@ export class Inspect extends Phaser.Events.EventEmitter {
       this.emit('bulundu', sonuc);
       return;
     }
-    // Tutarsızlık yok: kısa yazı, seçim temizlenir.
+    // Tutarsızlık yok: kısa yazı, seçim temizlenir. G60: başka binanın belgesindeki değer seçildiyse yerine ada /
+    // parsel ipucu (daha uzun kalır; kusur kaydedilmez).
+    const ipucu = sonuc?.ipucu === 'baskaBelge';
     this.beklemede = true;
     const [a, b] = ogeler.map((o) => sinir(o.nesne));
-    const mx = snap((a.centerX + b.centerX) / 2);
-    const my = snap((a.centerY + b.centerY) / 2);
+    const metin = ipucu ? BASKA_BELGE_IPUCU : TUTARSIZLIK_YOK;
     const yazi = this.scene.add
-      .text(mx, my, 'Tutarsızlık yok', {
+      .text(0, 0, metin, {
         fontFamily: FONT,
         fontSize: '40px',
         color: PAL.kremAcik,
@@ -376,7 +378,12 @@ export class Inspect extends Phaser.Events.EventEmitter {
       })
       .setOrigin(0.5)
       .setDepth(D.etiket);
-    this.scene.tweens.add({ targets: yazi, alpha: 0, y: my - 24, delay: 700, duration: 300, onComplete: () => yazi.destroy() });
+    // Uzun ipucu ekrandan taşmasın: iki seçimin ortasında, yatayda ekrana sığacak kadar içeride.
+    const yarim = yazi.width / 2 + 8;
+    const mx = snap(Phaser.Math.Clamp((a.centerX + b.centerX) / 2, yarim, Math.max(yarim, 1920 - yarim)));
+    const my = snap((a.centerY + b.centerY) / 2);
+    yazi.setPosition(mx, my);
+    this.scene.tweens.add({ targets: yazi, alpha: 0, y: my - 24, delay: ipucu ? 2000 : 700, duration: 300, onComplete: () => yazi.destroy() });
     sfx.play('tutarsizlikYok');
     this.scene.time.delayedCall(450, () => {
       this.secili = [];

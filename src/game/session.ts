@@ -418,6 +418,14 @@ export interface IncelemeSonucu {
   yeni: boolean;
 }
 
+/**
+ * Kusur bulunmadı ama seçim başka binanın belgesindeki bir değere dokunuyor (G60): mesafeleri ve değerleri yok
+ * sayılır; "Tutarsızlık yok" yerine ada / parsel ipucu gösterilir. Kusur kaydedilmez.
+ */
+export interface IncelemeIpucu {
+  ipucu: 'baskaBelge';
+}
+
 export function gunDosyaSayisi(gun: number): number {
   return gunAyar(gun).dosyaSayisi;
 }
@@ -817,7 +825,7 @@ export class GunOturumu {
    * İnceleme modu: seçilen iki öğe, mevcut dosyada o günün kurallarıyla görünen bir kusurun kanıtı mı?
    * Kanıtsa kusur bu dosya için kaydedilir.
    */
-  incele(secim: readonly SecimRef[]): IncelemeSonucu | null {
+  incele(secim: readonly SecimRef[]): IncelemeSonucu | IncelemeIpucu | null {
     const b = this.mevcut;
     if (!b || this.bitti) return null;
     // Gişeden gerçek belge geldiyse belgeler onunla (ör. düzgün ruhsattaki kat, gelen karottaki düşük beton);
@@ -828,7 +836,13 @@ export class GunOturumu {
     const eski = seciminKusuru(etkin, this.gun, secim);
     // Saha notu (G19) sahte karotun yerine geçer: saha kusurunun kanıtı sahte kartın alanı sayılmaz.
     const kusur = this.sahteKaniti(secim) ?? (eski && (eski.id === 'sahaBeton' || !eski.kanit.some((k) => degisen.has(k.belge))) ? eski : null);
-    if (!kusur) return null;
+    if (!kusur) {
+      // G60: başka binanın belgesindeki (ada dışı) alan seçildiyse ipucu. Belge gişeden gelenle (gerçek ya da sahte)
+      // ya da saha notuyla değiştiyse etkin belgeler ruhsatla aynı adada ya da kart sahte: ipucu yok.
+      const baska = baskaBinaBelgesi(etkin.belgeler);
+      if (baska && !degisen.has(baska) && secim.some((s) => s.belge === baska && s.alan !== 'ada')) return { ipucu: 'baskaBelge' };
+      return null;
+    }
     const yeni = !this.bulunan.includes(kusur.id);
     if (yeni) this.bulunan.push(kusur.id);
     return { kusur, yeni };
