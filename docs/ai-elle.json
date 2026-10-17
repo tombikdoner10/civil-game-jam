@@ -162,5 +162,19 @@
     "yer": "src/game, src/scenes, src/desk, scripts/adalet.mjs",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T01:40:11.013Z"
+  },
+  {
+    "kategori": "text",
+    "amac": "G24: deprem dili yer tutucuları (küçük deprem şeridi ve rapor satırı, kısa yol sorusu, 'bir gece', çerçeve cümlesi), inceleme ipucu ve saha süresi yer tutucuları (Python betiğiyle düzenleme)",
+    "yer": "src/game/gazete.ts, src/game/diyalog.ts, src/data/credits.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T02:01:55.524Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G24: açık klasörün saha notundan kaçması, gazete giriş koruması ve hazır göstergesi, saha süresi göstergesi, kısa yol ve küçük deprem metinlerinin bağlanması (Python betiğiyle düzenleme)",
+    "yer": "src/desk/Klasor.ts, src/desk/props.ts, src/scenes/GameScene.ts, src/scenes/DayEndScene.ts, src/scenes/NewspaperScene.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T02:01:55.586Z"
   }
 ]

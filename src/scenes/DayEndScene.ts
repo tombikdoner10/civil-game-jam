@@ -4,12 +4,12 @@ import { sfx } from '../audio/sfx';
 import { FONT } from '../config';
 import { num, PAL } from '../desk/palette';
 import { PX, rastgele, snap, Tuval } from '../desk/pixel';
-import { masaCiz, pikselDugme } from '../desk/props';
+import { hazirGostergesi, masaCiz, pikselDugme } from '../desk/props';
 import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
 import type { Damga } from '../game/building';
 import { SON_GUN } from '../game/days';
 import { ZARF_ETIKET } from '../game/diyalog';
-import { KISA_YOL_ACIKLAMA, KISA_YOL_DUGME } from '../game/gazete';
+import { KISA_YOL_ACIKLAMA, KISA_YOL_DUGME, kucukDepremSatiri } from '../game/gazete';
 import { kisaYolKayitlari } from '../game/ornek';
 import { KUSUR_BILGI } from '../game/rules';
 import { gunHesabi, type GunKaydi, type Karar, type SarsintiKaydi } from '../game/session';
@@ -149,7 +149,7 @@ export class DayEndScene extends Phaser.Scene {
         );
       else parcalar.push('içinde insan olan bina çatlamadı');
       if (bos.length > 0) parcalar.push(`çatlayan boş bina: ${bos.map((s) => ad(s.dosyaId)).join(', ')}`);
-      const metin = `[Öncü sarsıntı: ${parcalar.join(' · ')}]`;
+      const metin = kucukDepremSatiri(parcalar);
       const kotu = dolu.length > 0;
       const satir = yaz(L + 40, y + 20, metin, 34, kotu ? PAL.damgaBosalt : PAL.damgaGuvenli);
       this.sigdir(satir, KAGIT.w - 80);
@@ -261,7 +261,7 @@ export class DayEndScene extends Phaser.Scene {
       kb?.off('keydown', nTus);
     });
     // Rapor açılırken yanlışlıkla geçilmesin (giriş koruması); birincil düğmede "hazır" göstergesi.
-    this.hazirGostergesi(birincil);
+    hazirGostergesi(this, birincil, GIRIS_KORUMA_MS);
     this.time.delayedCall(GIRIS_KORUMA_MS, () => (this.hazir = true));
     sfx.play('kagitKay');
     // Gün sonu jingle'ı: yanlış ya da işlenmeyen dosya yoksa iyi gün, varsa kötü gün.
@@ -297,29 +297,6 @@ export class DayEndScene extends Phaser.Scene {
     }
     const data: GameData = { gun: v.gun + 1, tohum: v.tohum, para: yeniPara, kayitlar };
     goTo(this, SCENES.Game, data);
-  }
-
-  /**
-   * Giriş koruması sürerken düğmenin üstünde soldan sağa dolan açık şerit; dolunca düğme bir kez parlar ve şerit
-   * söner (G23b: "hazır").
-   */
-  private hazirGostergesi(dugme: Phaser.GameObjects.Container): void {
-    const w = dugme.width - PX * 2;
-    const h = dugme.height - PX * 2;
-    const dolgu = this.add.rectangle(-w / 2, 0, w, h, 0xf0e6cc, 0.28).setOrigin(0, 0.5);
-    dolgu.scaleX = 0;
-    dugme.addAt(dolgu, 1);
-    this.tweens.add({
-      targets: dolgu,
-      scaleX: 1,
-      duration: GIRIS_KORUMA_MS,
-      ease: 'Stepped',
-      easeParams: [6],
-      onComplete: () => {
-        dolgu.setFillStyle(0xfff6dc, 0.7);
-        this.tweens.add({ targets: dolgu, alpha: 0, duration: 260, ease: 'Stepped', easeParams: [3], onComplete: () => dolgu.destroy() });
-      },
-    });
   }
 
   /** Metin genişliği aşarsa küçült. */

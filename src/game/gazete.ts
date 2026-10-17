@@ -8,8 +8,8 @@ import type { DepremBinaSonucu, DepremOzeti } from './session';
  * Ton (GDD): kurban gösterilmez, sayı verilmez; odak önlemede. Sayılar yalnızca bina sayısıdır.
  */
 
-/** Gece geçişindeki saat. */
-export const GECE_SAATI = '[04.17]';
+/** Gece geçişindeki yazı (G24: deprem önceden bilinmez; saat ya da tarih iddiası yok). */
+export const GECE_SAATI = '[Bir gece]';
 
 export const GAZETE_ADI = '[GAZETE ADI]';
 export const GAZETE_TARIH = '[Şehir adı] · [Tarih] · [Sabah baskısı]';
@@ -135,15 +135,25 @@ export function zarfOzeti(adet: number, toplam: number, s: readonly DepremBinaSo
   return `[Kabul edilen zarf: ${adet}, toplam ${toplam} TL${coken + hasarli > 0 ? ` · ${zarfSonucu('zarf alınan', coken, hasarli)}` : ''}]`;
 }
 
-// ---- G21 kısa yol ("Depremi şimdi yaşa") ----
+// ---- G21 kısa yol ("Büyük deprem bu gece olsaydı?") ----
 
-/** Gün 1 raporundaki kısa yol düğmesi ve açıklaması. */
-export const KISA_YOL_DUGME = '[DEPREMİ ŞİMDİ YAŞA]';
-export const KISA_YOL_ACIKLAMA = '[5 gün sonra büyük deprem olacak. Şimdi görmek ister misin?]';
+/**
+ * Gün 1 raporundaki kısa yol düğmesi ve açıklaması. G24 (takım kararı): deprem önceden bilinmez; kısa yol bir
+ * soru, kehanet değil.
+ */
+export const KISA_YOL_DUGME = '[BÜYÜK DEPREM BU GECE OLSAYDI?]';
+export const KISA_YOL_ACIKLAMA = '[Deprem önceden bilinmez. Kararlarının sonucunu şimdi gör.]';
+
+/** Gün 1 sonundaki küçük deprem (kodda "öncü"): gişe camındaki şerit. G24: "asıl deprem gelecek" yok. */
+export const KUCUK_DEPREM_SERIT = '[Küçük bir deprem oldu.]';
+/** Gün sonu raporundaki küçük deprem satırı. parcalar: çatlayan binalar ("·" ile birleşir). */
+export function kucukDepremSatiri(parcalar: readonly string[]): string {
+  return `[Küçük deprem: ${parcalar.join(' · ')}]`;
+}
 /** Depremde oyuncunun binalarının üstündeki etiket. */
 export const SENIN_DAMGAN = '[SENİN DAMGAN]';
 
-/** Öncü sarsıntıda çatlayan binanın etiketi (G5b; pencerede damga etiketinin üstünde). */
+/** Küçük depremde (öncü) çatlayan binanın etiketi (G5b; pencerede damga etiketinin üstünde). */
 export function oncuEtiketi(bos: boolean): string {
   return bos ? '[ÇATLADI · İÇİ BOŞ]' : '[ÇATLADI]';
 }
@@ -162,7 +172,7 @@ export function seninBinalarin(o: DepremOzeti): string {
 /** Sonuç ekranındaki kısa yol başlıkları. */
 export const KISA_SONUC = {
   sag: '[GÜN 1 + DEPREM]',
-  alt: '[Gün 1 ve büyük deprem: senin binaların ve sokak]',
+  alt: '[Büyük deprem gün 1 gecesi olsaydı: senin binaların ve sokak]',
   senin: 'SENİN BİNALARIN',
   sokak: (toplam: number, senin: number): string => `BÜYÜK DEPREM · SOKAK [${toplam} bina, ${senin} tanesi senin]`,
 };

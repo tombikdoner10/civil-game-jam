@@ -11,7 +11,16 @@ import type { Damga, KusurId } from './building';
  * Oyunu çerçeveleyen tek cümle (G5b): gün 1 kural notunun en üstünde. TODO(takım): asıl cümle; 3 sn'de
  * okunacak kadar kısa kalsın.
  */
-export const CERCEVE = '[Belediyenin yapı denetçisisin. Deprem yaklaşıyor.]';
+export const CERCEVE = '[Belediyenin yapı denetçisisin. Deprem her an olabilir.]';
+
+/**
+ * İlk yanlış karardan sonra fişte bir kez (G24, takım kararı): inceleme isteğe bağlı, ceza yok. TODO(takım): asıl
+ * cümle.
+ */
+export const INCELE_IPUCU = '[Space ile incele, kusuru kanıtla]';
+
+/** Saha testi bitince tezgâhtaki saatin yanında kısa süre (G24): testin zaman bedeli. {dk}: dakika. */
+export const SAHA_SURE = '[+{dk} dk]';
 
 /** Dosya gelince kısa selam. */
 export const SELAM = ['[Merhaba, dosyam burada]', '[İyi günler, sıra bende]', '[Kolay gelsin, şu dosya]', '[Buyrun, belgelerim]'];

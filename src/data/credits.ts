@@ -72,7 +72,7 @@ export const ASSETS: Record<Category, AssetCredit[]> = {
       author: 'Kenney (www.kenney.nl)',
       url: 'https://kenney.nl/assets/impact-sounds',
       license: 'Creative Commons CC0 1.0',
-      usage: 'Kaşenin belgeye vurması, kaşeyi alma ve yerine koyma, çekmece, kusur bulundu sesi ve öncü sarsıntının vuruş, moloz, çatırtı, cam titremesi ve bina hasarı sesleri; çoğu yavaşlatıldı (hız ve perde değiştirildi), bazıları katmanlandı (src/sounds/kenney/impact-sounds/)',
+      usage: 'Kaşenin belgeye vurması, kaşeyi alma ve yerine koyma, çekmece, kusur bulundu sesi ve depremin vuruş, moloz, çatırtı, cam titremesi ve bina hasarı sesleri; çoğu yavaşlatıldı (hız ve perde değiştirildi), bazıları katmanlandı (src/sounds/kenney/impact-sounds/)',
     },
     {
       name: 'Kenney – RPG Audio',

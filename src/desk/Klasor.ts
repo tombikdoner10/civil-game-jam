@@ -5,7 +5,7 @@ import { FONT } from '../config';
 import type { Kural } from '../game/building';
 import { tarih } from '../game/diyalog';
 import { aktifKurallar, kuralMetni, kuralYeni } from '../game/rules';
-import { masayaSikistir, ustKatman } from './DocumentCard';
+import { MASA, masayaSikistir, ustKatman } from './DocumentCard';
 import type { SecimNesne, Yuzey } from './Inspect';
 import { num, PAL } from './palette';
 import { PX, rastgele, snap, Tuval } from './pixel';
@@ -97,6 +97,11 @@ export class Klasor {
    * belgeler tıklama almaz; üstlerine tıklamak alttaki kapalı klasörü açmasın (G5b).
    */
   ortulu?: (x: number, y: number) => boolean;
+  /**
+   * Açık klasörün örtmemesi gereken alanlar (G24: saha notu; GameScene verir). Açılırken klasör bunlarla
+   * çakışmayan en yakın yere kayar (yalnızca yatayda: masa klasörden çok az yüksek).
+   */
+  kacilacak?: () => Phaser.Geom.Rectangle[];
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -134,7 +139,7 @@ export class Klasor {
     }
     this.kapali.setVisible(false);
     this.kapali.disableInteractive(true);
-    const [hx, hy] = masayaSikistir(this.kapali.x, this.kapali.y, ACIK.w, ACIK.h);
+    const [hx, hy] = this.acikYer(this.kapali.x, this.kapali.y);
     this.scene.tweens.killTweensOf(this.sayfa);
     this.sayfa.setDepth(ustKatman());
     this.sayfa.setVisible(true).setAlpha(0).setPosition(hx, hy + 24);
@@ -142,6 +147,43 @@ export class Klasor {
     // Açık klasör tıklamaları hep tutar (arkasındaki düğmelere geçmesin, G5b); inceleme modunda yalnızca sürüklenmez.
     this.sayfa.setInteractive();
     this.scene.input.setDraggable(this.sayfa, !this.kilitli);
+  }
+
+  /** Açık klasör kaçılacak bir alanı örtüyorsa (ör. üstüne saha notu düştü) yana kayar (G24). */
+  kacin(): void {
+    if (!this.acik) return;
+    const [x, y] = this.acikYer(this.sayfa.x, this.sayfa.y);
+    if (x === this.sayfa.x && y === this.sayfa.y) return;
+    this.scene.tweens.killTweensOf(this.sayfa);
+    this.scene.tweens.add({ targets: this.sayfa, x, y, alpha: 1, duration: 180, ease: 'Cubic.easeOut' });
+  }
+
+  /**
+   * Açık klasörün yeri: (x, y) masaya sıkıştırılır; kaçılacak alanlarla çakışıyorsa yatayda örtüşmesi en az ve
+   * (eşitlikte) istenen yere en yakın konum.
+   */
+  private acikYer(x: number, y: number): [number, number] {
+    const [hx, hy] = masayaSikistir(x, y, ACIK.w, ACIK.h);
+    const engel = this.kacilacak?.() ?? [];
+    const ortu = (cx: number): number =>
+      engel.reduce((n, e) => {
+        const w = Math.min(cx + ACIK.w / 2, e.right) - Math.max(cx - ACIK.w / 2, e.left);
+        const h = Math.min(hy + ACIK.h / 2, e.bottom) - Math.max(hy - ACIK.h / 2, e.top);
+        return n + (w > 0 && h > 0 ? w * h : 0);
+      }, 0);
+    if (ortu(hx) === 0) return [hx, hy];
+    let en = hx;
+    let enPuan = Infinity;
+    const sol = MASA.x + ACIK.w / 2;
+    const sag = Math.max(sol, MASA.x + MASA.w - ACIK.w / 2);
+    for (let cx = sol; cx <= sag + 0.5; cx += 8) {
+      const puan = ortu(cx) * 1000 + Math.abs(cx - hx);
+      if (puan < enPuan) {
+        enPuan = puan;
+        en = cx;
+      }
+    }
+    return [snap(en), hy];
   }
 
   kapa(): void {

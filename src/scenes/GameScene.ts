@@ -21,9 +21,11 @@ import type { Bina, Damga, KusurId, Kural } from '../game/building';
 import {
   CERCEVE,
   DAMGA_TEPKI,
+  INCELE_IPUCU,
   ISTE_BELGE_METIN,
   ISTE_METIN,
   SAHA_METIN,
+  SAHA_SURE,
   satir,
   SELAM,
   SOR_METIN,
@@ -35,7 +37,7 @@ import {
   ZARF_TEPKI,
 } from '../game/diyalog';
 import type { Ifade, IsteAlani, ZarfIstek } from '../game/kisi';
-import { oncuEtiketi } from '../game/gazete';
+import { KUCUK_DEPREM_SERIT, oncuEtiketi } from '../game/gazete';
 import { KUSUR_BILGI } from '../game/rules';
 import { ornekKayitlar } from '../game/ornek';
 import { gunAyar } from '../game/days';
@@ -61,9 +63,6 @@ export interface GameData {
 /** Etiket metnini iki satıra bölmek için. */
 const SATIR_SONU = String.fromCharCode(10);
 
-/** Öncü sarsıntı şeridi (yer tutucu metin; takım yazacak). */
-const ONCU_YAZI = '[Öncü sarsıntı. Asıl deprem gelecek.]';
-
 /**
  * Masada boş yer yoksa uyarı fişi gişe camının sol alt köşesine düşer (belgeleri örtmez). x: sol kenar;
  * w: siluetin solunda kalan genişlik (siluet gişenin ortasında, yaklaşık 1424-1712).
@@ -83,12 +82,20 @@ const ISTE_BASLIK: Record<IsteAlani, string> = {
 
 /** Tezgâhtaki saha testi hak sayacı (G19; İNCELE düğmesinin sağı). */
 const SAHA_SAYAC = { x: 1048, y: BANT_H + 24, w: 152, h: 40 };
+/**
+ * Saha testinin süre göstergesi (G24): tezgâhtaki saatin (Window, x 248) hemen altında asılı kısa etiket. Saha
+ * paneli masayı örttüğü için onun üstünde (derinlik).
+ */
+const SAAT_YANI = { x: 248, y: BANT_H + 46, derinlik: 7620 };
 /** Öncü etiketlerinin üstü ile pencerenin iç üst kenarı arasındaki en az boşluk (oyun pikseli; 1280×720'de 8 px). */
 const ETIKET_UST_PAY = 12;
 /** Köşedeki fişin (gölgesi dahil) alt kenarı ile ekranın altı arasındaki boşluk (0: gölge ekranın alt kenarında). */
 const FIS_ALT_PAY = 0;
 /** Köşedeki fişin kural notunun alt kenarına binebileceği pay (notun yazısız alt boşluğu ~20 px). */
 const NOT_ALT_ORTME = 12;
+
+/** İnceleme ipucu (G24) fişte gösterildi mi: oturumda (sayfa açık kaldıkça) yalnızca ilk yanlış kararda. */
+let incelemeIpucuGosterildi = false;
 
 /** Damgaya göre gişedeki kişinin yüzü. */
 const DAMGA_IFADE: Record<Damga, Ifade> = { guvenli: 'sevincli', guclendir: 'mahcup', bosalt: 'kizgin', iade: 'kizgin' };
@@ -185,6 +192,8 @@ export class GameScene extends Phaser.Scene {
       // Kapalı klasörün üstündeki belgeye ya da nota tıklamak klasörü açmasın (inceleme modunda belgeler tıklama almaz).
       this.kitap.ortulu = (x, y) =>
         this.masadakiKartlar().some((k) => k.sinir().contains(x, y)) || (!!this.not?.active && this.not.sinir().contains(x, y));
+      // Açık klasör saha notunu örtmesin (G24): saha notu ve saha kuralı incelemede birlikte seçilebilsin.
+      this.kitap.kacilacak = () => this.kartlar.filter((k) => k.active && k.getData('sahaNotu')).map((k) => k.sinir());
     }
     if (ayar.not) this.notGetir(ayar.not.gorev, ayar.not.kurallar);
     this.pencere = new Pencere(this, this.gun, sokakKayitlari(this.tohum, this.kayitlar));
@@ -669,6 +678,7 @@ export class GameScene extends Phaser.Scene {
       this.oturum.sahaTamamla();
       this.sahaSayacGuncelle();
       saha.hakGoster(this.oturum.sahaHakki);
+      this.sahaSureGoster(saha);
     });
     saha.on('kapandi', (s: SahaSonucu | null) => {
       this.saha = undefined;
@@ -681,14 +691,49 @@ export class GameScene extends Phaser.Scene {
     this.saha = saha;
   }
 
+  /**
+   * Saha testinin zaman bedeli (G24): test tamamlanınca tezgâhtaki saatin altında "[+30 dk]" (saat o anda ilerler).
+   * Saha paneli açık kaldıkça durur; panel kapanınca (NOTU AL) 2,5 sn daha görünür ve söner.
+   */
+  private sahaSureGoster(saha: SahaTesti): void {
+    const yazi = this.add
+      .text(SAAT_YANI.x, SAAT_YANI.y, SAHA_SURE.replace('{dk}', String(TUNING.saha.dakika)), {
+        fontFamily: FONT,
+        fontSize: '32px',
+        color: '#f0e6cc',
+        backgroundColor: PAL.damgaBosalt,
+        padding: { x: 6, y: 0 },
+      })
+      .setOrigin(0.5, 0)
+      .setDepth(SAAT_YANI.derinlik)
+      .setAlpha(0);
+    this.tweens.add({ targets: yazi, alpha: 1, duration: 160, ease: 'Stepped', easeParams: [3] });
+    saha.once('kapandi', () => {
+      this.tweens.add({ targets: yazi, alpha: 0, duration: 400, delay: 2500, ease: 'Stepped', easeParams: [3], onComplete: () => yazi.destroy() });
+    });
+  }
+
   /** Saha notu karot kartının (Rapor yok ya da geçersiz karot) yerine masaya düşer; eski kart gişeye döner. */
   private sahaNotuDusur(bina: Bina, s: SahaSonucu): void {
     const eski = this.kartlar.find((k) => k.tur === 'karot' && k.active);
     const hedef = eski ? [eski.x, eski.y] : this.yer.belge.karot;
     const yeni = sahaNotuKur(this, bina, s, this.gun, hedef[0], hedef[1]);
+    yeni.setData('sahaNotu', true);
     const [hx, hy] = yeni.masadaKonum(hedef[0], hedef[1]);
     yeni.setPosition(hx, hy - 24).setDepth(ustKatman()).setAlpha(0).setScale(1.08);
-    this.tweens.add({ targets: yeni, alpha: 1, y: hy, scale: 1, duration: 260, ease: 'Cubic.easeOut', onComplete: () => sfx.play('kagitBirak') });
+    this.tweens.add({
+      targets: yeni,
+      alpha: 1,
+      y: hy,
+      scale: 1,
+      duration: 260,
+      ease: 'Cubic.easeOut',
+      onComplete: () => {
+        sfx.play('kagitBirak');
+        // Klasör açıksa ve not altında kaldıysa klasör yana kayar (G24).
+        this.kitap?.kacin();
+      },
+    });
     sfx.play('kagitKay', { volume: 0.7 });
     const i = eski ? this.kartlar.indexOf(eski) : -1;
     if (i >= 0) this.kartlar.splice(i, 1, yeni);
@@ -740,7 +785,12 @@ export class GameScene extends Phaser.Scene {
       const kusurlar = sonuc.etiketler.join('\n') || (damga === 'iade' ? 'Kusur yok, dosya eksiksiz' : 'Kusur yok');
       // Doğru kararda da kısa gerekçe (G5b): kusurlar ya da "Kusur yok", ok ve vurulan damga.
       const gerekce = `${sonuc.etiketler.join(', ') || 'Kusur yok'} → ${DAMGA_ADI[damga]}`;
-      const metin = sonuc.dogru ? `Doğru karar\n${gerekce}` : `Yanlış karar\nDoğrusu: ${DAMGA_ADI[sonuc.dogruDamga]}\n${kusurlar}`;
+      let metin = sonuc.dogru ? `Doğru karar\n${gerekce}` : `Yanlış karar\nDoğrusu: ${DAMGA_ADI[sonuc.dogruDamga]}\n${kusurlar}`;
+      // İlk yanlış kararda (oturumda bir kez, G24) inceleme ipucu; ceza yok.
+      if (!sonuc.dogru && !incelemeIpucuGosterildi) {
+        incelemeIpucuGosterildi = true;
+        metin += `\n${INCELE_IPUCU}`;
+      }
       const fis = fisKur(this, sonuc.dogru, metin);
       // Masanın boş yerine; yer yoksa gişe camının altına (belge değerlerini örtmesin).
       // Önce tam boy, sığmazsa biraz küçük; masada hiç yer yoksa gişe camının sol kenarına küçülerek (silueti örtmez).
@@ -871,7 +921,7 @@ export class GameScene extends Phaser.Scene {
           genlik: O.sarsinti,
           enAgir: 'hasarli',
           gizli: false,
-          yazi: ONCU_YAZI,
+          yazi: KUCUK_DEPREM_SERIT,
           yaziAlan: GISE_ALAN,
           enBuyukOlcek: olcek,
           binaTepki: (s) => {

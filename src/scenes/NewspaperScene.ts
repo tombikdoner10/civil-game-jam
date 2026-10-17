@@ -4,7 +4,7 @@ import { sfx } from '../audio/sfx';
 import { FONT } from '../config';
 import { PAL } from '../desk/palette';
 import { PX, rastgele, snap, Tuval } from '../desk/pixel';
-import { masaCiz, pikselDugme } from '../desk/props';
+import { hazirGostergesi, masaCiz, pikselDugme } from '../desk/props';
 import { Sokak, type SokakGirdi } from '../desk/Street';
 import { SON_GUN } from '../game/days';
 import { DOLGU_BASLIKLAR, FOTO_ALTI, GAZETE_ADI, GAZETE_TARIH, manset, oneCikanlar, sayiSatiri, zarfSatiri } from '../game/gazete';
@@ -26,6 +26,12 @@ const FOTO = { x: 240, y: 336, w: 880, h: 224 };
 const UZAK = { x: 4000, y: 0 };
 /** Fotoğrafta en çok kaç parsel (fazlası: öne çıkan binanın çevresi). G5b: daha geniş kare. */
 const FOTO_PARSEL = 18;
+
+/**
+ * Giriş koruması (ms, sahne açılışından; G24): depremden gelirken basılı kalan ya da çift basılan Enter gazeteyi
+ * atlatmasın. Koruma sürerken birincil düğmede "hazır" şeridi dolar (gün sonu raporuyla aynı gösterge).
+ */
+const GIRIS_KORUMA_MS = 500;
 
 /** Sonuç ekranına geçişin kararma süresi (ms; ana ve fotoğraf kamerası birlikte). */
 const GECIS_MS = 220;
@@ -143,7 +149,10 @@ export class NewspaperScene extends Phaser.Scene {
     // Devam
     const devam = (): void => this.devam();
     const dugme = pikselDugme(this, 1740, 980, 'DEVAM', 'Enter', devam);
-    this.tweens.add({ targets: dugme, alpha: 1, duration: 200, delay: 900 });
+    // G24: düğme gazeteyle birlikte görünür; giriş koruması sürerken üstünde "hazır" şeridi dolar, ~0,5 sn sonra
+    // Enter/Space/tık kabul edilir (önceden 900 ms boyunca düğme yoktu ve basılan Enter sessizce yok sayılıyordu).
+    this.tweens.add({ targets: dugme, alpha: 1, duration: 120 });
+    hazirGostergesi(this, dugme, GIRIS_KORUMA_MS);
     const kb = this.input.keyboard;
     kb?.on('keydown-ENTER', devam);
     kb?.on('keydown-SPACE', devam);
@@ -151,7 +160,7 @@ export class NewspaperScene extends Phaser.Scene {
       kb?.off('keydown-ENTER', devam);
       kb?.off('keydown-SPACE', devam);
     });
-    this.time.delayedCall(900, () => (this.hazir = true));
+    this.time.delayedCall(GIRIS_KORUMA_MS, () => (this.hazir = true));
     sfx.play('kagitKay');
     this.time.delayedCall(250, () => sfx.play('kagitBirak'));
   }

@@ -263,14 +263,26 @@ export class SahaTesti extends Phaser.Events.EventEmitter {
     t.yenile();
   }
 
+  /**
+   * Vuruşun okuması (uçan etiket). Çekiç imlecin ucundan sağ alta uzanır (cekicCiz): etiket ucun sol üstünde,
+   * sağ kenarı ucun solunda (G24: çekicin altında kalmasın). Solda yer yoksa ucun üstünde, sağa doğru.
+   */
   private ucanYazi(x: number, y: number, metin: string, zemin: string, renk: string): void {
     const o = this.scene.add
-      .text(snap(x), snap(y - 72), metin, { fontFamily: FONT, fontSize: '34px', color: renk, backgroundColor: zemin, padding: { x: 8, y: 2 } })
+      .text(0, 0, metin, { fontFamily: FONT, fontSize: '34px', color: renk, backgroundColor: zemin, padding: { x: 8, y: 2 } })
       .setOrigin(0.5)
       .setDepth(D.ucan);
-    // Yüzeyin dışına taşmasın.
-    const yx = Phaser.Math.Clamp(o.x, YUZEY.x + o.width / 2 + 8, YUZEY.x + YUZEY.w - o.width / 2 - 8);
-    o.setX(snap(yx)).setY(Math.max(YUZEY.y + 24, o.y));
+    const yarimW = o.width / 2;
+    const yarimH = o.height / 2;
+    const ust = YUZEY.y + yarimH + 8;
+    let cx = x - 24 - yarimW;
+    let cy = Math.max(ust, y - 48);
+    if (cx - yarimW < YUZEY.x + 8) {
+      // Solda yer yok: ucun üstünde, sol kenarı ucun biraz solunda (çekiç sağ altta).
+      cx = Math.max(YUZEY.x + 8 + yarimW, x - 24 + yarimW);
+      cy = Math.max(ust, y - 72);
+    }
+    o.setPosition(snap(cx), snap(cy));
     this.nesneler.push(o);
     this.scene.tweens.add({ targets: o, y: o.y - 32, alpha: 0, delay: 650, duration: 380, onComplete: () => o.destroy() });
   }

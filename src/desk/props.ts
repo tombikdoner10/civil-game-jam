@@ -89,6 +89,29 @@ export function fisKaldir(scene: Phaser.Scene, fis: Phaser.GameObjects.Container
 }
 
 /**
+ * Giriş koruması sürerken düğmenin üstünde soldan sağa dolan açık şerit; dolunca düğme bir kez parlar ve şerit
+ * söner (G23b: "hazır"; gün sonu raporu ve G24 gazete).
+ */
+export function hazirGostergesi(scene: Phaser.Scene, dugme: Phaser.GameObjects.Container, sure: number): void {
+  const w = dugme.width - PX * 2;
+  const h = dugme.height - PX * 2;
+  const dolgu = scene.add.rectangle(-w / 2, 0, w, h, 0xf0e6cc, 0.28).setOrigin(0, 0.5);
+  dolgu.scaleX = 0;
+  dugme.addAt(dolgu, 1);
+  scene.tweens.add({
+    targets: dolgu,
+    scaleX: 1,
+    duration: sure,
+    ease: 'Stepped',
+    easeParams: [6],
+    onComplete: () => {
+      dolgu.setFillStyle(0xfff6dc, 0.7);
+      scene.tweens.add({ targets: dolgu, alpha: 0, duration: 260, ease: 'Stepped', easeParams: [3], onComplete: () => dolgu.destroy() });
+    },
+  });
+}
+
+/**
  * Masa tarzı piksel düğme (gün sonu, gazete, sonuç): koyu çerçeve, damga renginde gövde, yanında tuş ipucu.
  * Fareyle tıklanır; tuşu çağıran bağlar. Kap döner (alpha 0'dan açılır).
  */
