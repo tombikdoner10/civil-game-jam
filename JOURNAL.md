@@ -98,3 +98,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 05:26 · b98a555 canlıda (G24 deprem dili + G11 menü; JS paketinde hash doğrulandı), smoke hatasız, son-saglam taşındı; DEV Enter kısayolu yalnızca ?dev'de (config.ts:44) · Sıradaki: G25 son cila geliştiricide (opus/high)
 - 05:40 · G25 bitti (4ef7ced, Opus/high): deprem atlanabilir, düğmeler ortalı, küçük deprem satırı, ipucu koşulu, menü; adalet 0 hata · Karar: test-oyuncusu (opus/low) teslim/test-4ef7ced'de · Sıradaki: test, yayın; teknik liste bitti
 - 05:48 · Test (G25, opus/low): 12 koşu hatasız; deprem atlama, düğmeler, küçük deprem satırı, ipucu koşulu, menü, parametresiz Enter, N, 5 GÜN GEÇTİ; bulgu: 5 günlük sonuçta zarf satırı Birikmiş paraya biniyor → G26 · Karar: G25 yayına; G26 küçük düzeltme · Sıradaki: G26
+- 05:52 · G25 canlıda (b6c0596; JS paketinde hash ve canlı smoke doğrulandı; son-saglam taşındı) · G26 geliştiriciye verildi (opus/high) · Sıradaki: G26 testi

@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G26 [teknik] Küçük: 5 günlük sonuçta zarf satırı "Birikmiş para" yazısına biniyor (ayrı satır); gün sonu raporu açılırken (karartma) basılan Enter yutulmasın, kararma bitince işlensin; yanlış fiş kural notunun alt kenarına biniyor (gün 1).
+- [ ] G26 [teknik] (sürüyor, Opus/high) Küçük: 5 günlük sonuçta zarf satırı "Birikmiş para" yazısına biniyor (ayrı satır); gün sonu raporu açılırken (karartma) basılan Enter yutulmasın, kararma bitince işlensin; yanlış fiş kural notunun alt kenarına biniyor (gün 1).
 
 ## Sırada
 
