@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G45 [teknik] (sürüyor, Opus/high) Gün 1 son kusurlu dosyada zarf kendiliğinden; her taksit evi bir kademe iyileştirir (0 ağır, 1 hasarlı, 2 hafif, 3 sağlam; kendi apartmanda da); EVİN kartında alınanı göster; dürüst jüriye ev bağlam cümlesi (yer tutucu); çöken evde eşya cümlesi çelişkisi.
+- [ ] G31 [teknik] (sürüyor, Opus/high) Metinleri oyuna yerleştir (docs/TAKIM_CEVAPLARI.md, lider onaylı): adlar, gün 1/rapor/deprem/gazete metinleri, diyaloglarda köşeli parantez kaldırma, ev kademeleri ve Senin evin, Ruhsat tarihi + ruhsatsız kuralı + sadeleştirme satırı + saha ön değerlendirme, hikâye binaları, Takımın kararları, BENIOKU amaç ve başlık, AI beyanı Metin özeti; yer tutucu üyeler gizli; npm run yer-tutucu ≈ 0; 720p/1080p taşma yok.
 
 ## Sırada
 
@@ -17,7 +17,6 @@ Son test (xhigh, 78/100) sonrası (G34, G36, G35, G38, G37 bitti; sırada G31)
 
 Eleştirmen 4 sonrası (sıra: G31 (metinler gelince))
 
-- [ ] G31 [teknik] Metinleri oyuna yerleştir (docs/TAKIM_CEVAPLARI.md, lider onaylı): adlar, gün 1/rapor/deprem/gazete metinleri, diyaloglarda köşeli parantez kaldırma, ev kademeleri ve Senin evin, Ruhsat tarihi + ruhsatsız kuralı + sadeleştirme satırı + saha ön değerlendirme, hikâye binaları, Takımın kararları, BENIOKU amaç ve başlık, AI beyanı Metin özeti; yer tutucu üyeler gizli; npm run yer-tutucu ≈ 0; 720p/1080p taşma yok.
 
 Çekirdek döngü (hedef: Cumartesi 14.00 ara test; sıra: G4 → G4b → G12 → G5 → G13)
 
@@ -75,6 +74,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G45 Gün 1 son kusurlu dosyada zarf kendiliğinden (60–100 TL, ayrı RNG), soyut ev 0/1/2/3 = ağır/hasarlı/hafif/hasarsız, kendi apartman her taksitte bir kademe, EVİN kartında Alındı, bağlam cümlesi, çöken evde sabitleme cümlesi yok; adalet 567025/0 (457f759 + c500b38, Opus/high; test sürüyor)
 - [x] G44 Kısmi taksit (2/3) kendi apartmanda bir kademe iyileştirir; dev ?ev= harcananı şişirmez; adalet 563136/0, bina dağılımı aynı (f44cb01, Opus/high; test geçti)
 - [x] G43 Ekonomi kademeli: 3 kademe × 3 kalem (toplam 560 TL), güçlendirme 3 taksit, kart ilerlemesi, Senin evin kademeye göre, kendi apartman yalnız 3/3te GÜÇLENDİR; adalet 561060/0, bina dağılımı aynı; kusursuz dürüst oyuncu gün gün 2/4/6/7/9 kademe (759a6aa + 421e7f4, Opus/high; test geçti)
 - [x] G42 Kendi evin hazırlığı: ev.ts (30/20/60 TL, temiz para önce, zarfla işareti), gün sonunda EVİN kâğıdı, gazetede [Senin evin], sonuçta SENİN EVİN; 5 günlükte kendi apartmanla tutarlı; adalet 104634/0, bina dağılımı aynı (12af66b + e0c3505 + efba07f, Opus/high; test geçti)
