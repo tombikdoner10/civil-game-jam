@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G56 [teknik] (sürüyor, Opus/high) Takım bölümü: Egemen AYVAZ · Takım Lideri; roller Türkçe (Oyun Testçisi ve Fikir Geliştirici, Ses Tasarımcısı ve Fikir Geliştirici).
+- [ ] G56 [teknik] (bitti c9ef294, test sürüyor, Opus/low) Takım bölümü: Egemen AYVAZ · Takım Lideri; roller Türkçe (Oyun Testçisi ve Fikir Geliştirici, Ses Tasarımcısı ve Fikir Geliştirici).
 
 ## Sırada
 
