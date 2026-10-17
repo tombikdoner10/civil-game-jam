@@ -330,5 +330,12 @@
     "yer": "docs/ai-ozet.json",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T15:33:47.710Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G47 kapsam ve sahte rapor garantisi: Bash/node betikleriyle yapılan kod düzenlemeleri (gün planı, adalet denetimleri, ayar sabiti, oturum geçmişi)",
+    "yer": "src/game/building.ts, src/game/tuning.ts, src/scenes/GameScene.ts, scripts/adalet.mjs",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T16:23:16.170Z"
   }
 ]
