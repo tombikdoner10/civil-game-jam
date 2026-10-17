@@ -38,12 +38,12 @@ export interface AiCredit {
   where: string[];
 }
 
-// Takım üyeleri (T32, G52): adlar ve roller takımın yazdığı gibi. Temsilci: Egemen. Köşeli parantezli (yer tutucu)
-// satırlar Emeği Geçenler'de gizlenir (CreditsScene).
+// Takım üyeleri (T32, G52, G56): adlar ve roller takımın yazdığı gibi. G56: roller Türkçe; Egemen'in adı ve rolü
+// takımın isteğiyle. Köşeli parantezli (yer tutucu) satırlar Emeği Geçenler'de gizlenir (CreditsScene).
 export const MEMBERS: Member[] = [
-  { name: 'Egemen', role: 'Takım temsilcisi' },
-  { name: 'Deniz Demir', role: 'Game Tester and Ideator' },
-  { name: 'Ahmet Ata Tuncer', role: 'Sound Designer and Ideator' },
+  { name: 'Egemen AYVAZ', role: 'Takım Lideri' },
+  { name: 'Deniz Demir', role: 'Oyun Testçisi ve Fikir Geliştirici' },
+  { name: 'Ahmet Ata Tuncer', role: 'Ses Tasarımcısı ve Fikir Geliştirici' },
 ];
 
 /**
