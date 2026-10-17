@@ -56,6 +56,8 @@ const SUTUN = { no: 40, bina: 104, damga: 400, dogru: 640, kusur: 880, sonuc: KA
 const para = (n: number): string => `${n < 0 ? '−' : ''}${Math.abs(n)} TL`;
 
 const SONRAKI = 'SONRAKİ GÜN';
+/** G51: günün toplamı birikmiş parayı eksiye düşürecekse birikmiş 0'da kalır; raporda küçük not. */
+const CEZA_ASTI = 'Ceza maaşı aştı';
 /**
  * Gün 1'deki iki düğme (G25): aynı genişlik ve yazı boyu (kısa yol metni 44 px'te kâğıda sığmıyor), aralarında boşluk.
  * İkisinin toplamı kâğıdın iç genişliğine (KAGIT.w − 2·40) sığar.
@@ -130,7 +132,9 @@ export class DayEndScene extends Phaser.Scene {
     this.cameras.main.setRoundPixels(true);
     const v = this.veri;
     const hesap = gunHesabi(v.kararlar, v.dosyalar.length);
-    const yeniPara = v.paraOnce + hesap.toplam;
+    // Birikmiş para 0'ın altına inmez (G51): eksiye düşecekse 0 ve raporda "Ceza maaşı aştı".
+    const hamPara = v.paraOnce + hesap.toplam;
+    const yeniPara = Math.max(0, hamPara);
     this.para = yeniPara;
 
     masaCiz(this, 0);
@@ -247,13 +251,24 @@ export class DayEndScene extends Phaser.Scene {
       [hesap.zarf > 0 ? 'Günün toplamı (zarf dahil)' : 'Günün toplamı', para(hesap.toplam), PAL.murekkep],
       ['Birikmiş', para(yeniPara), PAL.murekkep],
     ];
+    const etiketler: Phaser.GameObjects.Text[] = [];
+    const degerler: Phaser.GameObjects.Text[] = [];
     satirlar.forEach(([a, b, renk], i) => {
       const yy = hy + 24 + i * 48;
       if (i === 2) this.add.rectangle(ad, yy - 26, deger - ad, PX, num(PAL.murekkepSoluk)).setOrigin(0);
-      yaz(ad, yy, a, 36, i >= 2 ? PAL.murekkep : PAL.etiket);
+      etiketler.push(yaz(ad, yy, a, 36, i >= 2 ? PAL.murekkep : PAL.etiket));
       const t = yaz(deger, yy, b, i === 3 ? 44 : 36, renk, 1);
+      degerler.push(t);
       if (i === 3) this.birikmisYazi = t;
     });
+    // G51: "Ceza maaşı aştı" günün toplamı satırında, değerin solunda; etikete değecekse alttaki "Birikmiş" satırında.
+    if (hamPara < 0) {
+      for (const i of [2, 3]) {
+        const not = yaz(degerler[i].x - degerler[i].width - 24, degerler[i].y, CEZA_ASTI, 28, PAL.damgaBosalt, 1);
+        if (not.x - not.width >= etiketler[i].x + etiketler[i].width + 24 || i === 3) break;
+        not.destroy();
+      }
+    }
 
     // Kendi evinin hazırlığı (G42): raporun sağındaki kâğıt; 1/2/3 ya da tıklama. Enter satın alma yapmaz.
     this.evKagidi();

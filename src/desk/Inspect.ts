@@ -80,6 +80,8 @@ interface EtiketDugme {
   sondu: () => boolean;
   /** Yalnızca SAHA: aç / söndür (geri açılabilir). */
   ayarla?: (acik: boolean) => void;
+  /** G51: dosya damgalandı; düğme yazısı değişmeden söner ve tıklanmaz. */
+  sonuk: () => void;
 }
 
 interface Bulunan {
@@ -233,6 +235,14 @@ export class Inspect extends Phaser.Events.EventEmitter {
   /** Masa örtülüyken (G19 saha testi) kusur işaretleri ve etiketleri gizle; kapanınca geri gelir. */
   gizle(on: boolean): void {
     this.gizli = on;
+  }
+
+  /**
+   * Dosya damgalandı (G51): etiketlerdeki düğmeler (SOR, İSTE, SAHA) yazısı değişmeden söner ve tıklanmaz; etiketler
+   * dosya kalkana kadar (dosyaBitti) masada kalır.
+   */
+  damgalandi(): void {
+    for (const b of this.bulunanlar) for (const d of (b.etiket.getData('dugmeler') as EtiketDugme[] | undefined) ?? []) d.sonuk();
   }
 
   /** Dosya masadan kalktı: bulunan kusur işaretleri ve seçim silinir. */
@@ -430,7 +440,12 @@ export class Inspect extends Phaser.Events.EventEmitter {
               dyazi.setColor(acik ? PAL.saat : PAL.murekkepAcik);
             }
           : undefined;
-      sonduruculer.push({ tur, kutu, sondur, sondu: () => !!dyazi.getData('sondu'), ayarla });
+      const sonuk = (): void => {
+        kutu.disableInteractive();
+        kutu.setFillStyle(KOYU, 0.6);
+        dyazi.setColor(PAL.murekkepAcik);
+      };
+      sonduruculer.push({ tur, kutu, sondur, sondu: () => !!dyazi.getData('sondu'), ayarla, sonuk });
     });
     kap.setData('dugmeler', sonduruculer);
     return kap;

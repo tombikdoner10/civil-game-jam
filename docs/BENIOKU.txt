@@ -30,7 +30,7 @@ Masa
 - Space ya da İNCELE düğmesi: inceleme modunu aç / kapa;
   inceleme modunda birbiriyle çelişen iki alana tıkla
 - Yönetmelik klasörüne tıkla: kuralları aç (2. günden)
-- Esc ya da P: duraklat (inceleme modu açıksa önce onu kapatır)
+- Esc ya da P: duraklat (açık klasörü ya da inceleme modunu önce kapatır)
 Gişe
 - Kusur etiketindeki SOR: kusuru mal sahibine sor
 - İSTE: eksik ya da geçersiz belgenin aslını iste

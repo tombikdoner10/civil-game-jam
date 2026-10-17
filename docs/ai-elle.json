@@ -344,5 +344,19 @@
     "yer": "src/scenes/GameScene.ts",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T16:45:00.216Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G51: gazete öne çıkanlar (GÜÇLENDİR ödül satırı) ve inceleme düğmesi söndürme düzenlemesi (Python betiğiyle)",
+    "yer": "src/game/gazete.ts, src/desk/Inspect.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T18:26:12.634Z"
+  },
+  {
+    "kategori": "text",
+    "amac": "G51: BENIOKU ve README kontrol satırı (Esc sırası; sed ile)",
+    "yer": "docs/BENIOKU.txt, README.md",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T18:26:12.694Z"
   }
 ]

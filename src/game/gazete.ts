@@ -175,9 +175,14 @@ export function oneCikanlar(
   const ekle = (b: DepremBinaSonucu | undefined, metin: (b: DepremBinaSonucu) => string): void => {
     if (b && out.length < 3 && !out.some((x) => x.b === b)) out.push({ b, metin: b.zarf ? metin(b) + ZARF_SATIR_EK : metin(b) });
   };
+  // Doğru GÜÇLENDİR kararının ödülü (kusurlu bina güçlendirildi, çökmedi ve ağır hasar almadı): iki yolda aynı satır (G51).
+  const guclendirildi = (b: DepremBinaSonucu): boolean => b.damga === 'guclendir' && b.kusurlu && !b.coktu && b.durum !== 'agirHasar';
+  const guclendirMetni = (b: DepremBinaSonucu): string => `${ad(b)} ${b.durum === 'ayakta' ? 'ayakta' : 'hasarlı ama ayakta'}: güçlendirilmişti`;
   if (oncelik)
     for (const b of s.filter((x) => oncelik.has(x.dosyaId)).sort((a, c) => agirlik(c) - agirlik(a) || a.no - c.no))
-      ekle(b, (b) => (b.bos ? `${ad(b)} ${durumAdi(b)}; boşaltılmıştı, içinde kimse yoktu` : `${ad(b)} ${durumAdi(b)}; ${gecmis(b)}`));
+      ekle(b, (b) =>
+        b.bos ? `${ad(b)} ${durumAdi(b)}; boşaltılmıştı, içinde kimse yoktu` : guclendirildi(b) ? guclendirMetni(b) : `${ad(b)} ${durumAdi(b)}; ${gecmis(b)}`,
+      );
   const doluCoken = s.filter((b) => b.coktu && !b.bos);
   ekle(doluCoken[0], (b) => `${ad(b)} çöktü; ${gecmis(b)}`);
   // İADE edilen bina: oyuncunun denetlemeden bıraktığı (bilinçli) risk; gazetede ayrı satır.
@@ -189,10 +194,7 @@ export function oneCikanlar(
     s.find((b) => b.coktu && b.bos),
     (b) => `${ad(b)} çöktü; boşaltılmıştı, içinde kimse yoktu`,
   );
-  ekle(
-    s.find((b) => b.damga === 'guclendir' && b.kusurlu && !b.coktu && b.durum !== 'agirHasar'),
-    (b) => `${ad(b)} ${b.durum === 'ayakta' ? 'ayakta' : 'hasarlı ama ayakta'}: güçlendirilmişti`,
-  );
+  ekle(s.find(guclendirildi), guclendirMetni);
   ekle(doluCoken[1], (b) => `${ad(b)} çöktü; ${gecmis(b)}`);
   ekle(
     s.find((b) => !b.coktu && !b.bos && b.durum === 'agirHasar'),

@@ -28,7 +28,7 @@ Belediyenin yapı denetçisisin. Binaların belgelerini inceleyip kurala göre d
 | Space (ya da İNCELE düğmesi) | İnceleme modunu aç / kapa |
 | İnceleme modunda iki alana tıkla | Tutarsızlığı işaretle (ör. ruhsattaki kat sayısı ile fotoğraf); etiketteki SOR ve İSTE gişedeki kişiye sorar |
 | Fare: yönetmelik klasörüne tıkla | Klasörü aç; sekmeler bölümleri, X kapatır (gün 2'den) |
-| Esc / P | Duraklat (inceleme modu açıksa önce onu kapatır) |
+| Esc / P | Duraklat (açık klasörü ya da inceleme modunu önce kapatır) |
 | Enter / Space | Gün sonu raporunda sonraki gün (gün 1 raporunda kısa yol); gazetede devam |
 | SAHA (rapor yok kartında) | Schmidt çekiciyle saha testi: temiz yüzeye tıkla; Space / Enter notu alır, Esc vazgeçer (mesaiden süre yer) |
 | Zarf: AL / GERİ VER | Zarfı al ya da geri ver (çekmeceye ya da gişeye sürüklemek de olur); karar verilene kadar kaşeler kilitli |

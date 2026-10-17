@@ -18,6 +18,11 @@ export const CERCEVE = 'Belediyenin yapı denetçisisin. Deprem her an olabilir.
 export const INCELE_IPUCU = 'Space ile incele, kusuru kanıtla';
 
 /**
+ * Zarf alınıp istenen kaşe vurulduğunda yanlış kararın fişinde (G51): inceleme ipucunun yerine; seçim bilinçliydi.
+ */
+export const ZARF_FIS = 'Zarfı aldın; istenen kaşeyi vurdun.';
+
+/**
  * Yeni araç ipuçları (G48, lider metni): düğmenin sağında "<" ile; düğmenin solunda gösterilirse "<" düşer, sona ">"
  * gelir (GameScene). Araç bir kez kullanılınca oyunun geri kalanında çıkmaz.
  */

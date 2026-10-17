@@ -29,6 +29,7 @@ import {
   sabitOran,
   ZARF_DUGME,
   ZARF_ETIKET,
+  ZARF_FIS,
   ZARF_IPUCU,
   ZARF_NOT,
   type Degiskenler,
@@ -271,8 +272,9 @@ export class GameScene extends Phaser.Scene {
       if (this.controls.justDown('pause')) this.saha.esc();
       else if (this.controls.justDown('action')) this.saha.onay();
     } else if (this.controls.justDown('pause')) {
-      // Esc önce inceleme modunu kapatır, kapalıyken duraklatır.
-      if (this.inceleme.acik) this.inceleme.kapa();
+      // Esc önce açık klasörü, sonra inceleme modunu kapatır; ikisi de kapalıyken duraklatır (G51).
+      if (this.kitap?.acik) this.kitap.kapa();
+      else if (this.inceleme.acik) this.inceleme.kapa();
       else this.pauseGame();
       return;
     } else if (this.controls.justDown('action')) this.inceleme.degistir();
@@ -1111,6 +1113,8 @@ export class GameScene extends Phaser.Scene {
     if (!sonuc) return false;
     this.mesgul = true;
     this.beklemeIptal();
+    // G51: etiketlerdeki SOR / İSTE / SAHA düğmeleri söner (dosya kalkana kadar etiketler masada).
+    this.inceleme.damgalandi();
     const sonKarar = this.oturum.kararlar[this.oturum.kararlar.length - 1];
     const zarfAlindi = !!sonKarar?.zarf?.kabul;
     this.kaseDurum();
@@ -1142,8 +1146,10 @@ export class GameScene extends Phaser.Scene {
       let metin = sonuc.dogru ? `Doğru karar\n${gerekce}` : `Yanlış karar\nDoğrusu: ${DAMGA_ADI[sonuc.dogruDamga]}\n${kusurlar}`;
       // İnceleme kullanılmadan verilen ilk yanlış kararda (oturumda bir kez, G24) inceleme ipucu; ceza yok. Oyuncu bu
       // dosyada kusuru incelemeyle bulduysa ipucu çıkmaz (G25): incelemeyi zaten biliyor. Kusursuz dosyada da çıkmaz
-      // (G27): kanıtlanacak kusur yok; ipucu hakkı kusurlu bir dosyadaki ilk yanlışa kalır.
-      if (!sonuc.dogru && !incelemeIpucuGosterildi && sonuc.kusurlar.length > 0 && (sonKarar?.bulunan.length ?? 0) === 0) {
+      // (G27): kanıtlanacak kusur yok; ipucu hakkı kusurlu bir dosyadaki ilk yanlışa kalır. Zarf alınıp istenen kaşe
+      // vurulduysa (G51) yanlış bilinçli: ipucu yerine zarf satırı, ipucu hakkı harcanmaz.
+      if (!sonuc.dogru && zarfAlindi) metin += `\n${ZARF_FIS}`;
+      else if (!sonuc.dogru && !incelemeIpucuGosterildi && sonuc.kusurlar.length > 0 && (sonKarar?.bulunan.length ?? 0) === 0) {
         incelemeIpucuGosterildi = true;
         metin += `\n${INCELE_IPUCU}`;
       }
