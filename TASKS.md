@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G43 [teknik] (sürüyor, Opus/high) Ekonomi kademeli: çanta/sabitleme 3 kademe, güçlendirme 3 taksit (30/40/50, 30/50/60, 80/100/120); EVİN kâğıdında sıradaki kademe; Senin evin kademeye göre.
 
 ## Sırada
 
