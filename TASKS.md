@@ -9,7 +9,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 ## Şimdi
 
 - [ ] G61 [teknik] (sürüyor, Opus/high) Emeği Geçenler beyan düzeltmeleri: UI Audio kullanımı ve "değiştirildi" (konuşma balonu sesi), Interface Sounds ifadesi, AI Diğer araç satırına Fable 5.1 (eleştirmen 9), Takımın kararlarına müfettiş maddesi; README ve AI_BEYAN aynı.
-- [ ] G60 [teknik] (bitti ed6414e, test sürüyor, Opus/low) İnceleme: başka binanın belgesindeki alan seçilince "Tutarsızlık yok" yerine ada/parsel ipucu; sonuç ekranında zarf özeti okunur satırlara bölünsün, "Birikmiş para" ile çakışmasın.
 
 ## Sırada
 
@@ -75,6 +74,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G60 Başka binanın belgesinde ipucu; sonuçta okunur zarf satırları (ed6414e, Opus/high; test GEÇTİ, 9 koşu)
 - [x] G59 Eleştirmen 10 metin cilası: zarf uyarısında "Müfettiş gelebilir.", gazetede "güçlendirme kararı verilmişti", "geçerlisini İSTE", klasörde satır sonu noktasız (07d91c0, Opus/high; test GEÇTİ)
 - [x] G58 Gün sonu raporu içeriğe göre yerleşir, taşmaz (8be5b23, Opus/high; test GEÇTİ, 7 koşu)
 - [x] G57b Raporda müfettiş satırı küçük depremin altında; "Zarf: el konuldu"; sonuçta "(el konuldu)" (dd8809e, Opus/high; test GEÇTİ)
