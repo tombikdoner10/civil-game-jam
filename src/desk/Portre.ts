@@ -215,6 +215,7 @@ type Agiz =
   | 'sikik'
   | 'asik'
   | 'kucukAsik'
+  | 'titrek'
   | 'aralik'
   | 'kucuk'
   | 'dalgali';
@@ -287,7 +288,7 @@ const IFADE_TABLO: Record<Mizac | 'yok', Record<Ifade, Partial<YuzDurum>>> = {
     sevincli: { kasIc: 1, kasKalin: true, agiz: 'genis', ofke: 1 },
   },
   telasli: {
-    notr: { kasIc: -2, goz: 'iri', agiz: 'aralik', alin: 'endise' },
+    notr: { kasIc: -2, goz: 'iri', agiz: 'titrek', alin: 'endise' },
     gergin: { kasIc: -2, goz: 'iri', bebekKucuk: true, agiz: 'aralik', ter: 2, alin: 'endise' },
     kizgin: { kasIc: -1, goz: 'iri', agiz: 'asik', ter: 1 },
     mahcup: { kasIc: -2, goz: 'iri', bakY: 1, agiz: 'dalgali', kizar: 1, ter: 1 },
@@ -343,6 +344,8 @@ export class Portre {
   /** Yüz çizgilerinin altında ve üstünde kalan, bir kez çizilen katmanlar. */
   private readonly alt: HTMLCanvasElement;
   private readonly ust: HTMLCanvasElement;
+  /** Dudak tonu: sakal ya da dolgun bıyık ağzı çerçeveliyorsa açık (kapalı ağız açık ağız gibi okunmasın). */
+  private readonly dudak: string;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -352,6 +355,7 @@ export class Portre {
     private readonly mizac?: Mizac,
   ) {
     this.o = ozellik(tohum);
+    this.dudak = this.kilCerceve() ? karis(this.o.ten[1], DUDAK, 0.55) : DUDAK;
     this.t = new Tuval(scene, PORTRE_W, PORTRE_H, 'portre');
     this.hedef = this.t.ctx;
     this.alt = this.katman(() => this.altCiz(), true);
@@ -495,6 +499,10 @@ export class Portre {
         y0 += sy;
       }
     }
+  }
+
+  private kilCerceve(): boolean {
+    return this.o.sakal === 'tam' || this.o.sakal === 'keci' || this.o.biyik === 'dolgun';
   }
 
   /** Yalnızca ten pikseline boya (kızarma). */
@@ -987,20 +995,23 @@ export class Portre {
     const c = koyu(o.sac, 0.9);
     const cK = koyu(c, 0.85);
     const ay = o.cy + 9;
+    const altDudak = karis(o.ten[1], DUDAK, 0.3);
     if (o.sakal === 'tam') {
       for (let y = o.cy + 3; y <= o.cy + o.ry + 1; y++)
         for (let x = o.cx - o.rx; x <= o.cx + o.rx; x++) {
           if (!this.basIcinde(x, y)) continue;
-          const agiz = y >= o.cy + 7 && y <= o.cy + 11 && Math.abs(x - o.cx) <= 4;
+          // Sakal alt dudağa kadar çıkar: ağzın çevresinde açık ten penceresi kalmasın (açık ağız gibi okunur).
+          const agiz = (y >= ay - 2 && y <= ay && Math.abs(x - o.cx) <= 4) || (y === ay + 1 && Math.abs(x - o.cx) <= 1);
           const yanak = y < o.cy + 7 && Math.abs(x - o.cx) < o.rx - 3;
           if (agiz || yanak) continue;
           this.p(x, y, (x + y) % 2 === 0 ? c : cK);
         }
+      this.r(o.cx - 1, ay + 1, 3, 1, altDudak);
     } else if (o.sakal === 'keci') {
-      for (let y = ay + 2; y <= o.cy + o.ry + 2; y++)
+      for (let y = ay + 1; y <= o.cy + o.ry + 2; y++)
         for (let x = o.cx - 4; x <= o.cx + 4; x++) {
           const w = y <= ay + 5 ? 3 : 2;
-          if (Math.abs(x - o.cx) > w) continue;
+          if (Math.abs(x - o.cx) > w || (y === ay + 1 && Math.abs(x - o.cx) <= 1)) continue;
           if (!this.basIcinde(x, y) && !this.basIcinde(x, y - 2)) continue;
           this.p(x, y, (x + y) % 2 === 0 ? c : cK);
         }
@@ -1008,6 +1019,7 @@ export class Portre {
         this.p(o.cx - 4, y, c);
         this.p(o.cx + 4, y, cK);
       }
+      this.r(o.cx - 1, ay + 1, 3, 1, altDudak);
     } else {
       // Kirli sakal: çene ve üst dudakta seyrek gölge
       const k = karis(o.ten[1], o.sac, 0.5);
@@ -1026,12 +1038,14 @@ export class Portre {
   private biyikCiz(): void {
     const o = this.o;
     const ay = o.cy + 9;
-    const b = koyu(o.sac, 0.7);
+    const b = koyu(o.sac, 0.85);
     if (o.biyik === 'dolgun') {
-      this.r(o.cx - 3, ay - 2, 7, 2, b);
-      this.p(o.cx - 4, ay - 1, b);
-      this.p(o.cx + 4, ay - 1, b);
-      this.r(o.cx - 2, ay - 2, 2, 1, acik(b, 0.15));
+      // Ortada burun altı çentiği ve sol üstte ışık: ağız içi gibi koyu bir blok olarak okunmasın.
+      this.r(o.cx - 3, ay - 2, 3, 1, b);
+      this.r(o.cx + 1, ay - 2, 3, 1, b);
+      this.r(o.cx - 4, ay - 1, 9, 1, b);
+      this.r(o.cx - 3, ay - 2, 2, 1, acik(b, 0.22));
+      this.p(o.cx + 3, ay - 1, koyu(b, 0.85));
     } else {
       // İnce, düz bıyık (uçları ağız köşesine inmez; asık ağız gibi okunmasın)
       this.r(o.cx - 4, ay - 2, 9, 1, b);
@@ -1213,103 +1227,110 @@ export class Portre {
     const x = o.cx;
     const ay = o.cy + 9;
     const w = o.agizW;
+    const D = this.dudak;
     if (this.agizAcik) {
       // Konuşma ağzı: mizaca göre biçim
       const m = this.mizac;
       if (m === 'sinirli') {
         this.r(x - 3, ay, 7, 3, AGIZ_IC);
         this.r(x - 2, ay + 1, 5, 1, DIS);
-        this.r(x - 3, ay, 7, 1, DUDAK);
-        this.r(x - 2, ay + 2, 5, 1, DUDAK);
+        this.r(x - 3, ay, 7, 1, D);
+        this.r(x - 2, ay + 2, 5, 1, D);
       } else if (m === 'telasli') {
         this.r(x - 2, ay, 5, 4, AGIZ_IC);
-        this.r(x - 2, ay, 5, 1, DUDAK);
-        this.r(x - 1, ay + 3, 3, 1, DUDAK);
+        this.r(x - 2, ay, 5, 1, D);
+        this.r(x - 1, ay + 3, 3, 1, D);
       } else if (m === 'cekingen') {
         this.r(x - 1, ay, 3, 2, AGIZ_IC);
-        this.r(x - 1, ay, 3, 1, DUDAK);
+        this.r(x - 1, ay, 3, 1, D);
       } else if (m === 'kurnaz') {
         this.r(x - 1, ay, 5, 3, AGIZ_IC);
-        this.r(x - 1, ay, 5, 1, DUDAK);
-        this.r(x, ay + 2, 3, 1, DUDAK);
-        this.p(x + 4, ay - 1, DUDAK);
+        this.r(x - 1, ay, 5, 1, D);
+        this.r(x, ay + 2, 3, 1, D);
+        this.p(x + 4, ay - 1, D);
       } else {
         this.r(x - 2, ay, 5, 3, AGIZ_IC);
-        this.r(x - 1, ay + 2, 3, 1, DUDAK);
-        this.r(x - 2, ay, 5, 1, DUDAK);
+        this.r(x - 1, ay + 2, 3, 1, D);
+        this.r(x - 2, ay, 5, 1, D);
       }
       return;
     }
     switch (d.agiz) {
       case 'gulumse':
         // Hafif gülümseme: uçlar yukarı kıvrık, yanaklarda kıvrım
-        this.r(x - w + 1, ay, 2 * w - 1, 1, DUDAK);
-        this.p(x - w, ay - 1, DUDAK);
-        this.p(x + w, ay - 1, DUDAK);
+        this.r(x - w + 1, ay, 2 * w - 1, 1, D);
+        this.p(x - w, ay - 1, D);
+        this.p(x + w, ay - 1, D);
         this.p(x - w - 1, ay - 2, tK);
         this.p(x + w + 1, ay - 2, tK);
         break;
       case 'genis':
         // Gülümseme: uçlar yukarı, ortada dişler
-        this.p(x - w - 1, ay - 1, DUDAK);
-        this.p(x + w + 1, ay - 1, DUDAK);
-        this.r(x - w, ay, 2 * w + 1, 1, DUDAK);
+        this.p(x - w - 1, ay - 1, D);
+        this.p(x + w + 1, ay - 1, D);
+        this.r(x - w, ay, 2 * w + 1, 1, D);
         this.r(x - w + 1, ay, 2 * w - 1, 1, DIS);
-        this.r(x - w + 1, ay + 1, 2 * w - 1, 1, DUDAK);
+        this.r(x - w + 1, ay + 1, 2 * w - 1, 1, D);
         break;
       case 'sirit':
         // Yan gülüş: sağ uç yukarı, yanında gamze
-        this.r(x - w, ay, 2 * w, 1, DUDAK);
-        this.r(x + w, ay - 1, 2, 1, DUDAK);
-        this.p(x + w + 2, ay - 2, DUDAK);
+        this.r(x - w, ay, 2 * w, 1, D);
+        this.r(x + w, ay - 1, 2, 1, D);
+        this.p(x + w + 2, ay - 2, D);
         this.p(x + w + 3, ay - 1, tK);
         this.p(x + w + 2, ay, tK);
         this.p(x - w - 1, ay + 1, tK);
         break;
       case 'siritGenis':
-        this.r(x - w, ay, 2 * w + 1, 1, DUDAK);
+        this.r(x - w, ay, 2 * w + 1, 1, D);
         this.r(x, ay, w, 1, DIS);
-        this.r(x, ay + 1, w, 1, DUDAK);
-        this.p(x + w + 1, ay - 1, DUDAK);
+        this.r(x, ay + 1, w, 1, D);
+        this.p(x + w + 1, ay - 1, D);
         this.p(x + w + 2, ay, tK);
         break;
       case 'sikik':
         // Sıkılmış dudak: ince, koyu, uçlar aşağı; çenede gerginlik
-        this.r(x - w - 1, ay, 2 * w + 3, 1, koyu(DUDAK, 0.8));
-        this.p(x - w - 2, ay + 1, DUDAK);
-        this.p(x + w + 2, ay + 1, DUDAK);
+        this.r(x - w - 1, ay, 2 * w + 3, 1, koyu(D, 0.8));
+        this.p(x - w - 2, ay + 1, D);
+        this.p(x + w + 2, ay + 1, D);
         this.p(x - 1, ay + 3, tK);
         this.p(x + 1, ay + 3, tK);
         break;
       case 'asik':
         // Asık: ortası yukarı, uçlar aşağı
-        this.r(x - 2, ay, 5, 1, DUDAK);
-        this.p(x - 3, ay + 1, DUDAK);
-        this.p(x + 3, ay + 1, DUDAK);
-        this.p(x - 4, ay + 2, DUDAK);
-        this.p(x + 4, ay + 2, DUDAK);
+        this.r(x - 2, ay, 5, 1, D);
+        this.p(x - 3, ay + 1, D);
+        this.p(x + 3, ay + 1, D);
+        this.p(x - 4, ay + 2, D);
+        this.p(x + 4, ay + 2, D);
         break;
       case 'kucukAsik':
-        this.r(x - 1, ay, 3, 1, DUDAK);
-        this.p(x - 2, ay + 1, DUDAK);
-        this.p(x + 2, ay + 1, DUDAK);
+        this.r(x - 1, ay, 3, 1, D);
+        this.p(x - 2, ay + 1, D);
+        this.p(x + 2, ay + 1, D);
         this.r(x - 1, ay + 1, 3, 1, DUDAK_ALT);
         break;
       case 'aralik':
-        this.r(x - 2, ay, 5, 1, DUDAK);
+        this.r(x - 2, ay, 5, 1, D);
         this.r(x - 1, ay + 1, 3, 1, AGIZ_IC);
-        this.r(x - 1, ay + 2, 3, 1, DUDAK);
+        this.r(x - 1, ay + 2, 3, 1, D);
         break;
       case 'kucuk':
-        this.r(x - 1, ay, 3, 1, DUDAK);
+        this.r(x - 1, ay, 3, 1, D);
+        break;
+      case 'titrek':
+        // Telaşlı kapalı dudak: hafif dalgalı çizgi
+        this.r(x - 2, ay, 2, 1, D);
+        this.p(x, ay + 1, D);
+        this.r(x + 1, ay, 2, 1, D);
         break;
       case 'dalgali':
-        this.r(x - 1, ay + 1, 4, 1, DUDAK);
-        this.p(x + 3, ay, DUDAK);
-        this.p(x - 2, ay, DUDAK);
+        this.r(x - 1, ay + 1, 4, 1, D);
+        this.p(x + 3, ay, D);
+        this.p(x - 2, ay, D);
         break;
       default:
-        this.r(x - w, ay, 2 * w + 1, 1, DUDAK);
+        this.r(x - w, ay, 2 * w + 1, 1, D);
         if (o.dolgun) this.r(x - 1, ay + 1, 3, 1, DUDAK_ALT);
     }
   }
