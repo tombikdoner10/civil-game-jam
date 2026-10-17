@@ -58,7 +58,6 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 - [ ] T20 [takım] TAKVİM (takım kararı 01.30): bütün metinler (oyun adı, diyalog, kural metinleri, gazete, gün 1 çerçeve cümlesi, Emeği Geçenler isimleri) Cumartesi 18.00'e kadar; özellik dondurma Cumartesi 24.00; video Pazar 10.00–12.00; kod dondurma Pazar 15.00.
 - [ ] T21 [takım] Eleştirmen 3 mühendis soruları (T12 ile): Schmidt çekici tek başına BOŞALT kararı verdirir mi (TS EN 13791, karot korelasyonu, sıva), R→MPa tablosu kaynağı; mevcut binada 20 MPa tahliye nedeni mi (Riskli Yapıların Tespit Esasları 2019); dere 30 m / fay 150 m kaynağı. Metin önceliği: 1) oyun adı, menü, çerçeve cümlesi 2) gün 1'de görünen her şey 3) gazete ve değerlendirme 4) gün 1 diyalogları 5) 2–5. gün kuralları ve saha.
 - [ ] T11 [takım] Pencere sokağı, gişedeki siluet ve renk paleti onayı; uyarı fişi metinleri ("Doğru karar" / "Yanlış karar: doğrusu X" yer tutucu).
-- [ ] T6 [takım] Sesleri ara testte dinle; Claude'un seçtiği Kenney adaylarını onayla ya da değiştir.
 - [ ] T7 [takım] Kararlar: imar affı belgesi olacak mı. (Deprem günü ve kaçak kat 21.49'da karara bağlandı.)
 - [ ] T8 [takım] Cumartesi 14.00 ara test: oyunu oyna, geri bildirim ver (Kontrol 2).
 - [ ] T9 [takım] Pazar: 1 dakikalık video (MP4) ve 3 dakikalık sunum.
