@@ -1,7 +1,7 @@
 // @beyan metin
 import type { Damga } from './building';
 import { ZARF_GAZETE } from './diyalog';
-import type { DepremBinaSonucu, DepremOzeti } from './session';
+import { depremOzeti, oyuncuOzeti, type DepremBinaSonucu, type DepremOzeti } from './session';
 
 /**
  * Büyük deprem, gazete ve sonuç ekranının metinleri. HEPSİ YER TUTUCU: TODO(takım) gerçek metinleri yazacak.
@@ -49,6 +49,33 @@ export function manset(o: DepremOzeti): string {
  */
 export function sayiSatiri(o: DepremOzeti): string {
   return `[Ayakta: ${o.ayakta} bina · Hasarlı: ${o.hasarli} · Çöken: ${o.coken}${o.coken > 0 ? ` (içi boş: ${o.cokenBos})` : ''} · Boşaltılmış (toplam): ${o.bos}${o.iade > 0 ? ` · İade edilmiş: ${o.iade}` : ''}]`;
+}
+
+/** Kısa yol gazetesindeki iki sayı bloğunun başlıkları (G30, T22). Yer tutucu: TODO(takım). */
+export const KISA_GAZETE = { senin: '[Senin binaların]', sokak: '[Bütün sokak]' };
+
+/**
+ * Kısa yol gazetesinin sayıları (G30, takım kararı T22): önce jürinin kendi binaları, sonra bütün sokak. Tanımlar
+ * sayiSatiri ile aynı; jürinin özeti sonuç ekranındaki "Senin binaların" ile aynı (oyuncuOzeti). Jürinin görmediği
+ * satırlar gizli: "İade edilmiş" yalnızca jüri en az bir İADE vurduysa, "içi boş" yalnızca jürinin BOŞALT damgalı
+ * binalarından biri çöktüyse ya da hasar gördüyse. Sıfır olan kalemler yazılmaz.
+ */
+export function kisaSayiBloklari(s: readonly DepremBinaSonucu[], juri: ReadonlySet<string>): { baslik: string; satir: string }[] {
+  const j = s.filter((b) => juri.has(b.dosyaId));
+  const iade = j.some((b) => b.damga === 'iade');
+  const icBos = j.some((b) => b.damga === 'bosalt' && (b.coktu || b.durum !== 'ayakta'));
+  const satir = (o: DepremOzeti): string => {
+    const k: string[] = [];
+    if (o.ayakta > 0) k.push(`Ayakta: ${o.ayakta} bina`);
+    if (o.hasarli > 0) k.push(`Hasarlı: ${o.hasarli}`);
+    if (o.coken > 0) k.push(`Çöken: ${o.coken}${icBos && o.cokenBos > 0 ? ` (içi boş: ${o.cokenBos})` : ''}`);
+    if (o.bos > 0) k.push(`Boşaltılmış (toplam): ${o.bos}`);
+    if (iade && o.iade > 0) k.push(`İade edilmiş: ${o.iade}`);
+    return `[${k.join(' · ')}]`;
+  };
+  // Jüri hiç damga vurmadıysa (sokakta binası yok) yalnızca sokak bloğu.
+  const sokak = { baslik: KISA_GAZETE.sokak, satir: satir(depremOzeti(s)) };
+  return j.length > 0 ? [{ baslik: KISA_GAZETE.senin, satir: satir(oyuncuOzeti(s, juri)) }, sokak] : [sokak];
 }
 
 /** Sonucun ağırlığı (sıralama): çöken, ağır hasarlı, hasarlı, ayakta. */

@@ -7,7 +7,7 @@ import { PX, rastgele, snap, Tuval } from '../desk/pixel';
 import { hazirGostergesi, masaCiz, pikselDugme } from '../desk/props';
 import { Sokak, type SokakGirdi } from '../desk/Street';
 import { SON_GUN } from '../game/days';
-import { DOLGU_BASLIKLAR, FOTO_ALTI, GAZETE_ADI, GAZETE_TARIH, manset, oneCikanlar, sayiSatiri, zarfSatiri } from '../game/gazete';
+import { DOLGU_BASLIKLAR, FOTO_ALTI, GAZETE_ADI, GAZETE_TARIH, kisaSayiBloklari, manset, oneCikanlar, sayiSatiri, zarfSatiri } from '../game/gazete';
 import { depremOzeti, oyuncuOzeti, sokakKayitlari, type DepremBinaSonucu } from '../game/session';
 import { fadeIn, goTo } from '../systems/transition';
 import { SCENES } from './keys';
@@ -106,17 +106,21 @@ export class NewspaperScene extends Phaser.Scene {
     const sw = R - 40 - sx;
     const rnd = rastgele(v.tohum * 17 + 3);
     this.add.rectangle(sx - 20, FOTO.y - 8, PX, FOTO.h + 56, 0x1d1a18, 0.6).setOrigin(0);
-    const sayi = this.add
-      .text(snap(sx), snap(FOTO.y), sayiSatiri(oz), { fontFamily: FONT, fontSize: '36px', color: MUREKKEP, wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
-      .setOrigin(0, 0);
-    let y = snap(FOTO.y + sayi.height + 16);
     // Zarf izi (G17): kabul edilen zarfın binası hasar gördüyse.
     const zarf = zarfSatiri(v.sonuclar);
-    if (zarf) {
-      const z = this.add
-        .text(snap(sx), y, zarf, { fontFamily: FONT, fontSize: '30px', color: '#6e2a24', wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
+    let y: number;
+    if (juri) y = this.kisaSayilar(sx, sw, v.sonuclar, juri, zarf);
+    else {
+      const sayi = this.add
+        .text(snap(sx), snap(FOTO.y), sayiSatiri(oz), { fontFamily: FONT, fontSize: '36px', color: MUREKKEP, wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
         .setOrigin(0, 0);
-      y = snap(y + z.height + 12);
+      y = snap(FOTO.y + sayi.height + 16);
+      if (zarf) {
+        const z = this.add
+          .text(snap(sx), y, zarf, { fontFamily: FONT, fontSize: '30px', color: '#6e2a24', wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
+          .setOrigin(0, 0);
+        y = snap(y + z.height + 12);
+      }
     }
     cizgi(y, sx, R - 40);
     for (y += 24; y < FOTO.y + FOTO.h + 36; y += 20) this.add.rectangle(snap(sx), snap(y), snap(sw - rnd() * 24), 8, 0x6e675c, 0.55).setOrigin(0);
@@ -173,6 +177,37 @@ export class NewspaperScene extends Phaser.Scene {
     // goTo yalnızca ana kamerayı karartır: fotoğraf kamerası da aynı sürede sönsün (siyah ekranda asılı kalmasın).
     this.fotoKamera?.fadeOut(GECIS_MS, 0, 0, 0);
     goTo(this, SCENES.Result, data, GECIS_MS);
+  }
+
+  /**
+   * Kısa yolun sayıları (G30, T22): önce jürinin binaları, sonra bütün sokak (başlıklı iki blok), altında zarf izi.
+   * Sağ sütuna (fotoğrafın yanı) sığana kadar hepsi birlikte küçülür. Dönüş: alt çizginin y'si.
+   */
+  private kisaSayilar(sx: number, sw: number, sonuclar: readonly DepremBinaSonucu[], juri: ReadonlySet<string>, zarf: string | null): number {
+    const bloklar = kisaSayiBloklari(sonuclar, juri);
+    const alt = FOTO.y + FOTO.h + 44;
+    const metin = (y: number, t: string, boy: number, renk: string): Phaser.GameObjects.Text =>
+      this.add
+        .text(snap(sx), snap(y), t, { fontFamily: FONT, fontSize: `${boy}px`, color: renk, wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
+        .setOrigin(0, 0);
+    const yazilar: Phaser.GameObjects.Text[] = [];
+    for (let boy = 36; ; boy -= 2) {
+      for (const t of yazilar) t.destroy();
+      yazilar.length = 0;
+      let y = FOTO.y;
+      bloklar.forEach((b, i) => {
+        const bas = metin(y, b.baslik, boy - 4, '#3d3832');
+        const say = metin(bas.y + bas.height, b.satir, boy, MUREKKEP);
+        yazilar.push(bas, say);
+        y = say.y + say.height + (i < bloklar.length - 1 ? 12 : 16);
+      });
+      if (zarf) {
+        const z = metin(y, zarf, boy - 6, '#6e2a24');
+        yazilar.push(z);
+        y = z.y + z.height + 12;
+      }
+      if (y <= alt || boy <= 26) return snap(y);
+    }
   }
 
   /**
