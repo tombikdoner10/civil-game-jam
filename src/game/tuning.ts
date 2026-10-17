@@ -172,8 +172,8 @@ export const TUNING = {
    * Konuşma balonu: harf başına yazma süresi, metin bitince kalış süresi (taban + harf başı), gecikmeler (ms).
    * G33 (yalnızca konuşma; oyun kararlarına etkisi yok): beklemeMs denetçi bu kadar hiçbir şey yapmazsa kişi bir kez
    * mizacının bekleme cümlesini söyler (balon doluysa beklemeTekrarMs sonra yeniden dener); sorGiris SOR cevabına
-   * mizacın giriş cümlesinin eklenme oranı; sabirsizSoru aynı kişiye bu kaçıncı SOR / İSTE'den itibaren cevabın önüne
-   * sabırsız cümle eklenir.
+   * mizacın giriş cümlesinin eklenme oranı; sabirsizSoru mizaca göre aynı kişiye bu kaçıncı SOR / İSTE'den itibaren
+   * cevabın önüne sabırsız cümle eklenir (varsayılan 3; sinirli 2).
    */
   diyalog: {
     harfMs: 26,
@@ -184,7 +184,7 @@ export const TUNING = {
     beklemeMs: 25000,
     beklemeTekrarMs: 2000,
     sorGiris: 0.4,
-    sabirsizSoru: 3,
+    sabirsizSoru: { kibar: 3, sinirli: 2, telasli: 3, kurnaz: 3, cekingen: 3 },
   },
 
   /**

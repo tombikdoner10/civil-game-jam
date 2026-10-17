@@ -299,6 +299,8 @@ export class GameScene extends Phaser.Scene {
     // Tutarsızlık bulununca gişedeki kişi gerilir.
     this.inceleme.on('bulundu', () => {
       if (!this.mesgul) this.pencere.ifade('gergin');
+      // Kusur bulmak da eylem (G33): bekleme sayacı baştan.
+      this.eylem();
     });
     this.inceleme.on('ac', () => {
       this.eylem();
@@ -707,19 +709,19 @@ export class GameScene extends Phaser.Scene {
 
   /** Bu cevaba sabırsız cümlesi eklenecekse metnin önüne mizacın en uzun sabırsız cümlesi (sığma denetimi için). */
   private sabirsizPayi(kisi: Kisi, govde: string): string {
-    if (this.soruSayisi + 1 < TUNING.diyalog.sabirsizSoru) return govde;
+    if (this.soruSayisi + 1 < TUNING.diyalog.sabirsizSoru[kisi.mizac]) return govde;
     const enUzun = MIZAC_METIN[kisi.mizac].sabirsiz.reduce((a, b) => (b.length > a.length ? b : a), '');
     return `${enUzun}\n${govde}`;
   }
 
   /**
-   * Aynı kişiye üçüncü ve sonraki SOR / İSTE (TUNING.diyalog.sabirsizSoru): cevabın önüne yeni satırda mizacın
+   * Aynı kişiye eşikteki ve sonraki SOR / İSTE (TUNING.diyalog.sabirsizSoru, mizaca göre): cevabın önüne yeni satırda mizacın
    * sabırsız cümlesi; yüz sabırsız yüzü, cevabın kendi yüzü daha güçlüyse o (IFADE_GUC). Sığmazsa eklenmez.
    */
   private sabirsizEkle(kisi: Kisi, govde: string, ifade: Ifade): [string, Ifade] {
     this.soruSayisi++;
-    if (this.soruSayisi < TUNING.diyalog.sabirsizSoru) return [govde, ifade];
     const m = kisi.mizac;
+    if (this.soruSayisi < TUNING.diyalog.sabirsizSoru[m]) return [govde, ifade];
     const anahtar = `sabirsiz:${m}`;
     const metin = `${this.deste.cek(anahtar, MIZAC_METIN[m].sabirsiz, this.degisken())}\n${govde}`;
     if (!this.pencere.sigar(metin, true)) {
@@ -730,7 +732,7 @@ export class GameScene extends Phaser.Scene {
     return [metin, IFADE_GUC[ifade] >= IFADE_GUC[s] ? ifade : s];
   }
 
-  /** Denetçi bir şey yaptı (SOR, İSTE, saha, zarf, inceleme açma): bekleme sayacı baştan başlar. */
+  /** Denetçi bir şey yaptı (SOR, İSTE, saha, zarf, inceleme açma, kusur bulma): bekleme sayacı baştan başlar. */
   private eylem(): void {
     if (!this.beklemeSoylendi) this.beklemeKur();
   }
