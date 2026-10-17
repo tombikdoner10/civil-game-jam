@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G25 [teknik] Son cila (küçük): G11 testi: büyük deprem/gece sahnesi ~30 sn ve Enter ile geçilemiyor (atlama ya da kısaltma); gün 1 raporundaki iki düğme ortalı/eş genişlikte değil; küçük deprem satırı sayısı listeyle tutarsız görünüyor ("2 bina çatladı: …" tek sayı); menüde iskeleli ve şeritli bina daha görünür; DEV Enter kısayolunun (günü bitirir) normal oyunda olmadığını doğrula. inceleme ipucu, oyuncu kusuru incelemeyle bulduysa çıkmasın (zarf alınan yanlış kararda yersiz); sonuç ekranı sağ üstündeki "5 GÜN" yazısı gözden geçirilsin; menüde bina tohumu video için sabitlenebilsin.
 
 ## Sırada
 
@@ -20,7 +21,6 @@ Ara test sonrası (sıra 01.30: G18 → G21 → G5b → G22 → G19 → G20; öz
 
 
 
-- [ ] G25 [teknik] Son cila (küçük): G11 testi: büyük deprem/gece sahnesi ~30 sn ve Enter ile geçilemiyor (atlama ya da kısaltma); gün 1 raporundaki iki düğme ortalı/eş genişlikte değil; küçük deprem satırı sayısı listeyle tutarsız görünüyor ("2 bina çatladı: …" tek sayı); menüde iskeleli ve şeritli bina daha görünür; DEV Enter kısayolunun (günü bitirir) normal oyunda olmadığını doğrula. inceleme ipucu, oyuncu kusuru incelemeyle bulduysa çıkmasın (zarf alınan yanlış kararda yersiz); sonuç ekranı sağ üstündeki "5 GÜN" yazısı gözden geçirilsin; menüde bina tohumu video için sabitlenebilsin.
 
 Araçlar ve derinlik (ara test sonrası saha testi bunların yerini alıyor; düşük öncelik)
 
