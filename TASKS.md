@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G31b [teknik] (bitti d432259, test sürüyor, Opus/low) Ruhsat diyaloglarında mühür → ruhsat tarihi; klasörde Kural: tekrarı; ev kademe adları büyük harf.
 - [ ] G31c [teknik] (sürüyor, Opus/high) G31 testinin cila bulguları: gün sonu çift iki nokta; kaçak kat diyaloğu tekil "kat"; EVİN kartında sıradaki taksit ile ilerleme çubuğu çelişkisi; "Boşaltılmış (toplam)" toplamla karışıyor; sonuçta İADE altı "1 çöktü" belirsiz; gazete sayı satırında "·" satır başına düşüyor; incelemede "(zemin dahil)" vurgu çerçevesine biniyor; Emeği Geçenler kaydırma maskesinde kalıntı.
 
 ## Sırada
@@ -75,6 +74,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G31b Ruhsat diyaloglarında mühür → ruhsat tarihi; klasörde "Kural:" öneki yok; ev kademe adları büyük harf (d432259, Opus/high; test GEÇTİ, 5 koşu hatasız)
 - [x] G31 Lider onaylı metinler oyunda: Kâğıt Üstünde, Dereboyu Postası, yer tutucu 553 → 0, Ruhsat tarihi / Ruhsatsız yapı, sadeleştirme satırı, ev metinleri, hikâye binaları, Takımın kararları, dürüst AI beyanı; adalet 567025/0 (766b2d8 + 473cea7, Opus/high; test GEÇTİ, 9 koşu hatasız)
 - [x] G45 Gün 1 son kusurlu dosyada zarf kendiliğinden (60–100 TL, ayrı RNG), soyut ev 0/1/2/3 = ağır/hasarlı/hafif/hasarsız, kendi apartman her taksitte bir kademe, EVİN kartında Alındı, bağlam cümlesi, çöken evde sabitleme cümlesi yok; adalet 567025/0 (457f759 + c500b38, Opus/high; test geçti)
 - [x] G44 Kısmi taksit (2/3) kendi apartmanda bir kademe iyileştirir; dev ?ev= harcananı şişirmez; adalet 563136/0, bina dağılımı aynı (f44cb01, Opus/high; test geçti)
