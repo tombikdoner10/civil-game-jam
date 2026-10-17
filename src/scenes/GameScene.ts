@@ -787,8 +787,9 @@ export class GameScene extends Phaser.Scene {
       const gerekce = `${sonuc.etiketler.join(', ') || 'Kusur yok'} → ${DAMGA_ADI[damga]}`;
       let metin = sonuc.dogru ? `Doğru karar\n${gerekce}` : `Yanlış karar\nDoğrusu: ${DAMGA_ADI[sonuc.dogruDamga]}\n${kusurlar}`;
       // İnceleme kullanılmadan verilen ilk yanlış kararda (oturumda bir kez, G24) inceleme ipucu; ceza yok. Oyuncu bu
-      // dosyada kusuru incelemeyle bulduysa ipucu çıkmaz (G25): incelemeyi zaten biliyor.
-      if (!sonuc.dogru && !incelemeIpucuGosterildi && (sonKarar?.bulunan.length ?? 0) === 0) {
+      // dosyada kusuru incelemeyle bulduysa ipucu çıkmaz (G25): incelemeyi zaten biliyor. Kusursuz dosyada da çıkmaz
+      // (G27): kanıtlanacak kusur yok; ipucu hakkı kusurlu bir dosyadaki ilk yanlışa kalır.
+      if (!sonuc.dogru && !incelemeIpucuGosterildi && sonuc.kusurlar.length > 0 && (sonKarar?.bulunan.length ?? 0) === 0) {
         incelemeIpucuGosterildi = true;
         metin += `\n${INCELE_IPUCU}`;
       }
