@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G55 [teknik] (bitti 4097393, test sürüyor, Opus/low) Gün sonu raporunda NO sütunu kalksın ("01 Bina 09" karışıyor).
 
 ## Sırada
 
@@ -74,6 +73,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G55 Gün sonu raporunda NO sütunu yok, BİNA ilk sütun (4097393, Opus/high; test GEÇTİ)
 - [x] G54 Sokak boyunca tek bina numarası; iade satırı durumla; klasör numaraları sekme sırasıyla, iki haneli numara yapışmıyor; karot/zemin etüdü metni (e14cf70, Opus/high; test GEÇTİ)
 - [x] G53 Kısa kural metinleri; klasörde KONUM sekmesi (dere, fay), saha testi BETON'da; gün 2–5 her sekme tek sayfa (88decf8, Opus/high; test GEÇTİ)
 - [x] G52 Takım üyeleri Emeği Geçenler ve README'de (f1ed17c, Opus/high; test GEÇTİ)
