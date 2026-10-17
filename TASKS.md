@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G61b [teknik] (sürüyor, Opus/high) Interface Sounds kullanım metni (saha testi sesleri), UI Audio "Menü ve ekran düğmeleri"; vaziyet planında Ada/Parsel satırının tamamı seçilebilir.
+- [ ] G61b [teknik] (bitti c9a64d7, G61 ile birlikte test sürüyor, Opus/low) Interface Sounds kullanım metni (saha testi sesleri), UI Audio "Menü ve ekran düğmeleri"; vaziyet planında Ada/Parsel satırının tamamı seçilebilir.
 - [ ] G61 [teknik] (bitti a06ebf8; test G61b ile birlikte) Emeği Geçenler beyan düzeltmeleri: UI Audio kullanımı ve "değiştirildi" (konuşma balonu sesi), Interface Sounds ifadesi, AI Diğer araç satırına Fable 5.1 (eleştirmen 9), Takımın kararlarına müfettiş maddesi; README ve AI_BEYAN aynı.
 
 ## Sırada
