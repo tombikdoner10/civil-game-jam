@@ -8,13 +8,12 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G36 [teknik] (sürüyor, Opus/high) Takım kararı: sahte ruhsatın doğru damgası İADE (öteki geçersiz belgeler gibi); kural notu/klasör yer tutucu metni ve fiş buna uysun; adalet denetimi güncellensin.
+- [ ] G35 [teknik] (sürüyor, Opus/high) Cila: raporda bulunan kusurda kaçak kat farkı (+n); 5 günlük yol gazetesinde bina adları raporla eşleşsin ("Gün N · Bina 0X"); gazete/değerlendirmede tekil/çoğul ("bina çöktü" / "binalar çöktü") seçimi; gün 5 inceleme çerçevesi ve etiketin belge değerlerini örtmesi; saha "[+30 dk]" etiketinin beton yüzeyine taşması.
 
 ## Sırada
 
 Son test (xhigh, 78/100) sonrası (sıra: G34 → G36 → G35 → G31)
 
-- [ ] G35 [teknik] Cila: raporda bulunan kusurda kaçak kat farkı (+n); 5 günlük yol gazetesinde bina adları raporla eşleşsin ("Gün N · Bina 0X"); gazete/değerlendirmede tekil/çoğul ("bina çöktü" / "binalar çöktü") seçimi; gün 5 inceleme çerçevesi ve etiketin belge değerlerini örtmesi; saha "[+30 dk]" etiketinin beton yüzeyine taşması.
 
 Eleştirmen 4 sonrası (sıra: G31 (metinler gelince))
 
@@ -59,7 +58,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 - [x] T22 [takım] KARAR (06:34): kısa yol gazetesinde önce jürinin binaları ("senin binaların"), sonra bütün sokak; görmediği İADE/içi boş satırları gizli. → G30
 - [x] T16 [takım] KARAR A + C (01.30): gün 1 sonunda "Depremi şimdi yaşa" (G21) + video/anlatım. Jüri büyük depremi normal yolla göremiyor (5 gün ~8–10 dk). Seçenekler: menüde "Depremi göster" düğmesi, kısa mod, ya da yalnızca sunum/video için ?dev&deprem adresi. Karar takımın (tema ve yaratıcılık puanı).
 - [ ] T17 [takım] Diyalog metinleri: mal sahiplerinin bahaneleri, itirafları, zarf teklifleri, belge getirme/getirememe cümleleri (G17 yer tutucuları). Kural kitabı satırlarının son metni (G16).
-- [ ] T18 [takım] G16 sonrası: fay kuralı (şu an dere gibi zemine bağlı; TUNING.fayKurali "bosalt" yapılabilir), gün 4'te sıvılaşma sıklığı (yakinZemin.sivilasma 0.3 → 0.2?), İADE rengi ve sesi, sahte belge cezası (şu an GÜÇLENDİR).
+- [ ] T18 [takım] G16 sonrası: fay kuralı (şu an dere gibi zemine bağlı; TUNING.fayKurali "bosalt" yapılabilir), gün 4'te sıvılaşma sıklığı (yakinZemin.sivilasma 0.3 → 0.2?), İADE rengi ve sesi, sahte belge (G36: artık İADE; İADE edilen sahte ruhsatlı bina depremde "denetlenmedi" sayılıp ağır hasar alıyor — böyle kalsın mı?).
 - [ ] T19 [takım] G17a: portreleri ?dev&portreler ile onayla; diyalog metinleri src/game/diyalog.ts (T17); zarf sıklığı (gün 5'te %60, TUNING.kisi.zarf); konuşma/zarf seslerini dinle; oyun içi takvim (TAKVIM). Zarf alınca damga yine DOĞRU sayılıyor (rüşvetin ağırlığı düşük): sonuçta ceza, gazetede iz ya da müfettiş olayı istenir mi? İnceleme modunda saat akmaya devam ediyor (zaman baskısı); yavaşlasın mı?
 - [ ] T20 [takım] TAKVİM (takım kararı 01.30): bütün metinler (oyun adı, diyalog, kural metinleri, gazete, gün 1 çerçeve cümlesi, Emeği Geçenler isimleri) Cumartesi 18.00'e kadar; özellik dondurma Cumartesi 24.00; video Pazar 10.00–12.00; kod dondurma Pazar 15.00.
 - [ ] T21 [takım] Eleştirmen 3 mühendis soruları (T12 ile): Schmidt çekici tek başına BOŞALT kararı verdirir mi (TS EN 13791, karot korelasyonu, sıva), R→MPa tablosu kaynağı; mevcut binada 20 MPa tahliye nedeni mi (Riskli Yapıların Tespit Esasları 2019); dere 30 m / fay 150 m kaynağı. Metin önceliği: 1) oyun adı, menü, çerçeve cümlesi 2) gün 1'de görünen her şey 3) gazete ve değerlendirme 4) gün 1 diyalogları 5) 2–5. gün kuralları ve saha.
@@ -70,6 +69,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G36 Sahte ruhsat İADE (yalnızca gün 5; İADE kaşesi gün 3ten); kural metni yer tutucusu İADE; bulunan ≤ kusur sayımı; Yeniden Başlada ipucu sıfırlanıyor; adalet 33301/0 (4a4da7d + e7df6b4, Opus/high; test bekliyor)
 - [x] G34 İSTE/saha sonrası fiş, gerekçe ve rapor aynı ve bilgiye göre doğru; inceleme ipucu yeni oyunda sıfırlanıyor; adalet bayt bayt aynı (767d109, Opus/high; test sürüyor)
 - [x] G33 Diyalog çeşitliliği: mizaç (portre tohumundan), tekrarsız deste, ruhsat değişkenleri, sabırsızlık (sinirli 2., diğerleri 3. soru) ve ~25 sn bekleme; 393 taslak cümle (dde59ff + c0a76cc, Opus/high; test geçti)
 - [x] G32 T23 rapor satırı kısaldı; T24 gazete PIZZI03, sonuç PIZZI02/01 (Pizzicato), sahne kapanınca susuyor; gün sonu jinglesı rapor kapanınca kesiliyor (7a53984 + a23cd04, Opus/high; test geçti)
