@@ -11,8 +11,10 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Sırada
 
-Son test (xhigh, 78/100) sonrası (G34, G36, G35 bitti; sırada G31)
+Son test (xhigh, 78/100) sonrası (G34, G36, G35 bitti; sırada G38 → G37 → G31)
 
+- [ ] G37 [teknik] Kısa yol manşeti ve değerlendirmesi "senin binaların + sokak" (T31 kararı: senin binaların ayakta, sokakta denetlenmeyen binalar çöktü; yer tutucu); değerlendirmede aynı binanın iki kez sayılması (onaylı + zarflı aynı bina).
+- [ ] G38 [teknik] (sürüyor, Opus/high) Emeği Geçenler sırası (Takım → Takımın kararları → Hazır kaynaklar → AI; boş TAKIM_KARARLARI gizli); deprem genel planı kadrajı ve etiket kırpılması; npm run yer-tutucu betiği.
 
 Eleştirmen 4 sonrası (sıra: G31 (metinler gelince))
 
@@ -37,6 +39,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Takım işleri
 
+- [ ] T31 [takım] ÖNCELİKLİ METİNLER (18.00; madde 4.3): oyun adı (config.ts TITLE), gazete adı ve şehir adı, çerçeve cümlesi (diyalog.ts CERCEVE), gün 1 kural notu (rules.ts), manşetler ve değerlendirmeler (gazete.ts; tekil/çoğul T30; kısa yol "senin binaların + sokak" G37), gün 1de görünen selam, damga tepkisi ve zarf cümleleri (diyalog-metin.ts). Diyalog taslaklarını okuyup seç/düzelt (T28). Bitince beyan "AI taslağı, takım düzenledi" olur (G31).
 - [ ] T30 [takım] Manşet ve değerlendirme metinlerinin tekil ve çoğul biçimleri (src/game/gazete.ts, {tekil, cogul} çiftleri; G35 yer tutucu yazdı).
 - [ ] T28 [takım] Diyalog taslaklarını oku ve düzelt: src/game/diyalog-metin.ts (393 cümle; 5 mizaç × selam/bekleme/sabırsızlık/giriş/zarf/damga tepkisi; 12 kusur × bahane/itiraf/zarf; İSTE; zarf isteği). Beğenmediğini sil ya da değiştir; köşeli parantezleri onayladıklarından kaldır. Son tarih 18.00. Test gözlemi: damga tepkileri mizaç başına 3 cümle, uzun oyunda/oyunlar arası tekrar edebilir; çoğaltmak isterseniz ekleyin.
 - [ ] T6 [takım] (T24 sonrası) Sesleri dinle: 42 Kenney sesi + G32 jingle'ları; değiştirmek istediğini söyle.
