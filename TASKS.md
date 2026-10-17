@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G55 [teknik] (sürüyor, Opus/high) Gün sonu raporunda NO sütunu kalksın ("01 Bina 09" karışıyor).
+- [ ] G55 [teknik] (bitti 4097393, test sürüyor, Opus/low) Gün sonu raporunda NO sütunu kalksın ("01 Bina 09" karışıyor).
 
 ## Sırada
 
