@@ -7,7 +7,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
 - Kontrol 2 (ara oyun testi): TAMAM (16 Ekim 23.53, geri bildirim işlendi)
 - Kontrol 3 (son teslim): BEKLİYOR
-- Son eleştirmen: 2026-10-17T18:19+03:00
+- Son eleştirmen: 2026-10-17T21:10+03:00
 - Kullanım düzeyi: normal
 
 ## Günlük
@@ -222,3 +222,5 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 20:38 · Test (G50, opus/low, 7 koşu hatasız): gün 2 ve 3'te kapalı klasöre tık seçim yapmıyor, satır + belge alanı kusuru buluyor; X ve Esc doğru; üstü örtülü klasörde tık belgeye gidiyor (eski davranış); gün 1 ve kısa yol gerileme yok GEÇTİ · Not: örtülü klasörde YENİ rozeti görünüyor (hata değil, değişiklik yok) · Karar: G50 yayına
 - 20:40 · G50 canlıda (cf2e6e7; JS paketinde hash ve canlı smoke doğrulandı; son-saglam taşındı) · Açık teknik görev yok · Sıradaki: eleştirmen 9 (~21.20, son metinler ve kapsam garantisiyle), özellik dondurma 24.00
 - 20:56 · Karar (takım, Egemen): eleştirmen 9 tek seferlik Fable 5.1 high eforla; .claude/settings.json availableModels'a fable geçici eklendi, eleştirmen bitince kaldırılacak · Neden: dondurmadan önce farklı bir modelin ikinci gözü; Fable haftalık kotası ayrı (%0) · Kural değişmez: geliştirici ve test oyuncusu Opus · Sıradaki: eleştirmen 9 (hedef teslim/test-e6bbad4 = canlı cf2e6e7)
+- 21:11 · Eleştirmen 9 (Fable 5.1 high, tek seferlik; 7 koşu hatasız): ~85/100 (oyn. 21, tema 23, yarat. 15, görsel 12, teknik 14; E8 ile aynı) · 30 sn EVET, tema EVET, mühendis jüri için sayılar doğru ve sadeleştirme beyanlı · Yeni bulgular: klasör açıkken Esc duraklatıyor; kısa yolda doğru GÜÇLENDİR kararı gazetede ödülsüz ("hasarlı; GÜÇLENDİR geçmişti"); zarflı GÜVENLİ fişinde "Space ile incele" ipucu; damgadan sonra etiketteki SOR aktif görünüyor; para eksiye düşüyor; gün 4 kural yoğun (6 yeni kural) · Görmediği: gün 4–5 dosyalarının tamamı, Emeği Geçenler, sesler, 720p · Fable ayardan kaldırıldı (settings.json commit edilmedi, eski hâlinde)
+- 21:11 · Karar (lider): G51 = Esc önce klasörü kapatır; kısa yol gazete/sonuçta GÜÇLENDİR damgalı hasarlı bina "hasarlı ama ayakta: güçlendirilmişti"; zarflı fişte inceleme ipucu yerine "Zarfı aldın; istenen kaşeyi vurdun."; birikmiş para 0'ın altına inmez (rapor "ceza maaşı aştı"); damga sonrası etiket düğmeleri sönük · Zemin etüdü ZA–ZF eki yok (halk dili kararı kalır; yanlış eşleme riski) · Neden: oynanabilirlik ve doğru kararın ödülü; düşük risk, küçük · Sıradaki: G51 geliştiricide (dondurma 24.00)

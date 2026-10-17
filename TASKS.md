@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G51 [teknik] (sürüyor, Opus/high) Eleştirmen 9 düzeltmeleri: Esc önce açık klasörü kapatır; kısa yolda GÜÇLENDİR damgalı hasarlı bina gazete/sonuçta "hasarlı ama ayakta: güçlendirilmişti"; zarf alınmış dosyanın fişinde inceleme ipucu yok; para eksiye düşmez; damgadan sonra etiketteki SOR/İSTE sönük.
 
 ## Sırada
 
