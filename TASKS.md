@@ -74,7 +74,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
-- [x] G44 Kısmi taksit (2/3) kendi apartmanda bir kademe iyileştirir; dev ?ev= harcananı şişirmez; adalet 563136/0, bina dağılımı aynı (f44cb01, Opus/high; test sürüyor)
+- [x] G44 Kısmi taksit (2/3) kendi apartmanda bir kademe iyileştirir; dev ?ev= harcananı şişirmez; adalet 563136/0, bina dağılımı aynı (f44cb01, Opus/high; test geçti)
 - [x] G43 Ekonomi kademeli: 3 kademe × 3 kalem (toplam 560 TL), güçlendirme 3 taksit, kart ilerlemesi, Senin evin kademeye göre, kendi apartman yalnız 3/3te GÜÇLENDİR; adalet 561060/0, bina dağılımı aynı; kusursuz dürüst oyuncu gün gün 2/4/6/7/9 kademe (759a6aa + 421e7f4, Opus/high; test geçti)
 - [x] G42 Kendi evin hazırlığı: ev.ts (30/20/60 TL, temiz para önce, zarfla işareti), gün sonunda EVİN kâğıdı, gazetede [Senin evin], sonuçta SENİN EVİN; 5 günlükte kendi apartmanla tutarlı; adalet 104634/0, bina dağılımı aynı (12af66b + e0c3505 + efba07f, Opus/high; test geçti)
 - [x] G41 Rapordan depreme geçişte basış tamponu (girisTamponu.ts), menüde erken tık saklanıyor, genel planda etiket tam opak ya da gizli, belgeler kural notunun altından kayıyor (0e6a5f8, Opus/high; test geçti)
