@@ -11,6 +11,7 @@ import { TUNING } from '../game/tuning';
 import { DEPREM_ATLA, DEPREM_GEC, GECE_SAATI, SENIN_DAMGAN, sonucEtiketi } from '../game/gazete';
 import { ZARF_ETIKET } from '../game/diyalog';
 import { Controls } from '../systems/controls';
+import { tamponAl } from '../systems/girisTamponu';
 import { goTo } from '../systems/transition';
 import { SCENES } from './keys';
 import type { NewspaperData } from './NewspaperScene';
@@ -44,10 +45,11 @@ const ETIKET_EN_AZ = 0.8;
 const ETIKET_ARA = 32;
 /**
  * G38: etiketlerin ekran payları (px). sol/sag: etiket bu çizgilerin dışına taşmaz (kenarda kırpılmaz); ust: etiketin
- * tepesi köşedeki "[Bir gece]" ve hızlandırma ipucunun (y ≈ 10-80) altında kalır. Binasının ortası ekran kenarına
- * solmaPay kadar yaklaşınca etiket sönmeye başlar, solma px sonra tamamen sönmüş olur (sönmüş etiket yer kaplamaz).
+ * tepesi köşedeki "[Bir gece]" ve hızlandırma ipucunun (y ≈ 10-80) altında kalır. G41: binasının ortası ekrandaysa
+ * etiket tam opak, ekran dışındaysa gizli; ara geçiş yalnızca solmaMs (gerçek zaman) sürer, sokak durduğunda yarı
+ * saydam etiket kalmaz (sönmüş etiket yer kaplamaz).
  */
-const EKRAN = { sol: 24, sag: 1896, ust: 104, solmaPay: 80, solma: 160 };
+const EKRAN = { sol: 24, sag: 1896, ust: 104, solmaMs: 160 };
 
 /** Oyuncunun binasının deprem sonucunun rengi: içinde insan varken ağır sonuç kırmızı, boş binada gri. */
 export function sonucRengi(s: DepremBinaSonucu): string {
@@ -65,6 +67,9 @@ const ZAMAN = { saatGel: 400, saatGit: 2600, perde: 3000, perdeSure: 1600, depre
  * Gece kartı ("[Bir gece]") göründükten koruma ms sonra gelen YENİ basış (tuş tekrarı değil) saklanır ve kart bitince
  * uygulanır (G28; birinci basış sayılır): rapordan kısa yolu başlatan Enter ya da basılı tutulan tuş depremi
  * atlatmaz. Hiç basılmazsa deprem tam süre oynar. Kart bittikten sonraki basış hemen uygulanır.
+ * G41: rapordan gelindiyse (girisTamponu) rapor kararırken gelen basışlar da sayılır: rapor Enter'ından en az ikinci ms
+ * sonraki yeni basış (tuş tekrarı değil) saklanır; rapor Enter'ı ve onun ikinci ms içindeki çift basışı sayılmaz. Bu
+ * durumda koruma beklenmez (sahne açıldığında rapor Enter'ının üstünden en az kararma süresi geçmiştir).
  */
 const ATLA = { koruma: 250, kat: 3, rampa: 500, ikinci: 300 };
 /**
@@ -231,6 +236,17 @@ export class QuakeScene extends Phaser.Scene {
     let saklanan = 0;
     /** Son kabul edilen basışın gerçek zamanı (ms): sonraki basış en az ATLA.ikinci ms sonra sayılır. */
     let sonBasis = -Infinity;
+    // Rapordan gelindiyse (G41): kararma sırasında toplanan basışlar; aralık kuralı rapor Enter'ından başlar.
+    const tampon = tamponAl();
+    if (tampon) {
+      saklanabilir = true;
+      sonBasis = tampon.baslangic;
+      for (const t of tampon.basislar) {
+        if (saklanan >= 2 || t - sonBasis < ATLA.ikinci) continue;
+        saklanan++;
+        sonBasis = t;
+      }
+    }
     this.time.delayedCall(girisAcik, () => {
       saklanabilir = true;
       if (gidildi || saklanan > 0) return;
@@ -251,6 +267,9 @@ export class QuakeScene extends Phaser.Scene {
       this.tweens.killTweensOf(ipucu);
       ipucu.setScale(1).setAlpha(0.55);
     };
+    // Kararmada saklanan basışlar ipucuna hemen yansır (gece kartındaki basış gibi).
+    if (saklanan === 1) ipucuGec();
+    else if (saklanan >= 2) ipucuSondur();
     const hizlandir = (): void => {
       if (hizli || gidildi || bitti) return;
       hizli = true;
@@ -364,7 +383,7 @@ export class QuakeScene extends Phaser.Scene {
   /** Kısa yolda sonuç etiketleri (ilk grup tepki verince görünür). */
   private sonucEtiketleri: (() => void)[] = [];
   /** Kısa yolda oyuncunun binalarının etiketleri (ekran katmanında; her karede sokağa göre yerleşir). */
-  private etiketler: { e: BinaEtiketi; yer: number }[] = [];
+  private etiketler: { e: BinaEtiketi; yer: number; alfa?: number }[] = [];
   private sokak?: Sokak;
   private bagCizgi?: Phaser.GameObjects.Graphics;
 
@@ -382,16 +401,17 @@ export class QuakeScene extends Phaser.Scene {
   /**
    * Etiketleri binalarının üstüne yerleştir: sabit en az boy, çakışma yok, kayan etikete bağ çubuğu (G21b). G38:
    * etiket hiçbir zaman ekran kenarında kırpılmaz (EKRAN payları içine sıkıştırılır, köşe yazılarının altında kalır);
-   * binası ekrandan çıkan etiket kenarda durup söner.
+   * binası ekrandan çıkan etiket kenarda durup söner. delta: gerçek geçen süre (ms; sönme hızı için, 0 = hemen).
    */
-  private etiketYerlestir(): void {
+  private etiketYerlestir(delta = 0): void {
     const sokak = this.sokak;
     if (!sokak || this.etiketler.length === 0) return;
     const g = sokak.gorunum;
     const sc = Phaser.Math.Clamp(g.olcek, ETIKET_EN_AZ, 1);
     const { sol: L, sag: R } = EKRAN;
     const ogeler = this.etiketler
-      .map(({ e, yer }) => {
+      .map((et) => {
+        const { e, yer } = et;
         const k = sokak.yerelKutu(yer);
         // ust: çubuğun indiği yer (çöken binada moloz yığını, G23).
         const ust = g.y + sokak.ustKenar(yer) * g.olcek;
@@ -399,9 +419,13 @@ export class QuakeScene extends Phaser.Scene {
         const ax = g.x + k.centerX * g.olcek;
         // Hedef: binanın ortası, ekran payları içine sıkıştırılmış.
         const hedef = Phaser.Math.Clamp(ax, L + w / 2, R - w / 2);
-        // Binası ekran kenarından çıktıkça etiket söner (kenarda yığılıp başka binanınmış gibi durmasın).
-        const disari = Math.max(0, EKRAN.solmaPay - ax, ax - (1920 - EKRAN.solmaPay));
-        const alfa = Phaser.Math.Clamp(1 - disari / EKRAN.solma, 0, 1);
+        // Binasının ortası ekran dışına çıkınca etiket söner (kenarda yığılıp başka binanınmış gibi durmasın); ekrandaysa
+        // tam opak (G41: durağan karede yarı saydam etiket yok). Geçiş kısa ve gerçek zamanla.
+        const hedefAlfa = ax >= 0 && ax <= 1920 ? 1 : 0;
+        const adim = delta > 0 ? Math.min(delta, 100) / EKRAN.solmaMs : 1;
+        const once = et.alfa ?? hedefAlfa;
+        const alfa = hedefAlfa > once ? Math.min(hedefAlfa, once + adim) : Math.max(hedefAlfa, once - adim);
+        et.alfa = alfa;
         e.kap.setAlpha(alfa).setVisible(alfa > 0);
         return { e, ax, ay: g.y + k.y * g.olcek, ust, w, hedef, x: hedef, alfa };
       })
@@ -445,7 +469,7 @@ export class QuakeScene extends Phaser.Scene {
 
   update(_time: number, delta: number): void {
     this.hizAdim?.(delta);
-    this.etiketYerlestir();
+    this.etiketYerlestir(delta);
     if (this.controls.justDown('pause')) this.duraklat();
   }
 

@@ -13,6 +13,7 @@ import { KISA_YOL_ACIKLAMA, KISA_YOL_DEVAM, KISA_YOL_DUGME, kucukDepremSatiri } 
 import { kisaYolKayitlari } from '../game/ornek';
 import { gunHesabi, kusurEtiketi, type GunKaydi, type Karar, type SarsintiKaydi } from '../game/session';
 import { TUNING } from '../game/tuning';
+import { tamponBaslat } from '../systems/girisTamponu';
 import { fadeIn, goTo } from '../systems/transition';
 import type { GameData } from './GameScene';
 import { SCENES } from './keys';
@@ -325,12 +326,15 @@ export class DayEndScene extends Phaser.Scene {
         kayitlar: [...kayitlar, ...kisaYolKayitlari(v.tohum)],
         kisa: { gercek: kayitlar, juri: v.kararlar.map((k) => k.dosyaId) },
       };
+      // Kararma sırasında gelen yeni basış kaybolmasın (G41): depremde hızlandırma olarak uygulanır.
+      tamponBaslat();
       goTo(this, SCENES.Quake, data, 600);
       return;
     }
     if (v.gun >= SON_GUN) {
       // Son gün: gece ve büyük deprem (gece geçişi QuakeScene'de; buradan daha yavaş kararır).
       const data: DepremData = { tohum: v.tohum, para: yeniPara, kayitlar };
+      tamponBaslat();
       goTo(this, SCENES.Quake, data, 600);
       return;
     }

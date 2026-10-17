@@ -133,12 +133,35 @@ export class MenuScene extends Phaser.Scene {
     buttons.forEach((button, i) => popIn(this, button, 80 + i * 50));
     // İlk Enter doğrudan "Oyna" (G23: menü ilk girdiye tepki versin).
     new MenuNav(this, buttons, { varsayilan: 0 });
+    this.erkenTikla(buttons, 80 + (buttons.length - 1) * 50 + 320);
 
     // Altta, asfaltın üstünde.
     label(this, 48, HEIGHT - 30, TEAM, { size: 32, color: num(PAL.panelYazi), align: 'left' });
     label(this, WIDTH - 48, HEIGHT - 30, `sürüm ${VERSION}`, { size: 28, color: num(PAL.panelYazi), align: 'right' });
 
     // Menü müziği jam sırasında eklenecek: music.play(SONGS.menu)
+  }
+
+  /**
+   * Düğmeler büyüyerek belirirken (popIn) tıklanamıyordu: menü görünür ama ilk tık kayboluyordu (G41). Hazır olana kadar
+   * düğmelerin kendi tıklaması kapalı; o sırada bir düğmenin (son boyundaki) alanına gelen tık saklanır ve menü hazır
+   * olunca o düğmeye bir kez basılır. Enter zaten MenuNav'la hemen çalışır; geçiş başlamışsa (goTo) ikinci basış etkisiz.
+   */
+  private erkenTikla(buttons: Button[], hazirMs: number): void {
+    let hazir = false;
+    let bekleyen: Button | undefined;
+    for (const b of buttons) b.disableInteractive();
+    const tik = (p: Phaser.Input.Pointer): void => {
+      if (hazir || bekleyen) return;
+      bekleyen = buttons.find((b) => Math.abs(p.worldX - b.x) <= b.width / 2 && Math.abs(p.worldY - b.y) <= b.height / 2);
+    };
+    this.input.on(Phaser.Input.Events.POINTER_DOWN, tik);
+    this.time.delayedCall(hazirMs, () => {
+      hazir = true;
+      this.input.off(Phaser.Input.Events.POINTER_DOWN, tik);
+      for (const b of buttons) b.setInteractive({ useHandCursor: true });
+      if (bekleyen && this.input.enabled) bekleyen.press();
+    });
   }
 
   /**

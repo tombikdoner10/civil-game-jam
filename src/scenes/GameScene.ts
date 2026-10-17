@@ -499,6 +499,9 @@ export class GameScene extends Phaser.Scene {
       });
       return k;
     });
+    // Gişeden gelen belgelerin yolu kural notunun üstünden geçmesin (G41): not yeni belgelerin üstünde çizilir, belgeler
+    // altından kayıp yerine oturur (yerleşimde notla belgeler çakışmaz).
+    if (this.not?.active) this.not.setDepth(ustKatman());
   }
 
   /** Dosyanın bütün belgeleri masada: masa açılır, saat işler; gün 1 ilk dosyada kaşelik göz kırpar. */
