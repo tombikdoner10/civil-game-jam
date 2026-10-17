@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G25 [teknik] Son cila (küçük): G11 testi: büyük deprem/gece sahnesi ~30 sn ve Enter ile geçilemiyor (atlama ya da kısaltma); gün 1 raporundaki iki düğme ortalı/eş genişlikte değil; küçük deprem satırı sayısı listeyle tutarsız görünüyor ("2 bina çatladı: …" tek sayı); menüde iskeleli ve şeritli bina daha görünür; DEV Enter kısayolunun (günü bitirir) normal oyunda olmadığını doğrula. inceleme ipucu, oyuncu kusuru incelemeyle bulduysa çıkmasın (zarf alınan yanlış kararda yersiz); sonuç ekranı sağ üstündeki "5 GÜN" yazısı gözden geçirilsin; menüde bina tohumu video için sabitlenebilsin.
 
 ## Sırada
 
@@ -85,3 +84,4 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 - [x] G23b [teknik] Gazete zarf satırı yalnızca oyuncunun zarfları, kısa yol manşeti/değerlendirme jüri binalarına dayalı ve tutarlı, ikinci Enter ~0,5 sn + hazır göstergesi, küçük n, deprem yakın planında odak dışı soluk, 720p etiket payı, fiş ekranda, saha paneli (089c397, Opus/high; adalet 30909 denetim 0 hata; test geçti)
 - [x] G24 [teknik] Deprem dili (kehanet/tarih yok: küçük deprem, bir gece, soru biçiminde kısa yol), ilk yanlışta inceleme ipucu, saha notu klasörle çakışmıyor, +30 dk göstergesi, çekiç etiketi, gazete Enter 0,5 sn (8abf4bf, Opus/high; test ve ek test geçti)
 - [x] G11 [teknik] Menü (akşamüstü sokak, mühürlü ruhsat başlığı), gün sonunda 1/5 yok, düğmeler simetrik, README/beyan küçük deprem, kısa yol varsayım çerçevesi + 2. günden devam satırı, gazetede tarih yok (cff3d15 + f848bdb, Opus/high; test geçti)
+- [x] G25 [teknik] Son cila: deprem sahnesi 3 sn sonra Enter/Space/tık ile 10× hızlanır, rapor düğmeleri eş ve ortalı, küçük deprem satırı tek sayı+liste, ipucu yalnızca incelemesiz ilk yanlışta, menüde iskele/şerit görünür + ?dev&menutohum, DEV Enter yalnızca ?dev (4ef7ced, Opus/high; test sürüyor)
