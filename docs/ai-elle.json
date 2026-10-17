@@ -400,5 +400,12 @@
     "yer": "src/desk/Klasor.ts, src/game/rules.ts",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T19:14:56.045Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G57 müfettiş: node betikleriyle kod düzenleme (oturum, gün sonu, gazete, sonuç, adalet denetimi)",
+    "yer": "src/game/session.ts, src/game/ev.ts, src/game/gazete.ts, src/game/tuning.ts, src/scenes/DayEndScene.ts, src/scenes/NewspaperScene.ts, src/scenes/ResultScene.ts, scripts/adalet.mjs",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T20:21:03.406Z"
   }
 ]
