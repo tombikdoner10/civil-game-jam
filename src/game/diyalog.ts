@@ -52,7 +52,7 @@ export const ZARF_NOT = '{damga} lütfen';
 /** Zarfın altındaki düğmeler (sürükleme de çalışır: çekmeceye = al, gişeye = geri ver). */
 export const ZARF_DUGME = { al: 'AL', geri: 'GERİ VER' };
 /** Kaşelikteki ipucu: zarf karar beklerken ve zarf alındıktan sonra. */
-export const ZARF_IPUCU = { bekliyor: 'Önce zarfa karar ver', alindi: 'Zarf aldın: {damga}' };
+export const ZARF_IPUCU = { bekliyor: 'Önce zarfa karar ver. Müfettiş gelebilir.', alindi: 'Zarf aldın: {damga}' };
 /** Zarf alınan binanın etiket eki (öncü sarsıntı, kısa yol depremi) ve gün sonu raporundaki işaret. */
 export const ZARF_ETIKET = 'ZARF';
 

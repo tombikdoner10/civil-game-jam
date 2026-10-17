@@ -176,7 +176,7 @@ export function oneCikanlar(
   };
   // Doğru GÜÇLENDİR kararının ödülü (kusurlu bina güçlendirildi, çökmedi ve ağır hasar almadı): iki yolda aynı satır (G51).
   const guclendirildi = (b: DepremBinaSonucu): boolean => b.damga === 'guclendir' && b.kusurlu && !b.coktu && b.durum !== 'agirHasar';
-  const guclendirMetni = (b: DepremBinaSonucu): string => `${ad(b)} ${b.durum === 'ayakta' ? 'ayakta' : 'hasarlı ama ayakta'}: güçlendirilmişti`;
+  const guclendirMetni = (b: DepremBinaSonucu): string => `${ad(b)} ${b.durum === 'ayakta' ? 'ayakta' : 'hasarlı ama ayakta'}: güçlendirme kararı verilmişti`;
   if (oncelik)
     for (const b of s.filter((x) => oncelik.has(x.dosyaId)).sort((a, c) => agirlik(c) - agirlik(a) || a.no - c.no))
       ekle(b, (b) =>

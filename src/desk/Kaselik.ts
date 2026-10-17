@@ -137,7 +137,7 @@ export class Kaselik {
     }
 
     // Kilit uyarısı (gizli başlar).
-    this.uyariYazi = s.add.text(0, -1, '', { fontFamily: FONT, fontSize: '24px', color: '#f0e6cc' }).setOrigin(0.5);
+    this.uyariYazi = s.add.text(0, -1, '', { fontFamily: FONT, fontSize: '24px', color: '#f0e6cc', align: 'center' }).setOrigin(0.5);
     this.uyariKenar = s.add.rectangle(0, 0, 8, 44, 0x1d191b);
     this.uyariZemin = s.add.rectangle(0, 0, 8, 36, num(PAL.damgaBosalt));
     this.uyari = s.add
@@ -175,14 +175,17 @@ export class Kaselik {
       this.uyari.setVisible(false);
       return;
     }
-    this.uyariYazi.setText(uyari);
+    this.uyariYazi.setScale(1).setText(uyari);
+    // G59: tek satıra sığmayan uyarı cümle sonundan iki satıra kayar; şeridin üst kenarı yerinde kalır, aşağı uzar.
+    if (this.uyariYazi.width > RAF.w - 28) this.uyariYazi.setText(uyari.replace(/\.\s+/, '.\n'));
     const w = Math.min(RAF.w - 16, snap(this.uyariYazi.width + 24));
-    this.uyariZemin.setSize(w, 36);
-    this.uyariZemin.setDisplayOrigin(w / 2, 18);
-    this.uyariKenar.setSize(w + 8, 44);
-    this.uyariKenar.setDisplayOrigin(w / 2 + 4, 22);
+    const h = Math.max(36, snap(this.uyariYazi.height + 8));
+    this.uyariZemin.setSize(w, h);
+    this.uyariZemin.setDisplayOrigin(w / 2, h / 2);
+    this.uyariKenar.setSize(w + 8, h + 8);
+    this.uyariKenar.setDisplayOrigin(w / 2 + 4, h / 2 + 4);
+    this.uyari.y = RAF.y + 28 + (h - 36) / 2;
     if (this.uyariYazi.width > w - 12) this.uyariYazi.setScale((w - 12) / this.uyariYazi.width);
-    else this.uyariYazi.setScale(1);
     this.uyari.setVisible(true);
   }
 

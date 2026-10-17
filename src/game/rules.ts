@@ -70,7 +70,7 @@ export const KUSUR_BILGI: Record<KusurId, Omit<Kusur, 'id'>> = {
     ciddiyet: 'iade',
     kanit: [{ belge: 'karot', alan: 'lab' }],
   },
-  // G17b geçersiz belge (eksik belge gibi: düzgününü iste, getiremezse İADE).
+  // G17b geçersiz belge (eksik belge gibi: geçerlisini iste, getiremezse İADE).
   // Elle düzeltmenin kanıt alanı düzeltilen alandır (kat ya da yıl; kusurListesi koyar) + geçersiz belge kuralı.
   elleDuzeltme: {
     etiket: 'Elle düzeltilmiş',
@@ -172,11 +172,11 @@ export const KURALLAR: Kural[] = [
     id: GECERSIZ_KURALI,
     ilkGun: TUNING.belgeHile.imzaGun,
     kusurlar: ['imzaYok'],
-    metin: 'Kural: imzasız ruhsat geçersizdir: düzgününü İSTE, gelmezse → İADE',
+    metin: 'Kural: imzasız ruhsat geçersizdir: geçerlisini İSTE, gelmezse → İADE',
     ek: {
       gun: TUNING.belgeHile.elleBaskaGun,
       kusurlar: ['elleDuzeltme', 'baskaBina'],
-      metin: 'Kural: elle düzeltilmiş, başka binaya ait (ada/parsel) ya da imzasız belge geçersizdir: düzgününü İSTE, gelmezse → İADE',
+      metin: 'Kural: elle düzeltilmiş, başka binaya ait (ada/parsel) ya da imzasız belge geçersizdir: geçerlisini İSTE, gelmezse → İADE',
     },
   },
   { id: 'belge', ilkGun: 5, kusurlar: ['sahteBelge'], metin: 'Kural: ruhsat tarihi yapım yılından sonraysa bina ruhsatsızdır → İADE' },
@@ -193,7 +193,8 @@ export function kuralMetni(k: Kural, gun: number): string {
  * Kural notunda (tek kural) kuralMetni olduğu gibi.
  */
 export function kuralSatiri(k: Kural, gun: number): string {
-  const m = kuralMetni(k, gun).replace(/^Kural:\s*/, '');
+  // G59: klasör satırları noktasız biter (KAT kuralı noktayla biten tek metin); iç cümlelerdeki noktalar kalır.
+  const m = kuralMetni(k, gun).replace(/^Kural:\s*/, '').replace(/\.$/, '');
   return m.charAt(0).toLocaleUpperCase('tr-TR') + m.slice(1);
 }
 
