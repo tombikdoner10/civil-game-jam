@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G52 [teknik] (sürüyor, Opus/high) Takım üyeleri Emeği Geçenler ve README'de (T32).
 
 ## Sırada
 
@@ -37,7 +38,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 ## Takım işleri
 
 - [x] T35 [takım] LİDER KARARI (16:23, G31): G42 metinleri ve fiyatları: hazırlık seçeneklerinin adları ve açıklamaları, fiyatlar, "Senin evin" sonuç cümleleri (ton: kurban yok, sayı yok); gerçek hazırlık bilgisini AFAD kaynaklarıyla doğrula.
-- [ ] T32 [takım] Takım üyelerinin adları ve rolleri (src/data/credits.ts MEMBERS, README Takım bölümü; şu an [Takım üyesi 2] · [rol]); BENIOKU Amaç satırı (docs/BENIOKU.txt).
+- [x] T32 [takım] Takım üyelerinin adları ve rolleri: Deniz Demir (Game Tester and Ideator), Ahmet Ata Tuncer (Sound Designer and Ideator); takım 17 Ekim 21.3x verdi → G52
 - [x] T31 [takım] LİDER KARARI (16:23, G31): ÖNCELİKLİ METİNLER (18.00; madde 4.3): oyun adı (config.ts TITLE), gazete adı ve şehir adı, çerçeve cümlesi (diyalog.ts CERCEVE), gün 1 kural notu (rules.ts), manşetler ve değerlendirmeler (gazete.ts; tekil/çoğul T30; kısa yol "senin binaların + sokak" G37), gün 1de görünen selam, damga tepkisi ve zarf cümleleri (diyalog-metin.ts). Diyalog taslaklarını okuyup seç/düzelt (T28). Bitince beyan "AI taslağı, takım düzenledi" olur (G31). G37 yeni yer tutucuları (yer-tutucu betiği görmüyor, elle bak): gazete.ts KISA_SENIN, KISA_SOKAK_COKEN, DEGERLENDIRME_ZARFLI; manşet ve değerlendirme kısa olursa büyük kalır.
 - [x] T30 [takım] LİDER KARARI (16:23, G31): Manşet ve değerlendirme metinlerinin tekil ve çoğul biçimleri (src/game/gazete.ts, {tekil, cogul} çiftleri; G35 yer tutucu yazdı).
 - [x] T28 [takım] LİDER KARARI (16:23, G31): Diyalog taslaklarını oku ve düzelt: src/game/diyalog-metin.ts (393 cümle; 5 mizaç × selam/bekleme/sabırsızlık/giriş/zarf/damga tepkisi; 12 kusur × bahane/itiraf/zarf; İSTE; zarf isteği). Beğenmediğini sil ya da değiştir; köşeli parantezleri onayladıklarından kaldır. Son tarih 18.00. Test gözlemi: damga tepkileri mizaç başına 3 cümle, uzun oyunda/oyunlar arası tekrar edebilir; çoğaltmak isterseniz ekleyin.
