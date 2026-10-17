@@ -1,6 +1,7 @@
 import type { Bina, Ciddiyet, Damga, KusurId, Ruhsat, VaziyetPlani, Zemin } from './building';
 import { baskaAda, baskaBinaBelgesi, gecerliRuhsat } from './building';
 import type { IsteTuru, SorTuru, SorulanKusur } from './diyalog';
+import { MIZACLAR, type Mizac } from './diyalog-metin';
 import type { GunAyar } from './days';
 import { Rng } from './rng';
 import { TUNING } from './tuning';
@@ -22,8 +23,11 @@ export interface Kisi {
   /** Portre tohumu (yüz, saç, giysi). */
   portre: number;
   kisilik: Kisilik;
-  /** Selam satırı seçimi. */
-  selam: number;
+  /**
+   * Konuşma tonu (G33): yalnızca cümleleri ve yüzü seçer; dürüstlüğü (kisilik), zarfı ve SOR / İSTE cevaplarını
+   * değiştirmez. Portre tohumundan ayrı bir özetle seçilir (oyun RNG'sini tüketmez).
+   */
+  mizac: Mizac;
 }
 
 /** Eksik belge kusurları: SOR yerine İSTE. */
@@ -57,11 +61,25 @@ function agirlikli<T extends string>(r: Rng, w: Record<T, number>): T {
   return anahtarlar[anahtarlar.length - 1];
 }
 
-export function kisiKur(tohum: number, bina: Bina, ayar: GunAyar): Kisi {
+/**
+ * Mizaç (G33): portre tohumunun özetinden; önceki kişiyle (aynı gün, art arda) aynıysa kalan dördünden biri. Oyun
+ * RNG'sine dokunmaz: aynı tohumda bütün oyun kararları G33 öncesiyle birebir aynı.
+ */
+export function mizacSec(portre: number, onceki?: Mizac): Mizac {
+  const h = ozet(`mizac:${portre}`);
+  const n = MIZACLAR.length;
+  let i = h % n;
+  if (MIZACLAR[i] === onceki) i = (i + 1 + ((h >>> 8) % (n - 1))) % n;
+  return MIZACLAR[i];
+}
+
+/** onceki: aynı gün bir önceki kişinin mizacı (art arda iki kişi aynı mizaçta olmasın). */
+export function kisiKur(tohum: number, bina: Bina, ayar: GunAyar, onceki?: Mizac): Kisi {
   const r = rng(tohum, bina, 'kisi');
   const K = TUNING.kisi.kisilik;
   const kisilik = agirlikli<Kisilik>(r, { durust: K.durust, kacamak: K.kacamak, pazarlikci: ayar.pazarlikci });
-  return { portre: r.int(0, 0x7fffffff), kisilik, selam: r.int(0, 999) };
+  const portre = r.int(0, 0x7fffffff);
+  return { portre, kisilik, mizac: mizacSec(portre, onceki) };
 }
 
 /** Zarfla istenebilen damgalar (en hafifi; G22). */
@@ -70,7 +88,7 @@ export type ZarfIstek = Extract<Damga, 'guvenli' | 'guclendir'>;
 export interface SorCevap {
   kusur: SorulanKusur;
   tur: SorTuru;
-  /** Satır seçimi (diyalog.satir). */
+  /** Eski satır seçimi: cümleyi artık deste seçer (G33); RNG sırası değişmesin diye çekilmeye devam eder. */
   secim: number;
   /** Zarf teklifinde miktar (TL). */
   zarf?: number;

@@ -39,8 +39,8 @@ export class Konusma {
 
   constructor(
     private readonly scene: Phaser.Scene,
-    /** Balonun sol üst köşesi ve genişliği (ekran). */
-    private readonly alan: { x: number; y: number; w: number },
+    /** Balonun sol üst köşesi, genişliği ve en çok yüksekliği (ekran; gişe camının içinde kalsın, G33). */
+    private readonly alan: { x: number; y: number; w: number; hMax: number },
     private readonly derinlik: number,
   ) {
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.temizle());
@@ -48,6 +48,36 @@ export class Konusma {
 
   get yaziyor(): boolean {
     return !!this.saat;
+  }
+
+  /** Balon ekranda (yazılıyor ya da okunması bekleniyor; solmakta olan sayılmaz). */
+  get acik(): boolean {
+    return !!this.kap;
+  }
+
+  /** Metin (başlıkla ya da başlıksız) balonun en çok yüksekliğine sığar mı (G33: uzun birleşik cevaplar). */
+  sigar(metin: string, baslik = false): boolean {
+    return this.yukseklik(metin, baslik) <= this.alan.hMax;
+  }
+
+  /** Balonun bu metinle yüksekliği (soyle ile aynı ölçü). */
+  yukseklik(metin: string, baslik = false): number {
+    const yazi = this.scene.add
+      .text(0, 0, metin, this.stil())
+      .setVisible(false);
+    const h = snap((baslik ? 44 : 20) + yazi.height + 20, PX * 2);
+    yazi.destroy();
+    return h;
+  }
+
+  private stil(): Phaser.Types.GameObjects.Text.TextStyle {
+    return {
+      fontFamily: FONT,
+      fontSize: '32px',
+      color: PAL.murekkep,
+      lineSpacing: 2,
+      wordWrap: { width: this.alan.w - 40, useAdvancedWrap: true },
+    };
   }
 
   /** Yeni cümle: öncekinin yerine geçer. */
@@ -58,7 +88,6 @@ export class Konusma {
     this.secenek = secenek;
     const s = this.scene;
     const { x, y, w } = this.alan;
-    const ic = w - 40;
     const kap = s.add.container(snap(x), snap(y)).setDepth(this.derinlik);
     let ust = 20;
     let baslik: Phaser.GameObjects.Text | undefined;
@@ -66,9 +95,7 @@ export class Konusma {
       baslik = s.add.text(20, 14, secenek.baslik, { fontFamily: FONT, fontSize: '24px', color: PAL.murekkepSoluk }).setOrigin(0, 0);
       ust = 44;
     }
-    const yazi = s.add
-      .text(20, ust, metin, { fontFamily: FONT, fontSize: '32px', color: PAL.murekkep, lineSpacing: 2, wordWrap: { width: ic, useAdvancedWrap: true } })
-      .setOrigin(0, 0);
+    const yazi = s.add.text(20, ust, metin, this.stil()).setOrigin(0, 0);
     const h = snap(ust + yazi.height + 20, PX * 2);
     // Satırlar baştan bölünür: yazılırken kelime satır sonundan aşağı zıplamasın.
     const bolunmus = yazi.getWrappedText(metin).join('\n');

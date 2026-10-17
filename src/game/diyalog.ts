@@ -1,10 +1,10 @@
 // @beyan metin
-import type { Damga, KusurId } from './building';
+import type { Bina, KusurId } from './building';
 
 /**
- * Gişedeki mal sahibinin cümleleri (G17). HEPSİ YER TUTUCU: TODO(takım) gerçek metinleri yazacak (TASKS T17).
- * Ton: saygılı, kaba ya da aşağılayıcı ifade yok; deprem kayıplarına gönderme yok. Seçim deterministik:
- * oturum bir sayı verir, liste uzunluğuna göre satır seçilir (src/game/kisi.ts). {para}: zarftaki miktar.
+ * Masadaki kısa yazılar (G17) ve gişe diyaloğunun seçimi (G33). HEPSİ YER TUTUCU: TODO(takım) gerçek metinleri
+ * yazacak (TASKS T17). Gişedeki kişilerin cümleleri src/game/diyalog-metin.ts'de (mizaçlı taslaklar); burada yalnızca
+ * cümlenin seçimi (tekrarsız deste) ve değişkenlerin doldurulması var. Seçim oyun RNG'sini tüketmez.
  */
 
 /**
@@ -22,110 +22,19 @@ export const INCELE_IPUCU = '[Space ile incele, kusuru kanıtla]';
 /** Saha testi bitince tezgâhtaki saatin yanında kısa süre (G24): testin zaman bedeli. {dk}: dakika. */
 export const SAHA_SURE = '[+{dk} dk]';
 
-/** Dosya gelince kısa selam. */
-export const SELAM = ['[Merhaba, dosyam burada]', '[İyi günler, sıra bende]', '[Kolay gelsin, şu dosya]', '[Buyrun, belgelerim]'];
-
 /** SOR cevabının türü: bahane (bilgi yok), itiraf (kusuru doğrular), zarf (rüşvet teklifi). */
 export type SorTuru = 'bahane' | 'itiraf' | 'zarf';
 
 /** Sorulabilen kusurlar (eksik belgede SOR yerine İSTE). */
 export type SorulanKusur = Exclude<KusurId, 'karotYok' | 'zeminEtuduYok' | 'sahaBeton'>;
 
-export const SOR_METIN: Record<SorulanKusur, Record<SorTuru, string[]>> = {
-  kacakKat: {
-    bahane: ['[O kat hep vardı, ruhsat eski]', '[Çatı katı sayılmaz ki]', '[Belediyeden biri onaylamıştı]'],
-    itiraf: ['[Üst kat sonradan çıkıldı]', '[Oğlum evlenince bir kat ekledik]', '[Herkes yapıyor diye biz de çıktık]'],
-    zarf: ['[Bu kat meselesini aramızda halletsek?]', '[Şunu bir değerlendirin, {para}]'],
-  },
-  kesikKolon: {
-    bahane: ['[Vitrin projede de vardı]', '[Usta o kolon yük taşımaz dedi]', '[Dükkân hep böyleydi]'],
-    itiraf: ['[Dükkânı genişletmek için kestirdik]', '[Kiracı istedi, kolonu aldık]'],
-    zarf: ['[Dükkân kapanırsa ekmeğimiz gider, {para}]', '[Bunu görmeseniz olur mu?]'],
-  },
-  caprazCatlak: {
-    bahane: ['[O sıva çatlağı, önemli değil]', '[Boya tutmadı, o kadar]', '[Yeni boyatacaktık zaten]'],
-    itiraf: ['[Geçen sarsıntıdan beri var]', '[Her yıl biraz büyüyor]'],
-    zarf: ['[Bir boya parası sayın, {para}]', '[Bunu dosyaya yazmasanız?]'],
-  },
-  dusukBeton: {
-    bahane: ['[Laboratuvar yanlış ölçmüş]', '[Numune kötü yerden alındı]', '[Bu bina yıllardır ayakta]'],
-    itiraf: ['[Müteahhit çimentodan kısmış]', '[Betonu elde karıştırmışlar]'],
-    zarf: ['[Raporu bir daha düşünseniz, {para}]', '[Bu rakam biraz yükselse?]'],
-  },
-  dereyeYakin: {
-    bahane: ['[Dere yıllardır kuru]', '[Plan eski, dere yer değiştirdi]', '[Su hiç buraya gelmedi]'],
-    itiraf: ['[Eskiden bahçe sınırı dereydi]', '[Dereyi biraz doldurduk]'],
-    zarf: ['[Birkaç metre fark eder mi, {para}]', '[Ölçümü yeniden yapsanız?]'],
-  },
-  fayaYakin: {
-    bahane: ['[O fay haritası eski]', '[Burası sağlam yerdir derler]', '[Komşular da aynı yerde]'],
-    itiraf: ['[Arsayı ucuz diye almıştık]', '[Fayı biliyorduk ama]'],
-    zarf: ['[Harita yanlış olabilir, {para}]', '[Bu çizgiyi görmezsek?]'],
-  },
-  sivilasma: {
-    bahane: ['[Zemin sağlamdır, eskiden bağ vardı]', '[Etüdü yapan acemiydi]', '[Hiç su basmadı]'],
-    itiraf: ['[Bodrumu hep su basar]', '[Eskiden burası sazlıkmış]'],
-    zarf: ['[Etüt bir daha okunsa, {para}]', '[Bu satırı geçsek?]'],
-  },
-  sahteBelge: {
-    bahane: ['[Mühür sonradan basıldı, normal]', '[Memur yılı yanlış yazmış]', '[Ruhsat kaybolmuştu, yenisi bu]'],
-    itiraf: ['[Ruhsatı sonradan çıkardık]', '[Bir tanıdık halletti]'],
-    zarf: ['[Kâğıt işini uzatmayalım, {para}]', '[Bu mühür meselesini kapatalım?]'],
-  },
-  sahteRapor: {
-    bahane: ['[Laboratuvar öyle verdi]', '[Mühür unutulmuş, raporu gerçek]', '[Tarih yanlış yazılmış sadece]'],
-    itiraf: ['[Raporu bir tanıdık hazırladı]', '[Gerçek raporu bulamadım]'],
-    zarf: ['[Raporu kabul etseniz, {para}]', '[Bu rapor olur, değil mi?]'],
-  },
-  // G17b geçersiz belge
-  elleDuzeltme: {
-    bahane: ['[Memur yanlış yazmış, biz düzelttik]', '[Daksil değil o, kâğıt eski]', '[Rakam silinmişti, yeniden yazdık]'],
-    itiraf: ['[Kat sayısını ben düzelttim]', '[Eski rakam işimize gelmiyordu]'],
-    zarf: ['[Bir rakam için uğraşmayalım, {para}]', '[Bu düzeltmeyi görmeseniz?]'],
-  },
-  baskaBina: {
-    bahane: ['[Parsel numarası yanlış basılmış]', '[Aynı ada, ne fark eder?]', '[Komşunun planı karışmış]'],
-    itiraf: ['[Bizimkini bulamadım, komşununkini getirdim]', '[Bizim rapor kötü çıkınca bunu koyduk]'],
-    zarf: ['[Numara meselesi, {para}]', '[Parseli düzeltiriz, bunu geçseniz?]'],
-  },
-  imzaYok: {
-    bahane: ['[Memur imzayı unutmuş]', '[İmza arkada olacaktı]', '[Fotokopide çıkmamış]'],
-    itiraf: ['[İmzalatmaya vaktim olmadı]', '[Belediyede imzalatamadım]'],
-    zarf: ['[İmza işini aramızda halletsek, {para}]', '[İmzasız da olur, değil mi?]'],
-  },
-};
-
 /** İSTE cevabının türü: gerçek raporu getirir, sahte rapor getirir ya da getiremez. */
 export type IsteTuru = 'gercek' | 'sahte' | 'yok';
 
-export const ISTE_METIN: Record<IsteTuru, string[]> = {
-  gercek: ['[Buyrun, raporum burada]', '[Çantamdaymış, işte]', '[Laboratuvardan dün aldım]'],
-  sahte: ['[Raporum var tabii, buyrun]', '[İşte rapor, her şey yolunda]', '[Laboratuvar yeni verdi]'],
-  yok: ['[Yarın getiririm]', '[Rapor evde kaldı]', '[Laboratuvar daha vermedi]'],
-};
-
-/** Geçersiz belgenin (ruhsat, vaziyet planı, başka binanın raporu) düzgününü İSTE (G17b). */
-export const ISTE_BELGE_METIN: Record<IsteTuru, string[]> = {
-  gercek: ['[Haklısınız, asıl belge bu]', '[Buyrun, düzgünü burada]', '[Pardon, doğrusu bu]'],
-  sahte: ['[Buyrun, bu kesin doğru]', '[İşte asıl belge]', '[Bu sefer tamam, bakın]'],
-  yok: ['[Asıl belge bende yok]', '[Belediyeden almam lazım]', '[Başka belgem yok]'],
-};
-
-/** Zarfa verilen karşılık. */
-export const ZARF_TEPKI = {
-  ret: ['[Peki, siz bilirsiniz]', '[Yanlış anladınız, öyle demek istemedim]'],
-  kabul: ['[Anlaştık o zaman]', '[Teşekkürler, aramızda]'],
-};
-
 /**
- * Zarfın bedeli (G22). Kişi zarfı uzatırken hangi damgayı istediğini söyler (SOR cevabının ardından); zarfın üstünde
- * küçük not. {damga}: istenen damganın adı (GameScene doldurur). HEPSİ YER TUTUCU: TODO(takım).
+ * Zarfın bedeli (G22): kişinin istediği damga zarfın üstünde küçük not. {damga}: istenen damganın adı (GameScene
+ * doldurur). HEPSİ YER TUTUCU: TODO(takım).
  */
-export const ZARF_ISTEK: Record<'guvenli' | 'guclendir', string[]> = {
-  guvenli: ['[Bir GÜVENLİ damgası yeter]', '[GÜVENLİ vurun, gerisini unutun]'],
-  guclendir: ['[BOŞALT olmasın, GÜÇLENDİR yeter]', '[Kimseyi çıkarmayalım, GÜÇLENDİR vurun]'],
-};
-/** Zarfın üstündeki not. */
 export const ZARF_NOT = '[{damga} lütfen]';
 /** Zarfın altındaki düğmeler (sürükleme de çalışır: çekmeceye = al, gişeye = geri ver). */
 export const ZARF_DUGME = { al: 'AL', geri: 'GERİ VER' };
@@ -133,14 +42,6 @@ export const ZARF_DUGME = { al: 'AL', geri: 'GERİ VER' };
 export const ZARF_IPUCU = { bekliyor: '[Önce zarfa karar ver]', alindi: '[Zarf aldın: {damga}]' };
 /** Zarf alınan binanın etiket eki (öncü sarsıntı, kısa yol depremi) ve gün sonu raporundaki işaret. */
 export const ZARF_ETIKET = '[ZARF]';
-
-/** Damga vurulunca mal sahibinin tepkisi. */
-export const DAMGA_TEPKI: Record<Damga, string[]> = {
-  guvenli: ['[Teşekkürler]', '[Sağ olun, iyi günler]'],
-  guclendir: ['[Güçlendirme mi? Peki]', '[Masrafı kim karşılayacak?]'],
-  bosalt: ['[Boşaltmak mı? Nereye gideceğiz?]', '[Bu kararı kabul etmiyorum]'],
-  iade: ['[Eksikleri tamamlayıp gelirim]', '[Yine mi sıra bekleyeceğim?]'],
-};
 
 /**
  * Saha testi (G19, Schmidt çekici): mini oyunun ve saha notunun yazıları. HEPSİ YER TUTUCU: TODO(takım).
@@ -184,9 +85,129 @@ export function tarih(gun: number, gunFark = 0): string {
   return `${p(d.getUTCDate())}.${p(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`;
 }
 
-/** Satır seç: liste boşsa boş dizgi. */
-export function satir(liste: readonly string[], secim: number, para?: number): string {
-  if (liste.length === 0) return '';
-  const s = liste[Math.abs(Math.floor(secim)) % liste.length];
-  return para === undefined ? s : s.replace('{para}', `${para} TL`);
+// ---- Gişe diyaloğunun seçimi (G33) ----
+
+/** Cümlelerdeki değişkenler (diyalog-metin.ts başındaki açıklama). */
+export type Degisken = 'kat' | 'yil' | 'ada' | 'bina' | 'para';
+export type Degiskenler = Partial<Record<Degisken, string>>;
+
+/**
+ * Binanın değişkenleri: ruhsatta (kâğıtta) yazan kat, yapım yılı ve ada / parsel, bina adı; zarf varsa tutarı.
+ * Doldurulamayan değişken (ör. zarfsız cümlede {para}) yoktur; o cümle atlanır.
+ */
+export function degiskenler(bina: Bina | undefined, para?: number): Degiskenler {
+  const d: Degiskenler = {};
+  const r = bina?.belgeler.ruhsat;
+  if (r) {
+    d.kat = String(r.kat);
+    d.yil = String(r.yil);
+    if (r.ada) d.ada = r.ada;
+  }
+  if (bina?.adres) d.bina = bina.adres;
+  if (para !== undefined) d.para = `${para} TL`;
+  return d;
+}
+
+/** Değişkenleri doldur; biri eksikse null (ekranda asla "{...}" görünmesin). */
+export function doldur(s: string, d: Degiskenler): string | null {
+  let eksik = false;
+  const out = s.replace(/\{(\w+)\}/g, (_m, ad: string) => {
+    const v = d[ad as Degisken];
+    if (v === undefined) eksik = true;
+    return v ?? '';
+  });
+  return eksik ? null : out;
+}
+
+/** FNV-1a: dizgiden 32 bit sayı. */
+export function ozet(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+
+/** Oyun RNG'sinden bağımsız küçük üreteç (mulberry32). */
+function uretec(tohum: number): () => number {
+  let a = tohum >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** (tohum, anahtar) için 0-1 arası sabit sayı: ör. SOR cevabına giriş eklensin mi. */
+export function sabitOran(tohum: number, anahtar: string): number {
+  return uretec(ozet(anahtar) ^ Math.imul(tohum >>> 0, 0x9e3779b1))();
+}
+
+interface Deste {
+  sira: number[];
+  i: number;
+  tur: number;
+}
+
+/**
+ * Tekrarsız cümle destesi (G33): her liste (anahtar, ör. 'selam:kibar', 'sor:kacakKat:bahane') oturum boyunca
+ * karıştırılmış bir destedir. Deste bitmeden aynı cümle ikinci kez çıkmaz; bitince yeniden karıştırılır ve önceki
+ * destenin son cümlesi yenisinin ilki olmaz. Karıştırma (oyun tohumu, anahtar, tur) üçlüsünden deterministik; oyun
+ * RNG'sini tüketmez. Günler arasında sıfırlanmaz (aynı oyun tohumu sürdükçe).
+ */
+export class Desteler {
+  private readonly desteler = new Map<string, Deste>();
+
+  constructor(readonly tohum: number) {}
+
+  private karistir(anahtar: string, n: number, tur: number, son?: number): number[] {
+    const r = uretec(ozet(`${anahtar}#${tur}`) ^ Math.imul(this.tohum >>> 0, 0x9e3779b1));
+    const a = Array.from({ length: n }, (_, i) => i);
+    for (let i = n - 1; i > 0; i--) {
+      const j = Math.floor(r() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    if (n > 1 && a[0] === son) {
+      const j = 1 + Math.floor(r() * (n - 1));
+      [a[0], a[j]] = [a[j], a[0]];
+    }
+    return a;
+  }
+
+  /** Sıradaki cümle (değişkenleri dolu). Doldurulamayan cümle atlanır, desteden sonraki alınır. */
+  cek(anahtar: string, liste: readonly string[], d: Degiskenler = {}): string {
+    const n = liste.length;
+    if (n === 0) return '';
+    let x = this.desteler.get(anahtar);
+    if (!x || x.sira.length !== n) {
+      x = { sira: this.karistir(anahtar, n, 0), i: 0, tur: 0 };
+      this.desteler.set(anahtar, x);
+    }
+    for (let k = 0; k < n * 2; k++) {
+      if (x.i >= n) {
+        const son = x.sira[n - 1];
+        x.tur++;
+        x.sira = this.karistir(anahtar, n, x.tur, son);
+        x.i = 0;
+      }
+      const s = doldur(liste[x.sira[x.i++]], d);
+      if (s !== null) return s;
+    }
+    // Hiçbiri doldurulamadı (olmamalı): değişkensiz ilk cümle, yoksa değişkenler silinmiş hali.
+    return liste.find((s) => !s.includes('{')) ?? liste[0].replace(/\s*\{\w+\}/g, '');
+  }
+
+  /** Son çekilen cümleyi desteye geri koy (ör. balona sığmadığı için kullanılmayan giriş). */
+  geriKoy(anahtar: string): void {
+    const x = this.desteler.get(anahtar);
+    if (x && x.i > 0) x.i--;
+  }
+}
+
+let aktifDeste: Desteler | undefined;
+
+/** Oyunun (tohumun) desteleri: aynı tohum sürdükçe günler arasında aynı desteler. */
+export function desteler(tohum: number): Desteler {
+  if (!aktifDeste || aktifDeste.tohum !== tohum) aktifDeste = new Desteler(tohum);
+  return aktifDeste;
 }

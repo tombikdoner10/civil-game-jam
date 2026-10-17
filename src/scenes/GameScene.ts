@@ -20,23 +20,21 @@ import { Portre, PORTRE_EKRAN } from '../desk/Portre';
 import type { Bina, Damga, KusurId, Kural } from '../game/building';
 import {
   CERCEVE,
-  DAMGA_TEPKI,
+  degiskenler,
+  desteler,
   INCELE_IPUCU,
-  ISTE_BELGE_METIN,
-  ISTE_METIN,
   SAHA_METIN,
   SAHA_SURE,
-  satir,
-  SELAM,
-  SOR_METIN,
+  sabitOran,
   ZARF_DUGME,
   ZARF_ETIKET,
   ZARF_IPUCU,
-  ZARF_ISTEK,
   ZARF_NOT,
-  ZARF_TEPKI,
+  type Degiskenler,
+  type Desteler,
 } from '../game/diyalog';
-import type { Ifade, IsteAlani, ZarfIstek } from '../game/kisi';
+import { ISTE_BELGE_METIN, ISTE_METIN, MIZAC_IFADE, MIZAC_METIN, SOR_METIN, ZARF_ISTEK } from '../game/diyalog-metin';
+import type { Ifade, IsteAlani, Kisi, SorCevap, ZarfIstek } from '../game/kisi';
 import { KUCUK_DEPREM_SERIT, oncuEtiketi } from '../game/gazete';
 import { KUSUR_BILGI } from '../game/rules';
 import { ornekKayitlar } from '../game/ornek';
@@ -103,6 +101,12 @@ let incelemeIpucuGosterildi = false;
 /** Damgaya göre gişedeki kişinin yüzü. */
 const DAMGA_IFADE: Record<Damga, Ifade> = { guvenli: 'sevincli', guclendir: 'mahcup', bosalt: 'kizgin', iade: 'kizgin' };
 
+/**
+ * Sabırsız cümlesi eklenen cevabın yüzü (G33): cevabın kendi ifadesi sabırsız ifadesinden güçlüyse o kalır. Zarf
+ * teklifinin sevinçli yüzü hep kalır (zarf olayı öne çıksın).
+ */
+const IFADE_GUC: Record<Ifade, number> = { notr: 0, mahcup: 1, gergin: 2, kizgin: 3, sevincli: 4 };
+
 /** Masa sahnesi: üstte belediye penceresi ve gişe, altta masa, belgeler, yönetmelik klasörü ve kaşelik. */
 export class GameScene extends Phaser.Scene {
   private controls!: Controls;
@@ -135,6 +139,11 @@ export class GameScene extends Phaser.Scene {
   /** Açık saha testi (G19) ve tezgâhtaki hak sayacı. */
   private saha?: SahaTesti;
   private sahaSayac?: Phaser.GameObjects.Text;
+  /** Gişedeki kişiye bu dosyada kaç SOR / İSTE yapıldı (G33: sabırsız cümlesi). */
+  private soruSayisi = 0;
+  /** Denetçi uzun süre bir şey yapmazsa kişinin bekleme cümlesi (G33; kişi başına bir kez). */
+  private beklemeSaat?: Phaser.Time.TimerEvent;
+  private beklemeSoylendi = false;
 
   constructor() {
     super(SCENES.Game);
@@ -173,6 +182,9 @@ export class GameScene extends Phaser.Scene {
     this.oncuEtiketler = [];
     this.saha = undefined;
     this.sahaSayac = undefined;
+    this.soruSayisi = 0;
+    this.beklemeSaat = undefined;
+    this.beklemeSoylendi = false;
   }
 
   create(): void {
@@ -289,6 +301,7 @@ export class GameScene extends Phaser.Scene {
       if (!this.mesgul) this.pencere.ifade('gergin');
     });
     this.inceleme.on('ac', () => {
+      this.eylem();
       // Zarf inceleme modunda da sürüklenir ve düğmeleri tıklanır (G22; inceleme tıklamayı yutmaz: incelemeYok).
       for (const k of this.kartlar) k.disableInteractive(true);
       this.not?.disableInteractive(true);
@@ -429,12 +442,19 @@ export class GameScene extends Phaser.Scene {
     this.pencere.setDosya(this.oturum.no, this.oturum.toplam);
     this.pencere.binaGoster(bina);
     const kisi = this.oturum.kisi;
+    this.soruSayisi = 0;
+    this.beklemeSoylendi = false;
+    this.beklemeIptal();
     if (kisi) {
       this.pencere.kisiGelsin(kisi);
       const id = bina.id;
+      // Mizaçlı selam (G33): cümle tekrarsız desteden, yüz mizaçtan.
       this.time.delayedCall(TUNING.diyalog.selamGecikme, () => {
-        if (this.oturum.mevcut?.id === id && !this.bitirildi) this.pencere.soyle(satir(SELAM, kisi.selam), 'notr');
+        if (this.oturum.mevcut?.id !== id || this.bitirildi) return;
+        const m = kisi.mizac;
+        this.pencere.soyle(this.deste.cek(`selam:${m}`, MIZAC_METIN[m].selam, degiskenler(bina)), MIZAC_IFADE[m].selam);
       });
+      this.beklemeKur();
     }
     sfx.play('siluet');
     const gecikme = 350;
@@ -492,13 +512,13 @@ export class GameScene extends Phaser.Scene {
   /** SOR: bulunan tutarsızlık kişiye sorulur; cevap balonda (bahane, itiraf ya da zarf). */
   private sor(id: KusurId): void {
     if (this.mesgul || this.bitirildi) return;
+    const kisi = this.oturum.kisi;
     const c = this.oturum.sor(id);
-    if (!c) return;
+    if (!c || !kisi) return;
+    this.eylem();
     const baslik = `SOR · ${KUSUR_BILGI[id].etiket.toLocaleUpperCase('tr-TR')}`;
-    let metin = satir(SOR_METIN[c.kusur][c.tur], c.secim, c.zarf);
-    // Zarf (G22): kişi zarfı uzatırken hangi damgayı istediğini söyler; karar verilene kadar kaşeler kilitli.
-    if (c.zarf !== undefined && c.istenen) metin += `\n${satir(ZARF_ISTEK[c.istenen], c.secim)}`;
-    this.pencere.soyle(metin, c.ifade, { baslik });
+    const [metin, ifade] = this.sorMetni(kisi, c);
+    this.pencere.soyle(metin, ifade, { baslik });
     if (c.zarf !== undefined) {
       const miktar = c.zarf;
       const istenen = c.istenen ?? 'guvenli';
@@ -561,8 +581,12 @@ export class GameScene extends Phaser.Scene {
     this.tweens.add({ targets: z, x: GOZ.x, y: GOZ.y - 60, alpha: 0, duration: 380, ease: 'Cubic.easeIn', onComplete: () => z.destroy() });
     sfx.play('zarfRet');
     this.cekmece.kapa(200);
-    const t = this.oturum.kisi?.selam ?? 0;
-    this.pencere.soyle(satir(ZARF_TEPKI.ret, t), t % 2 === 0 ? 'kizgin' : 'mahcup');
+    this.eylem();
+    const kisi = this.oturum.kisi;
+    if (kisi) {
+      const m = kisi.mizac;
+      this.pencere.soyle(this.deste.cek(`zarfRet:${m}`, MIZAC_METIN[m].zarfRet, this.degisken()), MIZAC_IFADE[m].zarfRet);
+    }
     this.kaseDurum();
   }
 
@@ -571,7 +595,12 @@ export class GameScene extends Phaser.Scene {
     if (this.mesgul || this.zarf !== z || !this.oturum.zarfBekliyor) return;
     this.oturum.zarfKarar(true);
     this.zarfCekmeceye(z);
-    this.pencere.soyle(satir(ZARF_TEPKI.kabul, this.oturum.kisi?.selam ?? 0), 'sevincli');
+    this.eylem();
+    const kisi = this.oturum.kisi;
+    if (kisi) {
+      const m = kisi.mizac;
+      this.pencere.soyle(this.deste.cek(`zarfKabul:${m}`, MIZAC_METIN[m].zarfKabul, this.degisken()), 'sevincli');
+    }
     this.kaseDurum();
   }
 
@@ -594,10 +623,15 @@ export class GameScene extends Phaser.Scene {
     if (this.mesgul || this.bitirildi) return;
     const once = this.oturum.mevcut;
     const eksik = !!once && (alan === 'karot' || alan === 'zemin') && once.belgeler[alan] === null;
+    const kisi = this.oturum.kisi;
     const c = this.oturum.iste(alan);
     const bina = this.oturum.mevcut;
-    if (!c || !bina) return;
-    this.pencere.soyle(satir((eksik ? ISTE_METIN : ISTE_BELGE_METIN)[c.tur], c.secim), c.ifade, { baslik: ISTE_BASLIK[alan] });
+    if (!c || !bina || !kisi) return;
+    this.eylem();
+    const anahtar = `${eksik ? 'iste' : 'isteBelge'}:${c.tur}`;
+    const govde = this.deste.cek(anahtar, (eksik ? ISTE_METIN : ISTE_BELGE_METIN)[c.tur], this.degisken());
+    const [metin, ifade] = this.sabirsizEkle(kisi, govde, c.ifade);
+    this.pencere.soyle(metin, ifade, { baslik: ISTE_BASLIK[alan] });
     const rapor = c.rapor;
     if (!rapor) return;
     this.time.delayedCall(TUNING.diyalog.raporGecikme, () => {
@@ -637,6 +671,95 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  // ---- Gişe diyaloğu (G33): mizaç, tekrarsız deste, oyuncuya tepki ----
+
+  /** Oyunun cümle desteleri (oturum boyu; günler arasında sıfırlanmaz). */
+  private get deste(): Desteler {
+    return desteler(this.tohum);
+  }
+
+  /** Mevcut dosyanın cümle değişkenleri ({kat}, {yil}, {ada}, {bina}; zarf varsa {para}). */
+  private degisken(): Degiskenler {
+    return degiskenler(this.oturum.mevcut, this.oturum.zarf?.miktar);
+  }
+
+  /**
+   * SOR cevabı: kusurun cevap cümlesi (zarfta istenen damga da), bazen (TUNING.diyalog.sorGiris, deterministik) başta
+   * mizacın giriş cümlesi; üçüncü SOR / İSTE'den itibaren en başta sabırsız cümlesi. Balona sığmayan giriş düşer.
+   */
+  private sorMetni(kisi: Kisi, c: SorCevap): [string, Ifade] {
+    const D = this.deste;
+    const m = kisi.mizac;
+    const d = degiskenler(this.oturum.mevcut, c.zarf);
+    let govde = D.cek(`sor:${c.kusur}:${c.tur}`, SOR_METIN[c.kusur][c.tur], d);
+    // Zarf (G22): kişi zarfı uzatırken hangi damgayı istediğini söyler; karar verilene kadar kaşeler kilitli.
+    if (c.zarf !== undefined && c.istenen) govde += `\n${D.cek(`istek:${c.istenen}`, ZARF_ISTEK[c.istenen], d)}`;
+    const binaId = this.oturum.mevcut?.id ?? '';
+    if (sabitOran(this.tohum, `sorGiris:${binaId}:${c.kusur}`) < TUNING.diyalog.sorGiris) {
+      const anahtar = `sorGiris:${m}`;
+      const uzun = `${D.cek(anahtar, MIZAC_METIN[m].sorGiris, d)}\n${govde}`;
+      // Sabırsız cümlesi de gelecekse onun en uzunuyla birlikte sığmalı: önce sabırsız, sonra giriş düşer.
+      if (this.pencere.sigar(this.sabirsizPayi(kisi, uzun), true)) govde = uzun;
+      else D.geriKoy(anahtar);
+    }
+    return this.sabirsizEkle(kisi, govde, c.ifade);
+  }
+
+  /** Bu cevaba sabırsız cümlesi eklenecekse metnin önüne mizacın en uzun sabırsız cümlesi (sığma denetimi için). */
+  private sabirsizPayi(kisi: Kisi, govde: string): string {
+    if (this.soruSayisi + 1 < TUNING.diyalog.sabirsizSoru) return govde;
+    const enUzun = MIZAC_METIN[kisi.mizac].sabirsiz.reduce((a, b) => (b.length > a.length ? b : a), '');
+    return `${enUzun}\n${govde}`;
+  }
+
+  /**
+   * Aynı kişiye üçüncü ve sonraki SOR / İSTE (TUNING.diyalog.sabirsizSoru): cevabın önüne yeni satırda mizacın
+   * sabırsız cümlesi; yüz sabırsız yüzü, cevabın kendi yüzü daha güçlüyse o (IFADE_GUC). Sığmazsa eklenmez.
+   */
+  private sabirsizEkle(kisi: Kisi, govde: string, ifade: Ifade): [string, Ifade] {
+    this.soruSayisi++;
+    if (this.soruSayisi < TUNING.diyalog.sabirsizSoru) return [govde, ifade];
+    const m = kisi.mizac;
+    const anahtar = `sabirsiz:${m}`;
+    const metin = `${this.deste.cek(anahtar, MIZAC_METIN[m].sabirsiz, this.degisken())}\n${govde}`;
+    if (!this.pencere.sigar(metin, true)) {
+      this.deste.geriKoy(anahtar);
+      return [govde, ifade];
+    }
+    const s = MIZAC_IFADE[m].sabirsiz;
+    return [metin, IFADE_GUC[ifade] >= IFADE_GUC[s] ? ifade : s];
+  }
+
+  /** Denetçi bir şey yaptı (SOR, İSTE, saha, zarf, inceleme açma): bekleme sayacı baştan başlar. */
+  private eylem(): void {
+    if (!this.beklemeSoylendi) this.beklemeKur();
+  }
+
+  private beklemeKur(): void {
+    this.beklemeIptal();
+    if (this.beklemeSoylendi || this.bitirildi || !this.oturum.kisi) return;
+    this.beklemeSaat = this.time.delayedCall(TUNING.diyalog.beklemeMs, () => this.beklemeSoyle());
+  }
+
+  private beklemeIptal(): void {
+    this.beklemeSaat?.remove();
+    this.beklemeSaat = undefined;
+  }
+
+  /** Bekleme cümlesi (kişi başına bir kez). Başka konuşma sürüyorsa ya da saha testi açıksa biraz sonra yeniden dener. */
+  private beklemeSoyle(): void {
+    this.beklemeSaat = undefined;
+    const kisi = this.oturum.kisi;
+    if (this.beklemeSoylendi || this.mesgul || this.bitirildi || !kisi) return;
+    if (this.pencere.konusuyor || this.saha) {
+      this.beklemeSaat = this.time.delayedCall(TUNING.diyalog.beklemeTekrarMs, () => this.beklemeSoyle());
+      return;
+    }
+    this.beklemeSoylendi = true;
+    const m = kisi.mizac;
+    this.pencere.soyle(this.deste.cek(`bekleme:${m}`, MIZAC_METIN[m].bekleme, this.degisken()), MIZAC_IFADE[m].bekleme);
+  }
+
   // ---- Saha testi (G19, Schmidt çekici) ----
 
   /** Tezgâhta "SAHA 2": günün kalan saha testi hakkı. */
@@ -670,6 +793,7 @@ export class GameScene extends Phaser.Scene {
     const bina = this.oturum.mevcut;
     const sonuc = this.oturum.sahaOnizle();
     if (!bina || !sonuc) return;
+    this.eylem();
     if (this.inceleme.acik) this.inceleme.kapa();
     this.inceleme.gizle(true);
     this.kaselik.kilitle(true);
@@ -755,16 +879,22 @@ export class GameScene extends Phaser.Scene {
     if (this.mesgul || this.bitirildi || this.saha) return false;
     const ruhsat = this.kartlar.find((k) => k.tur === 'ruhsat' && k.active);
     if (!ruhsat || !ruhsat.sinir().contains(x, y)) return false;
+    // Damga oturumu sonraki dosyaya geçirir: tepki veren kişi ve binası önceden alınır (G33).
+    const kisi = this.oturum.kisi;
+    const d = this.degisken();
     // Örtük kabul yok (G22): zarf karar beklerken ya da alınan zarfın istemediği damga vurulmaz (kaşelik zaten kilitli).
     const sonuc = this.oturum.damgala(damga);
     if (!sonuc) return false;
     this.mesgul = true;
+    this.beklemeIptal();
     const sonKarar = this.oturum.kararlar[this.oturum.kararlar.length - 1];
     const zarfAlindi = !!sonKarar?.zarf?.kabul;
     this.kaseDurum();
-    // Kişi damgaya tepki verir.
-    const sira = this.oturum.kararlar.length;
-    this.time.delayedCall(260, () => this.pencere.soyle(satir(DAMGA_TEPKI[damga], sira + this.tohum), DAMGA_IFADE[damga]));
+    // Kişi damgaya mizacıyla tepki verir (G33); yüz damgadan.
+    if (kisi) {
+      const tepki = this.deste.cek(`damga:${kisi.mizac}:${damga}`, MIZAC_METIN[kisi.mizac].damga[damga], d);
+      this.time.delayedCall(260, () => this.pencere.soyle(tepki, DAMGA_IFADE[damga]));
+    }
 
     // Kaşe indi: mürekkep izi ruhsatta, indiği yerde (kart içinde kalacak şekilde).
     sfx.play(damga === 'iade' ? 'iade' : 'damga');
@@ -855,6 +985,7 @@ export class GameScene extends Phaser.Scene {
     if (this.bitirildi) return;
     this.bitirildi = true;
     this.mesgul = true;
+    this.beklemeIptal();
     // Mesai saha testinde biterse test kapanır (sonuç yok).
     this.saha?.kapat(null);
     if (this.inceleme.acik) this.inceleme.kapa();

@@ -37,7 +37,8 @@ export const GOZ = { x: 1568, y: BANT_H + 8 };
 const D = { sokak: 2990, arka: 3000, siluet: 3001, on: 3002, duvar: 3003, yazi: 3004, balon: 3015 };
 /** Gişedeki kişi camın sağ yarısında; konuşma balonu solda, cama iliştirilmiş fiş gibi. */
 const KISI = { x: GISE.x + GISE.w - PORTRE_EKRAN.w - 40, y: GISE.y + GISE.h - PORTRE_EKRAN.h };
-const BALON = { x: GISE.x + 8, y: GISE.y + 32, w: 320 };
+/** hMax (G33): balon en çok gişe camının alt kenarına kadar iner; daha uzun cevap kısaltılır (GameScene). */
+const BALON = { x: GISE.x + 8, y: GISE.y + 32, w: 320, hMax: GISE.h - 32 };
 /** Sokaktaki tozun derinliği (Quake). */
 export const SOKAK_DERINLIK = D.sokak;
 
@@ -196,6 +197,16 @@ export class Pencere {
     this.portre = undefined;
     p.konus(false);
     this.scene.tweens.add({ targets: p.img, x: p.img.x - 96, alpha: 0, duration: 450, ease: 'Sine.easeIn', onComplete: () => p.destroy() });
+  }
+
+  /** Gişedeki kişinin balonu ekranda mı (G33: bekleme cümlesi konuşmanın üstüne binmesin). */
+  get konusuyor(): boolean {
+    return this.balon.acik;
+  }
+
+  /** Metin balona sığar mı (G33). */
+  sigar(metin: string, baslik = false): boolean {
+    return this.balon.sigar(metin, baslik);
   }
 
   ifade(i: Ifade): void {

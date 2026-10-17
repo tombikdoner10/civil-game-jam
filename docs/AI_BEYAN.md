@@ -28,8 +28,8 @@ Teslim formunda her kategori için aşağıdakini seç ve açıklamayı yapışt
 ### Metin: Kullanıldı
 
 - **Araç:** Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)
-- **Amaç:** Arayüz metinlerini, README'yi, BENIOKU'yu, ses listesini ve beyan açıklamalarını yazdı. Gişe diyalogları, zarf ve rapor satırları, kural metinleri, gazete ve deprem anlatımı için yer tutucu metinler yazdı; takım bunları yeniden yazacak.
-- **Kullanıldığı yer:** Menü, ayarlar, oyun içi ipuçları ve göstergeler; Gişe diyalogları (SOR, İSTE), zarf ve rapor satırları, yönetmelik kuralları (yer tutucu); Gazete, küçük deprem şeridi, kısa yol sorusu ve çerçeve cümlesi (yer tutucu); Emeği Geçenler, README, BENIOKU
+- **Amaç:** Arayüz metinlerini, README'yi, BENIOKU'yu, ses listesini ve beyan açıklamalarını yazdı. Gişe diyalogları, zarf ve rapor satırları, kural metinleri, gazete ve deprem anlatımı için yer tutucu metinler yazdı; gişedeki kişiler için beş mizaçta (kibar, sinirli, telaşlı, kurnaz, çekingen) taslak cümleler yazdı (selam, bekleme, sabırsızlık, SOR / İSTE cevapları, zarf ve damga tepkileri); takım bunları düzeltecek ve yeniden yazacak.
+- **Kullanıldığı yer:** Menü, ayarlar, oyun içi ipuçları ve göstergeler; Gişe diyalogları: beş mizaçlı taslak cümleler (selam, bekleme, sabırsızlık, SOR, İSTE, zarf ve damga tepkileri; taslak, takım düzeltecek), zarf ve rapor satırları, yönetmelik kuralları (yer tutucu); Gazete, küçük deprem şeridi, kısa yol sorusu ve çerçeve cümlesi (yer tutucu); Emeği Geçenler, README, BENIOKU
 
 ### Diğer: Kullanıldı
 

@@ -537,7 +537,8 @@ export class GunOturumu {
 
   private bilgiSifirla(): void {
     const b = this.mevcut;
-    this.kisiBilgi = b ? kisiKur(this.tohum, b, this.ayar) : undefined;
+    // Mizaç (G33): aynı gün art arda iki kişi aynı mizaçta olmasın (önceki kişi henüz kisiBilgi'de).
+    this.kisiBilgi = b ? kisiKur(this.tohum, b, this.ayar, this.kisiBilgi?.mizac) : undefined;
     this.sorulan = [];
     this.istenen = {};
     this.zarfTeklif = undefined;

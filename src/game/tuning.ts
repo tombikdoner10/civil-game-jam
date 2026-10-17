@@ -168,8 +168,24 @@ export const TUNING = {
     catlak: -9,
   },
 
-  /** Konuşma balonu: harf başına yazma süresi, metin bitince kalış süresi (taban + harf başı), gecikmeler (ms). */
-  diyalog: { harfMs: 26, kalisMs: 2600, kalisHarfMs: 40, selamGecikme: 700, raporGecikme: 1000 },
+  /**
+   * Konuşma balonu: harf başına yazma süresi, metin bitince kalış süresi (taban + harf başı), gecikmeler (ms).
+   * G33 (yalnızca konuşma; oyun kararlarına etkisi yok): beklemeMs denetçi bu kadar hiçbir şey yapmazsa kişi bir kez
+   * mizacının bekleme cümlesini söyler (balon doluysa beklemeTekrarMs sonra yeniden dener); sorGiris SOR cevabına
+   * mizacın giriş cümlesinin eklenme oranı; sabirsizSoru aynı kişiye bu kaçıncı SOR / İSTE'den itibaren cevabın önüne
+   * sabırsız cümle eklenir.
+   */
+  diyalog: {
+    harfMs: 26,
+    kalisMs: 2600,
+    kalisHarfMs: 40,
+    selamGecikme: 700,
+    raporGecikme: 1000,
+    beklemeMs: 25000,
+    beklemeTekrarMs: 2000,
+    sorGiris: 0.4,
+    sabirsizSoru: 3,
+  },
 
   /**
    * Öncü sarsıntı (gün 1 sonu): risk çarpanı, süre (ms) ve kamera sarsıntısı genliği. Öncüde yalnızca belgelerdeki
