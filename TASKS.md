@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G32 [teknik] (sürüyor, Opus/high) T23: rapordaki kısa yol satırı "[Kararlarının sonucunu şimdi gör.]"; T24: gazete ve sonuç ekranına Kenney Music Jingles (sonuca göre iyi/kötü), beyan ve SESLER.md güncel.
 
 ## Sırada
 
@@ -34,8 +35,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Takım işleri
 
-- [ ] T23 [takım] Rapordaki çift ifade: satırda "Varsayalım: büyük deprem bu gece oldu", düğmede "BÜYÜK DEPREM BU GECE OLSAYDI?". (1) düğme soru kalsın, satır kısalsın (2) ikisi de varsayım dili (3) olduğu gibi.
-- [ ] T24 [takım] Ses ortamı: oyunda müzik/ortam sesi yok. (a) kasıtlı sessizlik (b) yalnızca gazete ve sonuçta Kenney Music Jingles (havuzda var, CC0; küçük iş) (c) masa ortam döngüsü (küçük–orta). Ayrıca T6: 42 Kenney sesi dinlenmedi.
+- [ ] T6 [takım] (T24 sonrası) Sesleri dinle: 42 Kenney sesi + G32 jingle'ları; değiştirmek istediğini söyle.
 - [ ] T25 [takım] Sunum: anlatıcının ilk cümlesi (ör. "Kurala uymayanı damgala, sonra raporda kırmızı düğme"); jüri bilgisayarında oyun önceden açık olsun ya da ZIP sürümü (canlı sitede ilk yükleme birkaç sn, bu sırada tıklamalar kayboluyor). Gerçekçi jüri yolu 2:00–2:40.
 - [ ] T27 [takım] AI beyanı özetini (docs/AI_BEYAN.md üst bölüm, oyunda Emeği Geçenler) okuyup onayla; teslim formuna bu metin yapıştırılacak. Metinler yeniden yazılınca Metin özetindeki "takım bunları yeniden yazacak" ifadesi güncellenecek.
 - [ ] T26 [takım] "Takımın kararları" metni (README ve Emeği Geçenler; 4–5 madde: tema yorumu, gişede insan, kural kararları, deprem dili, metinler). Madde 4.3: takımın yaratıcı katkısı görünür olsun.
@@ -48,6 +48,8 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 - [ ] T13 [takım] Ara testte ayarla: maaş/ceza değerleri ve para birimi (şu an doğru 20, yanlış 10 TL), gün süreleri (90/180/200/220/240 sn), dosya sayıları (3/5/6/7/8); karot "Rapor yok" kusur sayılsın mı?
 - [ ] T14 [takım] Öncü sarsıntı: doğru BOŞALT damgalanan zayıf bina da "boş" olarak çatlıyor; böyle mi kalsın, yoksa boşaltılanlar sağlam mı görünsün? Öncü şiddeti/süresi (TUNING.oncu). İskele, şerit, çatlak çizimleri onayı. Tavanda sallanan lamba istenir mi?
 - [ ] T15 [takım] Büyük deprem ağırlığı: örnek oyunda 29 binadan 14'ü çöktü (10'u boşaltılmıştı). Doğru BOŞALT damgalı ağır kusurlu binalar çöksün mü, ağır hasarlı mı kalsın (TUNING.buyukDeprem.kademe.bosaltKusur 3 → 2)? Gazete ve sonuç metinleri src/game/gazete.ts (T4 ile).
+- [x] T23 [takım] KARAR (07:21): düğme soru kalır, satır "[Kararlarının sonucunu şimdi gör.]" → G32
+- [x] T24 [takım] KARAR (07:21): masa sessiz; gazete ve sonuçta Kenney Music Jingles → G32
 - [x] T22 [takım] KARAR (06:34): kısa yol gazetesinde önce jürinin binaları ("senin binaların"), sonra bütün sokak; görmediği İADE/içi boş satırları gizli. → G30
 - [x] T16 [takım] KARAR A + C (01.30): gün 1 sonunda "Depremi şimdi yaşa" (G21) + video/anlatım. Jüri büyük depremi normal yolla göremiyor (5 gün ~8–10 dk). Seçenekler: menüde "Depremi göster" düğmesi, kısa mod, ya da yalnızca sunum/video için ?dev&deprem adresi. Karar takımın (tema ve yaratıcılık puanı).
 - [ ] T17 [takım] Diyalog metinleri: mal sahiplerinin bahaneleri, itirafları, zarf teklifleri, belge getirme/getirememe cümleleri (G17 yer tutucuları). Kural kitabı satırlarının son metni (G16).

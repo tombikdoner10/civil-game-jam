@@ -82,6 +82,8 @@ Ara testte takım oyunu fazla Papers, Please'e benzer buldu. Seçilenlerin hepsi
 ### Eleştirmen 4 sonrası kararlar (takım, 17 Ekim 06:34)
 
 - **Kısa yol gazetesi istatistiği (T22):** Önce jürinin kendi binaları ("senin binaların"), sonra bütün sokak. Jürinin görmediği İADE ve "içi boş" satırları gizlenir. 5 günlük normal yol değişmez. → G30
+- **Kısa yol ifadesi (T23):** Düğme soru olarak kalır ("[BÜYÜK DEPREM BU GECE OLSAYDI?]"); rapordaki satır kısalır: "[Kararlarının sonucunu şimdi gör.]" (tekrar kalkar). → G32
+- **Ses ortamı (T24):** Masa sessiz kalır (ciddi ton). Gazete ve sonuç ekranına Kenney Music Jingles paketinden kısa jingle (gün sonu raporunda zaten aynı paket var; yeni lisans yok). → G32
 
 ### Kurallar netleşti (takım kararı, 16 Ekim 23.53)
 
