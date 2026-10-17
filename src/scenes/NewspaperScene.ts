@@ -283,21 +283,21 @@ ${evTaksitSatiri(s.guclendirme)} · ${evHarcananSatiri(`${s.harcanan} TL`)}`, { 
   }
 
   /**
-   * Kalemleri satırlara dizer (G31c): sığdıkça " · " ile yan yana; satır yalnızca kalemler arasında kırılır ve "·"
-   * önceki kalemin sonunda kalır (bölünmez boşlukla bağlı). Tek kalem sütundan genişse metnin kendi kaydırması onu
+   * Kalemleri satırlara dizer (G31c): sığdıkça " · " ile yan yana; satır yalnızca kalemler arasında kırılır; kırılan
+   * satırın sonunda ya da başında "·" kalmaz (G31d). Tek kalem sütundan genişse metnin kendi kaydırması onu
    * sözcük arasından kırar.
    */
   private kalemSatirlari(kalemler: readonly string[], boy: number, w: number): string {
     const olc = this.add.text(0, 0, '', { fontFamily: FONT, fontSize: `${boy}px` }).setVisible(false);
     const satirlar: string[] = [];
     let satir = '';
-    kalemler.forEach((k, i) => {
-      const parca = i < kalemler.length - 1 ? `${k} ·` : k;
-      const aday = satir ? `${satir} ${parca}` : parca;
+    kalemler.forEach((k) => {
+      // G31d: "·" yalnızca aynı satırdaki iki kalemin arasında; önceki kaleme bölünmez boşlukla bağlı (satır başına düşmez).
+      const aday = satir ? `${satir} · ${k}` : k;
       if (!satir || olc.setText(aday).width < w) satir = aday;
       else {
         satirlar.push(satir);
-        satir = parca;
+        satir = k;
       }
     });
     if (satir) satirlar.push(satir);

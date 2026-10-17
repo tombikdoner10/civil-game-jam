@@ -13,15 +13,15 @@ import { SCENES } from './keys';
 const TOP = 220;
 const VIEW_HEIGHT = 640;
 const COLUMN = 1300;
-/** Kenarlardaki soluklaşan şeridin yüksekliği (G31c). */
-const FADE = 32;
 
 /** Takım, takımın kararları, hazır kaynaklar ve yapay zekâ beyanı (src/data/credits.ts). Fare tekerleği ve ↑/↓ ile kayar. */
 export class CreditsScene extends Phaser.Scene {
   private content!: Phaser.GameObjects.Container;
   private maxScroll = 0;
-  private fadeTop?: Phaser.GameObjects.Container;
-  private fadeBottom?: Phaser.GameObjects.Container;
+  /** Kayan metnin satır bantları (içerik koordinatında, G31d). */
+  private bands: { top: number; bottom: number }[] = [];
+  private maskShape?: Phaser.GameObjects.Graphics;
+  private left = 0;
   private keys?: { up: Phaser.Input.Keyboard.Key; down: Phaser.Input.Keyboard.Key };
 
   constructor() {
@@ -104,22 +104,20 @@ export class CreditsScene extends Phaser.Scene {
       }
     }
 
-    const maskShape = this.make.graphics({}, false).fillStyle(0xffffff).fillRect(left - 20, TOP, COLUMN + 40, VIEW_HEIGHT);
-    this.content.setMask(maskShape.createGeometryMask());
+    // G31d: maske her kaydırmada satır sınırına oturur; kenarı kesen satır bütünüyle gizlenir, tam satırlar açık kalır.
+    this.left = left;
+    this.bands = this.content.list
+      .filter((o): o is Phaser.GameObjects.Text => o instanceof Phaser.GameObjects.Text)
+      .flatMap((t) => {
+        const n = Math.max(1, t.getWrappedText().length);
+        const h = t.height / n;
+        return Array.from({ length: n }, (_, i) => ({ top: t.y + i * h, bottom: t.y + (i + 1) * h }));
+      });
+    this.maskShape = this.make.graphics({}, false);
+    this.content.setMask(this.maskShape.createGeometryMask());
     this.maxScroll = Math.max(0, y - VIEW_HEIGHT);
-    // G31c: maskenin üst ve alt kenarında kâğıt renginde soluklaşan şerit (4 px basamaklı): kenarda yarım kesilen
-    // satır ve önceki satırın nokta kalıntıları görünmesin. Üstteki yalnızca kaydırınca, alttaki sona gelince söner.
-    const solukSerit = (ust: boolean): Phaser.GameObjects.Container => {
-      const kap = this.add.container(0, 0);
-      for (let i = 0; i < FADE / 4; i++) {
-        const a = 1 - i / (FADE / 4);
-        const yy = ust ? TOP + i * 4 : TOP + VIEW_HEIGHT - (i + 1) * 4;
-        kap.add(this.add.rectangle(left - 20, yy, COLUMN + 40, 4, num(PAL.krem), a).setOrigin(0));
-      }
-      return kap;
-    };
-    this.fadeTop = solukSerit(true);
-    this.fadeBottom = solukSerit(false);
+    // G31c'deki soluklaşan kenar şeridi kaldırıldı (G31d): yarım satır artık hiç çizilmiyor, şerit ise tam satırların
+    // alt/üst piksellerini örtüyordu.
     this.scrollBy(0);
     if (this.maxScroll > 0) {
       label(this, WIDTH / 2, TOP + VIEW_HEIGHT + 40, 'Kaydırmak için fare tekerleği ya da ↑ / ↓', { size: 32, color: num(PAL.murekkepSoluk) });
@@ -145,7 +143,16 @@ export class CreditsScene extends Phaser.Scene {
   private scrollBy(dy: number): void {
     const offset = Phaser.Math.Clamp(TOP - this.content.y + dy, 0, this.maxScroll);
     this.content.y = TOP - offset;
-    this.fadeTop?.setAlpha(Math.min(1, offset / FADE));
-    this.fadeBottom?.setAlpha(Math.min(1, (this.maxScroll - offset) / FADE));
+    // Kenarı kesen satırın (bant) dışında kalan kısmı da gizlensin diye maske o satırın ötesine çekilir.
+    let ust = offset;
+    let alt = offset + VIEW_HEIGHT;
+    for (const b of this.bands) {
+      if (b.top < offset - 0.5 && b.bottom > offset + 0.5) ust = Math.max(ust, b.bottom);
+      if (b.top < offset + VIEW_HEIGHT - 0.5 && b.bottom > offset + VIEW_HEIGHT + 0.5) alt = Math.min(alt, b.top);
+    }
+    this.maskShape
+      ?.clear()
+      .fillStyle(0xffffff)
+      .fillRect(this.left - 20, TOP + ust - offset, COLUMN + 40, Math.max(0, alt - ust));
   }
 }

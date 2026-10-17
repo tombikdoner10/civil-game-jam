@@ -190,7 +190,7 @@ export const MIZAC_METIN: Record<Mizac, MizacMetin> = {
       'Bunu bana sormayın lütfen.',
       'Ben sadece dosyayı getirdim.',
     ],
-    sorGiris: ['Ş-şey...', 'Ben pek bilmem ama.', 'Sanırım...', 'Bana söylenen şu.'],
+    sorGiris: ['Ş-şey...', 'Ben pek bilmem ama...', 'Sanırım...', 'Bana söylenen şu.'],
     zarfRet: ['Ö-özür dilerim, utandım.', 'Bana öyle söylediler, bilmiyordum.', 'Lütfen yanlış anlamayın.'],
     zarfKabul: ['T-teşekkürler...', 'Kimseye söylemem.', 'Sağ olun... sağ olun.'],
     damga: {
