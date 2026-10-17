@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G62 [teknik] (bitti f3340ed, test sürüyor, Opus/low) Kartlarda "Beton dayanımı"/"Zemin türü" ve getirilen raporda "Tarih"/"Lab mührü" satırlarının etiket kısmı da seçilebilsin.
 
 ## Sırada
 
@@ -75,6 +74,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G62 Belge satırlarında etiket de seçilebilir (beton, zemin türü, getirilen rapor, kolon satırı) (f3340ed, Opus/high; test GEÇTİ)
 - [x] G61b Ses beyan metinleri tamamlandı (saha testi sesleri, ekran düğmeleri); Ada/Parsel satırının tamamı seçilebilir (c9a64d7, Opus/high; test GEÇTİ)
 - [x] G61 Beyan düzeltmeleri: UI Audio, Fable 5.1 (Diğer), Müfettiş kararı; ipucu kusur bulununca çıkmaz (a06ebf8, Opus/high; test GEÇTİ)
 - [x] G60 Başka binanın belgesinde ipucu; sonuçta okunur zarf satırları (ed6414e, Opus/high; test GEÇTİ, 9 koşu)
