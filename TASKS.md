@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G54 [teknik] (sürüyor, Opus/high) Sokak boyunca tek bina numarası (gün 1: 01–03 … gün 5: 22–29; kısa yol dahil), gazetede iade satırı durumla başlar; klasörde iki haneli kural numarası yazıya yapışmasın; numaralar sekme sırasıyla (GENEL 1'den); karot ve zemin etüdü kural metni düzeltmesi.
+- [ ] G54 [teknik] (bitti e14cf70, test sürüyor, Opus/low) Sokak boyunca tek bina numarası (gün 1: 01–03 … gün 5: 22–29; kısa yol dahil), gazetede iade satırı durumla başlar; klasörde iki haneli kural numarası yazıya yapışmasın; numaralar sekme sırasıyla (GENEL 1'den); karot ve zemin etüdü kural metni düzeltmesi.
 
 ## Sırada
 
