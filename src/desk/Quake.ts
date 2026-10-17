@@ -81,6 +81,11 @@ export const ONCU_TEPKI_SONU = 0.52;
 export interface QuakeKontrol {
   /** Sarsıntıyı hemen bitirir (sesi söndürür, parçacıkları siler) ve bitince'yi çağırır. İkinci çağrı bir şey yapmaz. */
   bitir: () => void;
+  /**
+   * Hızlı geçiş (G25): sahnenin zamanı kat kat hızlanırken (time ve tweens timeScale) rastgele ortam sesleri (moloz,
+   * çatırtı, cam, ara vuruşlar) aynı oranda seyrelir; saniyedeki ses sayısı artmaz. Sonuçlar değişmez.
+   */
+  hizlandir: (kat: number) => void;
 }
 
 /** Öncü sarsıntı zarfı (0..1): yükselir, tepede kalır, söner; son kısım durulma (toz çöker). */
@@ -369,6 +374,8 @@ export class Quake {
     );
 
     const cam = scene.cameras.main;
+    /** Hızlı geçişte rastgele seslerin seyrelme katı (hizlandir). */
+    let seyrek = 1;
     let t = 0;
     const tik = scene.time.addEvent({
       delay: TIK,
@@ -381,10 +388,10 @@ export class Quake {
         const on = buyuk ? 0.04 : 0.06;
         gurDuzey = Math.min(1.5, guc * Math.max(e, u < on ? (u / on) * 0.2 : 0));
         gur.seviye(gurDuzey);
-        if (e > 0.15 && Math.random() < 0.09 * e * guc) sfx.play('moloz', { volume: 0.3 + 0.5 * e, pan: Math.random() * 1.6 - 0.8 });
-        if (e > 0.3 && Math.random() < 0.05 * e * guc) sfx.play('catirti', { volume: 0.3 + 0.5 * e, pan: Math.random() * 1.2 - 0.6 });
-        if (e > 0.3 && Math.random() < 0.14 * e) sfx.play('camTitreme', { volume: 0.5 + 0.5 * e });
-        if (e > 0.6 && Math.random() < 0.025 * guc) sfx.play('depremVurus', { volume: Math.min(1.2, 0.5 * e * guc), rate: 1.1 });
+        if (e > 0.15 && Math.random() < (0.09 * e * guc) / seyrek) sfx.play('moloz', { volume: 0.3 + 0.5 * e, pan: Math.random() * 1.6 - 0.8 });
+        if (e > 0.3 && Math.random() < (0.05 * e * guc) / seyrek) sfx.play('catirti', { volume: 0.3 + 0.5 * e, pan: Math.random() * 1.2 - 0.6 });
+        if (e > 0.3 && Math.random() < (0.14 * e) / seyrek) sfx.play('camTitreme', { volume: 0.5 + 0.5 * e });
+        if (e > 0.6 && Math.random() < (0.025 * guc) / seyrek) sfx.play('depremVurus', { volume: Math.min(1.2, 0.5 * e * guc), rate: 1.1 });
         if (e > 0 && settings.get().shake) cam.shake(TIK + 30, genlik * (0.25 + 0.75 * e), true);
         this.sokak.sallan(e > 0.05 ? (buyuk ? 0.8 + 1.4 * e : 0.6 + e) : 0);
         // Toz yoğunluğu sarsıntıyla artar; tepede sıva parçaları.
@@ -417,7 +424,12 @@ export class Quake {
         bitir();
       }
     };
-    return { bitir: () => son(true) };
+    return {
+      bitir: () => son(true),
+      hizlandir: (kat) => {
+        seyrek = Math.max(1, kat);
+      },
+    };
   }
 
   /**

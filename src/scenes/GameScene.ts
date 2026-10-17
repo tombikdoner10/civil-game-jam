@@ -94,7 +94,7 @@ const FIS_ALT_PAY = 0;
 /** Köşedeki fişin kural notunun alt kenarına binebileceği pay (notun yazısız alt boşluğu ~20 px). */
 const NOT_ALT_ORTME = 12;
 
-/** İnceleme ipucu (G24) fişte gösterildi mi: oturumda (sayfa açık kaldıkça) yalnızca ilk yanlış kararda. */
+/** İnceleme ipucu (G24) fişte gösterildi mi: oturumda (sayfa açık kaldıkça) yalnızca incelemesiz ilk yanlış kararda. */
 let incelemeIpucuGosterildi = false;
 
 /** Damgaya göre gişedeki kişinin yüzü. */
@@ -786,8 +786,9 @@ export class GameScene extends Phaser.Scene {
       // Doğru kararda da kısa gerekçe (G5b): kusurlar ya da "Kusur yok", ok ve vurulan damga.
       const gerekce = `${sonuc.etiketler.join(', ') || 'Kusur yok'} → ${DAMGA_ADI[damga]}`;
       let metin = sonuc.dogru ? `Doğru karar\n${gerekce}` : `Yanlış karar\nDoğrusu: ${DAMGA_ADI[sonuc.dogruDamga]}\n${kusurlar}`;
-      // İlk yanlış kararda (oturumda bir kez, G24) inceleme ipucu; ceza yok.
-      if (!sonuc.dogru && !incelemeIpucuGosterildi) {
+      // İnceleme kullanılmadan verilen ilk yanlış kararda (oturumda bir kez, G24) inceleme ipucu; ceza yok. Oyuncu bu
+      // dosyada kusuru incelemeyle bulduysa ipucu çıkmaz (G25): incelemeyi zaten biliyor.
+      if (!sonuc.dogru && !incelemeIpucuGosterildi && (sonKarar?.bulunan.length ?? 0) === 0) {
         incelemeIpucuGosterildi = true;
         metin += `\n${INCELE_IPUCU}`;
       }

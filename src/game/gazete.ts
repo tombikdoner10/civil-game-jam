@@ -10,6 +10,8 @@ import type { DepremBinaSonucu, DepremOzeti } from './session';
 
 /** Gece geçişindeki yazı (G24: deprem önceden bilinmez; saat ya da tarih iddiası yok). */
 export const GECE_SAATI = '[Bir gece]';
+/** Büyük deprem sahnesinin köşesindeki ipucu (G25): birkaç saniye sonra Enter/Space/tık depremi hızlandırır. */
+export const DEPREM_GEC = '[Enter: geç]';
 
 export const GAZETE_ADI = '[GAZETE ADI]';
 /** Gazete künyesi. G11: tarih yok (deprem dili: tarih ve kehanet verilmez). */
@@ -149,9 +151,15 @@ export const KISA_YOL_DEVAM = '[Sonra 2. günden devam edebilirsin.]';
 
 /** Gün 1 sonundaki küçük deprem (kodda "öncü"): gişe camındaki şerit. G24: "asıl deprem gelecek" yok. */
 export const KUCUK_DEPREM_SERIT = '[Küçük bir deprem oldu.]';
-/** Gün sonu raporundaki küçük deprem satırı. parcalar: çatlayan binalar ("·" ile birleşir). */
-export function kucukDepremSatiri(parcalar: readonly string[]): string {
-  return `[Küçük deprem: ${parcalar.join(' · ')}]`;
+/**
+ * Gün sonu raporundaki küçük deprem satırı (G25: tek sayı ve tek liste). catlayanlar: çatlayan binalar (adı, damgası,
+ * içinde insan var mıydı), dosya sırasıyla. Ör. "[Küçük deprem: 2 bina çatladı: Bina 02 (GÜVENLİ, içinde insan
+ * vardı), Bina 03 (BOŞALT, boştu)]".
+ */
+export function kucukDepremSatiri(catlayanlar: readonly { ad: string; damga: Damga; bos: boolean }[]): string {
+  if (catlayanlar.length === 0) return '[Küçük deprem: çatlayan bina yok]';
+  const liste = catlayanlar.map((b) => `${b.ad} (${DAMGA_AD[b.damga]}, ${b.bos ? 'boştu' : 'içinde insan vardı'})`).join(', ');
+  return `[Küçük deprem: ${catlayanlar.length} bina çatladı: ${liste}]`;
 }
 /** Depremde oyuncunun binalarının üstündeki etiket. */
 export const SENIN_DAMGAN = '[SENİN DAMGAN]';

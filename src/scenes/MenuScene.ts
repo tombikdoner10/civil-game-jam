@@ -60,8 +60,11 @@ function devKisaYol(): DayEndData | null {
 
 /** Menünün arkasındaki sokak (G11): akşamüstü, ekranı kaplar; kaldırım alttaki yazıların biraz üstünde. */
 const SOKAK = { alan: { x: 0, y: -36, w: WIDTH, h: HEIGHT }, olcek: 3, derinlik: -30, binaSayisi: 8 };
-/** Sokak yavaşça kayar: iki uçtaki odak parsel aralığı ve bir geçişin süresi (ms). */
-const KAYMA: { uclar: readonly [number, number][]; sure: number } = { uclar: [[1, 2], [4, 5]], sure: 26000 };
+/**
+ * Sokak yavaşça kayar: iki uçtaki odak parsel aralığı ve bir geçişin süresi (ms). G25: kayma yarım parsel (2. parselin
+ * ortası ↔ 2-3 arası); böylece ruhsat kâğıdının iki yanındaki 0. ve 4. parsel kayma boyunca görünür kalır.
+ */
+const KAYMA: { uclar: readonly [number, number][]; sure: number } = { uclar: [[2, 2], [2, 3]], sure: 20000 };
 /** Pencere ışıkları: başta yanan oran, bir ışığın yanıp sönme aralığı (ms) ve yanan oranın sınırları. */
 const ISIK = { bas: 0.2, aralik: 900, enAz: 0.12, enCok: 0.32, alfa: 0.85 };
 /** Ruhsat kâğıdı: genişlik, üst kenar, başlık şeridi; "Oyna" y≈528 (smoke senaryoları 960,530'a tıklıyor). */
@@ -69,10 +72,11 @@ const KAGIT = { w: 720, ust: 192, serit: 152, dugmeY: 528, dugmeAra: 96, dugmeH:
 
 /**
  * Menü sokağındaki binalar: oyunun bina üreticisinden; çoğu GÜVENLİ, biri iskeleli (GÜÇLENDİR), biri şeritli
- * (BOŞALT): oyunun dili ilk ekranda görünsün.
+ * (BOŞALT): oyunun dili ilk ekranda görünsün. G25: ikisi kâğıdın iki yanında (0. parsel solda, 4. parsel sağda),
+ * kâğıdın arkasında kalmaz.
  */
 function menuSokagi(tohum: number): SokakGirdi[] {
-  const damgalar: Damga[] = ['guvenli', 'guvenli', 'guclendir', 'guvenli', 'guvenli', 'bosalt', 'guvenli', 'guvenli'];
+  const damgalar: Damga[] = ['guclendir', 'guvenli', 'guvenli', 'guvenli', 'bosalt', 'guvenli', 'guvenli', 'guvenli'];
   return gunDosyalari(tohum, 3, SOKAK.binaSayisi).map((bina, i) => ({ bina, damga: damgalar[i % damgalar.length], gun: 1 }));
 }
 
@@ -142,7 +146,10 @@ export class MenuScene extends Phaser.Scene {
    * kayar, pencerelerde ışıklar tek tük yanıp söner, sokak lambalarından biri arada bir titrer.
    */
   private sokakKur(): void {
-    const tohum = Math.floor(Math.random() * 1_000_000_000);
+    // Yalnızca dev: ?dev&menutohum=N menü binalarını sabitler (video çekimi için).
+    const q = DEV ? new URLSearchParams(location.search) : undefined;
+    const mt = Number(q?.get('menutohum'));
+    const tohum = q?.has('menutohum') && Number.isFinite(mt) ? mt : Math.floor(Math.random() * 1_000_000_000);
     const girdiler = menuSokagi(tohum);
     const sokak = new Sokak(this, SOKAK.alan, 1, girdiler, SOKAK.derinlik, { olcek: SOKAK.olcek });
     const [i0, i1] = KAYMA.uclar[0];

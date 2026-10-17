@@ -3,12 +3,12 @@ import * as Phaser from 'phaser';
 import { FONT } from '../config';
 import { binaEtiketi, ETIKET_BUYUK, type BinaEtiketi } from '../desk/BinaEtiketi';
 import { PAL } from '../desk/palette';
-import { Quake } from '../desk/Quake';
+import { Quake, type QuakeKontrol } from '../desk/Quake';
 import { Sokak, type SokakYeri } from '../desk/Street';
 import { SON_GUN } from '../game/days';
 import { buyukDeprem, sokakKayitlari, type DepremBinaSonucu, type GunKaydi } from '../game/session';
 import { TUNING } from '../game/tuning';
-import { GECE_SAATI, SENIN_DAMGAN, sonucEtiketi } from '../game/gazete';
+import { DEPREM_GEC, GECE_SAATI, SENIN_DAMGAN, sonucEtiketi } from '../game/gazete';
 import { ZARF_ETIKET } from '../game/diyalog';
 import { Controls } from '../systems/controls';
 import { goTo } from '../systems/transition';
@@ -50,11 +50,18 @@ export function sonucRengi(s: DepremBinaSonucu): string {
 }
 /** Sahne zamanlaması (ms): saat yazısı, perdenin açılması, depremin başlaması, gazeteye geçiş. */
 const ZAMAN = { saatGel: 400, saatGit: 2600, perde: 3000, perdeSure: 1600, deprem: 5200, sonra: 2400 };
+/**
+ * Hızlı geçiş (G25, jüri için): sahne açıldıktan bekleme ms sonra Enter/Space/tık depremi kat kat hızlandırır (sahnenin
+ * zamanlayıcıları ve tween'leri); deprem bitince normal hıza döner, genel görünüm sonra ms durur ve gazeteye geçilir.
+ * Sonuçlar baştan hesaplı olduğu için değişmez. Deprem bittikten sonra Enter/Space/tık hemen gazeteye geçer.
+ */
+const ATLA = { bekle: 3000, kat: 10 };
 
 /**
  * Büyük deprem (G5): gece geçişi (kararma, saat), sonra oyuncunun kararlarıyla dolan sokak tam ekran ve gece.
  * Sokak binalık gruplarla taranır, her bina adalet kurallarıyla (session.buyukDeprem) tepki verir; sonunda bütün
- * sokak görünür ve gazeteye geçilir. Girdi yok; Esc duraklatır (gürleme susar, sekans durur).
+ * sokak görünür ve gazeteye geçilir. Enter/Space/tık birkaç saniye sonra depremi hızlandırır (G25, ATLA); Esc
+ * duraklatır (gürleme susar, sekans durur).
  */
 export class QuakeScene extends Phaser.Scene {
   private veri!: DepremData;
@@ -73,6 +80,9 @@ export class QuakeScene extends Phaser.Scene {
   }
 
   create(): void {
+    // Hızlı geçişten kalan zaman katı sıfırlanır ("Yeniden Başla" sahneyi baştan kurar).
+    this.time.timeScale = 1;
+    this.tweens.timeScale = 1;
     const cam = this.cameras.main;
     cam.setBackgroundColor(0x000000).setRoundPixels(true);
     this.input.enabled = true;
@@ -127,15 +137,60 @@ export class QuakeScene extends Phaser.Scene {
       .setAlpha(0);
     this.tweens.add({ targets: kose, alpha: 0.8, duration: 400, delay: zaman.perde + zaman.perdeSure });
 
-    this.time.delayedCall(zaman.deprem, () =>
-      quake.oynat(
+    // Hızlı geçiş (G25): köşede ipucu; deprem bitince normal hız, genel görünüm durur, sonra gazete.
+    let kontrol: QuakeKontrol | undefined;
+    let hizli = false;
+    let bitti = false;
+    let gidildi = false;
+    const gazeteyeGec = (): void => {
+      if (gidildi) return;
+      gidildi = true;
+      this.time.timeScale = 1;
+      this.tweens.timeScale = 1;
+      const data: NewspaperData = { ...v, sonuclar };
+      goTo(this, SCENES.Newspaper, data, 600);
+    };
+    const ipucu = this.add
+      .text(1872, 1040, DEPREM_GEC, { fontFamily: FONT, fontSize: '32px', color: PAL.panelYazi })
+      .setOrigin(1, 0.5)
+      .setDepth(102)
+      .setAlpha(0);
+    let atlanabilir = false;
+    this.time.delayedCall(ATLA.bekle, () => {
+      atlanabilir = true;
+      this.tweens.add({ targets: ipucu, alpha: 0.75, duration: 300, ease: 'Stepped', easeParams: [3] });
+    });
+    const atla = (): void => {
+      if (!atlanabilir || gidildi) return;
+      if (bitti) {
+        gazeteyeGec();
+        return;
+      }
+      if (hizli) return;
+      hizli = true;
+      this.time.timeScale = ATLA.kat;
+      this.tweens.timeScale = ATLA.kat;
+      kontrol?.hizlandir(ATLA.kat);
+    };
+    const kb = this.input.keyboard;
+    kb?.on('keydown-ENTER', atla);
+    kb?.on('keydown-SPACE', atla);
+    this.input.on(Phaser.Input.Events.POINTER_DOWN, atla);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      kb?.off('keydown-ENTER', atla);
+      kb?.off('keydown-SPACE', atla);
+      this.input.off(Phaser.Input.Events.POINTER_DOWN, atla);
+    });
+
+    this.time.delayedCall(zaman.deprem, () => {
+      kontrol = quake.oynat(
         1,
         binalar,
         () => {
-          this.time.delayedCall(zaman.sonra, () => {
-            const data: NewspaperData = { ...v, sonuclar };
-            goTo(this, SCENES.Newspaper, data, 600);
-          });
+          bitti = true;
+          this.time.timeScale = 1;
+          this.tweens.timeScale = 1;
+          this.time.delayedCall(zaman.sonra, gazeteyeGec);
         },
         {
           sure: v.kisa ? K.depremMs : B.sureMs,
@@ -156,8 +211,10 @@ export class QuakeScene extends Phaser.Scene {
             return s ? { durum: s.durum, bos: s.bos, coker: s.coktu } : { durum: 'ayakta', bos: b.damga === 'bosalt' };
           },
         },
-      ),
-    );
+      );
+      // Deprem başlamadan hızlandırıldıysa (gece geçişinde) ortam sesleri de seyrelsin.
+      if (hizli) kontrol.hizlandir(ATLA.kat);
+    });
 
     // Pencere odağı kaçarsa duraklat.
     const onBlur = (): void => {

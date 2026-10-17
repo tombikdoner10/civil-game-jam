@@ -4,7 +4,7 @@ import { sfx } from '../audio/sfx';
 import { FONT } from '../config';
 import { num, PAL } from '../desk/palette';
 import { PX, rastgele, snap, Tuval } from '../desk/pixel';
-import { hazirGostergesi, masaCiz, pikselDugme } from '../desk/props';
+import { hazirGostergesi, masaCiz, pikselDugme, pikselDugmeEni } from '../desk/props';
 import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
 import type { Damga } from '../game/building';
 import { SON_GUN } from '../game/days';
@@ -40,6 +40,13 @@ const SATIR_H = 52;
 const SUTUN = { no: 40, bina: 104, damga: 400, dogru: 640, kusur: 880, sonuc: KAGIT.w - 40 };
 
 const para = (n: number): string => `${n < 0 ? '−' : ''}${Math.abs(n)} TL`;
+
+const SONRAKI = 'SONRAKİ GÜN';
+/**
+ * Gün 1'deki iki düğme (G25): aynı genişlik ve yazı boyu (kısa yol metni 44 px'te kâğıda sığmıyor), aralarında boşluk.
+ * İkisinin toplamı kâğıdın iç genişliğine (KAGIT.w − 2·40) sığar.
+ */
+const IKILI = { boyut: 36, ara: 48 };
 
 /**
  * Giriş koruması (ms, sahne açılışından): rapor açılırken basılı kalan ya da çift basılan Enter geçmesin. Önceki
@@ -137,20 +144,16 @@ export class DayEndScene extends Phaser.Scene {
     // Öncü sarsıntı satırı (yer tutucu metin)
     let oncuH = 0;
     if (v.oncu) {
+      // Tek sayı ve tek liste (G25): çatlayan her bina damgası ve içinde insan olup olmadığıyla, dosya sırasıyla.
+      const sira = new Map(v.dosyalar.map((d, i) => [d.id, i]));
       const adres = new Map(v.dosyalar.map((d) => [d.id, d.adres]));
-      const catlayan = v.oncu.sonuclar.filter((s) => s.durum !== 'ayakta');
-      const dolu = catlayan.filter((s) => !s.bos);
-      const bos = catlayan.filter((s) => s.bos);
-      const ad = (id: string): string => adres.get(id) ?? id;
-      const parcalar: string[] = [];
-      if (dolu.length > 0)
-        parcalar.push(
-          `${dolu.length} bina çatladı (${dolu.map((s) => `${ad(s.dosyaId)}, ${DAMGA_ADI[kararlar.get(s.dosyaId)?.damga ?? 'guvenli']} damgalı`).join('; ')})`,
-        );
-      else parcalar.push('içinde insan olan bina çatlamadı');
-      if (bos.length > 0) parcalar.push(`çatlayan boş bina: ${bos.map((s) => ad(s.dosyaId)).join(', ')}`);
-      const metin = kucukDepremSatiri(parcalar);
-      const kotu = dolu.length > 0;
+      const catlayan = v.oncu.sonuclar
+        .filter((s) => s.durum !== 'ayakta')
+        .sort((a, b) => (sira.get(a.dosyaId) ?? 0) - (sira.get(b.dosyaId) ?? 0));
+      const metin = kucukDepremSatiri(
+        catlayan.map((s) => ({ ad: adres.get(s.dosyaId) ?? s.dosyaId, damga: kararlar.get(s.dosyaId)?.damga ?? 'guvenli', bos: s.bos })),
+      );
+      const kotu = catlayan.some((s) => !s.bos);
       const satir = yaz(L + 40, y + 20, metin, 34, kotu ? PAL.damgaBosalt : PAL.damgaGuvenli);
       this.sigdir(satir, KAGIT.w - 80);
       satir.setAlpha(0);
@@ -214,28 +217,35 @@ export class DayEndScene extends Phaser.Scene {
       if (e.ctrlKey || e.altKey || e.metaKey) return;
       if (e.keyCode === Phaser.Input.Keyboard.KeyCodes.N || e.code === 'KeyN' || e.key === 'n' || e.key === 'N') tus();
     };
+    // Gün 1'de iki düğme aynı genişlikte ve aynı yazı boyunda (G25): kâğıdın ortasına göre simetrik.
+    const ikili = kisaVar ? { boyut: IKILI.boyut, en: pikselDugmeEni(this, [[SONRAKI, 'N', IKILI.boyut], [KISA_YOL_DUGME, 'Enter', IKILI.boyut]]) } : undefined;
     const dugme = pikselDugme(
       this,
       L + KAGIT.w / 2,
       by,
-      son ? 'GECE' : 'SONRAKİ GÜN',
+      son ? 'GECE' : SONRAKI,
       kisaVar ? 'N' : 'Enter',
       tus,
       kisaVar ? { govde: PAL.cerceveAcik, acik: '#7a7466', koyu: PAL.cerceve } : undefined,
+      ikili,
     );
     this.tweens.add({ targets: dugme, alpha: 1, duration: 120 });
     let birincil = dugme;
     if (kisaVar) {
-      const kd = pikselDugme(this, L + KAGIT.w / 2, by, KISA_YOL_DUGME, 'Enter', kisaTus, {
-        govde: PAL.damgaBosalt,
-        acik: '#c4544a',
-        koyu: '#6e2a24',
-      });
-      // İki düğme kâğıdın ortasına göre simetrik (G11): aralarında boşluk, ikisinin toplamı ortalanır.
-      const ara = 64;
-      const sol = L + KAGIT.w / 2 - (dugme.width + ara + kd.width) / 2;
-      dugme.setX(snap(sol + dugme.width / 2));
-      const kx = snap(sol + dugme.width + ara + kd.width / 2);
+      const kd = pikselDugme(
+        this,
+        L + KAGIT.w / 2,
+        by,
+        KISA_YOL_DUGME,
+        'Enter',
+        kisaTus,
+        { govde: PAL.damgaBosalt, acik: '#c4544a', koyu: '#6e2a24' },
+        ikili,
+      );
+      // Aralarında IKILI.ara; ikisinin toplamı kâğıdın ortasında (eşit genişlik: ikisi de ortadan eşit uzakta).
+      const yari = (dugme.width + IKILI.ara) / 2;
+      dugme.setX(snap(L + KAGIT.w / 2 - yari));
+      const kx = snap(L + KAGIT.w / 2 + yari);
       kd.setX(kx);
       this.tweens.add({ targets: kd, alpha: 1, duration: 120 });
       birincil = kd;

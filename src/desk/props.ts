@@ -111,9 +111,34 @@ export function hazirGostergesi(scene: Phaser.Scene, dugme: Phaser.GameObjects.C
   });
 }
 
+/** Piksel düğmenin yazı boyu (varsayılan 44 px) ve en az genişliği (G25: yan yana eşit düğmeler). */
+export interface DugmeOlcu {
+  boyut?: number;
+  en?: number;
+}
+
+/** Piksel düğmenin doğal genişliği (yazı + tuş ipucu + kenar payı). */
+function dugmeEni(yazi: Phaser.GameObjects.Text, ipucu: Phaser.GameObjects.Text): number {
+  return snap(yazi.width + ipucu.width + 96);
+}
+
+/** Verilen düğmelerin ([metin, ipucu, yazı boyu]) en genişinin eni: yan yana aynı genişlikte düğmeler için. */
+export function pikselDugmeEni(scene: Phaser.Scene, dugmeler: readonly [string, string, number][]): number {
+  let en = 0;
+  for (const [metin, ipucuMetni, boyut] of dugmeler) {
+    const yazi = scene.add.text(0, 0, metin, { fontFamily: FONT, fontSize: `${boyut}px` });
+    const ipucu = scene.add.text(0, 0, ipucuMetni, { fontFamily: FONT, fontSize: '26px' });
+    en = Math.max(en, dugmeEni(yazi, ipucu));
+    yazi.destroy();
+    ipucu.destroy();
+  }
+  return en;
+}
+
 /**
  * Masa tarzı piksel düğme (gün sonu, gazete, sonuç): koyu çerçeve, damga renginde gövde, yanında tuş ipucu.
- * Fareyle tıklanır; tuşu çağıran bağlar. Kap döner (alpha 0'dan açılır).
+ * Fareyle tıklanır; tuşu çağıran bağlar. Kap döner (alpha 0'dan açılır). olcu: yazı boyu ve en az genişlik
+ * (verilmezse 44 px ve yazıya göre).
  */
 export function pikselDugme(
   scene: Phaser.Scene,
@@ -123,10 +148,11 @@ export function pikselDugme(
   ipucuMetni: string,
   is: () => void,
   renk: { govde: string; acik: string; koyu: string } = { govde: PAL.damgaGuclendir, acik: '#d0ad52', koyu: '#8a6a20' },
+  olcu: DugmeOlcu = {},
 ): Phaser.GameObjects.Container {
-  const yazi = scene.add.text(0, 0, metin, { fontFamily: FONT, fontSize: '44px', color: PAL.panel }).setOrigin(0.5);
+  const yazi = scene.add.text(0, 0, metin, { fontFamily: FONT, fontSize: `${olcu.boyut ?? 44}px`, color: PAL.panel }).setOrigin(0.5);
   const ipucu = scene.add.text(0, 0, ipucuMetni, { fontFamily: FONT, fontSize: '26px', color: PAL.panel }).setOrigin(0.5);
-  const w = snap(yazi.width + ipucu.width + 96);
+  const w = Math.max(dugmeEni(yazi, ipucu), snap(olcu.en ?? 0));
   const h = 72;
   const tw = w / PX;
   const th = h / PX;
