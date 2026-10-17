@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G33 [teknik] (sürüyor, Opus/high) Diyalog çeşitliliği altyapısı: mizaç (oyun RNGsi tüketilmez), tekrarsız deste, {kat}/{yil}/{ada}/{bina} değişkenleri, sabırsızlık (3. SOR/İSTE) ve bekleme (~25 sn) tepkileri; cümleler src/game/diyalog-metin.ts.
 
 ## Sırada
 
@@ -65,6 +64,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G33 Diyalog çeşitliliği: mizaç (portre tohumundan), tekrarsız deste, ruhsat değişkenleri, sabırsızlık (sinirli 2., diğerleri 3. soru) ve ~25 sn bekleme; 393 taslak cümle (dde59ff + c0a76cc, Opus/high; test sürüyor)
 - [x] G32 T23 rapor satırı kısaldı; T24 gazete PIZZI03, sonuç PIZZI02/01 (Pizzicato), sahne kapanınca susuyor; gün sonu jinglesı rapor kapanınca kesiliyor (7a53984 + a23cd04, Opus/high; test geçti)
 - [x] G29b Beyan model eşlemesi zamana bağlı (geliştirici 17:02Z, test oyuncusu 22:56Z öncesi Sonnet); beyan dosyaları kaydın yer listesine girmiyor; Ses ve Metin yalnızca Opus (d027c0e, Opus/high; test geçti)
 - [x] G29 AI beyanı oyunda ve formda kategori başına sade özet (docs/ai-ozet.json); AI_BEYAN.md altta ayrıntılı kayıt eksiksiz (eccc1ac, Opus/high; test geçti)
