@@ -11,7 +11,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Sırada
 
-Eleştirmen 4 sonrası (sıra: G29 → G31 (metinler gelince))
+Eleştirmen 4 sonrası (sıra: G31 (metinler gelince))
 
 - [ ] G31 [teknik] Takım metinleri gelince tutarlılık geçişi: TITLE (config.ts) HTML başlığı, Splash, README, BENIOKU'da; köşeli parantezli yer tutucular kalkar; fiş, kural notu, rapor 1080p ve 720p'de taşmıyor (fiş-not arası G26'da ~10 px).
 
