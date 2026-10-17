@@ -7,7 +7,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
 - Kontrol 2 (ara oyun testi): TAMAM (16 Ekim 23.53, geri bildirim işlendi)
 - Kontrol 3 (son teslim): BEKLİYOR
-- Son eleştirmen: 2026-10-17T04:19+03:00
+- Son eleştirmen: 2026-10-17T06:40+03:00
 - Kullanım düzeyi: normal
 
 ## Günlük
@@ -106,3 +106,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 06:12 · Test (G27, opus/low): kusursuz yanlışta ipucu yok, kusurlu ilk yanlışta var, ikinci kusurlu yanlışta yok, menü 545b7e0 GEÇTİ; incelenmiş kusurda ipucu yok maddesi yapılamadı (koşul G25ten beri kodda, değişmedi) · Bulgular: "damga kural notunu kapatıyor" = gişeye uçan ruhsatın geçici animasyon karesi, hata değil; deprem ekranında son fiş açık kalıyor (düşük, bilgi) · Karar: G27 yayına
 - 06:13 · G27 canlıda (139fa6c; JS paketinde hash ve canlı smoke doğrulandı; son-saglam taşındı) · Not: 06:01, 06:08, 06:11 satırları tahmini saatle yazılmıştı, commit saatlerine göre düzeltildi · Sıradaki: eleştirmen (~07.20) ya da yeni cila bulgusu
 - 06:14 · Eleştirmen 4 başladı (opus/high, canlı 139fa6c) · Karar: ~1 saat erken çalıştırıldı · Neden: açık teknik görev yok, sıradaki cila işleri bulgulara göre seçilecek
+- 06:48 · Eleştirmen 4 (opus/high, canlı 139fa6c, 9 koşu hatasız): 30 sn testi EVET; jüri yolu 2:00–2:40; tema güçlendi (kehanetsiz dil, küçük deprem, "içinde insan vardı"); puan ~79 (metinlerle ~85; önceki 76/84); en büyük kayıp yer tutucular (OYUN ADI, [GAZETE ADI], 118 köşeli parantez) · Karar: G28 (deprem hızlandırma kartta + görünür ipucu, balon yarım kalmasın) hemen; G29 AI beyanı oyunda sade; G30 gazete istatistiği T22 kararına bağlı; G31 metin tutarlılığı 18.00 sonrası; takıma T22–T26 · Neden: sunumda süre kazancı ve 4.3 izlenimi; yaratıcı kararlar takımın · Sıradaki: G28 testi

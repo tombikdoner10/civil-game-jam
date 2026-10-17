@@ -8,8 +8,15 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G28 [teknik] (sürüyor, Opus/high) Deprem hızlandırma: "[Bir gece]" kartında yeni basılan Enter/Space/tıklama saklansın (rapordaki Enter sayılmaz), ipucu büyük ve görünür; konuşma balonu kişi giderken yarım kalmasın.
 
 ## Sırada
+
+Eleştirmen 4 sonrası (sıra: G28 → G29 → G30 (T22 kararına bağlı) → G31 (metinler gelince))
+
+- [ ] G29 [teknik] Emeği Geçenler'de AI beyanı kategori başına kısa özet (araç, amaç, yer); iç görev kodları (G4b…) ve günlük dili oyunda görünmesin. docs/AI_BEYAN.md (teslim formu metni) tam ve doğru kalır; içerik eksilmez.
+- [ ] G30 [teknik] Kısa yol gazetesi istatistiği T22 kararına göre (ör. önce "senin binaların", İADE/içi boş satırları sıfırsa ya da jüri görmediyse gizli).
+- [ ] G31 [teknik] Takım metinleri gelince tutarlılık geçişi: TITLE (config.ts) HTML başlığı, Splash, README, BENIOKU'da; köşeli parantezli yer tutucular kalkar; fiş, kural notu, rapor 1080p ve 720p'de taşmıyor (fiş-not arası G26'da ~10 px).
 
 Çekirdek döngü (hedef: Cumartesi 14.00 ara test; sıra: G4 → G4b → G12 → G5 → G13)
 
@@ -30,6 +37,11 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Takım işleri
 
+- [ ] T22 [takım] Eleştirmen 4: kısa yol gazetesinin istatistiği: (a) yalnızca jürinin binaları, (b) önce "senin binaların", sonra bütün sokak, (c) olduğu gibi (örnek binalar dahil; jüri görmediği "İade edilmiş: 1" satırını da okuyor). → G30
+- [ ] T23 [takım] Rapordaki çift ifade: satırda "Varsayalım: büyük deprem bu gece oldu", düğmede "BÜYÜK DEPREM BU GECE OLSAYDI?". (1) düğme soru kalsın, satır kısalsın (2) ikisi de varsayım dili (3) olduğu gibi.
+- [ ] T24 [takım] Ses ortamı: oyunda müzik/ortam sesi yok. (a) kasıtlı sessizlik (b) yalnızca gazete ve sonuçta Kenney Music Jingles (havuzda var, CC0; küçük iş) (c) masa ortam döngüsü (küçük–orta). Ayrıca T6: 42 Kenney sesi dinlenmedi.
+- [ ] T25 [takım] Sunum: anlatıcının ilk cümlesi (ör. "Kurala uymayanı damgala, sonra raporda kırmızı düğme"); jüri bilgisayarında oyun önceden açık olsun ya da ZIP sürümü (canlı sitede ilk yükleme birkaç sn, bu sırada tıklamalar kayboluyor). Gerçekçi jüri yolu 2:00–2:40.
+- [ ] T26 [takım] "Takımın kararları" metni (README ve Emeği Geçenler; 4–5 madde: tema yorumu, gişede insan, kural kararları, deprem dili, metinler). Madde 4.3: takımın yaratıcı katkısı görünür olsun.
 - [ ] T1 [takım] Oyunun ve kurgusal şehrin adı.
 - [ ] T12 [takım] Eleştirmenin teknik doğruluk soruları (T2 ile): mühür yılı ruhsat mı iskân mı ("Ruhsat tarihi"?); beton eşiği (TBDY 2018 yeni yapıda C25; mevcut yapıda Riskli Yapı Esasları) ve yıl-dayanım ilişkisi; dere 30 m / fay 150 m kaynağı, dere GÜÇLENDİR ile çözülür mü; zemin etüdü yok = dosya iadesi mi; sıvılaşma hep BOŞALT mı; ZA–ZF zemin sınıfları; 6306 sayılı kanun "riskli yapı" dili.
 - [ ] T2 [takım] Kural kitabı metinleri ve eşikler (5 gün); TBDY 2018, AFAD ve Bakanlık kaynaklarıyla doğrula, kaynakları not et.
