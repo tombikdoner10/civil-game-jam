@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G24 [teknik] Deprem dili ve son cila (takım kararı 04:26): "öncü sarsıntı / asıl deprem gelecek / 5 gün sonra" ifadeleri ve görselleri "küçük deprem", "bir gece büyük deprem", kısa yol düğmesi soru biçimine (yer tutucu); ilk yanlış karardan sonra fişte "Space ile incele, kusuru kanıtla" ipucu (bir kez); G19 testi: açık klasör saha notunu örtüyor (saha notu çakışmayan yere; klasör açılınca notun üstüne gelmesin), saha testinin zaman maliyeti ekranda gösterilsin ("+30 dk"), çatlak etiketi çekiç görselinin altında kalmasın. G23b testi: hepsi doğruyken içi dolu bir sokak binası çökse de değerlendirme "sokak depreme hazırdı" diyor (şablon "senin binaların" diye sınırlansın).
+- [ ] G11 [teknik] Menü cilası (eleştirmen 3, P1): oyun adı başlığı ruhsat kâğıdında, arkada pencere ve akşamüstü sokak (düz şablon görünümü kalksın); belge ayrıntıları kesildi. Ek (G24 kalanları): README ve docs/ai-elle.json'daki "öncü sarsıntı" ifadeleri "küçük deprem" (npm run beyan); gün sonu raporundaki "1/5" kaldırılsın (5. gün depremi ima ediyor); gün 1 raporundaki iki düğme simetrik ve kâğıt içinde.
 
 ## Sırada
 
@@ -26,7 +26,6 @@ Araçlar ve derinlik (ara test sonrası saha testi bunların yerini alıyor; dü
 
 Görsel, ses, cila (takım paketleri onaylayınca)
 
-- [ ] G11 [teknik] Menü cilası (eleştirmen 3, P1): oyun adı başlığı ruhsat kâğıdında, arkada pencere ve akşamüstü sokak (düz şablon görünümü kalksın); belge ayrıntıları kesildi.
 
 
 ## Takım işleri
@@ -83,3 +82,4 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 - [x] G19 [teknik] Saha testi, yalnızca Schmidt çekici (takım kararı 01.30): karot yoksa ya da geçersizse SAHA ile beton yüzeyine vurma mini oyunu (geri tepme değeri → dayanım), günde sınırlı hak, zaman harcar; sonuç masaya "saha notu" olarak düşer ve kanıt sayılır (bilgiEdin karot, saha). Burgu YOK. (680347d, Opus/high; adalet 29895 denetim 0 hata; test geçti)
 - [x] G20: KESİLDİ (takım kararı 04:26, eleştirmen 3: jüri 3. güne ulaşmıyor, kural yükü)
 - [x] G23b [teknik] Gazete zarf satırı yalnızca oyuncunun zarfları, kısa yol manşeti/değerlendirme jüri binalarına dayalı ve tutarlı, ikinci Enter ~0,5 sn + hazır göstergesi, küçük n, deprem yakın planında odak dışı soluk, 720p etiket payı, fiş ekranda, saha paneli (089c397, Opus/high; adalet 30909 denetim 0 hata; test geçti)
+- [x] G24 [teknik] Deprem dili (kehanet/tarih yok: küçük deprem, bir gece, soru biçiminde kısa yol), ilk yanlışta inceleme ipucu, saha notu klasörle çakışmıyor, +30 dk göstergesi, çekiç etiketi, gazete Enter 0,5 sn (8abf4bf, Opus/high; test sürüyor)
