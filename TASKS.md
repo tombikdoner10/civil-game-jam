@@ -11,7 +11,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Sırada
 
-Son test (xhigh, 78/100) sonrası (sıra: G34 → G36 → G35 → G31)
+Son test (xhigh, 78/100) sonrası (G34, G36, G35 bitti; sırada G31)
 
 
 Eleştirmen 4 sonrası (sıra: G31 (metinler gelince))
@@ -69,7 +69,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
-- [x] G35 Son test cilası: raporda kaçak kat farkı, 5 günlük gazetede Gün N · Bina, tekil/çoğul manşet ve değerlendirme (5 metin), inceleme çerçeve/etiket çakışmaları, [+30 dk] saat altında, gazetede erken Enter bekletme (c5a4d56, Opus/high; test sürüyor)
+- [x] G35 Son test cilası: raporda kaçak kat farkı, 5 günlük gazetede Gün N · Bina, tekil/çoğul manşet ve değerlendirme (5 metin), inceleme çerçeve/etiket çakışmaları, [+30 dk] saat altında, gazetede erken Enter bekletme (c5a4d56, Opus/high; test geçti)
 - [x] G36 Sahte ruhsat İADE (yalnızca gün 5; İADE kaşesi gün 3ten); kural metni yer tutucusu İADE; bulunan ≤ kusur sayımı; Yeniden Başlada ipucu sıfırlanıyor; adalet 33301/0 (4a4da7d + e7df6b4, Opus/high; test geçti)
 - [x] G34 İSTE/saha sonrası fiş, gerekçe ve rapor aynı ve bilgiye göre doğru; inceleme ipucu yeni oyunda sıfırlanıyor; adalet bayt bayt aynı (767d109, Opus/high; test geçti)
 - [x] G33 Diyalog çeşitliliği: mizaç (portre tohumundan), tekrarsız deste, ruhsat değişkenleri, sabırsızlık (sinirli 2., diğerleri 3. soru) ve ~25 sn bekleme; 393 taslak cümle (dde59ff + c0a76cc, Opus/high; test geçti)

@@ -142,3 +142,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 09:30 · G34 + G36 + BENIOKU canlıda (fbf978d; JS paketinde hash ve canlı smoke doğrulandı; son-saglam taşındı) · Sıradaki: G35 (geliştiricide), sonra testi
 - 09:50 · Karar: eleştirmen 5, G35 yayına alınınca çalıştırılacak · Neden: 08.45 kapsamlı son test (xhigh) değerlendirmeyi karşıladı; eleştirmen en son sürümü görsün · Sıradaki: G35
 - 10:02 · G35 bitti (c5a4d56, opus/high): 6 madde (gazete Enter bekletme dahil), adalet 33301/0 aynı (manşet listesine tekil biçimler eklendi) · G35 testi başladı (opus/low, teslim/test-c5a4d56) · Takıma T30 (tekil/çoğul metinler) · Sıradaki: test, yayın, eleştirmen 5
+- 10:12 · Test (G35, opus/low, 7/7 GEÇTİ, hatasız): rapor (+2), 5 günlük gazete Gün N · Bina, tekil (tohum 2) / çoğul (tohum 1), inceleme etiketleri değer örtmüyor, [+30 dk] saat altında, gazetede erken Enter bekletiliyor ve tek geçiş, menü c5a4d56 · Karar: G35 yayına, ardından eleştirmen 5
