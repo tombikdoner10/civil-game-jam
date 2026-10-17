@@ -124,8 +124,9 @@ export class ResultScene extends Phaser.Scene {
       yaz(L + SUTUN.islenmeyen, topY, String(top.islenmeyen), 34, PAL.murekkepSoluk, 1),
       yaz(L + SUTUN.kusur, topY, `${top.bulunan} / ${top.kusur}`, 34, PAL.murekkep, 1),
       yaz(L + SUTUN.para, topY, para(kazanc), 34, PAL.murekkep, 1),
-      yaz(L + SUTUN.para, topY + 52, `Birikmiş para: ${para(v.para)}`, 38, PAL.murekkep, 1),
     ];
+    const birikmis = yaz(L + SUTUN.para, topY + 52, `Birikmiş para: ${para(v.para)}`, 38, PAL.murekkep, 1);
+    toplamlar.push(birikmis);
     // Zarf (G17): kabul edilen zarflar ve hasar gören binaları (yer tutucu metin).
     let zarfAdet = 0;
     let zarfTL = 0;
@@ -135,7 +136,12 @@ export class ResultScene extends Phaser.Scene {
       zarfTL += h.zarf;
     }
     const zarf = zarfOzeti(zarfAdet, zarfTL, kisa ? juriSonuc : v.sonuclar);
-    if (zarf) toplamlar.push(this.sigdir(yaz(L + SUTUN.gun, topY + 52, zarf, 32, PAL.damgaBosalt), 760));
+    // G26: satır "Birikmiş para"nın solundaki boşlukta kalır (arada 40 px); uzunsa en çok iki satıra bölünür ve
+    // küçülür, alttaki çizgiye ve üstteki TOPLAM satırına değmez.
+    if (zarf) {
+      const zarfW = birikmis.x - birikmis.width - 40 - (L + SUTUN.gun);
+      toplamlar.push(this.sigdirSatir(yaz(L + SUTUN.gun, topY + 52, zarf, 32, PAL.damgaBosalt), zarfW, 60));
+    }
     for (const o of toplamlar) gorun(o, 200 + gercek.length * 90 + 80);
 
     // Kısa yol: oyuncunun binaları (damga → depremdeki sonuç) ve özeti.
@@ -300,6 +306,17 @@ export class ResultScene extends Phaser.Scene {
   private sigdir(t: Phaser.GameObjects.Text, w: number): Phaser.GameObjects.Text {
     let boy = parseInt(String(t.style.fontSize), 10);
     while (t.width > w && boy > 24) {
+      boy -= 2;
+      t.setFontSize(boy);
+    }
+    return t;
+  }
+
+  /** Metni w genişliğinde satırlara böler; yüksekliği h'yi aşarsa küçültür (G26). */
+  private sigdirSatir(t: Phaser.GameObjects.Text, w: number, h: number): Phaser.GameObjects.Text {
+    t.setWordWrapWidth(w, true).setLineSpacing(0);
+    let boy = parseInt(String(t.style.fontSize), 10);
+    while ((t.height > h || t.width > w) && boy > 20) {
       boy -= 2;
       t.setFontSize(boy);
     }

@@ -51,7 +51,8 @@ const IKILI = { boyut: 36, ara: 48 };
 /**
  * Giriş koruması (ms, sahne açılışından): rapor açılırken basılı kalan ya da çift basılan Enter geçmesin. Önceki
  * sahnenin kararması (~220 ms) ile birlikte ilk Enter'dan ~0,5 sn sonra ikinci Enter çalışır (G23b). Koruma sürerken
- * birincil düğme soldan sağa dolar, bitince bir kez parlar ("hazır").
+ * birincil düğme soldan sağa dolar, bitince bir kez parlar ("hazır"). Koruma sürerken basılan (tekrar olmayan) Enter
+ * beklemeye alınır ve koruma bitince bir kez işlenir (G26).
  */
 const GIRIS_KORUMA_MS = 300;
 
@@ -213,6 +214,17 @@ export class DayEndScene extends Phaser.Scene {
     const kb = this.input.keyboard;
     const tus = (): void => this.devam(yeniPara);
     const kisaTus = (): void => this.devam(yeniPara, true);
+    // Enter (G26): giriş koruması sürerken (rapor kararmadan açılırken) basılan Enter kaybolmaz, koruma bitince bir
+    // kez işlenir. Basılı tutulan tuşun tekrarı (önceki sahneden kalan) beklemeye alınmaz. Space, D ve N eskisi gibi.
+    let bekleyen: (() => void) | undefined;
+    const enterIle =
+      (is: () => void) =>
+      (e?: KeyboardEvent): void => {
+        if (this.hazir) is();
+        else if (!e?.repeat) bekleyen = is;
+      };
+    const enterTus = enterIle(tus);
+    const enterKisa = enterIle(kisaTus);
     const nTus = (e: KeyboardEvent): void => {
       if (e.ctrlKey || e.altKey || e.metaKey) return;
       if (e.keyCode === Phaser.Input.Keyboard.KeyCodes.N || e.code === 'KeyN' || e.key === 'n' || e.key === 'N') tus();
@@ -264,13 +276,13 @@ export class DayEndScene extends Phaser.Scene {
         o.setAlpha(0);
         this.tweens.add({ targets: o, alpha: 1, duration: 160, delay: 400 });
       }
-      kb?.on('keydown-ENTER', kisaTus);
+      kb?.on('keydown-ENTER', enterKisa);
       kb?.on('keydown-SPACE', kisaTus);
       kb?.on('keydown-D', kisaTus);
       // "Sonraki gün": N (küçük ya da büyük harf, Shift gerekmez; G23b). Tuş kodu yoksa event.key/code'a da bakılır.
       kb?.on('keydown', nTus);
     } else {
-      kb?.on('keydown-ENTER', tus);
+      kb?.on('keydown-ENTER', enterTus);
       kb?.on('keydown-SPACE', tus);
     }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -278,11 +290,16 @@ export class DayEndScene extends Phaser.Scene {
         kb?.off(ad, tus);
         kb?.off(ad, kisaTus);
       }
+      kb?.off('keydown-ENTER', enterTus);
+      kb?.off('keydown-ENTER', enterKisa);
       kb?.off('keydown', nTus);
     });
     // Rapor açılırken yanlışlıkla geçilmesin (giriş koruması); birincil düğmede "hazır" göstergesi.
     hazirGostergesi(this, birincil, GIRIS_KORUMA_MS);
-    this.time.delayedCall(GIRIS_KORUMA_MS, () => (this.hazir = true));
+    this.time.delayedCall(GIRIS_KORUMA_MS, () => {
+      this.hazir = true;
+      bekleyen?.();
+    });
     sfx.play('kagitKay');
     // Gün sonu jingle'ı: yanlış ya da işlenmeyen dosya yoksa iyi gün, varsa kötü gün.
     const iyi = hesap.yanlis === 0 && hesap.islenmeyen === 0;

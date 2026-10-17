@@ -91,8 +91,11 @@ const SAAT_YANI = { x: 248, y: BANT_H + 46, derinlik: 7620 };
 const ETIKET_UST_PAY = 12;
 /** Köşedeki fişin (gölgesi dahil) alt kenarı ile ekranın altı arasındaki boşluk (0: gölge ekranın alt kenarında). */
 const FIS_ALT_PAY = 0;
-/** Köşedeki fişin kural notunun alt kenarına binebileceği pay (notun yazısız alt boşluğu ~20 px). */
-const NOT_ALT_ORTME = 12;
+/**
+ * Fiş ölçekleri (G26): önce tam boy, sığmazsa adım adım küçük. Gün 1'de yanlış fiş kural notunun altına notu örtmeden
+ * en az küçülmeyle sığsın.
+ */
+const FIS_OLCEK = [1, 0.95, 0.9, 0.85, 0.8, 0.75];
 
 /** İnceleme ipucu (G24) fişte gösterildi mi: oturumda (sayfa açık kaldıkça) yalnızca incelemesiz ilk yanlış kararda. */
 let incelemeIpucuGosterildi = false;
@@ -372,18 +375,15 @@ export class GameScene extends Phaser.Scene {
    * boyları farklı olsa da hep aynı köşeye düşer. Orası doluysa (belge ya da not taşınmışsa) null.
    */
   private fisKosesi(w: number, h: number): [number, number] | null {
-    // Köşe masanın alt kenarına yakın; fişin tamamı (kâğıt ve gölgesi) ekranda kalır (G23b). Yanlış fişin üç satırı
-    // gün 1'de de kural notunun altına tam boy sığsın; belgeler ve kitapla aralık 4 px.
+    // Köşe masanın alt kenarına yakın; fişin tamamı (kâğıt ve gölgesi) ekranda kalır (G23b). Belgeler, not ve kitapla
+    // aralık 4 px.
     const x = MASA.x + MASA.w - 16 - w / 2;
     const y = MASA.y + MASA.h - FIS_ALT_PAY - h / 2;
     const r = new Phaser.Geom.Rectangle(x - w / 2, y - h / 2, w, h);
     const engel = this.masadakiKartlar().map((k) => Phaser.Geom.Rectangle.Inflate(k.sinir(), 4, 4));
     if (this.kitap) engel.push(Phaser.Geom.Rectangle.Inflate(this.kitap.sinir, 4, 4));
-    if (this.not?.active) {
-      // Fiş kural notunun alt boşluğuna (yazısız kenar) en çok NOT_ALT_ORTME kadar binebilir: gün 1'de tam boy sığsın.
-      const n = this.not.sinir();
-      engel.push(new Phaser.Geom.Rectangle(n.x, n.y, n.width, n.height - NOT_ALT_ORTME));
-    }
+    // Fiş kural notuna hiç binmez (G26); gün 1'de sığmazsa biraz küçülür (FIS_OLCEK).
+    if (this.not?.active) engel.push(Phaser.Geom.Rectangle.Inflate(this.not.sinir(), 4, 4));
     return engel.some((e) => Phaser.Geom.Intersects.RectangleToRectangle(r, e)) ? null : [x, y];
   }
 
@@ -798,7 +798,7 @@ export class GameScene extends Phaser.Scene {
       // Önce sabit köşe (G23: doğru ve yanlış fiş aynı yere), doluysa masanın başka boş yeri.
       let yer: [number, number] | null = null;
       for (const bul of [(w: number, h: number) => this.fisKosesi(w, h), (w: number, h: number) => this.bosYer(w, h)]) {
-        for (const s of [1, 0.75]) {
+        for (const s of FIS_OLCEK) {
           yer = bul(fis.width * s, fis.height * s);
           if (yer) {
             fis.setScale(s);
