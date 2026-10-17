@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G52 [teknik] (bitti f1ed17c, test sürüyor, Opus/low) Takım üyeleri Emeği Geçenler ve README'de (T32).
 
 ## Sırada
 
@@ -74,6 +73,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G52 Takım üyeleri Emeği Geçenler ve README'de (f1ed17c, Opus/high; test GEÇTİ)
 - [x] G51 Eleştirmen 9 düzeltmeleri: Esc sırası, kısa yolda GÜÇLENDİR ödülü, zarflı fiş, para en az 0 ("Ceza maaşı aştı"), damga sonrası sönük düğmeler (494526b, Opus/high; test GEÇTİ, 7 koşu)
 - [x] G50 İnceleme modunda kapalı klasöre tık yalnızca açıyor, kural satırı seçmiyor (e6bbad4, Opus/high; test GEÇTİ, 7 koşu)
 - [x] G49 Kusur etiketi değerleri, mührü, düğmeleri, zarfı ve fişi örtmüyor (ağırlıklı yerleşim); gün 1 kaçak kat etiketi fotoğrafın altında (2066a4c, Opus/high; test GEÇTİ)
