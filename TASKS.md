@@ -8,7 +8,8 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G57b [teknik] (sürüyor, Opus/high) Raporda müfettiş satırı küçük deprem satırının hemen altında; "Zarf: +0 TL (1 kabul)" yerine el konulanı söyleyen metin; sonuç ekranı zarf toplamında "(el konuldu)".
+- [ ] G58 [teknik] (sürüyor, Opus/high) Gün sonu raporu çok satırda taşmasın: gün 2–5'te 2–3 müfettiş satırı (gerçek oyunda ulaşılabilir durumlar), uzun küçük deprem satırı.
+- [ ] G57b [teknik] (bitti dd8809e, test sürüyor, Opus/low) Raporda müfettiş satırı küçük deprem satırının hemen altında; "Zarf: +0 TL (1 kabul)" yerine el konulanı söyleyen metin; sonuç ekranı zarf toplamında "(el konuldu)".
 
 ## Sırada
 
