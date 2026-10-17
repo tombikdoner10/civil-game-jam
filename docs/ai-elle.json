@@ -435,5 +435,19 @@
     "yer": "src/game/session.ts, src/desk/Inspect.ts, src/game/diyalog.ts, src/game/gazete.ts, src/scenes/ResultScene.ts, scripts/adalet.mjs",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T22:39:20.223Z"
+  },
+  {
+    "kategori": "other",
+    "amac": "Eleştirmen 9: oyunu otomatik oynayıp jam ölçütlerine göre bir kez değerlendirdi ve öneriler sundu (takım kararıyla tek seferlik)",
+    "yer": "Geliştirme, test ve değerlendirme süreci (oyunda doğrudan yer almaz)",
+    "model": "Claude Fable 5.1",
+    "zaman": "2026-10-17T18:10:00.000Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G61: credits.ts, README.md ve docs/ai-elle.json beyan metinleri node betiğiyle düzenlendi",
+    "yer": "src/data/credits.ts, README.md, docs/ai-elle.json",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T22:41:58.031Z"
   }
 ]

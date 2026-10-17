@@ -839,8 +839,9 @@ export class GunOturumu {
     if (!kusur) {
       // G60: başka binanın belgesindeki (ada dışı) alan seçildiyse ipucu. Belge gişeden gelenle (gerçek ya da sahte)
       // ya da saha notuyla değiştiyse etkin belgeler ruhsatla aynı adada ya da kart sahte: ipucu yok.
+      // G61: kusur bu dosyada zaten bulunduysa ipucu yok (eskisi gibi "Tutarsızlık yok").
       const baska = baskaBinaBelgesi(etkin.belgeler);
-      if (baska && !degisen.has(baska) && secim.some((s) => s.belge === baska && s.alan !== 'ada')) return { ipucu: 'baskaBelge' };
+      if (baska && !this.bulunan.includes('baskaBina') && !degisen.has(baska) && secim.some((s) => s.belge === baska && s.alan !== 'ada')) return { ipucu: 'baskaBelge' };
       return null;
     }
     const yeni = !this.bulunan.includes(kusur.id);

@@ -56,6 +56,7 @@ export const TAKIM_KARARLARI: string[] = [
   'Tema yorumu: afet anında değil, öncesinde. Oyuncu denetim masasında karar verir; deprem bu kararları sınar.',
   'Gişede insan: her dosyanın arkasında mizacı olan bir mal sahibi var. Zarf kabul edilirse istenen damga zorunlu olur, bedeli depremde görülür.',
   'Kurallar: kaçak katta +1 GÜÇLENDİR, +2 BOŞALT; geçersiz belgeler İADE; saha testi tek başına GÜVENLİ verdirmez.',
+  'Müfettiş: testte zarf hep kârlıydı; artık zarf yakalanabilir, rüşveti geri çevirmek övülür.',
   'Deprem dili: kehanet yok, "deprem her an olabilir". Kısa yol bir soru: "Büyük deprem bu gece olsaydı?"',
   'Kendi evin: paranın karşılığı ailenin hazırlığı (çanta, sabitleme, güçlendirme). Rüşvet aileni koruyabilir ama onayladığın bina çöker.',
   "Seçimler: görsel yön (Papers, Please ilhamı, boyanmış Tiny Town) ve ses ortamı (masa sessiz, gazete ve sonuçta kısa müzik) takımın. Metinleri Claude yazdı; takım tonu belirledi, son seçimi Claude'a bıraktı.",
@@ -111,7 +112,7 @@ export const ASSETS: Record<Category, AssetCredit[]> = {
       author: 'Kenney (www.kenney.nl)',
       url: 'https://kenney.nl/assets/ui-audio',
       license: 'Creative Commons CC0 1.0',
-      usage: 'Menü düğmeleri (tık, üzerine gelme) ve inceleme modunda alan seçimi; değiştirilmedi (src/sounds/kenney/ui-audio/)',
+      usage: 'Menü düğmeleri (tık, üzerine gelme), duraklatma ve ayarlar, inceleme modunda alan seçimi, gişede konuşma balonunun harf sesi; hız ve perde değiştirildi (src/sounds/kenney/ui-audio/)',
     },
     {
       name: 'Kenney – Music Jingles',

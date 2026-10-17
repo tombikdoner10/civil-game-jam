@@ -1503,6 +1503,8 @@ const HIK = await server.ssrLoadModule('/src/game/stories.ts');
           bak(ada === null, `${e}: ada alanı + kural ipucu verdi`);
           const r2 = o.incele(R.kanitOgeleri(R.gorunenKusurlar(b, g).find((x) => x.id === 'baskaBina') ?? 'baskaBina'));
           bak(r2?.kusur?.id === 'baskaBina', `${e}: başka binanın belgesi bulunmadı (${JSON.stringify(r2)})`);
+          // G61: kusur bulunduktan sonra aynı seçim ipucu vermez ("Tutarsızlık yok").
+          bak(o.incele([{ belge: baska, alan }, { belge: 'kural', alan: kural }]) === null, `${e}: kusur bulunduktan sonra ipucu`);
           if (r?.ipucu) g60.ipucu++;
           if (r2?.kusur) g60.baskaBina++;
         } else if (!baska && kural && b.belgeler.vaziyet.dereM >= T.dereMinM) {
