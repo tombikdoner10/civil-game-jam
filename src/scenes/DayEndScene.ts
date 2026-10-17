@@ -9,7 +9,7 @@ import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
 import type { Damga } from '../game/building';
 import { SON_GUN } from '../game/days';
 import { ZARF_ETIKET } from '../game/diyalog';
-import { KISA_YOL_ACIKLAMA, KISA_YOL_DUGME, kucukDepremSatiri } from '../game/gazete';
+import { KISA_YOL_ACIKLAMA, KISA_YOL_DEVAM, KISA_YOL_DUGME, kucukDepremSatiri } from '../game/gazete';
 import { kisaYolKayitlari } from '../game/ornek';
 import { KUSUR_BILGI } from '../game/rules';
 import { gunHesabi, type GunKaydi, type Karar, type SarsintiKaydi } from '../game/session';
@@ -245,11 +245,15 @@ export class DayEndScene extends Phaser.Scene {
         .setStrokeStyle(PX, num(PAL.damgaBosalt))
         .setAlpha(0);
       this.tweens.add({ targets: odak, alpha: { from: 1, to: 0.25 }, duration: 600, delay: 600, yoyo: true, repeat: -1, ease: 'Stepped', easeParams: [3] });
-      // Açıklama: öncü sarsıntı satırının altında (yer tutucu).
+      // Açıklama: küçük deprem satırının altında (yer tutucu); altında oyunun sonra sürdüğünü söyleyen satır (G11).
       const ac = yaz(L + 40, y + 20 + oncuH, KISA_YOL_ACIKLAMA, 32, PAL.damgaBosalt);
       this.sigdir(ac, KAGIT.w - 80);
-      ac.setAlpha(0);
-      this.tweens.add({ targets: ac, alpha: 1, duration: 160, delay: 400 });
+      const devamSatiri = yaz(L + 40, y + 20 + oncuH + 44, KISA_YOL_DEVAM, 30, PAL.murekkepSoluk);
+      this.sigdir(devamSatiri, KAGIT.w - 80);
+      for (const o of [ac, devamSatiri]) {
+        o.setAlpha(0);
+        this.tweens.add({ targets: o, alpha: 1, duration: 160, delay: 400 });
+      }
       kb?.on('keydown-ENTER', kisaTus);
       kb?.on('keydown-SPACE', kisaTus);
       kb?.on('keydown-D', kisaTus);

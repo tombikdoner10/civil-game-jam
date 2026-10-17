@@ -12,7 +12,8 @@ import type { DepremBinaSonucu, DepremOzeti } from './session';
 export const GECE_SAATI = '[Bir gece]';
 
 export const GAZETE_ADI = '[GAZETE ADI]';
-export const GAZETE_TARIH = '[Şehir adı] · [Tarih] · [Sabah baskısı]';
+/** Gazete künyesi. G11: tarih yok (deprem dili: tarih ve kehanet verilmez). */
+export const GAZETE_TARIH = '[Şehir adı] · [Sabah baskısı]';
 export const FOTO_ALTI = '[Fotoğraf: deprem sonrası sokak]';
 /** Gazetedeki doldurma haberlerin başlıkları (metni gri çizgilerle temsil edilir). */
 export const DOLGU_BASLIKLAR = ['[Haber başlığı]', '[Haber başlığı]', '[Haber başlığı]'];
@@ -142,7 +143,9 @@ export function zarfOzeti(adet: number, toplam: number, s: readonly DepremBinaSo
  * soru, kehanet değil.
  */
 export const KISA_YOL_DUGME = '[BÜYÜK DEPREM BU GECE OLSAYDI?]';
-export const KISA_YOL_ACIKLAMA = '[Deprem önceden bilinmez. Kararlarının sonucunu şimdi gör.]';
+/** G11: varsayım çerçevesi ("bu gece olsaydı?" düğmesiyle çelişmesin) ve oyunun sonra sürdüğü bilgisi; yer tutucu. */
+export const KISA_YOL_ACIKLAMA = '[Varsayalım: büyük deprem bu gece oldu. Kararlarının sonucunu şimdi gör.]';
+export const KISA_YOL_DEVAM = '[Sonra 2. günden devam edebilirsin.]';
 
 /** Gün 1 sonundaki küçük deprem (kodda "öncü"): gişe camındaki şerit. G24: "asıl deprem gelecek" yok. */
 export const KUCUK_DEPREM_SERIT = '[Küçük bir deprem oldu.]';
