@@ -62,7 +62,10 @@ export interface ZarfKaydi {
 export interface Karar {
   dosyaId: string;
   damga: Damga;
-  /** Gösterilecek doğru damga: karar doğruysa verilen damga, değilse asıl doğru damga. */
+  /**
+   * Gösterilecek doğru damga: karar doğruysa verilen damga, değilse tercih edilen doğru damga (eksik bilgi başka
+   * yoldan edinildiyse ona göre damga, yoksa asıl doğru damga).
+   */
   dogruDamga: Damga;
   dogru: boolean;
   /** Kabul edilen damgalar (eksik belgeli dosyada İADE ve bilgi edinildiyse gerçek damga). */
@@ -279,7 +282,7 @@ export function gunDosyaSayisi(gun: number): number {
 /** Damga sonucu (uyarı fişi için). */
 export interface DamgaSonucu {
   dogru: boolean;
-  /** Asıl doğru damga (fişte "Doğrusu"). */
+  /** Doğruysa verilen damga; değilse tercih edilen doğru damga (fişte "Doğrusu"; bilgi edinildiyse ona göre). */
   dogruDamga: Damga;
   /** Kabul edilen bütün damgalar. */
   kabul: Damga[];
@@ -671,22 +674,21 @@ export class GunOturumu {
     if (!b || this.bitti || !this.damgaIzinli(damga)) return null;
     const dis = this.disBilgi();
     const kabul = dogruDamgalar(b, this.gun, dis);
-    const gorunen = gorunenKusurlar(b, this.gun);
+    const dogru = kabul.includes(damga);
+    // G34: eksik bilgi başka yoldan (İSTE gerçek belge, saha testi) edinildiyse tercih edilen doğru damga edinilen
+    // bilgiye göre damgadır (kabul[1]); İADE de doğru sayılmaya devam eder. Fiş, gün sonu raporu ve kayıt bunu kullanır.
+    const tercih = kabul[kabul.length - 1];
+    // Gerekçe edinilen bilgiye göre (ör. "Karot raporu yok" yerine gelen karottaki düşük beton). Yalnızca doğru İADE
+    // vurulduysa gerekçe eksik belgenin kendisi.
+    const gorunen = dis && !(dogru && damga === 'iade') ? this.gorunen(b) : gorunenKusurlar(b, this.gun);
     // Sahte rapor getirildiyse dosyanın kusuru sayılır (doğru damga zaten İADE ya da BOŞALT).
     if (this.sahteRaporlar.length > 0) gorunen.push({ id: 'sahteRapor', ...KUSUR_BILGI.sahteRapor });
     const kusurlar = gorunen.map((k) => k.id);
-    const dogru = kabul.includes(damga);
-    const sonuc: DamgaSonucu = { dogru, dogruDamga: kabul[0], kabul, kusurlar, etiketler: gorunen.map((k) => k.etiket) };
-    // Saha testi yapıldıysa (G19) fiş saha notuna göre: gerekçe saha kusuruyla, yanlışta "Doğrusu" saha damgası
-    // (İADE değilse). Karar kaydı değişmez.
-    if (dis?.karotSaha !== undefined && kabul.length > 1 && damga !== 'iade') {
-      if (!dogru) sonuc.dogruDamga = kabul[1];
-      sonuc.etiketler = this.gorunen(b).map((k) => k.etiket);
-    }
+    const sonuc: DamgaSonucu = { dogru, dogruDamga: dogru ? damga : tercih, kabul, kusurlar, etiketler: gorunen.map((k) => k.etiket) };
     const karar: Karar = {
       dosyaId: b.id,
       damga,
-      dogruDamga: dogru ? damga : kabul[0],
+      dogruDamga: dogru ? damga : tercih,
       dogru,
       kabul,
       kusurlar,

@@ -95,7 +95,7 @@ const FIS_ALT_PAY = 0;
  */
 const FIS_OLCEK = [1, 0.95, 0.9, 0.85, 0.8, 0.75];
 
-/** İnceleme ipucu (G24) fişte gösterildi mi: oturumda (sayfa açık kaldıkça) yalnızca incelemesiz ilk yanlış kararda. */
+/** İnceleme ipucu (G24) fişte gösterildi mi: her yeni oyunda yalnızca incelemesiz ilk yanlış kararda (G34). */
 let incelemeIpucuGosterildi = false;
 
 /** Damgaya göre gişedeki kişinin yüzü. */
@@ -150,6 +150,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   init(data: GameData): void {
+    // Yeni oyun (menüden Oyna: veri yok; sonuçtan Yeniden oyna: gün 1, kayıt yok) inceleme ipucunu yeniden açar
+    // (G34: oyun açık kalınca sonraki jüri üyesi de görsün). Gün geçişi ve duraklatmadan Yeniden Başla kayıt taşır.
+    if (data?.gun === undefined || (data.gun === 1 && data.kayitlar === undefined)) incelemeIpucuGosterildi = false;
     this.gun = data?.gun ?? 1;
     this.tohum = data?.tohum ?? Math.floor(Math.random() * 1_000_000_000);
     this.para = data?.para ?? TUNING.para.baslangic;
