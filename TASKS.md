@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G63 [teknik] (sürüyor, Opus/high) Emeği Geçenler ikinci denetim düzeltmeleri: Metin araç satırına Sonnet 5.5 (kritik), Diğer'e oynanış önerileri, Ses'te müzik ifadesi, Impact Sounds ve RPG Audio kullanım metinleri, başlık "Yapay zekâ beyanı", ses paket adları öneksiz.
 
 ## Sırada
 
