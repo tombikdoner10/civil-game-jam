@@ -15,9 +15,9 @@
     "audio": {
       "kullanildi": true,
       "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)",
-      "amac": "Ses efektlerini ve müziği kodla üreten sentezleyiciyi, deprem gürlemesini kodla üreten sesi ve ses ayarlarını yazdı. Hazır paketteki Kenney seslerinin hız, perde ve katman ayarlarını yaptı.",
+      "amac": "Ses efektlerini kodla üreten sentezleyiciyi (jam öncesi şablondaki müzik altyapısı dahil; oyunda kodla üretilmiş müzik çalmaz), deprem gürlemesini kodla üreten sesi ve ses ayarlarını yazdı. Hazır paketteki Kenney seslerinin hız, perde ve katman ayarlarını yaptı.",
       "yer": [
-        "Arayüz ve oyun ses efektleri, müzik altyapısı",
+        "Arayüz ve oyun ses efektleri (yedek sentez sesleri), jam öncesi şablondaki müzik altyapısı (oyunda çalmaz)",
         "Deprem gürlemesi",
         "Kenney seslerinin çalınışı (hız, perde, katman)",
         "Ses düzeyi ayarları"
@@ -34,7 +34,7 @@
     },
     "text": {
       "kullanildi": true,
-      "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)",
+      "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5)",
       "amac": "Oyundaki metinlerin taslaklarını yazdı: arayüz, kurallar, gişe diyalogları (beş mizaçta: kibar, sinirli, telaşlı, kurnaz, çekingen), gazete ve deprem anlatımı, kendi evin hazırlığı, hikâye binaları, Emeği Geçenler'deki \"Takımın kararları\" maddeleri (GDD'deki takım kararlarından), README ve BENIOKU. Takım konsepti, tonu ve deprem dilini (kehanet yok, kurban ve sayı yok) belirledi; metinlerin son seçimini ve onayını Claude'un lider oturumuna bıraktı. Ayrıca ses listesini ve beyan açıklamalarını yazdı.",
       "yer": [
         "Menü, ayarlar, oyun içi ipuçları ve göstergeler",
@@ -48,9 +48,10 @@
     "other": {
       "kullanildi": true,
       "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5, Claude Fable 5.1)",
-      "amac": "Tema yorumu için konsept seçenekleri önerdi; oyun adı (Kâğıt Üstünde), kurgusal şehir (Dereboyu) ve gazete adı (Dereboyu Postası) için öneriler sundu, takım bu seçimi Claude'un lider oturumuna bıraktı. Kenney seslerinden ölçüme dayalı adaylar seçti, hazır kaynak beyanını ve ses listesini yazdı; konsept seçimi ve ses ortamı kararı takımın; tek tek seslerin seçimini takım Claude'a bıraktı. Geliştirme sürecini görevlere bölüp yönetti, oyunu otomatik oynayarak test etti ve jam ölçütlerine göre değerlendirip öneriler sundu.",
+      "amac": "Tema yorumu için konsept seçenekleri önerdi; oyun adı (Kâğıt Üstünde), kurgusal şehir (Dereboyu) ve gazete adı (Dereboyu Postası) için öneriler sundu, takım bu seçimi Claude'un lider oturumuna bıraktı. Oynanış için seçenekler önerdi (ör. kendi evin hazırlığı, müfettiş); seçimi takım yaptı. Kenney seslerinden ölçüme dayalı adaylar seçti, hazır kaynak beyanını ve ses listesini yazdı; konsept seçimi ve ses ortamı kararı takımın; tek tek seslerin seçimini takım Claude'a bıraktı. Geliştirme sürecini görevlere bölüp yönetti, oyunu otomatik oynayarak test etti ve jam ölçütlerine göre değerlendirip öneriler sundu.",
       "yer": [
         "Oyun fikri aşaması; oyun, şehir ve gazete adı",
+        "Oynanış önerileri: kendi evin hazırlığı, müfettiş",
         "Ses seçimi ve hazır kaynak beyanı (Emeği Geçenler, README)",
         "Geliştirme, test ve değerlendirme süreci (oyunda doğrudan yer almaz)"
       ]

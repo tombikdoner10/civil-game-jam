@@ -463,5 +463,19 @@
     "yer": "src/desk/documents.ts",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T22:52:34.998Z"
+  },
+  {
+    "kategori": "text",
+    "amac": "G1–G2 (16 Ekim): ilk belge, zemin ve kusur etiketleri (ör. Ruhsat, Fotoğraf, Karot sonucu, Kaçak kat, Kesik kolon)",
+    "yer": "Masa: belge başlıkları ve kusur etiketleri (src/desk/documents.ts, src/game/rules.ts)",
+    "model": "Claude Sonnet 5.5",
+    "zaman": "2026-10-16T16:38:45.000Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G63: credits.ts ses paket adlarından 'Kenney – ' öneki ve CreditsScene başlığı sed ile düzenlendi",
+    "yer": "src/data/credits.ts, src/scenes/CreditsScene.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T23:33:50.949Z"
   }
 ]

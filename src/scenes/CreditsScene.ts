@@ -85,7 +85,7 @@ export class CreditsScene extends Phaser.Scene {
     declaration('Hazır kaynaklar', ASSETS, (a) => [`${a.name}  ·  ${a.author}`, `${a.license}  ·  ${a.usage}  ·  ${a.url}`]);
     // Yapay zekâ beyanı (okunur özet, docs/ai-ozet.json): araç bir kez, sonra her kategori için
     // Kullanıldı / Kullanılmadı, kısa amaç ve kullanıldığı yerler. Ayrıntılı kayıt docs/AI_BEYAN.md'de.
-    header('Yapay zekâ kullanımı');
+    header('Yapay zekâ beyanı');
     const tools = [...new Set(CATEGORIES.flatMap(({ id }) => AI[id].map((a) => a.tool)))];
     if (tools.length === 1) add(`Araç: ${tools[0]}`, { size: 32, color: num(PAL.murekkepSoluk) }, 10);
     for (const { id, label: kategori } of CATEGORIES) {

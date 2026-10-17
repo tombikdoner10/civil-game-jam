@@ -11,9 +11,9 @@
     ]
   },
   "audio": {
-    "amac": "Ses efektlerini ve müziği kodla üreten sentezleyiciyi, deprem gürlemesini kodla üreten sesi ve ses ayarlarını yazdı. Hazır paketteki Kenney seslerinin hız, perde ve katman ayarlarını yaptı.",
+    "amac": "Ses efektlerini kodla üreten sentezleyiciyi (jam öncesi şablondaki müzik altyapısı dahil; oyunda kodla üretilmiş müzik çalmaz), deprem gürlemesini kodla üreten sesi ve ses ayarlarını yazdı. Hazır paketteki Kenney seslerinin hız, perde ve katman ayarlarını yaptı.",
     "yer": [
-      "Arayüz ve oyun ses efektleri, müzik altyapısı",
+      "Arayüz ve oyun ses efektleri (yedek sentez sesleri), jam öncesi şablondaki müzik altyapısı (oyunda çalmaz)",
       "Deprem gürlemesi",
       "Kenney seslerinin çalınışı (hız, perde, katman)",
       "Ses düzeyi ayarları"
@@ -38,9 +38,10 @@
     ]
   },
   "other": {
-    "amac": "Tema yorumu için konsept seçenekleri önerdi; oyun adı (Kâğıt Üstünde), kurgusal şehir (Dereboyu) ve gazete adı (Dereboyu Postası) için öneriler sundu, takım bu seçimi Claude'un lider oturumuna bıraktı. Kenney seslerinden ölçüme dayalı adaylar seçti, hazır kaynak beyanını ve ses listesini yazdı; konsept seçimi ve ses ortamı kararı takımın; tek tek seslerin seçimini takım Claude'a bıraktı. Geliştirme sürecini görevlere bölüp yönetti, oyunu otomatik oynayarak test etti ve jam ölçütlerine göre değerlendirip öneriler sundu.",
+    "amac": "Tema yorumu için konsept seçenekleri önerdi; oyun adı (Kâğıt Üstünde), kurgusal şehir (Dereboyu) ve gazete adı (Dereboyu Postası) için öneriler sundu, takım bu seçimi Claude'un lider oturumuna bıraktı. Oynanış için seçenekler önerdi (ör. kendi evin hazırlığı, müfettiş); seçimi takım yaptı. Kenney seslerinden ölçüme dayalı adaylar seçti, hazır kaynak beyanını ve ses listesini yazdı; konsept seçimi ve ses ortamı kararı takımın; tek tek seslerin seçimini takım Claude'a bıraktı. Geliştirme sürecini görevlere bölüp yönetti, oyunu otomatik oynayarak test etti ve jam ölçütlerine göre değerlendirip öneriler sundu.",
     "yer": [
       "Oyun fikri aşaması; oyun, şehir ve gazete adı",
+      "Oynanış önerileri: kendi evin hazırlığı, müfettiş",
       "Ses seçimi ve hazır kaynak beyanı (Emeği Geçenler, README)",
       "Geliştirme, test ve değerlendirme süreci (oyunda doğrudan yer almaz)"
     ]
