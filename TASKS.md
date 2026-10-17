@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G50 [teknik] (sürüyor, Opus/high) İnceleme modunda kapalı klasöre tıklamak klasörü açıyor ve aynı tıklamayla açılan sayfadaki kural satırını seçiyor (G49 raporu, önceden var olan hata).
+- [ ] G50 [teknik] (bitti e6bbad4, test sürüyor, Opus/low) İnceleme modunda kapalı klasöre tıklamak klasörü açıyor ve aynı tıklamayla açılan sayfadaki kural satırını seçiyor (G49 raporu, önceden var olan hata).
 
 ## Sırada
 
