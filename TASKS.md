@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G49 [teknik] (sırada) İnceleme modunda kusur etiketi belgedeki değer alanını örtmesin (gün 2 KESİK KOLON etiketi "7 kolon" satırının üstünde); bütün günlerde etiket yerleşimi.
+- [ ] G49 [teknik] (sürüyor, Opus/high) İnceleme modunda kusur etiketi belgedeki değer alanını örtmesin (gün 2 KESİK KOLON etiketi "7 kolon" satırının üstünde); bütün günlerde etiket yerleşimi.
 
 ## Sırada
 
