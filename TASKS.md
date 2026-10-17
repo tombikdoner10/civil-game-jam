@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G28b [teknik] (sürüyor, Opus/high) Kısa yol sonuç ekranında İADE kutusu ve içi boş satırı G30 koşuluna bağlı; deprem sahnesinde hızlandırma ipucu kutusu sağ alttaki binaların tabanını örtüyor (test-g28/s1/1e-22s.png): sağ üste, gökyüzü bandına ("[Bir gece]" yazısının karşısı) taşı; hiçbir bina, etiket ya da çatlağın üstüne binmesin.
 
 ## Sırada
 
@@ -64,6 +63,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G28b Deprem ipucu sağ üstte (gökyüzü); kısa yol sonucunda İADE kutusu ve içi boş G30 koşuluna bağlı (juriGordukleri ortak yardımcı); 5 günlük yol md5 aynı (325920d, Opus/high; test sürüyor)
 - [x] G30 Kısa yol gazetesi: önce [Senin binaların], sonra [Bütün sokak]; jürinin görmediği İADE/içi boş gizli; 5 günlük yol bayt bayt aynı (8d908e6, Opus/high; test geçti)
 - [x] G28 Deprem hızlandırma: gece kartında yeni basış saklanıyor (≥250 ms koruma, e.repeat yok), 3 sn bekleme kalktı, ipucu büyük/opak/nabız; balon kişi giderken cümleyi anında tamamlıyor (fa082fc, Opus/high; test geçti, ipucu yeri G28b ile düzelecek)
 - [x] G27 Yanlış fişteki inceleme ipucu yalnızca kanıtlanacak kusur varken (545b7e0, Opus/high; test geçti)
