@@ -8,13 +8,12 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G30 [teknik] (sürüyor, Opus/high) Kısa yol gazetesi istatistiği (T22 kararı): önce "senin binaların", sonra bütün sokak; jürinin görmediği İADE ve "içi boş" satırları gizli; 5 günlük yol değişmez.
+- [ ] G28b [teknik] (sürüyor, Opus/high) Kısa yol sonuç ekranında İADE kutusu ve içi boş satırı G30 koşuluna bağlı; deprem sahnesinde hızlandırma ipucu kutusu sağ alttaki binaların tabanını örtüyor (test-g28/s1/1e-22s.png): sağ üste, gökyüzü bandına ("[Bir gece]" yazısının karşısı) taşı; hiçbir bina, etiket ya da çatlağın üstüne binmesin.
 
 ## Sırada
 
-Eleştirmen 4 sonrası (sıra: G30 → G28b → G29 → G31 (metinler gelince))
+Eleştirmen 4 sonrası (sıra: G28b → G29 → G31 (metinler gelince))
 
-- [ ] G28b [teknik] Deprem sahnesinde hızlandırma ipucu kutusu sağ alttaki binaların tabanını örtüyor (test-g28/s1/1e-22s.png): sağ üste, gökyüzü bandına ("[Bir gece]" yazısının karşısı) taşı; hiçbir bina, etiket ya da çatlağın üstüne binmesin.
 - [ ] G29 [teknik] Emeği Geçenler'de AI beyanı kategori başına kısa özet (araç, amaç, yer); iç görev kodları (G4b…) ve günlük dili oyunda görünmesin. docs/AI_BEYAN.md (teslim formu metni) tam ve doğru kalır; içerik eksilmez.
 - [ ] G31 [teknik] Takım metinleri gelince tutarlılık geçişi: TITLE (config.ts) HTML başlığı, Splash, README, BENIOKU'da; köşeli parantezli yer tutucular kalkar; fiş, kural notu, rapor 1080p ve 720p'de taşmıyor (fiş-not arası G26'da ~10 px).
 
@@ -65,6 +64,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G30 Kısa yol gazetesi: önce [Senin binaların], sonra [Bütün sokak]; jürinin görmediği İADE/içi boş gizli; 5 günlük yol bayt bayt aynı (8d908e6, Opus/high; test sürüyor)
 - [x] G28 Deprem hızlandırma: gece kartında yeni basış saklanıyor (≥250 ms koruma, e.repeat yok), 3 sn bekleme kalktı, ipucu büyük/opak/nabız; balon kişi giderken cümleyi anında tamamlıyor (fa082fc, Opus/high; test geçti, ipucu yeri G28b ile düzelecek)
 - [x] G27 Yanlış fişteki inceleme ipucu yalnızca kanıtlanacak kusur varken (545b7e0, Opus/high; test geçti)
 - [x] G26 Küçük cila: zarf satırı sonuçta çakışmıyor, rapordaki ilk Enter bekletiliyor, gün 1 fişi kural notuna binmiyor; Esc sonrası işaretler kasıtlı (f7dae8b, Opus/high; test geçti)
