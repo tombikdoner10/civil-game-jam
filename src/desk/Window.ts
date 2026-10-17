@@ -193,7 +193,7 @@ export class Pencere {
     this.portre?.destroy();
     this.balon.temizle();
     const G = TUNING.gise;
-    const p = new Portre(this.scene, kisi.portre, KISI_DIS, KISI.y);
+    const p = new Portre(this.scene, kisi.portre, KISI_DIS, KISI.y, kisi.mizac);
     p.img.setDepth(D.siluet);
     this.portre = p;
     this.yuru(p, KISI_DIS, KISI.x, G.gelisMs, G.gelisAdim, Phaser.Math.Easing.Sine.Out, false, () => {

@@ -33,8 +33,8 @@ import {
   type Degiskenler,
   type Desteler,
 } from '../game/diyalog';
-import { ISTE_BELGE_METIN, ISTE_METIN, MIZAC_IFADE, MIZAC_METIN, SOR_METIN, ZARF_ISTEK } from '../game/diyalog-metin';
-import type { Ifade, IsteAlani, Kisi, SorCevap, ZarfIstek } from '../game/kisi';
+import { ISTE_BELGE_METIN, ISTE_METIN, MIZAC_IFADE, MIZAC_METIN, MIZACLAR, SOR_METIN, ZARF_ISTEK } from '../game/diyalog-metin';
+import { mizacSec, type Ifade, type IsteAlani, type Kisi, type SorCevap, type ZarfIstek } from '../game/kisi';
 import { KUCUK_DEPREM_SERIT, oncuEtiketi } from '../game/gazete';
 import { KUSUR_BILGI } from '../game/rules';
 import { ornekKayitlar } from '../game/ornek';
@@ -1153,22 +1153,43 @@ export class GameScene extends Phaser.Scene {
     this.kaselik.kilitle(true);
   }
 
-  /** Yalnızca dev (?dev&portreler): masanın üstünde portreler ve bir portrenin beş ifadesi (görsel denetim). */
+  /**
+   * Yalnızca dev (?dev&portreler): solda 24 portre (her biri kendi mizacının taban yüzüyle), sağda her mizacın
+   * beş ifadesi (satır başına bir kişi). Görsel denetim için (G40); oyunun üstünü tümüyle örter.
+   */
   private portreler(): void {
     const ifadeler: Ifade[] = ['notr', 'gergin', 'kizgin', 'mahcup', 'sevincli'];
     const s = 0.5;
-    const adim = PORTRE_EKRAN.w * s + 8;
-    this.add.rectangle(0, MASA_Y, 1920, 1080 - MASA_Y, 0x2b2926).setOrigin(0).setDepth(7000);
+    const w = PORTRE_EKRAN.w * s;
+    const h = PORTRE_EKRAN.h * s;
+    const D = 7000;
+    this.add.rectangle(0, 0, 1920, 1080, 0x2b2926).setOrigin(0).setDepth(D);
+    const yazi = (x: number, y: number, m: string): void => {
+      this.add.text(x, y, m, { fontFamily: FONT, fontSize: '20px', color: '#bdb7aa' }).setDepth(D + 2);
+    };
     for (let i = 0; i < 24; i++) {
-      const sira = i < 12 ? i : i - 12;
-      const p = new Portre(this, this.tohum * 31 + i * 7919, 16 + sira * adim, MASA_Y + 16 + (i < 12 ? 0 : 172));
-      p.img.setScale(PX * s).setDepth(7001);
+      const tohum = this.tohum * 31 + i * 7919;
+      const m = mizacSec(tohum);
+      const x = 16 + (i % 6) * (w + 6);
+      const y = 30 + Math.floor(i / 6) * (h + 26);
+      const p = new Portre(this, tohum, x, y, m);
+      p.img.setScale(PX * s).setDepth(D + 1);
+      p.kirpmaDurdur();
+      yazi(x + 4, y + h + 2, m);
     }
-    for (let i = 0; i < 5; i++) {
-      const p = new Portre(this, this.tohum * 31 + 3 * 7919, 16 + i * adim, MASA_Y + 360 + 16);
-      p.img.setScale(PX * s).setDepth(7001);
-      p.setIfade(ifadeler[i]);
-    }
+    const x0 = 1020;
+    ifadeler.forEach((f, j) => yazi(x0 + j * (w + 4) + 4, 4, f));
+    MIZACLAR.forEach((m, r) => {
+      const tohum = this.tohum * 31 + (30 + r) * 7919;
+      const y = 30 + r * (h + 12);
+      yazi(x0 - 96, y + h / 2 - 10, m);
+      ifadeler.forEach((f, j) => {
+        const p = new Portre(this, tohum, x0 + j * (w + 4), y, m);
+        p.img.setScale(PX * s).setDepth(D + 1);
+        p.setIfade(f);
+        p.kirpmaDurdur();
+      });
+    });
   }
 
   private gunSonu(): void {

@@ -11,7 +11,7 @@ Teslim formunda her kategori için aşağıdakini seç ve açıklamayı yapışt
 
 - **Araç:** Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5)
 - **Amaç:** Oyundaki görselleri kodla, piksel piksel çizen kodu yazdı: arayüz ve menü, masa ve belgeler, gişedeki kişilerin portreleri, kaşeler, bina cephesi ayrıntıları, sokak, deprem hasarı ve efektler. Bina ve sokak karoları hazır paketten gelir (Hazır kaynaklar bölümü).
-- **Kullanıldığı yer:** Menü sokağı ve bütün arayüz: düğmeler, kâğıt paneller, arka plan, parçacık ve ekran efektleri; Masa: belgeler (yazılar, ada/parsel satırları, imzalar, elle düzeltme izleri), kaşeler ve kaşelik, yönetmelik klasörü, kural notları, inceleme modu, masa eşyaları; Gişe: kişi portreleri, konuşma balonu, zarf ve çekmece, SOR/İSTE düğmeleri, getirilen raporlar; Sokak: bina cephesi ayrıntıları (kat bandı, vitrin), bina etiketleri, deprem çatlakları ve sıva dökülmesi; Saha testi (kolon yakın planı), deprem, gün sonu, gazete ve sonuç ekranları
+- **Kullanıldığı yer:** Menü sokağı ve bütün arayüz: düğmeler, kâğıt paneller, arka plan, parçacık ve ekran efektleri; Masa: belgeler (yazılar, ada/parsel satırları, imzalar, elle düzeltme izleri), kaşeler ve kaşelik, yönetmelik klasörü, kural notları, inceleme modu, masa eşyaları; Gişe: gişe portreleri (yüz ayrıntıları ve mizaç ifadeleri), konuşma balonu, zarf ve çekmece, SOR/İSTE düğmeleri, getirilen raporlar; Sokak: bina cephesi ayrıntıları (kat bandı, vitrin), bina etiketleri, deprem çatlakları ve sıva dökülmesi; Saha testi (kolon yakın planı), deprem, gün sonu, gazete ve sonuç ekranları
 
 ### Ses: Kullanıldı
 
