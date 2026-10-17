@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G26 [teknik] Küçük: 5 günlük sonuçta zarf satırı "Birikmiş para" yazısına biniyor (ayrı satır); gün sonu raporu açılırken (karartma) basılan Enter yutulmasın, kararma bitince işlensin; yanlış fiş kural notunun alt kenarına biniyor (gün 1).
 
 ## Sırada
 
@@ -84,4 +85,4 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 - [x] G23b [teknik] Gazete zarf satırı yalnızca oyuncunun zarfları, kısa yol manşeti/değerlendirme jüri binalarına dayalı ve tutarlı, ikinci Enter ~0,5 sn + hazır göstergesi, küçük n, deprem yakın planında odak dışı soluk, 720p etiket payı, fiş ekranda, saha paneli (089c397, Opus/high; adalet 30909 denetim 0 hata; test geçti)
 - [x] G24 [teknik] Deprem dili (kehanet/tarih yok: küçük deprem, bir gece, soru biçiminde kısa yol), ilk yanlışta inceleme ipucu, saha notu klasörle çakışmıyor, +30 dk göstergesi, çekiç etiketi, gazete Enter 0,5 sn (8abf4bf, Opus/high; test ve ek test geçti)
 - [x] G11 [teknik] Menü (akşamüstü sokak, mühürlü ruhsat başlığı), gün sonunda 1/5 yok, düğmeler simetrik, README/beyan küçük deprem, kısa yol varsayım çerçevesi + 2. günden devam satırı, gazetede tarih yok (cff3d15 + f848bdb, Opus/high; test geçti)
-- [x] G25 [teknik] Son cila: deprem sahnesi 3 sn sonra Enter/Space/tık ile 10× hızlanır, rapor düğmeleri eş ve ortalı, küçük deprem satırı tek sayı+liste, ipucu yalnızca incelemesiz ilk yanlışta, menüde iskele/şerit görünür + ?dev&menutohum, DEV Enter yalnızca ?dev (4ef7ced, Opus/high; test sürüyor)
+- [x] G25 [teknik] Son cila: deprem sahnesi 3 sn sonra Enter/Space/tık ile 10× hızlanır, rapor düğmeleri eş ve ortalı, küçük deprem satırı tek sayı+liste, ipucu yalnızca incelemesiz ilk yanlışta, menüde iskele/şerit görünür + ?dev&menutohum, DEV Enter yalnızca ?dev (4ef7ced, Opus/high; test geçti)
