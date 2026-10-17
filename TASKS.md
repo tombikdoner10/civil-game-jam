@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G59 [teknik] (bitti 07d91c0, test sürüyor, Opus/low) Eleştirmen 10 metin cilası: zarf uyarısında müfettiş riski, gazetede "güçlendirme kararı verilmişti", BELGE kurallarında "geçerlisini", klasörde satır sonu noktası tutarlı.
 
 ## Sırada
 
@@ -74,6 +73,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G59 Eleştirmen 10 metin cilası: zarf uyarısında "Müfettiş gelebilir.", gazetede "güçlendirme kararı verilmişti", "geçerlisini İSTE", klasörde satır sonu noktasız (07d91c0, Opus/high; test GEÇTİ)
 - [x] G58 Gün sonu raporu içeriğe göre yerleşir, taşmaz (8be5b23, Opus/high; test GEÇTİ, 7 koşu)
 - [x] G57b Raporda müfettiş satırı küçük depremin altında; "Zarf: el konuldu"; sonuçta "(el konuldu)" (dd8809e, Opus/high; test GEÇTİ)
 - [x] G57 Müfettiş (zarflı yanlış karar %50 yakalanır, zarfa el konur, 40 TL ceza) ve dürüstlük övgüsü (96064cd + 62e74eb, Opus/high; test GEÇTİ, 8 koşu)
