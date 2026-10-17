@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G61 [teknik] (sırada, G60'tan sonra) Emeği Geçenler beyan düzeltmeleri: UI Audio kullanımı ve "değiştirildi" (konuşma balonu sesi), Interface Sounds ifadesi, AI Diğer araç satırına Fable 5.1 (eleştirmen 9), Takımın kararlarına müfettiş maddesi; README ve AI_BEYAN aynı.
 - [ ] G60 [teknik] (sürüyor, Opus/high) İnceleme: başka binanın belgesindeki alan seçilince "Tutarsızlık yok" yerine ada/parsel ipucu; sonuç ekranında zarf özeti okunur satırlara bölünsün, "Birikmiş para" ile çakışmasın.
 
 ## Sırada
