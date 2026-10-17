@@ -7,7 +7,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
 - Kontrol 2 (ara oyun testi): TAMAM (16 Ekim 23.53, geri bildirim işlendi)
 - Kontrol 3 (son teslim): BEKLİYOR
-- Son eleştirmen: 2026-10-17T16:13+03:00
+- Son eleştirmen: 2026-10-17T18:07+03:00 (eleştirmen 8 sürüyor)
 - Kullanım düzeyi: normal
 
 ## Günlük
