@@ -42,6 +42,12 @@ const SOKAK_D = 10;
  */
 const ETIKET_EN_AZ = 0.8;
 const ETIKET_ARA = 32;
+/**
+ * G38: etiketlerin ekran payları (px). sol/sag: etiket bu çizgilerin dışına taşmaz (kenarda kırpılmaz); ust: etiketin
+ * tepesi köşedeki "[Bir gece]" ve hızlandırma ipucunun (y ≈ 10-80) altında kalır. Binasının ortası ekran kenarına
+ * solmaPay kadar yaklaşınca etiket sönmeye başlar, solma px sonra tamamen sönmüş olur (sönmüş etiket yer kaplamaz).
+ */
+const EKRAN = { sol: 24, sag: 1896, ust: 104, solmaPay: 80, solma: 160 };
 
 /** Oyuncunun binasının deprem sonucunun rengi: içinde insan varken ağır sonuç kırmızı, boş binada gri. */
 export function sonucRengi(s: DepremBinaSonucu): string {
@@ -68,8 +74,8 @@ const IPUCU = { x: 1872, y: 44, boyut: 44, pay: 18, nabiz: 0.06, nabizMs: 520 };
 
 /**
  * Büyük deprem (G5): gece geçişi (kararma, saat), sonra oyuncunun kararlarıyla dolan sokak tam ekran ve gece.
- * Sokak binalık gruplarla taranır, her bina adalet kurallarıyla (session.buyukDeprem) tepki verir; sonunda bütün
- * sokak görünür ve gazeteye geçilir. Enter/Space/tık depremi hızlandırır (G25, G28: gece kartında da; ATLA); Esc
+ * Sokak binalık gruplarla taranır, her bina adalet kurallarıyla (session.buyukDeprem) tepki verir; sonunda genel
+ * plan (G38: büyük ölçekte, sığmazsa sokak boyunca kayar) görünür ve gazeteye geçilir. Enter/Space/tık depremi hızlandırır (G25, G28: gece kartında da; ATLA); Esc
  * duraklatır (gürleme susar, sekans durur).
  */
 export class QuakeScene extends Phaser.Scene {
@@ -242,11 +248,12 @@ export class QuakeScene extends Phaser.Scene {
       kontrol = quake.oynat(
         1,
         binalar,
-        () => {
+        (_s, kayma) => {
           bitti = true;
           this.time.timeScale = 1;
           this.tweens.timeScale = 1;
-          this.time.delayedCall(zaman.sonra, gazeteyeGec);
+          // Genel plan sokağın başına kayıyorsa (G38) kayış bitince de genel görünüm sonra ms durur.
+          this.time.delayedCall(zaman.sonra + kayma, gazeteyeGec);
         },
         {
           sure: v.kisa ? K.depremMs : B.sureMs,
@@ -298,43 +305,66 @@ export class QuakeScene extends Phaser.Scene {
     this.etiketler.push({ e, yer: b.yer });
   }
 
-  /** Etiketleri binalarının üstüne yerleştir: sabit en az boy, çakışma yok, kayan etikete bağ çubuğu (G21b). */
+  /**
+   * Etiketleri binalarının üstüne yerleştir: sabit en az boy, çakışma yok, kayan etikete bağ çubuğu (G21b). G38:
+   * etiket hiçbir zaman ekran kenarında kırpılmaz (EKRAN payları içine sıkıştırılır, köşe yazılarının altında kalır);
+   * binası ekrandan çıkan etiket kenarda durup söner.
+   */
   private etiketYerlestir(): void {
     const sokak = this.sokak;
     if (!sokak || this.etiketler.length === 0) return;
     const g = sokak.gorunum;
     const sc = Phaser.Math.Clamp(g.olcek, ETIKET_EN_AZ, 1);
+    const { sol: L, sag: R } = EKRAN;
     const ogeler = this.etiketler
       .map(({ e, yer }) => {
         const k = sokak.yerelKutu(yer);
         // ust: çubuğun indiği yer (çöken binada moloz yığını, G23).
         const ust = g.y + sokak.ustKenar(yer) * g.olcek;
-        return { e, ax: g.x + k.centerX * g.olcek, ay: g.y + k.y * g.olcek, ust, w: e.genislik() * sc, x: 0 };
+        const w = e.genislik() * sc;
+        const ax = g.x + k.centerX * g.olcek;
+        // Hedef: binanın ortası, ekran payları içine sıkıştırılmış.
+        const hedef = Phaser.Math.Clamp(ax, L + w / 2, R - w / 2);
+        // Binası ekran kenarından çıktıkça etiket söner (kenarda yığılıp başka binanınmış gibi durmasın).
+        const disari = Math.max(0, EKRAN.solmaPay - ax, ax - (1920 - EKRAN.solmaPay));
+        const alfa = Phaser.Math.Clamp(1 - disari / EKRAN.solma, 0, 1);
+        e.kap.setAlpha(alfa).setVisible(alfa > 0);
+        return { e, ax, ay: g.y + k.y * g.olcek, ust, w, hedef, x: hedef, alfa };
       })
-      .sort((a, b) => a.ax - b.ax);
-    // Soldan sağa it (çakışmasın), sonra grubu binaların ortasına geri kaydır ve ekrana sığdır.
-    ogeler.forEach((o, i) => {
-      o.x = i === 0 ? o.ax : Math.max(o.ax, ogeler[i - 1].x + (ogeler[i - 1].w + o.w) / 2 + ETIKET_ARA);
-    });
+      // Sönmüş etiketler yer kaplamaz (görünenleri itmesin).
+      .filter((o) => o.alfa > 0)
+      .sort((a, b) => a.hedef - b.hedef);
     const n = ogeler.length;
-    let kay = ogeler.reduce((t, o) => t + o.ax - o.x, 0) / n;
-    // Ekrana sığdırma yalnızca bütün binalar görünürken (başka grup taranırken etiketler binalarıyla ekran dışına kayar).
-    if (ogeler[0].ax >= 0 && ogeler[n - 1].ax <= 1920) {
-      const sol = ogeler[0].x + kay - ogeler[0].w / 2;
-      const sag = ogeler[n - 1].x + kay + ogeler[n - 1].w / 2;
-      if (sol < 24) kay += 24 - sol;
-      else if (sag > 1896) kay -= sag - 1896;
-    }
     const cizgi = this.bagCizgi;
     cizgi?.clear();
+    if (n === 0) return;
+    // Soldan sağa it (çakışmasın), sonra grubu hedeflerin ortasına geri kaydır (sol paydan taşmadan).
+    ogeler.forEach((o, i) => {
+      if (i > 0) o.x = Math.max(o.hedef, ogeler[i - 1].x + (ogeler[i - 1].w + o.w) / 2 + ETIKET_ARA);
+    });
+    const kay = Math.max(ogeler.reduce((t, o) => t + o.hedef - o.x, 0) / n, L - (ogeler[0].x - ogeler[0].w / 2));
+    for (const o of ogeler) o.x += kay;
+    // Sağ paydan taşan varsa sağdan sola geri it; en son her etiket tek tek paylar içine (grup ekrandan genişse üst üste
+    // binebilir ama kırpılmaz).
+    for (let i = n - 1; i >= 0; i--) {
+      const sinir = i === n - 1 ? R - ogeler[i].w / 2 : ogeler[i + 1].x - (ogeler[i + 1].w + ogeler[i].w) / 2 - ETIKET_ARA;
+      ogeler[i].x = Math.min(ogeler[i].x, sinir);
+    }
     for (const o of ogeler) {
-      const x = Math.round(o.x + kay);
+      const x = Math.round(Phaser.Math.Clamp(o.x, L + o.w / 2, R - o.w / 2));
       const dx = x - o.ax;
       const kalk = Math.min(60, Math.abs(dx)) * sc;
-      o.e.kap.setPosition(x, Math.round(o.ay - kalk)).setScale(sc);
-      if (cizgi && (Math.abs(dx) > 2 || o.ust - o.ay > 2)) {
-        cizgi.lineStyle(4 * sc, 0x0e0d10, 0.9);
-        cizgi.lineBetween(x, o.ay - kalk, o.ax, o.ust);
+      let y = Math.round(o.ay - kalk);
+      o.e.kap.setPosition(x, y).setScale(sc);
+      // Üst pay: köşedeki "[Bir gece]" ve hızlandırma ipucunun altında kalsın.
+      const tepe = o.e.kap.getBounds().top;
+      if (tepe < EKRAN.ust) {
+        y += Math.ceil(EKRAN.ust - tepe);
+        o.e.kap.setY(y);
+      }
+      if (cizgi && (Math.abs(dx) > 2 || o.ust - y > 2)) {
+        cizgi.lineStyle(4 * sc, 0x0e0d10, 0.9 * o.alfa);
+        cizgi.lineBetween(x, y, o.ax, o.ust);
       }
     }
   }

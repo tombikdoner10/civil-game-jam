@@ -276,6 +276,16 @@ export class Sokak {
     this.git(c, s, oran, sure, bitince);
   }
 
+  /** s ölçeğinde pencereye kaç parsel sığar (odakla'nın payı dahil; kesirli). G38 deprem genel planı. */
+  sigan(s: number): number {
+    return (this.penW / s - 16) / PARSEL;
+  }
+
+  /** Bir parselin s ölçeğinde ekran genişliği (px). */
+  parselEkran(s: number): number {
+    return PARSEL * this.O * s;
+  }
+
   /** Kökü c (sanat pikseli, sokak boyunca) pencerenin oran noktasına ve s ölçeğine götürür. */
   private git(c: number, s: number, oran: number, sure: number, bitince?: () => void): void {
     const hedef = this.konum(c, s, oran);

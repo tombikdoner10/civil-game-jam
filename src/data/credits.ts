@@ -46,6 +46,13 @@ export const MEMBERS: Member[] = [
 ];
 
 /**
+ * Takımın kararları (Emeği Geçenler'de Takım'dan hemen sonra, hazır kaynaklardan ve yapay zekâdan önce): takımın
+ * kendi verdiği yaratıcı kararlar, her biri kısa bir madde. Boşken başlık da görünmez.
+ * TODO(takım) T26: 4–5 madde yaz (ör. tema yorumu, oyun fikri, görsel ve ses seçimleri, bölüm/gün tasarımı, metinler).
+ */
+export const TAKIM_KARARLARI: string[] = [];
+
+/**
  * Yapay zekâ kullanımı: burada elle yazılmaz. `scripts/beyan.mjs`, kategori başına okunur özetten (docs/ai-ozet.json)
  * ai-beyan.json'u üretir; özeti, Claude Code kancasının otomatik kaydı (docs/ai-kayit.jsonl) ve elle eklenenler
  * (docs/ai-elle.json) ile denetler. Ayrıntılı kayıt docs/AI_BEYAN.md'nin altındadır. Her commit'te yenilenir.

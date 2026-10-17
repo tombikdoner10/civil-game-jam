@@ -267,5 +267,19 @@
     "yer": "src/game/gazete.ts",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T07:01:33.076Z"
+  },
+  {
+    "kategori": "visual",
+    "amac": "G38 deprem genel planı ve etiket yerleşimi (Bash içinden python betiğiyle düzenlendi)",
+    "yer": "src/desk/Quake.ts, src/desk/Street.ts, src/scenes/QuakeScene.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T07:39:06.451Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G38 Emeği Geçenler bölüm sırası ve README bölüm sırası (Bash içinden python betiğiyle düzenlendi)",
+    "yer": "src/scenes/CreditsScene.ts, README.md",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T07:39:06.513Z"
   }
 ]

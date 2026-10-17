@@ -59,6 +59,12 @@ Kural 3.1 kapsamında, tema açıklanmadan önce yalnızca genel altyapı hazır
 
 Tema açıklanmadan önceki son commit: _tema açıklanınca eklenecek_
 
+## Takım
+
+Prompt Engineers: _üye adları eklenecek_
+
+<!-- TODO(takım) T26: "## Takımın kararları" bölümü buraya (4–5 madde; oyundaki Emeği Geçenler ile aynı sıra: Takım → Takımın kararları → Hazır kaynaklar → Yapay zekâ). -->
+
 ## Hazır kaynak beyanı
 
 | Kategori | Durum | Kaynak ve sağlayıcı | Bağlantı | Lisans | Kullanım ve değişiklik |
@@ -91,7 +97,3 @@ Tema açıklanmadan önceki son commit: _tema açıklanınca eklenecek_
 <!-- AI-BEYAN:BITIR -->
 
 Bu tablo `npm run beyan` ile otomatik üretilir: Claude Code'un yazdığı her dosya bir kancayla kategorisine göre `docs/ai-kayit.jsonl`'a kaydedilir, elle eklenenler `docs/ai-elle.json`'da durur. Teslim formu için hazır metin: `docs/AI_BEYAN.md`. Commit'lerdeki `Co-Authored-By: Claude` satırları da bu kullanımı gösterir.
-
-## Takım
-
-Prompt Engineers: _üye adları eklenecek_

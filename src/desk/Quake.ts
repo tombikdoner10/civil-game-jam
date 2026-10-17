@@ -110,6 +110,14 @@ function zarfBuyuk(u: number): number {
 
 /** Büyük depremde zaman çizelgesi (T'nin oranı): grupların tarandığı aralık ve sokağın bütününe açılış. */
 const BUYUK = { taramaBas: 0.1, taramaSon: 0.74, genis: 0.78 };
+/**
+ * Genel plan (G38): bütün sokak tek karede binaları ekranın alt şeridine sıkıştırıyordu (gökyüzü ~%70). Ölçek en az
+ * `olcek` (2/3: bir sanat pikseli tam 2 ekran pikseli; binalar ve etiketler ekranın alt yarısını doldurur). Sokak bu
+ * ölçekte sığmazsa genel plan taramanın bittiği yerde, sokağın sonunda açılır; deprem bitince sokağın başına kayar
+ * ve orada durur (kısa yolda oyuncunun etiketli binaları; hızlandırılınca da son kare onlar). hiz: ekran px/sn; süre
+ * enAz..enCok ms. pay: iki uçta parsel payı.
+ */
+const GENEL = { olcek: 2 / 3, pay: 0.3, hiz: 700, enAz: 1200, enCok: 6000, acilis: 1600 };
 
 /**
  * Sokakta deprem sekansı (öncü sarsıntı ve G5 büyük deprem aynı sınıf). Masa ve pencere sarsılır (kamera),
@@ -148,10 +156,36 @@ export class Quake {
     this.sokak.odakDisiSoldur(new Set(g.map((b) => b.yer)), sure);
   }
 
+  /**
+   * Genel plan (G38): [ilk, son] binaları en az GENEL.olcek ölçeğinde. Sığıyorsa ortalanır; sığmıyorsa sokağın sonu
+   * görünür ve dönen işlev başa kayışı başlatıp süresini verir (sığıyorsa 0).
+   */
+  private genelPlan(ilk: number, son: number): () => number {
+    const s = GENEL.olcek;
+    const i0 = ilk - GENEL.pay;
+    const i1 = son + GENEL.pay;
+    const v = this.sokak.sigan(s);
+    if (i1 - i0 + 1 <= v) {
+      this.sokak.odakla(i0, i1, GENEL.acilis, undefined, 0.5, s);
+      return () => 0;
+    }
+    this.sokak.odakla(i1 - v + 1, i1, GENEL.acilis, undefined, 0.5, s, s);
+    let kaydi = false;
+    return () => {
+      if (kaydi) return 0;
+      kaydi = true;
+      const yol = (i1 - i0 + 1 - v) * this.sokak.parselEkran(s);
+      const sure = Phaser.Math.Clamp((yol / GENEL.hiz) * 1000, GENEL.enAz, GENEL.enCok);
+      this.sokak.odakla(i0, i0 + v - 1, sure, undefined, 0.5, s, s);
+      return sure;
+    };
+  }
+
   oynat(
     siddet: number,
     binalar: readonly SokakYeri[],
-    bitince: (sonuclar: QuakeSonucu[]) => void,
+    /** kayma: büyük depremde genel planın sokak başına kayışı (ms; 0 = kayış yok), bu süre beklenmeli. */
+    bitince: (sonuclar: QuakeSonucu[], kayma: number) => void,
     secenek: SarsintiSecenek = {},
   ): QuakeKontrol {
     const scene = this.scene;
@@ -306,6 +340,8 @@ export class Quake {
     };
 
     const tepkiler = sonuclar.filter((s) => s.gorunen !== 'ayakta');
+    /** Genel plan açıldıysa: sokağın başına kayışı başlatır, süresini (ms) verir (G38). */
+    let genelKaydir: (() => number) | undefined;
     if (buyuk) {
       // Gruplar sırayla: görünüm gruba kayar, gruptaki binalar sırayla tepki verir; sonunda bütün sokak.
       const ozel = !!secenek.gruplar;
@@ -330,12 +366,10 @@ export class Quake {
       });
       if (binalar.length > 0)
         scene.time.delayedCall(BUYUK.genis * T, () => {
-          // Kenarlarda birer parsel pay: baştaki ve sondaki bina (G21'de etiketleri) ekranda kırpılmasın.
-          const pay = 1;
-          this.sokak.odakla(ilkYer - pay, sonYer + pay, 1600, undefined, 0.5, 0.05);
-          // Bütün sokak küçülünce arkadaki şehir binaları gölgede kalsın: göz sokağa gitsin.
-          this.sokak.uzakSoldur(0.2, 1600);
-          this.sokak.odakDisiSoldur(null, 1600);
+          genelKaydir = this.genelPlan(ilkYer, sonYer);
+          // Sokak uzaklaşınca arkadaki şehir binaları gölgede kalsın: göz sokağa gitsin.
+          this.sokak.uzakSoldur(0.2, GENEL.acilis);
+          this.sokak.odakDisiSoldur(null, GENEL.acilis);
         });
     } else {
       // Hasarlı binalar tepe anında sırayla tepki verir.
@@ -416,7 +450,8 @@ export class Quake {
       this.sokak.sallan(0);
       const bitir = (): void => {
         for (const p of [tavan, parca, toz, bulut, dokulme]) p?.destroy();
-        bitince(sonuclar);
+        // Büyük depremde genel plan sığmadıysa sokağın başına kayar; bitince bu kayışın süresini de alır.
+        bitince(sonuclar, genelKaydir?.() ?? 0);
       };
       if (yazi && !hizli) scene.tweens.add({ targets: yazi, alpha: 0, duration: 300, onComplete: () => (yazi.destroy(), bitir()) });
       else {
