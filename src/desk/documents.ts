@@ -102,6 +102,17 @@ function satirAlani(k: Ctx, alan: string, ax0: number, d: Phaser.GameObjects.Tex
   bolge(k, alan, ax0, ay, sag - ax0, ah);
 }
 
+/**
+ * Etiket ve değeri alt alta (ya da yan yana) duran bir bloğun tamamı tek seçilebilir alan (G62): ax0 sol kenar,
+ * ay / ah üst kenar ve yükseklik; sağ kenar yazıların en sağından iki sanat pikseli öte, ama sinir'i (yanındaki
+ * çizim) aşmaz; yazıyı hiçbir zaman kesmez (sanat pikseli).
+ */
+function blokAlani(k: Ctx, alan: string, ax0: number, ay: number, ah: number, yazilar: Phaser.GameObjects.Text[], sinir = Infinity): void {
+  const sagYazi = Math.max(...yazilar.map((o) => Math.ceil((o.x + o.width * (1 - o.originX) + k.c.genislik / 2) / PX)));
+  const sag = Math.max(sagYazi, Math.min(sagYazi + 2, sinir));
+  bolge(k, alan, ax0, ay, sag - ax0, ah);
+}
+
 /** Kusur etiketinin örtmemesi gereken çizim (G49: mühür) için görünmez, seçilemeyen dikdörtgen (sanat pikseli). */
 function etiketEngeli(k: Ctx, ax: number, ay: number, aw: number, ah: number): void {
   k.c.add(k.s.add.rectangle(X(k.c, ax), Y(k.c, ay), aw * PX, ah * PX, 0xffffff, 0).setOrigin(0).setData(ETIKET_ENGEL, true));
@@ -313,9 +324,11 @@ function proje(k: Ctx): void {
   t.rect(x0, 38, x1 - x0 + 1, 1, PAL.murekkepSoluk);
   t.rect(x0, 36, 1, 5, PAL.murekkepSoluk);
   t.rect(x1, 36, 1, 5, PAL.murekkepSoluk);
-  bolge(k, 'kolon', x0, 16, x1 - x0 + 1, 18);
   etiket(k, 4, 45, 'Zemin kat kolon planı', 28);
   deger(k, t.w - 5, 45, `${n} kolon`, 36, PAL.murekkep, 1);
+  // Kolon planı, ölçü çizgisi ve altındaki "Zemin kat kolon planı · n kolon" satırı tek alan (G62): oyuncu satıra
+  // tıklayınca da kolon seçilir. Antet kutusunun (y 50) üstünde biter.
+  bolge(k, 'kolon', 3, 15, t.w - 6, 35);
   // Antet kutusu
   t.frame(48, 50, t.w - 52, 7, PAL.murekkepSoluk);
   t.rect(66, 50, 1, 7, PAL.murekkepSoluk);
@@ -398,9 +411,9 @@ function karot(k: Ctx): void {
   sahteSatir(t, 4, t.h - 5, 28, PAL.labKoyu, rnd);
   if (b.karot) {
     etiket(k, x0 + 3, y0 + sat + 4, 'Beton dayanımı', 26);
-    const o = deger(k, 49, y0 + sat + 4, `${b.karot.mpa} MPa`, 36);
-    k.c.remove(o);
-    k.c.alanEkle('mpa', o);
+    deger(k, 49, y0 + sat + 4, `${b.karot.mpa} MPa`, 36);
+    // Satırın tamamı (etiket + değer hücresi) tek alan (G62; ada satırı gibi).
+    bolge(k, 'mpa', x0 + 1, y0 + sat + 1, x1 - x0 - 1, sat - 1);
     // Ada / parsel satırı (G17b); kuralı gelmeden sahte satır.
     if (adaGorunur(k)) {
       etiket(k, x0 + 3, y0 + 3 * sat + 4, 'Ada/Parsel', 26);
@@ -427,12 +440,12 @@ function zemin(k: Ctx): void {
   if (b.zemin) {
     sahteSatir(t, 5, 14, 40, PAL.kirliBeyazKoyu, rnd);
     sahteSatir(t, 5, 16, 34, PAL.kirliBeyazKoyu, rnd);
-    etiket(k, 5, 24, 'Zemin türü');
+    const e = etiket(k, 5, 24, 'Zemin türü');
     const o = deger(k, 5, 32, ZEMIN_ADI[b.zemin.tur], 36);
-    k.c.remove(o);
-    k.c.alanEkle('tur', o);
     // Sondaj kesiti: katman renkleri zemin türüne göre
     const kx = t.w - 18;
+    // Etiket ve değer tek alan (G62); sağda sondaj kesitine (ve sıvılaşma çizgisine, kx - 3) değmez.
+    blokAlani(k, 'tur', 4, 20, 17, [e, o], kx - 3);
     const katman: Record<Zemin, string[]> = {
       saglam: ['#6b5a48', '#77746e', '#5e5c58', '#4b4a47'],
       orta: ['#6b5a48', '#8a6f52', '#7a6650', '#77746e'],
@@ -617,19 +630,18 @@ export function raporKur(scene: Phaser.Scene, bina: Bina, rapor: GetirilenRapor,
   // Ataş: sonradan getirildi
   atas(t, karot ? PAL.lab : PAL.kirliBeyaz);
   // Değer
-  etiket(k, 5, 16, karot ? 'Beton dayanımı' : 'Zemin türü', 26);
+  const de = etiket(k, 5, 16, karot ? 'Beton dayanımı' : 'Zemin türü', 26);
   const metin = karot ? `${rapor.deger} MPa` : ZEMIN_ADI[rapor.deger as Zemin];
   const d = deger(k, 6, 25, metin, 36);
   // Daksil lekesi üstüne mavi kalem (sahte rapor ipucu).
   if (rapor.ipucu === 'elle') elleDuzelt(t, d, 6, 25);
-  k.c.remove(d);
-  k.c.alanEkle(karot ? 'mpa' : 'tur', d);
+  // Etiket ve değer tek alan (G62): noktalı çizginin (y 30) üstünde biter.
+  blokAlani(k, karot ? 'mpa' : 'tur', 4, 12, 18, [de, d], t.w - 6);
   for (let x2 = 5; x2 < t.w - 6; x2 += 2) t.px(x2, 30, PAL.murekkepAcik);
-  // Tarih
+  // Tarih: satırın tamamı (etiket + değer) tek alan (G62); lab alanının (y 42) üstünde biter.
   etiket(k, 5, 36, 'Tarih', 26);
   const tr = deger(k, 28, 36, tarih(gun, rapor.tarihFark), 30);
-  k.c.remove(tr);
-  k.c.alanEkle('tarih', tr);
+  satirAlani(k, 'tarih', 4, tr, 28, 31, 9);
   // Laboratuvar mührü (sahtede yok: noktalı boş yer)
   etiket(k, 5, 47, 'Lab mührü', 26);
   const bosMuhur = rapor.ipucu === 'muhur';
@@ -641,7 +653,8 @@ export function raporKur(scene: Phaser.Scene, bina: Bina, rapor: GetirilenRapor,
     kesikDaire(t, 62, 45, 7, PAL.murekkepAcik);
     etiket(k, 62, 45.5, 'MÜHÜR', 25, PAL.murekkepSoluk, 0.5);
   }
-  bolge(k, 'lab', 38, 42, t.w - 42, 11);
+  // "Lab mührü" etiketi dahil satırın tamamı (G62).
+  bolge(k, 'lab', 4, 42, t.w - 8, 11);
   // Ada / parsel (G17b)
   if (adaGorunur(k)) {
     for (let x2 = 5; x2 < t.w - 6; x2 += 2) t.px(x2, 54, PAL.murekkepAcik);
