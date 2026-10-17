@@ -212,13 +212,14 @@ export class ResultScene extends Phaser.Scene {
     const kutular: [string, number, string, string?][] = [
       ['AYAKTA', oz.ayakta, PAL.damgaGuvenli],
       ['HASARLI', oz.hasarli, PAL.damgaGuclendir],
-      // Gazeteyle aynı tanımlar (G5b): çökenlerin "içi boş" olanları; BOŞALTILMIŞ bütün boşaltılmış binalar.
+      // Gazeteyle aynı tanımlar (G5b): çökenlerin "içi boş" olanları; BOŞALTILMIŞ, ayakta + hasarlı + çöken binaların
+      // (sokağın tamamının) içinden boşaltılmış olanlar (G31c: alt yazı "bunlardan", ayrı bir sayı değil).
       ['ÇÖKEN', oz.coken, PAL.damgaBosalt, gor.icBos && icBos ? `içi boş: ${oz.cokenBos}` : undefined],
-      ['BOŞALTILMIŞ', oz.bos, PAL.murekkepSoluk, 'toplam'],
+      ['BOŞALTILMIŞ', oz.bos, PAL.murekkepSoluk, 'bunlardan'],
     ];
-    // İADE: denetlenmeden kalan binalar (içleri doluydu); kaçının çöktüğü alt satırda.
+    // İADE: denetlenmeden kalan binalar (içleri doluydu); kaçının çöktüğü alt satırda (G31c: "çöken: N").
     if (gor.iade)
-      kutular.push(['İADE', oz.iade, PAL.damgaIade, oz.iade > 0 ? (oz.iadeCoken > 0 ? `${oz.iadeCoken} çöktü` : 'denetlenmedi') : undefined]);
+      kutular.push(['İADE', oz.iade, PAL.damgaIade, oz.iade > 0 ? (oz.iadeCoken > 0 ? `çöken: ${oz.iadeCoken}` : 'denetlenmedi') : undefined]);
     const kw = 232;
     const kara = (KAGIT.w - 80 - kutular.length * kw) / (kutular.length - 1);
     kutular.forEach(([ad, n, renk, alt], i) => {

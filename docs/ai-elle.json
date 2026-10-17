@@ -295,5 +295,19 @@
     "yer": "Gişe diyalogları, gazete ve sonuç, kurallar, kendi evin, hikâye binaları, README, BENIOKU",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T14:04:00.233Z"
+  },
+  {
+    "kategori": "text",
+    "amac": "G31c metin cilası (Bash betiğiyle düzenlendi): küçük deprem satırı, kaçak kat SOR/zarf cümleleri, EVİN kartında Sıradaki, gazete ve sonuçta Bunlardan boşaltılmış, İADE alt yazısı",
+    "yer": "src/game/gazete.ts, src/game/diyalog-metin.ts, src/game/ev-metin.ts, src/scenes/ResultScene.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T14:48:18.851Z"
+  },
+  {
+    "kategori": "visual",
+    "amac": "G31c yerleşim cilası (Bash betiğiyle düzenlendi): gazete sayı kalemlerinin dizimi, ruhsat kat satırı alanı, Emeği Geçenler kenar şeritleri",
+    "yer": "src/scenes/NewspaperScene.ts, src/desk/documents.ts, src/scenes/CreditsScene.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T14:48:18.904Z"
   }
 ]

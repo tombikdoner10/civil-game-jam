@@ -218,15 +218,15 @@ export const KENDI_ZARF_GIRIS: Record<Mizac, string[]> = {
 export const SOR_METIN: Record<SorulanKusur, Record<SorTuru, string[]>> = {
   kacakKat: {
     bahane: [
-      'O kat hep vardı, ruhsat eski.',
+      'Bina hep böyleydi, ruhsat eski.',
       'Çatı katı sayılmaz ki.',
       'Belediyeden biri onaylamıştı.',
       'Ruhsatta {kat} kat yazıyorsa öyledir, üstü teras.',
-      'Fotoğraf yanıltıyor, üstteki depo.',
+      'Fotoğraf yanıltıyor, üstü depo.',
     ],
     itiraf: [
-      'Üst kat sonradan çıkıldı.',
-      'Oğlum evlenince bir kat ekledik.',
+      'Sonradan kat çıktık.',
+      'Oğlum evlenince kat ekledik.',
       'Herkes yapıyor diye biz de çıktık.',
       'Ruhsat {kat} kat ama biz biraz büyüttük.',
       'İmar affı çıkar diye ekledik.',
@@ -236,7 +236,7 @@ export const SOR_METIN: Record<SorulanKusur, Record<SorTuru, string[]>> = {
       'Şunu bir değerlendirin, {para}.',
       'Bu kat meselesi için dosya bozulmasın, {para}.',
       'Ruhsattaki gibi {kat} kat sayılsın, {para}.',
-      'Üst kat görünmese olur mu? {para}.',
+      'Kat sayısına takılmasanız olur mu? {para}.',
     ],
   },
   kesikKolon: {

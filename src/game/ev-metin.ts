@@ -42,10 +42,14 @@ export const EV_TAMAM_METIN: Record<EvKalem, { ad: string; aciklama: string }> =
 };
 /** Güçlendirme kartında sıradaki taksit (n: 1..3). */
 export const evTaksitEtiketi = (n: number): string => `Taksit ${n}/${EV_KADEME}`;
-/** Kartta sıradaki kademenin başlığı: güçlendirmede taksit etiketiyle ("Taksit 1/3: Proje"). */
+export const EV_SIRADAKI = 'Sıradaki';
+/**
+ * Kartta sıradaki kademenin başlığı (G31c: "Sıradaki:" önekiyle; ilerleme kutuları alınanı, bu satır alınacağı
+ * gösterir): güçlendirmede taksit etiketiyle ("Sıradaki: Taksit 2/3 · Kolon sarma"), öbürlerinde "Sıradaki: İlk yardım".
+ */
 export function evKademeBasligi(k: EvKalem, n: number): string {
   const ad = EV_KADEME_METIN[k][n - 1].ad;
-  return k === 'guclendirme' ? `${evTaksitEtiketi(n)}: ${ad}` : ad;
+  return `${EV_SIRADAKI}: ${k === 'guclendirme' ? `${evTaksitEtiketi(n)} · ${ad}` : ad}`;
 }
 /** Kartta alınan son kademe (G45): "Alındı: …" satırı; kalem tamamsa EV_ALINDI_TAMAM. */
 export const evAlindiSatiri = (ad: string): string => `Alındı: ${ad}`;

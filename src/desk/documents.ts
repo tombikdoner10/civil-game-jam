@@ -171,10 +171,10 @@ function ruhsat(k: Ctx): void {
   const r = b.ruhsat;
   const satirlar: [string, string, string, number, string?][] = [
     ['kat', 'Kat sayısı', String(r.kat), 20, '(zemin dahil)'],
-    ['yil', 'Yapım yılı', String(r.yil), 32],
-    ['muhur', 'Ruhsat tarihi', String(r.muhurYili), 42],
+    ['yil', 'Yapım yılı', String(r.yil), 34],
+    ['muhur', 'Ruhsat tarihi', String(r.muhurYili), 44],
   ];
-  if (adaGorunur(k)) satirlar.push(['ada', 'Ada/Parsel', r.ada, 52]);
+  if (adaGorunur(k)) satirlar.push(['ada', 'Ada/Parsel', r.ada, 54]);
   for (const [alan, ad, v, y, alt] of satirlar) {
     if (alt) {
       etiket(k, 6, y - 2, ad);
@@ -184,7 +184,9 @@ function ruhsat(k: Ctx): void {
     // Elle düzeltilmiş alan: daksil üstüne mavi kalem (G17b).
     if (r.duzeltme?.alan === alan) elleDuzelt(t, d, 46, y);
     for (let x = 45; x < 74; x += 2) t.px(x, y + 4, PAL.murekkepAcik);
-    bolge(k, alan, 4, y - 6, 72, alt ? 12 : 10);
+    // G31c: alt yazılı satırın alanı (ve kusur çerçevesi) iki sanat pikseli daha uzun, alttaki satırlar o kadar aşağıda:
+    // çerçevenin alt kenarı (komşu alana bitişik, payı 0) "(zemin dahil)" yazısına binmesin, yazı tamamen içinde kalsın.
+    bolge(k, alan, 4, y - 6, 72, alt ? 14 : 10);
   }
   // İmza: "x" ve noktalı çizgi; imzalıysa üstünde mavi kalemle karalama, imzasızsa boş (G17b).
   if (imzaGorunur(k)) {

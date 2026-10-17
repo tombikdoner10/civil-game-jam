@@ -99,10 +99,20 @@ export function manset(o: DepremOzeti, kisa?: KisaYolBilgisi): string {
 
 /**
  * Sayı satırı (bina sayıları). Sonuç ekranıyla aynı tanımlar (G5b): "içi boş" çökenlerin boşaltılmış olanları,
- * "Boşaltılmış (toplam)" ayakta, hasarlı ve çöken bütün boşaltılmış binalar.
+ * "Bunlardan boşaltılmış" ayakta, hasarlı ve çöken binaların (sokağın tamamının) içinden boşaltılmış olanlar.
  */
 export function sayiSatiri(o: DepremOzeti): string {
-  return `Ayakta: ${o.ayakta} bina · Hasarlı: ${o.hasarli} · Çöken: ${o.coken}${o.coken > 0 ? ` (içi boş: ${o.cokenBos})` : ''} · Boşaltılmış (toplam): ${o.bos}${o.iade > 0 ? ` · İade edilmiş: ${o.iade}` : ''}`;
+  const k = [`Ayakta: ${o.ayakta} bina`, `Hasarlı: ${o.hasarli}`, `Çöken: ${o.coken}${o.coken > 0 ? ` (içi boş: ${o.cokenBos})` : ''}`, `Bunlardan boşaltılmış: ${o.bos}`];
+  if (o.iade > 0) k.push(`İade edilmiş: ${o.iade}`);
+  return kalemDizisi(k);
+}
+
+/**
+ * Kalemleri alt alta dizer (G31c, 5 günlük gazete): her kalem ayrı satırda. " · " ile yan yana dizilince dar sütunda
+ * satır kaydırma ayırıcıyı satır başına düşürüyordu; kalem kendi içinde yine sözcük arasından kırılabilir.
+ */
+export function kalemDizisi(kalemler: readonly string[]): string {
+  return kalemler.join('\n');
 }
 
 /** Kısa yol gazetesindeki iki sayı bloğunun başlıkları (G30, T22). */
@@ -124,23 +134,24 @@ export function juriGordukleri(s: readonly DepremBinaSonucu[], juri: ReadonlySet
  * Kısa yol gazetesinin sayıları (G30, takım kararı T22): önce jürinin kendi binaları, sonra bütün sokak. Tanımlar
  * sayiSatiri ile aynı; jürinin özeti sonuç ekranındaki "Senin binaların" ile aynı (oyuncuOzeti). Jürinin görmediği
  * satırlar gizli: "İade edilmiş" yalnızca jüri en az bir İADE vurduysa, "içi boş" yalnızca jürinin BOŞALT damgalı
- * binalarından biri çöktüyse ya da hasar gördüyse. Sıfır olan kalemler yazılmaz.
+ * binalarından biri çöktüyse ya da hasar gördüyse. Sıfır olan kalemler yazılmaz. Kalemler ayrı döner (G31c): gazete
+ * onları dar sütuna " · " ile kendisi dizer (satır yalnızca kalemler arasında kırılır).
  */
-export function kisaSayiBloklari(s: readonly DepremBinaSonucu[], juri: ReadonlySet<string>): { baslik: string; satir: string }[] {
+export function kisaSayiBloklari(s: readonly DepremBinaSonucu[], juri: ReadonlySet<string>): { baslik: string; kalemler: string[] }[] {
   const j = s.filter((b) => juri.has(b.dosyaId));
   const { iade, icBos } = juriGordukleri(s, juri);
-  const satir = (o: DepremOzeti): string => {
+  const kalemler = (o: DepremOzeti): string[] => {
     const k: string[] = [];
     if (o.ayakta > 0) k.push(`Ayakta: ${o.ayakta} bina`);
     if (o.hasarli > 0) k.push(`Hasarlı: ${o.hasarli}`);
     if (o.coken > 0) k.push(`Çöken: ${o.coken}${icBos && o.cokenBos > 0 ? ` (içi boş: ${o.cokenBos})` : ''}`);
-    if (o.bos > 0) k.push(`Boşaltılmış (toplam): ${o.bos}`);
+    if (o.bos > 0) k.push(`Bunlardan boşaltılmış: ${o.bos}`);
     if (iade && o.iade > 0) k.push(`İade edilmiş: ${o.iade}`);
-    return k.join(' · ');
+    return k;
   };
   // Jüri hiç damga vurmadıysa (sokakta binası yok) yalnızca sokak bloğu.
-  const sokak = { baslik: KISA_GAZETE.sokak, satir: satir(depremOzeti(s)) };
-  return j.length > 0 ? [{ baslik: KISA_GAZETE.senin, satir: satir(oyuncuOzeti(s, juri)) }, sokak] : [sokak];
+  const sokak = { baslik: KISA_GAZETE.sokak, kalemler: kalemler(depremOzeti(s)) };
+  return j.length > 0 ? [{ baslik: KISA_GAZETE.senin, kalemler: kalemler(oyuncuOzeti(s, juri)) }, sokak] : [sokak];
 }
 
 /** Sonucun ağırlığı (sıralama): çöken, ağır hasarlı, hasarlı, ayakta. */
@@ -291,13 +302,13 @@ export const KISA_YOL_DEVAM = 'Sonra 2. günden devam edebilirsin.';
 export const KUCUK_DEPREM_SERIT = 'Küçük bir deprem oldu.';
 /**
  * Gün sonu raporundaki küçük deprem satırı (G25: tek sayı ve tek liste). catlayanlar: çatlayan binalar (adı, damgası,
- * içinde insan var mıydı), dosya sırasıyla. Ör. "Küçük deprem: 2 bina çatladı: Bina 02 (GÜVENLİ, içinde insan
- * vardı), Bina 03 (BOŞALT, boştu)".
+ * içinde insan var mıydı), dosya sırasıyla. Ör. "Küçük deprem oldu, 2 bina çatladı: Bina 02 (GÜVENLİ,
+ * içinde insan vardı), Bina 03 (BOŞALT, boştu)"; tek binada "1 bina çatladı".
  */
 export function kucukDepremSatiri(catlayanlar: readonly { ad: string; damga: Damga; bos: boolean }[]): string {
   if (catlayanlar.length === 0) return 'Küçük deprem: çatlayan bina yok';
   const liste = catlayanlar.map((b) => `${b.ad} (${DAMGA_AD[b.damga]}, ${b.bos ? 'boştu' : 'içinde insan vardı'})`).join(', ');
-  return `Küçük deprem: ${catlayanlar.length} bina çatladı: ${liste}`;
+  return `Küçük deprem oldu, ${catlayanlar.length} bina çatladı: ${liste}`;
 }
 /** Depremde oyuncunun binalarının üstündeki etiket. */
 export const SENIN_DAMGAN = 'SENİN DAMGAN';
