@@ -113,8 +113,10 @@ export class Klasor {
     this.kapali.setSize(KW * PX, KH * PX);
     this.kapali.setInteractive({ useHandCursor: true });
     this.kapali.setData('incelemeYok', true);
-    this.kapali.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (p: Phaser.Input.Pointer) => {
+    this.kapali.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (p: Phaser.Input.Pointer, _x: number, _y: number, e: Phaser.Types.Input.EventData) => {
       if (this.ortulu?.(p.worldX, p.worldY)) return;
+      // G50: açan tıklama tüketilir; sahnenin POINTER_DOWN'ı (inceleme seçimi) açılan sayfadaki kural satırını seçmesin.
+      e.stopPropagation();
       this.ac();
     });
 
