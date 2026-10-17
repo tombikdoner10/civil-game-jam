@@ -7,7 +7,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
 - Kontrol 2 (ara oyun testi): TAMAM (16 Ekim 23.53, geri bildirim işlendi)
 - Kontrol 3 (son teslim): BEKLİYOR
-- Son eleştirmen: 2026-10-17T06:30+03:00
+- Son eleştirmen: 2026-10-17T10:23+03:00
 - Kullanım düzeyi: normal
 
 ## Günlük
@@ -144,3 +144,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 10:02 · G35 bitti (c5a4d56, opus/high): 6 madde (gazete Enter bekletme dahil), adalet 33301/0 aynı (manşet listesine tekil biçimler eklendi) · G35 testi başladı (opus/low, teslim/test-c5a4d56) · Takıma T30 (tekil/çoğul metinler) · Sıradaki: test, yayın, eleştirmen 5
 - 10:12 · Test (G35, opus/low, 7/7 GEÇTİ, hatasız): rapor (+2), 5 günlük gazete Gün N · Bina, tekil (tohum 2) / çoğul (tohum 1), inceleme etiketleri değer örtmüyor, [+30 dk] saat altında, gazetede erken Enter bekletiliyor ve tek geçiş, menü c5a4d56 · Karar: G35 yayına, ardından eleştirmen 5
 - 10:13 · G35 canlıda (7109f4d; JS paketinde hash ve canlı smoke doğrulandı; son-saglam taşındı) · Eleştirmen 5 başladı (opus/high, canlı 7109f4d) · Sıradaki: eleştirmen raporu
+- 10:23 · Eleştirmen 5 (opus/high, canlı 7109f4d, 4 koşu hatasız): 30 sn EVET; hızlı jüri yolu 84 sn (hızlandırmasız deprem ~33 sn), gerçekçi 2:00–2:30; tema EVET (zarf → GÜVENLİ → ÇÖKTÜ zinciri en güçlü kanıt; G33 tepkileri olumlu); puan ~82 (metinlerle ~86; E4 79/85) · Orta: kısa yolda manşet/değerlendirme "sokak ayakta/hazırdı" derken 12 binadan 5i çökmüş; yer tutucular 118 → 475 (diyalog taslakları) · Öneriler: kısa yol ifadesi, değerlendirmede aynı binanın iki kez sayılması, Emeği Geçenler sırası (Takım → Takımın kararları → Hazır kaynaklar → AI), deprem genel planı kadrajı ve etiket kırpılması, yer tutucu denetim betiği · Sıradaki: takım kararları (A metin önceliği/4.3, B kusursuz jüri mesajı, C eski sorular), sonra G37/G38
