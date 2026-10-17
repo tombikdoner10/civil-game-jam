@@ -197,5 +197,26 @@
     "yer": "src/game/gazete.ts, src/scenes/DayEndScene.ts",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T02:19:00.969Z"
+  },
+  {
+    "kategori": "other",
+    "amac": "Geliştirme sürecini yönetti: işi küçük görevlere böldü, sıraladı ve geliştirici ajanlara görev tanımı yazdı; takımın karar vereceği konular için seçenek hazırladı (kararları takım verdi)",
+    "yer": "Geliştirme süreci (GDD.md, TASKS.md, JOURNAL.md); oyunda doğrudan yer almaz",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T03:58:58.628Z"
+  },
+  {
+    "kategori": "other",
+    "amac": "Oyunu görünmez tarayıcıda otomatik oynayıp test etti; ekran görüntüleriyle hata ve okunurluk sorunlarını raporladı (test oyuncusu ajanı)",
+    "yer": "Test süreci (scripts/smoke.mjs ile); oyunda doğrudan yer almaz",
+    "model": "Claude Sonnet 5.5",
+    "zaman": "2026-10-17T03:58:58.690Z"
+  },
+  {
+    "kategori": "other",
+    "amac": "Oyunu jam puanlama ölçütlerine göre birkaç saatte bir değerlendirip cila ve anlaşılırlık önerileri sundu (eleştirmen ajanı); yaratıcı önerilerde kararı takım verdi",
+    "yer": "Tasarım ve cila süreci; oyunda doğrudan yer almaz",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T03:58:58.749Z"
   }
 ]

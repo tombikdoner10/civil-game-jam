@@ -68,11 +68,14 @@
     },
     "other": {
       "kullanildi": true,
-      "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)",
-      "amac": "Tema yorumu için konsept seçenekleri önerdi; seçim ve özgün dokunuş takımın; Kenney ses dosyalarını ad, süre ve dalga biçimi ölçümüne göre aday olarak seçti (takım dinleyip değiştirecek); hazır kaynak beyanını ve ses listesini yazdı",
+      "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5)",
+      "amac": "Tema yorumu için konsept seçenekleri önerdi; seçim ve özgün dokunuş takımın; Kenney ses dosyalarını ad, süre ve dalga biçimi ölçümüne göre aday olarak seçti (takım dinleyip değiştirecek); hazır kaynak beyanını ve ses listesini yazdı; Geliştirme sürecini yönetti: işi küçük görevlere böldü, sıraladı ve geliştirici ajanlara görev tanımı yazdı; takımın karar vereceği konular için seçenek hazırladı (kararları takım verdi); Oyunu görünmez tarayıcıda otomatik oynayıp test etti; ekran görüntüleriyle hata ve okunurluk sorunlarını raporladı (test oyuncusu ajanı); Oyunu jam puanlama ölçütlerine göre birkaç saatte bir değerlendirip cila ve anlaşılırlık önerileri sundu (eleştirmen ajanı); yaratıcı önerilerde kararı takım verdi",
       "yer": [
         "Oyun fikri aşaması",
-        "src/sounds/kenney/, docs/SESLER.md, README.md, src/data/credits.ts"
+        "src/sounds/kenney/, docs/SESLER.md, README.md, src/data/credits.ts",
+        "Geliştirme süreci (GDD.md, TASKS.md, JOURNAL.md); oyunda doğrudan yer almaz",
+        "Test süreci (scripts/smoke.mjs ile); oyunda doğrudan yer almaz",
+        "Tasarım ve cila süreci; oyunda doğrudan yer almaz"
       ]
     }
   }
