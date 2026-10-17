@@ -12,6 +12,7 @@ const O = await server.ssrLoadModule('/src/game/ornek.ts');
 const BLD = await server.ssrLoadModule('/src/game/building.ts');
 const T = (await server.ssrLoadModule('/src/game/tuning.ts')).TUNING;
 const D = await server.ssrLoadModule('/src/game/days.ts');
+const G = await server.ssrLoadModule('/src/game/gazete.ts');
 
 let hata = 0;
 let sayi = 0;
@@ -339,10 +340,76 @@ for (let tohum = 1; tohum <= 10; tohum++) {
   bak(a1.every((r, i) => r.durum === a2[i].durum && r.coktu === a2[i].coktu), `t${tohum}: zarf deprem sonucunu değiştirdi`);
   bak(a1.filter((r) => r.zarf).length === k.flatMap((x) => x.kararlar).filter((c) => c.zarf?.kabul).length, `t${tohum}: deprem sonucunda zarf işareti`);
 }
-// Kısa yol örnekleri de aynı kuralla (zarflı kararda istenen damga).
-for (let tohum = 1; tohum <= 10; tohum++)
-  for (const c of O.kisaYolKayitlari(tohum).flatMap((x) => x.kararlar))
-    if (c.zarf?.kabul) bak(c.damga === c.zarf.istenen, `t${tohum} kısa yol ${c.dosyaId}: zarflı kararda damga istenen değil`);
+// G23b: kısa yolun örnek binalarında zarf yok; gazete ve sonuç ekranındaki zarf satırı ve ekleri yalnızca oyuncunun
+// kendi (gün 1) kararlarındaki kabul edilen zarflara bakar. Zarf almayan oyuncuda hiçbiri çıkmaz; alanda çıkar.
+const g23b = { zarfsizOyun: 0, zarfliOyun: 0 };
+for (let tohum = 1; tohum <= 40; tohum++) {
+  const ornek = O.kisaYolKayitlari(tohum);
+  bak(ornek.every((x) => x.kararlar.every((c) => c.zarf === undefined)), `t${tohum} kısa yol: örnek binada zarf kaydı`);
+  // Örnek kararlar zarflı olsa bile (eski kayıt) zarf işareti yalnızca oyuncunun kayıtlarından gelir.
+  const zarfliOrnek = O.ornekKayitlar(O.kisaYolTohumu(tohum), 6, 2);
+  for (const zarfAl of [false, true]) {
+    const g1 = O.ornekKayitlar(tohum, 2, 1, !zarfAl);
+    for (const digerleri of [ornek, zarfliOrnek]) {
+      const hepsi = [...g1, ...digerleri];
+      const sonuc = S.buyukDeprem(tohum, hepsi, g1);
+      const juri = new Set(g1[0].kararlar.map((c) => c.dosyaId));
+      const kendiZarf = new Set(g1[0].kararlar.filter((c) => c.zarf?.kabul).map((c) => c.dosyaId));
+      const e = `t${tohum} kısa yol zarfAl=${zarfAl}`;
+      bak(sonuc.every((r) => r.zarf === kendiZarf.has(r.dosyaId)), `${e}: zarf işareti oyuncunun zarflarıyla aynı değil`);
+      const juriSonuc = sonuc.filter((r) => juri.has(r.dosyaId));
+      const h = S.gunHesabi(g1[0].kararlar, D.gunAyar(1).dosyaSayisi);
+      const metinler = [
+        G.zarfSatiri(sonuc) ?? '',
+        ...G.oneCikanlar(sonuc, juri).satirlar,
+        G.degerlendirme(S.depremOzeti(juriSonuc)).metin,
+        G.zarfOzeti(h.zarfKabul, h.zarf, juriSonuc) ?? '',
+      ];
+      const zarfGecti = metinler.some((m) => /zarf/i.test(m));
+      if (kendiZarf.size === 0) {
+        bak(!zarfGecti, `${e}: zarf almayan oyuncuda zarf metni: ${metinler.filter((m) => /zarf/i.test(m)).join(' | ')}`);
+        g23b.zarfsizOyun++;
+      } else {
+        bak(G.zarfOzeti(h.zarfKabul, h.zarf, juriSonuc) !== null && /zarf/.test(G.degerlendirme(S.depremOzeti(juriSonuc)).metin), `${e}: zarf alan oyuncuda zarf özeti yok`);
+        g23b.zarfliOyun++;
+      }
+    }
+  }
+}
+console.log('G23b kısa yol zarf (tohum 1-40):', JSON.stringify(g23b));
+// G23b (eleştirmen 3): kısa yolda manşet ve değerlendirme yalnızca jürinin (oyuncunun) binalarından ve aynı tonda;
+// örnek binalar jürinin yanlış GÜVENLİ'sini gölgelemez (gazetenin öne çıkan satırlarında hep görünür).
+const MANSET_KOTU = ['[Manşet: denetlenmeden kalan binalar çöktü]', '[Manşet: denetimden geçen binalar çöktü]'];
+const g23bTon = { kotu: 0, orta: 0, iyi: 0, yanlisGuvenli: 0 };
+for (let tohum = 1; tohum <= 40; tohum++) {
+  const ornek = O.kisaYolKayitlari(tohum);
+  const gunler = {
+    ornek: O.ornekKayitlar(tohum, 2, 1, true),
+    zarfli: O.ornekKayitlar(tohum, 2),
+    ...Object.fromEntries(['dogru', 'guvenli', 'bosalt', 'iade'].map((b) => [b, kayitlar(tohum, b).slice(0, 1)])),
+  };
+  for (const [ad, g1] of Object.entries(gunler)) {
+    const e = `t${tohum} kısa yol ${ad}`;
+    const sonuc = S.buyukDeprem(tohum, [...g1, ...ornek], g1);
+    const juri = new Set(g1[0].kararlar.map((c) => c.dosyaId));
+    const juriSonuc = sonuc.filter((r) => juri.has(r.dosyaId));
+    // Gazete ve sonuç ekranı manşeti/değerlendirmeyi bu özetten seçer (NewspaperScene, ResultScene).
+    const oz = S.oyuncuOzeti(sonuc, juri);
+    bak(oz.toplam === juriSonuc.length, `${e}: oyuncu özeti örnek binaları içeriyor`);
+    const m = G.manset(oz);
+    const deg = G.degerlendirme({ ...oz, zarf: 0, zarfHasar: 0, zarfCoken: 0 });
+    bak((deg.ton === 'kotu') === MANSET_KOTU.includes(m), `${e}: manşet (${m}) ile değerlendirme (${deg.metin}, ${deg.ton}) çelişiyor`);
+    if (g1[0].kararlar.every((c) => c.dogru)) bak(!MANSET_KOTU.includes(m) && deg.ton !== 'kotu', `${e}: jürinin hepsi doğru ama manşet/değerlendirme kötü: ${m}`);
+    g23bTon[deg.ton]++;
+    const satirlar = G.oneCikanlar(sonuc, juri).satirlar;
+    for (const r of juriSonuc.filter((x) => x.damga === 'guvenli' && !x.dogru)) {
+      const no = `Bina ${String(r.no).padStart(2, '0')}`;
+      bak(satirlar.some((t) => t.includes(no)), `${e}: jürinin yanlış GÜVENLİ'si (${no}) gazetede görünmüyor`);
+      g23bTon.yanlisGuvenli++;
+    }
+  }
+}
+console.log('G23b kısa yol manşet/değerlendirme (tohum 1-40):', JSON.stringify(g23bTon));
 console.log('G17 + G22 (tohum 1-40, gün 1-5):', JSON.stringify(g17));
 
 // ---- G17b: belge hileleri (elle düzeltme, başka binanın belgesi, imza yok) ----

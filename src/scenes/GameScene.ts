@@ -83,6 +83,12 @@ const ISTE_BASLIK: Record<IsteAlani, string> = {
 
 /** Tezgâhtaki saha testi hak sayacı (G19; İNCELE düğmesinin sağı). */
 const SAHA_SAYAC = { x: 1048, y: BANT_H + 24, w: 152, h: 40 };
+/** Öncü etiketlerinin üstü ile pencerenin iç üst kenarı arasındaki en az boşluk (oyun pikseli; 1280×720'de 8 px). */
+const ETIKET_UST_PAY = 12;
+/** Köşedeki fişin (gölgesi dahil) alt kenarı ile ekranın altı arasındaki boşluk (0: gölge ekranın alt kenarında). */
+const FIS_ALT_PAY = 0;
+/** Köşedeki fişin kural notunun alt kenarına binebileceği pay (notun yazısız alt boşluğu ~20 px). */
+const NOT_ALT_ORTME = 12;
 
 /** Damgaya göre gişedeki kişinin yüzü. */
 const DAMGA_IFADE: Record<Damga, Ifade> = { guvenli: 'sevincli', guclendir: 'mahcup', bosalt: 'kizgin', iade: 'kizgin' };
@@ -357,16 +363,17 @@ export class GameScene extends Phaser.Scene {
    * boyları farklı olsa da hep aynı köşeye düşer. Orası doluysa (belge ya da not taşınmışsa) null.
    */
   private fisKosesi(w: number, h: number): [number, number] | null {
-    // Köşe masanın en altına dayalı (kâğıt ekranın alt kenarına iner, 8 px gölgesi dışarıda kalır): yanlış fişin üç
-    // satırı gün 1'de de kural notunun altına tam boy sığsın; belgeler ve kitapla aralık 4 px.
+    // Köşe masanın alt kenarına yakın; fişin tamamı (kâğıt ve gölgesi) ekranda kalır (G23b). Yanlış fişin üç satırı
+    // gün 1'de de kural notunun altına tam boy sığsın; belgeler ve kitapla aralık 4 px.
     const x = MASA.x + MASA.w - 16 - w / 2;
-    const y = MASA.y + MASA.h + 8 - h / 2;
+    const y = MASA.y + MASA.h - FIS_ALT_PAY - h / 2;
     const r = new Phaser.Geom.Rectangle(x - w / 2, y - h / 2, w, h);
     const engel = this.masadakiKartlar().map((k) => Phaser.Geom.Rectangle.Inflate(k.sinir(), 4, 4));
     if (this.kitap) engel.push(Phaser.Geom.Rectangle.Inflate(this.kitap.sinir, 4, 4));
     if (this.not?.active) {
+      // Fiş kural notunun alt boşluğuna (yazısız kenar) en çok NOT_ALT_ORTME kadar binebilir: gün 1'de tam boy sığsın.
       const n = this.not.sinir();
-      engel.push(new Phaser.Geom.Rectangle(n.x, n.y, n.width, n.height));
+      engel.push(new Phaser.Geom.Rectangle(n.x, n.y, n.width, n.height - NOT_ALT_ORTME));
     }
     return engel.some((e) => Phaser.Geom.Intersects.RectangleToRectangle(r, e)) ? null : [x, y];
   }
@@ -661,6 +668,7 @@ export class GameScene extends Phaser.Scene {
     saha.on('tamamlandi', () => {
       this.oturum.sahaTamamla();
       this.sahaSayacGuncelle();
+      saha.hakGoster(this.oturum.sahaHakki);
     });
     saha.on('kapandi', (s: SahaSonucu | null) => {
       this.saha = undefined;
@@ -815,14 +823,21 @@ export class GameScene extends Phaser.Scene {
     const O = TUNING.oncu;
     const sokak = this.pencere.sokak;
     const binalar = sokak.damgalilar();
+    // Her damgalı binanın üstünde damga etiketi (G5b); çatlayanlarda üstünde sonuç belirir. Sokak, en uzun
+    // binanın etiketi pencereye sığacak kadar küçülür (etiketler sokakla birlikte ölçeklenir); etiketin üstü
+    // pencerenin iç üst kenarından en az ETIKET_UST_PAY aşağıda (G23b: 1280×720'de 8 px).
+    let olcek = 1;
+    for (const b of binalar) {
+      const k = sokak.yerelKutu(b.yer);
+      olcek = Math.min(olcek, (k.bottom - ETIKET_UST_PAY) / (k.height + ETIKET_KUCUK_YUKSEKLIK));
+    }
+    // Sokak etiketler belirmeden önce küçülür (G23b): etiketler hiçbir an pencerenin üstünden taşmasın. Sarsıntı
+    // aynı görünümü kullanır.
+    if (binalar.length > 0) {
+      const yerler = binalar.map((b) => b.yer);
+      sokak.odakla(Math.min(...yerler), Math.max(...yerler), 500, undefined, 0.5, 0.5, olcek);
+    }
     this.time.delayedCall(700, () => {
-      // Her damgalı binanın üstünde damga etiketi (G5b); çatlayanlarda üstünde sonuç belirir. Sokak, en uzun
-      // binanın etiketi pencereye sığacak kadar küçülür (etiketler sokakla birlikte ölçeklenir).
-      let olcek = 1;
-      for (const b of binalar) {
-        const k = sokak.yerelKutu(b.yer);
-        olcek = Math.min(olcek, (k.bottom - 8) / (k.height + ETIKET_KUCUK_YUKSEKLIK));
-      }
       this.oncuEtiketler = [];
       const etiketler = new Map<string, BinaEtiketi>();
       for (const b of binalar) {

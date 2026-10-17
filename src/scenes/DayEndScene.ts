@@ -42,6 +42,13 @@ const SUTUN = { no: 40, bina: 104, damga: 400, dogru: 640, kusur: 880, sonuc: KA
 const para = (n: number): string => `${n < 0 ? '−' : ''}${Math.abs(n)} TL`;
 
 /**
+ * Giriş koruması (ms, sahne açılışından): rapor açılırken basılı kalan ya da çift basılan Enter geçmesin. Önceki
+ * sahnenin kararması (~220 ms) ile birlikte ilk Enter'dan ~0,5 sn sonra ikinci Enter çalışır (G23b). Koruma sürerken
+ * birincil düğme soldan sağa dolar, bitince bir kez parlar ("hazır").
+ */
+const GIRIS_KORUMA_MS = 300;
+
+/**
  * Gün sonu ekranı (Papers, Please'in gün sonu özeti gibi): masada bir rapor kâğıdı. Her dosya için bina,
  * verdiğin damga, doğru damga, inceleme modunda bulduğun kusurlar ve sonuç; altta maaş, ceza, günün
  * toplamı ve birikmiş para (yer tutucu değerler, TUNING.para). "Sonraki gün" (Enter/Space) bir sonraki güne,
@@ -202,6 +209,10 @@ export class DayEndScene extends Phaser.Scene {
     const kb = this.input.keyboard;
     const tus = (): void => this.devam(yeniPara);
     const kisaTus = (): void => this.devam(yeniPara, true);
+    const nTus = (e: KeyboardEvent): void => {
+      if (e.ctrlKey || e.altKey || e.metaKey) return;
+      if (e.keyCode === Phaser.Input.Keyboard.KeyCodes.N || e.code === 'KeyN' || e.key === 'n' || e.key === 'N') tus();
+    };
     const dugme = pikselDugme(
       this,
       L + KAGIT.w / 2 - (kisaVar ? 300 : 0),
@@ -211,7 +222,8 @@ export class DayEndScene extends Phaser.Scene {
       tus,
       kisaVar ? { govde: PAL.cerceveAcik, acik: '#7a7466', koyu: PAL.cerceve } : undefined,
     );
-    this.tweens.add({ targets: dugme, alpha: 1, duration: 200, delay: 400 });
+    this.tweens.add({ targets: dugme, alpha: 1, duration: 120 });
+    let birincil = dugme;
     if (kisaVar) {
       const kx = L + KAGIT.w / 2 + 300;
       const kd = pikselDugme(this, kx, by, KISA_YOL_DUGME, 'Enter', kisaTus, {
@@ -219,7 +231,8 @@ export class DayEndScene extends Phaser.Scene {
         acik: '#c4544a',
         koyu: '#6e2a24',
       });
-      this.tweens.add({ targets: kd, alpha: 1, duration: 200, delay: 400 });
+      this.tweens.add({ targets: kd, alpha: 1, duration: 120 });
+      birincil = kd;
       // Odak çerçevesi: birincil düğmenin çevresinde, nabız gibi.
       const odak = this.add
         .rectangle(snap(kx), snap(by), snap(kd.width + 24), snap(kd.height + 24))
@@ -234,19 +247,22 @@ export class DayEndScene extends Phaser.Scene {
       kb?.on('keydown-ENTER', kisaTus);
       kb?.on('keydown-SPACE', kisaTus);
       kb?.on('keydown-D', kisaTus);
-      kb?.on('keydown-N', tus);
+      // "Sonraki gün": N (küçük ya da büyük harf, Shift gerekmez; G23b). Tuş kodu yoksa event.key/code'a da bakılır.
+      kb?.on('keydown', nTus);
     } else {
       kb?.on('keydown-ENTER', tus);
       kb?.on('keydown-SPACE', tus);
     }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      for (const ad of ['keydown-ENTER', 'keydown-SPACE', 'keydown-D', 'keydown-N']) {
+      for (const ad of ['keydown-ENTER', 'keydown-SPACE', 'keydown-D']) {
         kb?.off(ad, tus);
         kb?.off(ad, kisaTus);
       }
+      kb?.off('keydown', nTus);
     });
-    // Rapor dolarken yanlışlıkla geçilmesin.
-    this.time.delayedCall(500, () => (this.hazir = true));
+    // Rapor açılırken yanlışlıkla geçilmesin (giriş koruması); birincil düğmede "hazır" göstergesi.
+    this.hazirGostergesi(birincil);
+    this.time.delayedCall(GIRIS_KORUMA_MS, () => (this.hazir = true));
     sfx.play('kagitKay');
     // Gün sonu jingle'ı: yanlış ya da işlenmeyen dosya yoksa iyi gün, varsa kötü gün.
     const iyi = hesap.yanlis === 0 && hesap.islenmeyen === 0;
@@ -281,6 +297,29 @@ export class DayEndScene extends Phaser.Scene {
     }
     const data: GameData = { gun: v.gun + 1, tohum: v.tohum, para: yeniPara, kayitlar };
     goTo(this, SCENES.Game, data);
+  }
+
+  /**
+   * Giriş koruması sürerken düğmenin üstünde soldan sağa dolan açık şerit; dolunca düğme bir kez parlar ve şerit
+   * söner (G23b: "hazır").
+   */
+  private hazirGostergesi(dugme: Phaser.GameObjects.Container): void {
+    const w = dugme.width - PX * 2;
+    const h = dugme.height - PX * 2;
+    const dolgu = this.add.rectangle(-w / 2, 0, w, h, 0xf0e6cc, 0.28).setOrigin(0, 0.5);
+    dolgu.scaleX = 0;
+    dugme.addAt(dolgu, 1);
+    this.tweens.add({
+      targets: dolgu,
+      scaleX: 1,
+      duration: GIRIS_KORUMA_MS,
+      ease: 'Stepped',
+      easeParams: [6],
+      onComplete: () => {
+        dolgu.setFillStyle(0xfff6dc, 0.7);
+        this.tweens.add({ targets: dolgu, alpha: 0, duration: 260, ease: 'Stepped', easeParams: [3], onComplete: () => dolgu.destroy() });
+      },
+    });
   }
 
   /** Metin genişliği aşarsa küçült. */

@@ -8,7 +8,7 @@ import { masaCiz, pikselDugme } from '../desk/props';
 import { Sokak, type SokakGirdi } from '../desk/Street';
 import { SON_GUN } from '../game/days';
 import { DOLGU_BASLIKLAR, FOTO_ALTI, GAZETE_ADI, GAZETE_TARIH, manset, oneCikanlar, sayiSatiri, zarfSatiri } from '../game/gazete';
-import { depremOzeti, sokakKayitlari, type DepremBinaSonucu } from '../game/session';
+import { depremOzeti, oyuncuOzeti, sokakKayitlari, type DepremBinaSonucu } from '../game/session';
 import { fadeIn, goTo } from '../systems/transition';
 import { SCENES } from './keys';
 import type { DepremData } from './QuakeScene';
@@ -62,8 +62,12 @@ export class NewspaperScene extends Phaser.Scene {
     this.cameras.main.setRoundPixels(true);
     const v = this.veri;
     const oz = depremOzeti(v.sonuclar);
-    // Kısa yolda (G21) öne çıkan satırlar önce oyuncunun binalarından.
-    const one = oneCikanlar(v.sonuclar, v.kisa ? new Set(v.kisa.juri) : undefined);
+    // Kısa yolda (G21) öne çıkan satırlar önce oyuncunun binalarından; manşet yalnızca oyuncunun binalarının
+    // sonucuna göre (G23b: örnek binalar sayı satırına ve fotoğrafa girer, manşeti belirlemez; sonuç ekranındaki
+    // değerlendirmeyle aynı özet).
+    const juri = v.kisa ? new Set(v.kisa.juri) : undefined;
+    const mansetOzeti = oyuncuOzeti(v.sonuclar, juri);
+    const one = oneCikanlar(v.sonuclar, juri);
 
     masaCiz(this, 0);
     this.kagitCiz();
@@ -84,7 +88,7 @@ export class NewspaperScene extends Phaser.Scene {
     cizgi(T + 216);
 
     // Manşet
-    this.sigdir(yaz(KAGIT.x + KAGIT.w / 2, T + 264, manset(oz), 84, 0.5), KAGIT.w - 80);
+    this.sigdir(yaz(KAGIT.x + KAGIT.w / 2, T + 264, manset(mansetOzeti), 84, 0.5), KAGIT.w - 80);
 
     // Fotoğraf: deprem sonrası sokak (ekran dışında kurulur, ayrı kamerayla siyah beyaz gösterilir).
     this.fotoKur(v, one.odak);

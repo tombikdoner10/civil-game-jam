@@ -18,8 +18,9 @@ const YANLIS: Record<Damga, Damga> = { guvenli: 'bosalt', guclendir: 'bosalt', b
  * G17b: geçersiz belgeli (elle düzeltilmiş, başka binanın, imzasız) her ikinci dosyada kusur bulunur ve belgenin
  * düzgünü İSTENİR (gerçeği gelirse gerçek duruma göre damga, gelmezse İADE).
  * Doğru kararlarda kusurlar bulunmuş sayılır. Öncü sarsıntılı günlerde sarsıntı sonucu oyundaki kuralla.
+ * zarfsiz (G23b, kısa yol): gelen zarf geri verilir ve kararlardan zarf kaydı silinir (örnek binalarda rüşvet izi yok).
  */
-export function ornekKayitlar(tohum: number, gun: number, ilk = 1): GunKaydi[] {
+export function ornekKayitlar(tohum: number, gun: number, ilk = 1, zarfsiz = false): GunKaydi[] {
   const out: GunKaydi[] = [];
   const O = TUNING.oncu;
   for (let g = ilk; g < gun; g++) {
@@ -51,7 +52,7 @@ export function ornekKayitlar(tohum: number, gun: number, ilk = 1): GunKaydi[] {
         if (k) {
           o.incele(kanitOgeleri(k));
           const c = o.sor(k.id);
-          if (c?.zarf !== undefined) o.zarfKarar(i % 2 === 0);
+          if (c?.zarf !== undefined) o.zarfKarar(!zarfsiz && i % 2 === 0);
         }
       }
       const dogru = dogruDamga(b, g, Object.keys(bilgi).length > 0 ? bilgi : undefined);
@@ -59,7 +60,11 @@ export function ornekKayitlar(tohum: number, gun: number, ilk = 1): GunKaydi[] {
       const z = o.zarf;
       o.damgala(z?.kabul ? z.istenen : i % 4 === 1 ? 'guvenli' : i % 6 === 4 ? YANLIS[dogru] : g >= 3 && i % 7 === 5 ? 'iade' : dogru);
     }
-    const kararlar = o.kararlar.map((k) => ({ ...k, bulunan: k.dogru ? k.kusurlar.slice() : [] }));
+    const kararlar = o.kararlar.map((k) => {
+      const c = { ...k, bulunan: k.dogru ? k.kusurlar.slice() : [] };
+      if (zarfsiz) delete c.zarf;
+      return c;
+    });
     const kayit: GunKaydi = { gun: g, kararlar };
     if (o.ayar.oncuSarsinti) {
       kayit.oncu = {
@@ -84,16 +89,16 @@ export function kisaYolTohumu(tohum: number): number {
 /**
  * Kısa yol (G21, "Depremi şimdi yaşa"): gün 2-5'i temsil eden örnek kayıtlar. Her günün örnek kararlarından
  * (ornekKayitlar) gün başına kota kadar seçilir; seçim çeşitlilik gözetir (o ana kadar az seçilen damga ve
- * doğru/yanlış birleşimi, kabul edilen zarf öne çıkar): sokakta doğru ve yanlış karışık, İADE ve zarf olabilir.
+ * doğru/yanlış birleşimi): sokakta doğru ve yanlış karışık, İADE olabilir. Zarf yok (G23b): oyuncu bu binaları
+ * "kendi günleri" gibi görür; rüşvet ima edilmez.
  * Toplam TUNING.kisaYol.ornekBina bina. Binalar kisaYolTohumu'ndan (kayıtta tohum alanı). Deterministik.
  */
 export function kisaYolKayitlari(tohum: number): GunKaydi[] {
   const toplam = TUNING.kisaYol.ornekBina;
   const t = kisaYolTohumu(tohum);
-  const gunler = ornekKayitlar(t, SON_GUN + 1, 2);
+  const gunler = ornekKayitlar(t, SON_GUN + 1, 2, true);
   const n = gunler.length;
   const sayac = new Map<string, number>();
-  let zarfVar = false;
   return gunler.map((k, i) => {
     // Artan binalar son günlere (sokağın sonu daha kalabalık).
     const kota = Math.floor(toplam / n) + (i >= n - (toplam % n) ? 1 : 0);
@@ -106,7 +111,7 @@ export function kisaYolKayitlari(tohum: number): GunKaydi[] {
       let enPuan = Infinity;
       k.kararlar.forEach((c, idx) => {
         if (secilen.includes(idx)) return;
-        const puan = (sayac.get(`${c.damga}${c.dogru}`) ?? 0) * 10 - (c.zarf?.kabul && !zarfVar ? 15 : 0) + Math.abs(idx + 0.5 - hedef) * 0.1;
+        const puan = (sayac.get(`${c.damga}${c.dogru}`) ?? 0) * 10 + Math.abs(idx + 0.5 - hedef) * 0.1;
         if (puan < enPuan) {
           enPuan = puan;
           en = idx;
@@ -114,7 +119,6 @@ export function kisaYolKayitlari(tohum: number): GunKaydi[] {
       });
       const c = k.kararlar[en];
       sayac.set(`${c.damga}${c.dogru}`, (sayac.get(`${c.damga}${c.dogru}`) ?? 0) + 1);
-      if (c.zarf?.kabul) zarfVar = true;
       secilen.push(en);
     }
     const kararlar = secilen.sort((a, b) => a - b).map((idx) => k.kararlar[idx]);

@@ -117,7 +117,9 @@ export class SahaTesti extends Phaser.Events.EventEmitter {
       this.kutular.push(yaz(x + kw / 2, P.y + 380, '--', 40, PAL.murekkepAcik, 0.5).setOrigin(0.5));
     }
     this.gecersizYazi = yaz(P.x + 24, P.y + 436, '', 28, '#d98a7e');
-    this.hakYazi = yaz(P.x + 24, P.y + 472, SAHA_METIN.hak.replace('{hak}', String(ayar.hak)), 28, PAL.panelYazi);
+    // Kalan hak başlık satırının sağında (G23b): sonuç kutusu okumaların altına kendi satırında açılır, hak hep
+    // görünür ve tezgâhtaki "SAHA n" sayacıyla aynı sayıyı gösterir (hakGoster).
+    this.hakYazi = yaz(P.x + P.w - 24, P.y + 40, SAHA_METIN.hak.replace('{hak}', String(ayar.hak)), 28, PAL.panelYazi, 1);
 
     // VAZGEÇ (tamamlanınca NOTU AL)
     const kutu = ekle(s.add.rectangle(P.x + P.w / 2, P.y + P.h - 40, P.w - 48, 48, num(PAL.panel)).setStrokeStyle(PX, num(PAL.panelKenar)).setDepth(D.panel));
@@ -282,11 +284,10 @@ export class SahaTesti extends Phaser.Events.EventEmitter {
     const P = PANEL;
     const ort = sonuc.ortR.toFixed(1).replace('.', ',');
     const metin = `${SAHA_METIN.ortalama}: ${ort}\n${SAHA_METIN.tahmin}: ≈ ${sonuc.mpa} MPa (± ${sonuc.pay})`;
-    // Sonuç, okuma kutularının altında (geçersiz sayısı ve hak satırlarının yerinde).
+    // Sonuç, okuma kutularıyla düğme arasında kendi satırında (geçersiz sayısının yerinde).
     this.gecersizYazi.setVisible(false);
-    this.hakYazi.setVisible(false);
     this.sonucYazi = this.scene.add
-      .text(P.x + 24, P.y + 456, metin, { fontFamily: FONT, fontSize: '32px', color: '#f0e6cc', backgroundColor: '#3a2f22', padding: { x: 8, y: 4 }, lineSpacing: 2 })
+      .text(P.x + 24, P.y + 456, metin, { fontFamily: FONT, fontSize: '30px', color: '#f0e6cc', backgroundColor: '#3a2f22', padding: { x: 8, y: 4 }, lineSpacing: 2 })
       .setOrigin(0, 0.5)
       .setDepth(D.yazi);
     this.nesneler.push(this.sonucYazi);
@@ -295,6 +296,11 @@ export class SahaTesti extends Phaser.Events.EventEmitter {
     this.dugme.kutu.setStrokeStyle(PX, num(PAL.saat));
     sfx.play('dogru');
     this.emit('tamamlandi', sonuc);
+  }
+
+  /** Kalan hakkı güncelle (G23b: test tamamlanınca GameScene oturumdaki hakla çağırır; tezgâh sayacıyla aynı). */
+  hakGoster(hak: number): void {
+    this.hakYazi.setText(SAHA_METIN.hak.replace('{hak}', String(hak))).setColor(hak > 0 ? PAL.panelYazi : PAL.murekkepAcik);
   }
 
   /** Panel zemini, ibre kutusu. */

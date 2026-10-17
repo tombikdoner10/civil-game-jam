@@ -139,6 +139,8 @@ export class Quake {
     // Son grup kısa kalsa da ölçek aynı kalsın: grup genişliği hep n parsel. ortala: kısa grup ortada.
     const i0 = ortala ? g[0].yer - Math.floor((n - Math.min(n, g.length)) / 2) : g[0].yer;
     this.sokak.odakla(i0, i0 + n - 1, sure, undefined, 0.5, 0.1);
+    // Kenarda görünen komşular (grubun dışı) dekor gibi soluk (G23b).
+    this.sokak.odakDisiSoldur(new Set(g.map((b) => b.yer)), sure);
   }
 
   oynat(
@@ -328,6 +330,7 @@ export class Quake {
           this.sokak.odakla(ilkYer - pay, sonYer + pay, 1600, undefined, 0.5, 0.05);
           // Bütün sokak küçülünce arkadaki şehir binaları gölgede kalsın: göz sokağa gitsin.
           this.sokak.uzakSoldur(0.2, 1600);
+          this.sokak.odakDisiSoldur(null, 1600);
         });
     } else {
       // Hasarlı binalar tepe anında sırayla tepki verir.

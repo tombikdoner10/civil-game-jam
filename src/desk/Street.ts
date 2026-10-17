@@ -60,6 +60,11 @@ const TON_GECE = { incelenen: 0x9a9cb4, damgali: 0x8a8ca6, dolgu: 0x2e3044, arsa
  * kontrast düşer); uzakta duruyormuş gibi.
  */
 const DOLGU = { katEn: 2, katAralik: 3, alfa: 0.85 };
+/**
+ * Deprem yakın planı (G23b): odaktaki grubun dışında kalan (kenarda görünen) binalar dekor gibi soluk; göz gruba
+ * gider, gruptaki binalar komşularıyla karışmaz.
+ */
+const ODAK_DISI_ALFA = 0.4;
 
 export type SokakHasar = HasarDurumu | 'yikik';
 
@@ -113,6 +118,8 @@ interface Parsel {
   isaret?: Phaser.GameObjects.Image;
   serit?: Phaser.GameObjects.Image;
   zarfImg?: Phaser.GameObjects.Image;
+  /** Çöken binanın molozu (gövde kabının dışında; odak soluklaştırmasında birlikte). */
+  moloz?: Phaser.GameObjects.Image;
 }
 
 /**
@@ -338,6 +345,19 @@ export class Sokak {
   /** Uzak siluetin saydamlığı (büyük depremde bütün sokak görünürken arkada kalsın). */
   uzakSoldur(alfa: number, sure = 800): void {
     if (this.uzakImg) this.scene.tweens.add({ targets: this.uzakImg, alpha: alfa, duration: sure });
+  }
+
+  /**
+   * Deprem yakın planı (G23b): yerler kümesindeki binalar tam görünür, ötekiler (kenarda kalan komşular) dekor gibi
+   * soluklaşır. null: hepsi tam (bütün sokak görünümü).
+   */
+  odakDisiSoldur(yerler: ReadonlySet<number> | null, sure = 400): void {
+    for (const p of this.parseller) {
+      const alfa = !yerler || yerler.has(p.yer) ? 1 : ODAK_DISI_ALFA;
+      const hedefler = p.moloz ? [p.kap, p.moloz] : [p.kap];
+      if (sure <= 0) for (const h of hedefler) h.setAlpha(alfa);
+      else this.scene.tweens.add({ targets: hedefler, alpha: alfa, duration: sure });
+    }
   }
 
   /** Bir sanat pikselinin ekran boyu. */
@@ -647,6 +667,7 @@ export class Sokak {
     const moloz = t.goruntu(this.parselX(p.yer) + BOSLUK * O, (this.ufuk - 32) * O, O).setOrigin(0).setTint(this.TON.damgali);
     // Moloz yolun (önde) arkasında, binaların önünde kalsın.
     this.binaKap.add(moloz);
+    p.moloz = moloz;
     const govde = p.kap;
     if (!canlandir) {
       govde.setVisible(false);
@@ -654,6 +675,7 @@ export class Sokak {
     }
     this.hasarKur(p, 'agirHasar', false);
     moloz.setAlpha(0);
+    const molozAlfa = govde.alpha;
     // Önce bir an titrer ve hafif yan yatar, sonra kat kat çöker (yere inerken alttan kırpılır gibi görünür).
     this.scene.tweens.add({
       targets: govde,
@@ -663,6 +685,6 @@ export class Sokak {
       ease: 'Quad.easeIn',
       onComplete: () => govde.setVisible(false),
     });
-    this.scene.tweens.add({ targets: moloz, alpha: 1, duration: 300, delay: 850 });
+    this.scene.tweens.add({ targets: moloz, alpha: molozAlfa, duration: 300, delay: 850 });
   }
 }

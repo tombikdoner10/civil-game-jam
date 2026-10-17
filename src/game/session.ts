@@ -156,15 +156,16 @@ export interface DepremBinaSonucu {
   bos: boolean;
 }
 
-/** Büyük deprem: sokaktaki her bina için sonuç (sokak sırasıyla). Saf; Quake görüntüsü ve gazete bunu kullanır. */
-export function buyukDeprem(tohum: number, kayitlar: readonly GunKaydi[]): DepremBinaSonucu[] {
+/**
+ * Büyük deprem: sokaktaki her bina için sonuç (sokak sırasıyla). Saf; Quake görüntüsü ve gazete bunu kullanır.
+ * zarfKaynak (G23b, kısa yol): zarf işareti yalnızca bu kayıtlardaki (oyuncunun kendi) kabul edilen zarflardan;
+ * verilmezse bütün kayıtlardan (normal oyunda hepsi oyuncunun).
+ */
+export function buyukDeprem(tohum: number, kayitlar: readonly GunKaydi[], zarfKaynak: readonly GunKaydi[] = kayitlar): DepremBinaSonucu[] {
   const dogru = new Map<string, boolean>();
   const zarf = new Set<string>();
-  for (const k of kayitlar)
-    for (const c of k.kararlar) {
-      dogru.set(c.dosyaId, c.dogru);
-      if (c.zarf?.kabul) zarf.add(c.dosyaId);
-    }
+  for (const k of kayitlar) for (const c of k.kararlar) dogru.set(c.dosyaId, c.dogru);
+  for (const k of zarfKaynak) for (const c of k.kararlar) if (c.zarf?.kabul) zarf.add(c.dosyaId);
   return sokakKayitlari(tohum, kayitlar).map((s, i) => {
     const r = buyukDepremSonucu(s.bina, s.damga, s.gun, { oncuHasar: s.hasar });
     return {
@@ -206,6 +207,14 @@ export interface DepremOzeti {
   zarf: number;
   zarfHasar: number;
   zarfCoken: number;
+}
+
+/**
+ * Manşetin ve değerlendirmenin dayandığı özet (G23b): kısa yolda yalnızca oyuncunun (jürinin) binaları, normal oyunda
+ * bütün sokak. Gazete ve sonuç ekranı aynı özeti kullanır (aynı ton).
+ */
+export function oyuncuOzeti(s: readonly DepremBinaSonucu[], juri?: ReadonlySet<string>): DepremOzeti {
+  return depremOzeti(juri ? s.filter((b) => juri.has(b.dosyaId)) : s);
 }
 
 export function depremOzeti(s: readonly DepremBinaSonucu[]): DepremOzeti {

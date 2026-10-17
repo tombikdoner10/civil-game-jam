@@ -82,7 +82,8 @@ export class QuakeScene extends Phaser.Scene {
     const K = TUNING.kisaYol;
     const zaman = v.kisa ? K.zaman : ZAMAN;
 
-    const sonuclar = buyukDeprem(v.tohum, v.kayitlar);
+    // Kısa yolda zarf işareti yalnızca oyuncunun kendi kararlarından (G23b).
+    const sonuclar = buyukDeprem(v.tohum, v.kayitlar, v.kisa?.gercek);
     const sonucu = new Map(sonuclar.map((s) => [s.dosyaId, s]));
     // Sokak ekrandan biraz taşar: kamera sarsıntısında kenarlarda boşluk görünmesin (kaldırım yine y=1038'de).
     const sokak = new Sokak(this, { x: -48, y: -48, w: 2016, h: 1128 }, SON_GUN, sokakKayitlari(v.tohum, v.kayitlar), SOKAK_D, {

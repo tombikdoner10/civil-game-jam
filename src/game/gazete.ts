@@ -101,6 +101,8 @@ export function degerlendirme(o: DepremOzeti): { metin: string; ton: 'iyi' | 'or
     metin: `[Değerlendirme: ${metin}${z}]`,
     ton: o.zarfHasar > 0 ? 'kotu' : ton,
   });
+  // Manşetle aynı durum (G23b): damgalı bina yoksa "denetlediğin bina yoktu".
+  if (o.toplam === 0) return d('denetlediğin bina yoktu', 'orta');
   if (o.doluCoken > 0 && o.doluCoken === o.iadeCoken) return d('iade ettiğin binalar denetlenmeden çöktü', 'kotu');
   if (o.doluCoken > 0) return d('onayladığın binalar çöktü', 'kotu');
   if (o.doluAgir > 0) return d('yıkım yok ama ağır hasar var', 'orta');

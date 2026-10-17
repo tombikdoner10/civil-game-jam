@@ -9,7 +9,7 @@ import { gunAyar, SON_GUN } from '../game/days';
 import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
 import { ZARF_ETIKET } from '../game/diyalog';
 import { degerlendirme, KISA_SONUC, seninBinalarin, sonucEtiketi, zarfOzeti } from '../game/gazete';
-import { depremOzeti, gunHesabi, oyunToplami } from '../game/session';
+import { depremOzeti, gunHesabi, oyuncuOzeti, oyunToplami } from '../game/session';
 import { fadeIn, goTo } from '../systems/transition';
 import type { GameData } from './GameScene';
 import { SCENES } from './keys';
@@ -59,7 +59,7 @@ export class ResultScene extends Phaser.Scene {
     const juriSonuc = v.sonuclar.filter((s) => juri.has(s.dosyaId));
     const top = oyunToplami(gercek);
     const oz = depremOzeti(v.sonuclar);
-    const deg = degerlendirme(kisa ? depremOzeti(juriSonuc) : oz);
+    const deg = degerlendirme(oyuncuOzeti(v.sonuclar, kisa ? juri : undefined));
 
     masaCiz(this, 0);
     this.kagitCiz();
