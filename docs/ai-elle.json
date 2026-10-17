@@ -477,5 +477,12 @@
     "yer": "src/data/credits.ts, src/scenes/CreditsScene.ts",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T23:33:50.949Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G63b: credits.ts ve README hazır kaynak metinlerini node/sed betiğiyle düzenleme, ekran-README karşılaştırma betiği",
+    "yer": "Emeği Geçenler, README",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T23:40:01.900Z"
   }
 ]

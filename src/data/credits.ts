@@ -82,7 +82,7 @@ export const ASSETS: Record<Category, AssetCredit[]> = {
       author: 'Kenney (www.kenney.nl)',
       url: 'https://kenney.nl/assets/tiny-town',
       license: 'Creative Commons CC0 1.0',
-      usage: 'Bina cepheleri ve sokak; renk paleti değiştirildi, karolardan cephe kuruldu',
+      usage: 'Bina cepheleri ve sokak; renk paleti değiştirildi, karolardan cephe kuruldu (src/art/tiny-town/)',
     },
   ],
   audio: [
@@ -91,7 +91,7 @@ export const ASSETS: Record<Category, AssetCredit[]> = {
       author: 'Kenney (www.kenney.nl)',
       url: 'https://kenney.nl/assets/impact-sounds',
       license: 'Creative Commons CC0 1.0',
-      usage: 'Kaşenin belgeye vurması, kaşeyi alma ve yerine koyma, çekmece, kusur bulundu sesi, saha testinde çekiç vuruşu ve geçersiz okuma ve depremin vuruş, moloz, çatırtı, cam titremesi ve bina hasarı sesleri; çoğu yavaşlatıldı (hız ve perde değiştirildi), bazıları katmanlandı (src/sounds/kenney/impact-sounds/)',
+      usage: 'Kaşenin belgeye vurması, kaşeyi alma ve yerine koyma, kilitli kaşeye dokunuş, çekmece, kusur bulundu sesi, saha testinde çekiç vuruşu ve geçersiz okuma, gün sonunda alınamayan ev kalemi ve depremin vuruş, moloz, çatırtı, cam titremesi ve bina hasarı sesleri; çoğu yavaşlatıldı (hız ve perde değiştirildi), bazıları katmanlandı (src/sounds/kenney/impact-sounds/)',
     },
     {
       name: 'RPG Audio',
@@ -136,14 +136,14 @@ export const ASSETS: Record<Category, AssetCredit[]> = {
   other: [
     {
       name: 'Pixelify Sans (yazı tipi)',
-      author: 'The Pixelify Sans Project Authors',
+      author: 'The Pixelify Sans Project Authors (Fontsource paketi)',
       url: 'https://fonts.google.com/specimen/Pixelify+Sans',
       license: 'SIL Open Font License 1.1',
       usage: 'Arayüz ve belge başlıkları yazı tipi, değiştirilmedi',
     },
     {
       name: 'VT323 (yazı tipi)',
-      author: 'The VT323 Project Authors',
+      author: 'The VT323 Project Authors (Fontsource paketi)',
       url: 'https://fonts.google.com/specimen/VT323',
       license: 'SIL Open Font License 1.1',
       usage: 'Belge değerleri, saat ve paneller yazı tipi, değiştirilmedi',
