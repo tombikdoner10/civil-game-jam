@@ -8,14 +8,13 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G28 [teknik] (sürüyor, Opus/high) Deprem hızlandırma: "[Bir gece]" kartında yeni basılan Enter/Space/tıklama saklansın (rapordaki Enter sayılmaz), ipucu büyük ve görünür; konuşma balonu kişi giderken yarım kalmasın.
+- [ ] G30 [teknik] (sürüyor, Opus/high) Kısa yol gazetesi istatistiği (T22 kararı): önce "senin binaların", sonra bütün sokak; jürinin görmediği İADE ve "içi boş" satırları gizli; 5 günlük yol değişmez.
 
 ## Sırada
 
 Eleştirmen 4 sonrası (sıra: G28 → G30 → G29 → G31 (metinler gelince))
 
 - [ ] G29 [teknik] Emeği Geçenler'de AI beyanı kategori başına kısa özet (araç, amaç, yer); iç görev kodları (G4b…) ve günlük dili oyunda görünmesin. docs/AI_BEYAN.md (teslim formu metni) tam ve doğru kalır; içerik eksilmez.
-- [ ] G30 [teknik] Kısa yol gazetesi istatistiği (T22 kararı): önce "senin binaların", sonra bütün sokak; jürinin görmediği İADE ve "içi boş" satırları gizli; 5 günlük yol değişmez.
 - [ ] G31 [teknik] Takım metinleri gelince tutarlılık geçişi: TITLE (config.ts) HTML başlığı, Splash, README, BENIOKU'da; köşeli parantezli yer tutucular kalkar; fiş, kural notu, rapor 1080p ve 720p'de taşmıyor (fiş-not arası G26'da ~10 px).
 
 Çekirdek döngü (hedef: Cumartesi 14.00 ara test; sıra: G4 → G4b → G12 → G5 → G13)
@@ -65,6 +64,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G28 Deprem hızlandırma: gece kartında yeni basış saklanıyor (≥250 ms koruma, e.repeat yok), 3 sn bekleme kalktı, ipucu büyük/opak/nabız; balon kişi giderken cümleyi anında tamamlıyor (fa082fc, Opus/high; test sürüyor)
 - [x] G27 Yanlış fişteki inceleme ipucu yalnızca kanıtlanacak kusur varken (545b7e0, Opus/high; test geçti)
 - [x] G26 Küçük cila: zarf satırı sonuçta çakışmıyor, rapordaki ilk Enter bekletiliyor, gün 1 fişi kural notuna binmiyor; Esc sonrası işaretler kasıtlı (f7dae8b, Opus/high; test geçti)
 - [x] G6, G7, G9, G10: KESİLDİ (büyüteç, cetvel, eski baskı/aile, kendi binan ayrı görevi; eleştirmen 2, 17 Ekim 01:26; zarf G9'un yerini aldı, kendi binan hikâye binası olarak var)
