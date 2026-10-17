@@ -66,7 +66,7 @@ const KISA_SOKAK_COKEN: SayiMetni = {
   cogul: 'sokakta denetlenmeyen binalar çöktü',
 };
 
-/** Kısa yolun (G21) manşet ve değerlendirmeye verdiği ek bilgi (G37). 5 günlük yolda verilmez; metinler değişmez. */
+/** Kısa yolun (G21) manşet ve değerlendirmeye verdiği ek bilgi (G37). 5 günlük yolda verilmez. */
 export interface KisaYolBilgisi {
   /** Jürinin denetlemediği (sokaktaki örnek) binalardan çökenlerin sayısı. */
   sokakCoken: number;
@@ -196,8 +196,9 @@ const DEGERLENDIRME_SAYILI: Record<'iadeCoken' | 'doluCoken', SayiMetni> = {
 };
 
 /**
- * Kısa yolun değerlendirmesinde onaylanan çöken binalardan zarf alınmış olanlar (G37): zarf ayrıca "zarf aldığın N bina çöktü" diye
- * sayılmaz (aynı bina iki kez), çöken binaların ifadesine eklenir. Yer tutucu (TODO(takım), T31).
+ * Değerlendirmede onaylanan çöken binalardan zarf alınmış olanlar (G37; kısa yol ve 5 günlük yol): zarf ayrıca
+ * "zarf aldığın N bina çöktü" diye sayılmaz (aynı bina iki kez), çöken binaların ifadesine eklenir.
+ * Yer tutucu (TODO(takım), T31).
  */
 const DEGERLENDIRME_ZARFLI: Record<'hepsi' | 'bazisi', SayiMetni> = {
   hepsi: { tekil: 'zarf almıştın', cogul: 'hepsinden zarf almıştın' },
@@ -208,13 +209,14 @@ const DEGERLENDIRME_ZARFLI: Record<'hepsi' | 'bazisi', SayiMetni> = {
 /**
  * Sonuç ekranındaki değerlendirme satırı (üç şablon). Zarf (G22): zarf alınan bina hasar gördüyse satıra eklenir
  * ve ton kötüye döner; zarf alındı ama binalar sağlamsa yalnızca not düşülür. G37: onaylanıp çöken binanın zarfı
- * çöken ifadesine eklenir, ayrıca sayılmaz. kisa (yalnızca kısa yol, G37): manset ile aynı; zarf birleştirmesi de
- * yalnızca kısa yolda (5 günlük yolun metinleri değişmez).
+ * çöken ifadesine eklenir, ayrıca sayılmaz (iki yolda da). kisa (yalnızca kısa yol, G37): manset ile aynı; jürinin
+ * binaları çökmediyse sokak cümlesi uyarı olarak eklenir, ton jürinin binalarına göre (takım kararı: 'iyi', ağır
+ * hasar varsa 'orta').
  */
 export function degerlendirme(o: DepremOzeti, kisa?: KisaYolBilgisi): { metin: string; ton: 'iyi' | 'orta' | 'kotu' } {
   const sokakCoken = kisa?.sokakCoken ?? 0;
   // Onaylanıp (iade değil) çöken ve zarf alınmış binalar çöken ifadesinde geçer; zarf ekinde yalnızca kalanlar.
-  const onayCoken = kisa !== undefined && o.doluCoken > 0 && o.doluCoken !== o.iadeCoken;
+  const onayCoken = o.doluCoken > 0 && o.doluCoken !== o.iadeCoken;
   const zarfOnay = onayCoken ? o.zarfDoluCoken : 0;
   const zCoken = o.zarfCoken - zarfOnay;
   const zHasar = o.zarfHasar - o.zarfCoken;
@@ -239,7 +241,7 @@ export function degerlendirme(o: DepremOzeti, kisa?: KisaYolBilgisi): { metin: s
       o.coken > 0
         ? sayiyla(o.coken, KISA_SENIN.bosCoken)
         : sayiyla(o.toplam, o.doluAgir > 0 ? KISA_SENIN.agir : o.hasarli > 0 ? KISA_SENIN.hasarli : KISA_SENIN.ayakta);
-    return d(`${senin}; ${sayiyla(sokakCoken, KISA_SOKAK_COKEN)}`, 'orta');
+    return d(`${senin}; ${sayiyla(sokakCoken, KISA_SOKAK_COKEN)}`, o.doluAgir > 0 ? 'orta' : 'iyi');
   }
   if (o.doluAgir > 0) return d('yıkım yok ama ağır hasar var', 'orta');
   return d('sokak depreme hazırdı', 'iyi');

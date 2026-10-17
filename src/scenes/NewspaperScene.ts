@@ -24,6 +24,12 @@ const KAGIT = { x: 200, y: 24, w: 1360, h: 1032 };
 /** Fotoğraf çerçevesinin içi (ekran) ve fotoğraf sokağının ekran dışındaki yeri. */
 const FOTO = { x: 240, y: 336, w: 880, h: 224 };
 const UZAK = { x: 4000, y: 0 };
+/**
+ * Manşet (G37): tek satırda bu boyun altına küçülecekse önce iki satıra kaydırılır, iki satırda da sığmazsa küçülür.
+ * Eski manşetlerin hepsi tek satırda bu boyun üstünde kalır (gazete düzeni değişmez).
+ */
+const MANSET_BOY = 84;
+const MANSET_TEK_SATIR_EN_AZ = 60;
 /** Fotoğrafta en çok kaç parsel (fazlası: öne çıkan binanın çevresi). G5b: daha geniş kare. */
 const FOTO_PARSEL = 18;
 
@@ -51,6 +57,8 @@ export class NewspaperScene extends Phaser.Scene {
   private gecildi = false;
   /** Fotoğrafı gösteren ayrı kamera (geçişte ana kamerayla birlikte söner, G23). */
   private fotoKamera?: Phaser.Cameras.Scene2D.Camera;
+  /** Fotoğraf çerçevesi; iki satırlık manşette (G37) aşağı kayar, altındaki her şey de onunla birlikte. */
+  private foto = FOTO;
 
   constructor() {
     super(SCENES.Newspaper);
@@ -61,6 +69,7 @@ export class NewspaperScene extends Phaser.Scene {
     this.hazir = false;
     this.gecildi = false;
     this.fotoKamera = undefined;
+    this.foto = FOTO;
   }
 
   create(): void {
@@ -96,28 +105,30 @@ export class NewspaperScene extends Phaser.Scene {
     yaz(KAGIT.x + KAGIT.w / 2, T + 192, GAZETE_TARIH, 30, 0.5, 0.5, '#3d3832');
     cizgi(T + 216);
 
-    // Manşet
-    this.sigdir(yaz(KAGIT.x + KAGIT.w / 2, T + 264, manset(mansetOzeti, kisaBilgi), 84, 0.5), KAGIT.w - 80);
+    // Manşet (G37: uzunsa iki satır; fotoğraf, sağ sütun ve alt sütunlar aradaki fark kadar aşağı kayar).
+    const kayma = this.mansetYaz(yaz(KAGIT.x + KAGIT.w / 2, T + 264, manset(mansetOzeti, kisaBilgi), MANSET_BOY, 0.5), KAGIT.w - 80);
+    this.foto = { ...FOTO, y: FOTO.y + kayma };
+    const foto = this.foto;
 
     // Fotoğraf: deprem sonrası sokak (ekran dışında kurulur, ayrı kamerayla siyah beyaz gösterilir).
     this.fotoKur(v, one.odak);
-    this.add.rectangle(FOTO.x - PX * 2, FOTO.y - PX * 2, FOTO.w + PX * 4, FOTO.h + PX * 4, 0x1d1a18).setOrigin(0);
-    yaz(FOTO.x, FOTO.y + FOTO.h + 28, FOTO_ALTI, 28, 0, 0.5, '#3d3832');
+    this.add.rectangle(foto.x - PX * 2, foto.y - PX * 2, foto.w + PX * 4, foto.h + PX * 4, 0x1d1a18).setOrigin(0);
+    yaz(foto.x, foto.y + foto.h + 28, FOTO_ALTI, 28, 0, 0.5, '#3d3832');
 
     // Sağ sütun: sayılar (bina sayısı), altında kısa haber (gri çizgiler).
-    const sx = FOTO.x + FOTO.w + 40;
+    const sx = foto.x + foto.w + 40;
     const sw = R - 40 - sx;
     const rnd = rastgele(v.tohum * 17 + 3);
-    this.add.rectangle(sx - 20, FOTO.y - 8, PX, FOTO.h + 56, 0x1d1a18, 0.6).setOrigin(0);
+    this.add.rectangle(sx - 20, foto.y - 8, PX, foto.h + 56, 0x1d1a18, 0.6).setOrigin(0);
     // Zarf izi (G17): kabul edilen zarfın binası hasar gördüyse.
     const zarf = zarfSatiri(v.sonuclar);
     let y: number;
     if (juri) y = this.kisaSayilar(sx, sw, v.sonuclar, juri, zarf);
     else {
       const sayi = this.add
-        .text(snap(sx), snap(FOTO.y), sayiSatiri(oz), { fontFamily: FONT, fontSize: '36px', color: MUREKKEP, wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
+        .text(snap(sx), snap(foto.y), sayiSatiri(oz), { fontFamily: FONT, fontSize: '36px', color: MUREKKEP, wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
         .setOrigin(0, 0);
-      y = snap(FOTO.y + sayi.height + 16);
+      y = snap(foto.y + sayi.height + 16);
       if (zarf) {
         const z = this.add
           .text(snap(sx), y, zarf, { fontFamily: FONT, fontSize: '30px', color: '#6e2a24', wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
@@ -126,10 +137,10 @@ export class NewspaperScene extends Phaser.Scene {
       }
     }
     cizgi(y, sx, R - 40);
-    for (y += 24; y < FOTO.y + FOTO.h + 36; y += 20) this.add.rectangle(snap(sx), snap(y), snap(sw - rnd() * 24), 8, 0x6e675c, 0.55).setOrigin(0);
+    for (y += 24; y < foto.y + foto.h + 36; y += 20) this.add.rectangle(snap(sx), snap(y), snap(sw - rnd() * 24), 8, 0x6e675c, 0.55).setOrigin(0);
 
     // Alt kısım: üç sütun. Başlıkları öne çıkan binalar (sonuçtan), metinleri gri çizgiler (doldurma).
-    const altY = FOTO.y + FOTO.h + 64;
+    const altY = foto.y + foto.h + 64;
     cizgi(altY);
     const sut = 3;
     const sutW = (KAGIT.w - 80 - (sut - 1) * 40) / sut;
@@ -201,7 +212,7 @@ export class NewspaperScene extends Phaser.Scene {
    */
   private kisaSayilar(sx: number, sw: number, sonuclar: readonly DepremBinaSonucu[], juri: ReadonlySet<string>, zarf: string | null): number {
     const bloklar = kisaSayiBloklari(sonuclar, juri);
-    const alt = FOTO.y + FOTO.h + 44;
+    const alt = this.foto.y + this.foto.h + 44;
     const metin = (y: number, t: string, boy: number, renk: string): Phaser.GameObjects.Text =>
       this.add
         .text(snap(sx), snap(y), t, { fontFamily: FONT, fontSize: `${boy}px`, color: renk, wordWrap: { width: sw, useAdvancedWrap: true }, lineSpacing: 2 })
@@ -210,7 +221,7 @@ export class NewspaperScene extends Phaser.Scene {
     for (let boy = 36; ; boy -= 2) {
       for (const t of yazilar) t.destroy();
       yazilar.length = 0;
-      let y = FOTO.y;
+      let y = this.foto.y;
       bloklar.forEach((b, i) => {
         const bas = metin(y, b.baslik, boy - 4, '#3d3832');
         const say = metin(bas.y + bas.height, b.satir, boy, MUREKKEP);
@@ -236,7 +247,7 @@ export class NewspaperScene extends Phaser.Scene {
       const s = durum.get(k.bina.id);
       return { ...k, hasar: s ? (s.coktu ? 'yikik' : s.durum) : k.hasar };
     });
-    const alan = { x: UZAK.x, y: UZAK.y, w: FOTO.w, h: FOTO.h };
+    const alan = { x: UZAK.x, y: UZAK.y, w: this.foto.w, h: this.foto.h };
     const sokak = new Sokak(this, alan, SON_GUN, girdiler, 10, { olcek: 2, uzak: false });
     const n = girdiler.length;
     if (n > 0) {
@@ -248,11 +259,11 @@ export class NewspaperScene extends Phaser.Scene {
       }
     }
     // Baskı noktası dokusu (fotoğrafın üstünde, aynı kamerada).
-    const t = new Tuval(this, FOTO.w / PX, FOTO.h / PX, 'baski');
-    t.dither(0, 0, FOTO.w / PX, FOTO.h / PX, '#000000');
+    const t = new Tuval(this, this.foto.w / PX, this.foto.h / PX, 'baski');
+    t.dither(0, 0, this.foto.w / PX, this.foto.h / PX, '#000000');
     t.goruntu(UZAK.x, UZAK.y).setOrigin(0).setDepth(50).setAlpha(0.1);
 
-    const fc = this.cameras.add(FOTO.x, FOTO.y, FOTO.w, FOTO.h);
+    const fc = this.cameras.add(this.foto.x, this.foto.y, this.foto.w, this.foto.h);
     fc.setScroll(UZAK.x, UZAK.y).setRoundPixels(true).setBackgroundColor(0x000000);
     if (this.renderer.type === Phaser.WEBGL) fc.postFX.addColorMatrix().grayscale(1);
     fc.fadeIn(500, 0, 0, 0);
@@ -275,6 +286,25 @@ export class NewspaperScene extends Phaser.Scene {
     t.dither(0, 0, 2, H, KAGIT_KOYU);
     t.dither(W - 2, 0, 2, H, KAGIT_KOYU, 1);
     t.goruntu(KAGIT.x, KAGIT.y).setOrigin(0);
+  }
+
+  /**
+   * Manşeti yerleştirir (G37). Tek satırda MANSET_TEK_SATIR_EN_AZ boyunda ya da daha büyük sığıyorsa eskisi gibi tek
+   * satır (sigdir). Sığmıyorsa ortalı iki satıra kaydırır, iki satırda sığana kadar küçültür; üst kenarı tek satırlık
+   * manşetinkiyle aynı kalır. Dönüş: altındaki öğelerin aşağı kayma miktarı (tek satırda 0).
+   */
+  private mansetYaz(t: Phaser.GameObjects.Text, w: number): number {
+    const tekH = t.height;
+    const ust = t.y - tekH / 2;
+    this.sigdir(t, w);
+    if (parseInt(String(t.style.fontSize), 10) >= MANSET_TEK_SATIR_EN_AZ) return 0;
+    t.setFontSize(MANSET_BOY).setAlign('center').setLineSpacing(0).setWordWrapWidth(w, true);
+    for (let boy = MANSET_BOY; (t.getWrappedText().length > 2 || t.width > w) && boy > 24; ) {
+      boy -= 4;
+      t.setFontSize(boy);
+    }
+    t.setOrigin(0.5, 0).setY(snap(ust));
+    return snap(Math.max(0, t.height - tekH));
   }
 
   /** Metin genişliği aşarsa küçült. */
