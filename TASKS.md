@@ -8,12 +8,12 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G29 [teknik] (sürüyor, Opus/high) Emeği Geçenler'de AI beyanı kategori başına kısa özet (araç, amaç, yer); iç görev kodları (G4b…) ve günlük dili oyunda görünmesin. docs/AI_BEYAN.md (teslim formu metni) tam ve doğru kalır; içerik eksilmez.
 
 ## Sırada
 
-Eleştirmen 4 sonrası (sıra: G28b → G29 → G31 (metinler gelince))
+Eleştirmen 4 sonrası (sıra: G29 → G31 (metinler gelince))
 
-- [ ] G29 [teknik] Emeği Geçenler'de AI beyanı kategori başına kısa özet (araç, amaç, yer); iç görev kodları (G4b…) ve günlük dili oyunda görünmesin. docs/AI_BEYAN.md (teslim formu metni) tam ve doğru kalır; içerik eksilmez.
 - [ ] G31 [teknik] Takım metinleri gelince tutarlılık geçişi: TITLE (config.ts) HTML başlığı, Splash, README, BENIOKU'da; köşeli parantezli yer tutucular kalkar; fiş, kural notu, rapor 1080p ve 720p'de taşmıyor (fiş-not arası G26'da ~10 px).
 
 Çekirdek döngü (hedef: Cumartesi 14.00 ara test; sıra: G4 → G4b → G12 → G5 → G13)
