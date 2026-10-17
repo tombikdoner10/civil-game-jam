@@ -184,3 +184,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 15:55 · G43 canlıda (bd94f86; JS paketinde hash ve canlı smoke doğrulandı; son-saglam taşındı) · Eleştirmen 7 (opus/high) ve G44 (opus/high) paralel başladı
 - 16:01 · G44 bitti (f44cb01): 2/3 taksitte kendi apartman bir kademe iyi (tohum 3: çöktü → ağır hasar), sokak/gazete/sonuç tutarlı; adalet 563136/0 · G44 testi başladı (opus/low)
 - 16:05 · Test (G44, opus/low, 6 koşu hatasız): 1/3 çöktü, 2/3 ağır hasar, 3/3 hafif hasar; gazete = sonuç; para tutarlı; kısa yol ve gün 1 EVİN akışı; menü f44cb01 GEÇTİ · Karar: G44 yayına
+- 16:07 · G44 canlıda (99f5cd2; JS paketinde hash ve canlı smoke doğrulandı; son-saglam taşındı) · Eleştirmen 7 sürüyor
