@@ -199,3 +199,5 @@
 {"zaman":"2026-10-17T07:39:23.945Z","kategori":"visual","dosya":"src/scenes/QuakeScene.ts","arac":"Edit","ajan":"gelistirici"}
 {"zaman":"2026-10-17T09:00:15.676Z","kategori":"visual","dosya":"src/desk/Portre.ts","arac":"Write","ajan":"gelistirici"}
 {"zaman":"2026-10-17T09:56:28.477Z","kategori":"code","dosya":"src/systems/girisTamponu.ts","arac":"Write","ajan":"gelistirici"}
+{"zaman":"2026-10-17T10:36:59.184Z","kategori":"code","dosya":"src/game/ev.ts","arac":"Write","ajan":"gelistirici"}
+{"zaman":"2026-10-17T10:37:22.392Z","kategori":"text","dosya":"src/game/ev-metin.ts","arac":"Write","ajan":"gelistirici"}

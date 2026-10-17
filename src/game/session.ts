@@ -161,21 +161,49 @@ export interface DepremBinaSonucu {
   coktu: boolean;
   /** Boşaltılmıştı (içeride kimse yoktu). */
   bos: boolean;
+  /** Oyuncunun kendi apartmanı (G42: gün 5 hikâye binası, oyuncu damgaladıysa); "Senin evin" sonucu bundan. */
+  kendiBinan?: true;
+  /** G42: güçlendirme payı ödendiği için GÜÇLENDİR sayıldı (damgası GÜVENLİ ya da İADE'ydi). */
+  evPayi?: true;
+}
+
+/** Büyük depremin oyuncunun evine bağlı seçeneği (G42). */
+export interface DepremEvSecenek {
+  /** Güçlendirme payı ödendi: kendi apartmanın en az GÜÇLENDİR sayılır. */
+  guclendirmePayi?: boolean;
 }
 
 /**
  * Büyük deprem: sokaktaki her bina için sonuç (sokak sırasıyla). Saf; Quake görüntüsü ve gazete bunu kullanır.
  * zarfKaynak (G23b, kısa yol): zarf işareti yalnızca bu kayıtlardaki (oyuncunun kendi) kabul edilen zarflardan;
- * verilmezse bütün kayıtlardan (normal oyunda hepsi oyuncunun).
+ * verilmezse bütün kayıtlardan (normal oyunda hepsi oyuncunun). ev (G42): oyuncunun kendi apartmanı (zarfKaynak'taki
+ * kendiBinan binası) güçlendirme payı ödendiyse GÜVENLİ ya da İADE damgalı olsa da GÜÇLENDİR sonucunu alır; öbür
+ * binalar ve ev verilmediğinde hepsi değişmez.
  */
-export function buyukDeprem(tohum: number, kayitlar: readonly GunKaydi[], zarfKaynak: readonly GunKaydi[] = kayitlar): DepremBinaSonucu[] {
+export function buyukDeprem(
+  tohum: number,
+  kayitlar: readonly GunKaydi[],
+  zarfKaynak: readonly GunKaydi[] = kayitlar,
+  ev: DepremEvSecenek = {},
+): DepremBinaSonucu[] {
   const dogru = new Map<string, boolean>();
   const zarf = new Set<string>();
+  const kendi = new Set<string>();
   for (const k of kayitlar) for (const c of k.kararlar) dogru.set(c.dosyaId, c.dogru);
-  for (const k of zarfKaynak) for (const c of k.kararlar) if (c.zarf?.kabul) zarf.add(c.dosyaId);
+  for (const k of zarfKaynak)
+    for (const c of k.kararlar) {
+      kendi.add(c.dosyaId);
+      if (c.zarf?.kabul) zarf.add(c.dosyaId);
+    }
   return sokakKayitlari(tohum, kayitlar).map((s, i) => {
-    const r = buyukDepremSonucu(s.bina, s.damga, s.gun, { oncuHasar: s.hasar });
+    const kendiBinan = !!s.bina.kendiBinan && kendi.has(s.bina.id);
+    const payli = kendiBinan && !!ev.guclendirmePayi && (s.damga === 'guvenli' || s.damga === 'iade');
+    const r = buyukDepremSonucu(s.bina, payli ? 'guclendir' : s.damga, s.gun, { oncuHasar: s.hasar });
+    const ek: Pick<DepremBinaSonucu, 'kendiBinan' | 'evPayi'> = {};
+    if (kendiBinan) ek.kendiBinan = true;
+    if (payli) ek.evPayi = true;
     return {
+      ...ek,
       dosyaId: s.bina.id,
       no: i + 1,
       gun: s.gun,
