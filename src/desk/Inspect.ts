@@ -67,6 +67,12 @@ interface Bulunan {
 
 /** Kâğıdın üstündeki başlık bandının yüksekliği (ekran; belgelerde başlık şeridi ve başlık yazısı). */
 const BASLIK_H = 56;
+/** Çerçevenin alandan dışarı payı (ekran pikseli); komşu alan yakınsa aradaki boşluğun yarısına iner (G35). */
+const CERCEVE_PAY = 8;
+/** Kusur etiketinin belge alanlarından en az uzaklığı (yer seçiminde; kenar ve gölge dahil, G35). */
+const ETIKET_ARA = 8;
+/** Etiketin koyu kenarı (etiketKur: w + 8, h + 8). */
+const ETIKET_KENAR = 4;
 
 const D = { ortuMasa: 7, ortuBant: 3010, dugme: 3020, serit: 8000, cizim: 9000, etiket: 9001 };
 const SARI = num(PAL.saat);
@@ -401,7 +407,8 @@ export class Inspect extends Phaser.Events.EventEmitter {
     }
     // Bulunan kusurlar: kırmızı çerçeve, kırmızı kesikli çizgi; etiket alanın kenarında, değerleri örtmeyen yerde.
     // Üstüne başka belge ya da açık kitap çekilmiş alanın işareti çizilmez (etiket kitabın üstünde kalmasın).
-    const cizgiVar = this.bulunanlar.length > 0 || this.secili.length === 2;
+    // Alan sınırları çerçeve payı için de gerekir (G35): tek seçimde de hesaplanır.
+    const cizgiVar = this.bulunanlar.length > 0 || this.secili.length > 0;
     const yuzeyler = cizgiVar ? this.ayar.yuzeyler() : [];
     const engeller = cizgiVar ? this.alanSinirlari(yuzeyler) : [];
     // Bağlantı çizgisi belge yazılarının (alanların) üstünden geçmez, kâğıtların üstünde soluk çizilir (G5b).
@@ -510,8 +517,12 @@ export class Inspect extends Phaser.Events.EventEmitter {
       const x = snap(Phaser.Math.Clamp(cx, MASA.x + w / 2 + 8, Math.max(MASA.x + w / 2 + 8, MASA.x + MASA.w - w / 2 - 8)));
       const y = snap(Phaser.Math.Clamp(cy, MASA_Y + h / 2 + 8, 1080 - h / 2 - 8));
       const r = new Phaser.Geom.Rectangle(x - w / 2, y - h / 2, w, h);
+      // Etiketin görünen boyu (koyu kenar ve gölge) ve alanlardan ETIKET_ARA kadar boşluk (G35: değer yazısının
+      // dibine yapışıp onu örtmesin).
+      const pay = ETIKET_KENAR + ETIKET_ARA;
+      const gorunen = new Phaser.Geom.Rectangle(r.x - pay, r.y - pay, r.width + pay * 2, r.height + pay * 2);
       let puan = 0;
-      for (const e of engeller) puan += kesisim(r, e);
+      for (const e of engeller) puan += kesisim(gorunen, e);
       // Kanıt alanından uzaklaşan (masaya çekilen) adaylar biraz geride kalsın.
       puan += (Math.abs(x - cx) + Math.abs(y - cy)) * 2 + ek;
       const daha = puan < enPuan || (puan === enPuan && i === b.aday);
@@ -525,12 +536,43 @@ export class Inspect extends Phaser.Events.EventEmitter {
     return enR;
   }
 
+  /**
+   * Çerçevenin her kenardaki payı (G35): varsayılan CERCEVE_PAY; o kenarda komşu bir alan (belge değeri, kural satırı,
+   * başlık bandı) yakınsa aradaki boşluğun yarısı (bitişikse 0: çizgi iki alanın sınırına oturur). Böylece çerçeve
+   * komşu alanın yazısını (ör. ruhsatta "(zemin dahil)") örtmez.
+   */
+  private cercevePayi(r: Phaser.Geom.Rectangle): { sol: number; sag: number; ust: number; alt: number } {
+    const P = CERCEVE_PAY;
+    const pay = { sol: P, sag: P, ust: P, alt: P };
+    const L = snap(r.left);
+    const R = snap(r.right);
+    const T = snap(r.top);
+    const B = snap(r.bottom);
+    const yarim = (g: number): number => Math.max(0, Math.floor(g / 2 / PX) * PX);
+    for (const e of this.cizgiEngel.alanlar) {
+      const el = snap(e.left);
+      const er = snap(e.right);
+      const et = snap(e.top);
+      const eb = snap(e.bottom);
+      // Alanın kendisi ya da onunla örtüşen alan komşu sayılmaz.
+      if (el < R && er > L && et < B && eb > T) continue;
+      const yatay = el < R + P && er > L - P;
+      const dikey = et < B + P && eb > T - P;
+      if (yatay && eb <= T) pay.ust = Math.min(pay.ust, yarim(T - eb));
+      if (yatay && et >= B) pay.alt = Math.min(pay.alt, yarim(et - B));
+      if (dikey && er <= L) pay.sol = Math.min(pay.sol, yarim(L - er));
+      if (dikey && el >= R) pay.sag = Math.min(pay.sag, yarim(el - R));
+    }
+    return pay;
+  }
+
   /** Piksel ızgarasına oturan çerçeve (koyu dış kenar + renk). */
   private cerceve(r: Phaser.Geom.Rectangle, renk: number, ince = false): void {
-    const x = snap(r.x) - 8;
-    const y = snap(r.y) - 8;
-    const w = snap(r.width) + 16;
-    const h = snap(r.height) + 16;
+    const p = ince ? { sol: CERCEVE_PAY, sag: CERCEVE_PAY, ust: CERCEVE_PAY, alt: CERCEVE_PAY } : this.cercevePayi(r);
+    const x = snap(r.x) - p.sol;
+    const y = snap(r.y) - p.ust;
+    const w = snap(r.width) + p.sol + p.sag;
+    const h = snap(r.height) + p.ust + p.alt;
     const g = this.g;
     if (!ince) {
       g.lineStyle(PX, KOYU, 0.9).strokeRect(x - PX / 2, y - PX / 2, w + PX, h + PX);

@@ -73,7 +73,8 @@ export class NewspaperScene extends Phaser.Scene {
     // değerlendirmeyle aynı özet).
     const juri = v.kisa ? new Set(v.kisa.juri) : undefined;
     const mansetOzeti = oyuncuOzeti(v.sonuclar, juri);
-    const one = oneCikanlar(v.sonuclar, juri);
+    // 5 günlük yolda bina adları gün sonu raporundaki gibi ve günüyle (G35); kısa yolda sokak sırası (değişmedi).
+    const one = oneCikanlar(v.sonuclar, juri, !v.kisa);
 
     masaCiz(this, 0);
     this.kagitCiz();
@@ -152,20 +153,30 @@ export class NewspaperScene extends Phaser.Scene {
 
     // Devam
     const devam = (): void => this.devam();
+    // Koruma sürerken basılan yeni (tekrar olmayan) Enter/Space beklemeye alınır, koruma bitince bir kez işlenir
+    // (G35, gün sonu raporundaki G26 gibi). Basılı tutulan tuşun tekrarı (depremden kalan) bekletilmez: gazete atlanmaz.
+    let bekleyen = false;
+    const tus = (e?: KeyboardEvent): void => {
+      if (this.hazir) devam();
+      else if (!e?.repeat) bekleyen = true;
+    };
     const dugme = pikselDugme(this, 1740, 980, 'DEVAM', 'Enter', devam);
     // G24: düğme gazeteyle birlikte görünür; giriş koruması sürerken üstünde "hazır" şeridi dolar, ~0,5 sn sonra
     // Enter/Space/tık kabul edilir (önceden 900 ms boyunca düğme yoktu ve basılan Enter sessizce yok sayılıyordu).
     this.tweens.add({ targets: dugme, alpha: 1, duration: 120 });
     hazirGostergesi(this, dugme, GIRIS_KORUMA_MS);
     const kb = this.input.keyboard;
-    kb?.on('keydown-ENTER', devam);
-    kb?.on('keydown-SPACE', devam);
+    kb?.on('keydown-ENTER', tus);
+    kb?.on('keydown-SPACE', tus);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      kb?.off('keydown-ENTER', devam);
-      kb?.off('keydown-SPACE', devam);
+      kb?.off('keydown-ENTER', tus);
+      kb?.off('keydown-SPACE', tus);
       sfx.jingleSustur();
     });
-    this.time.delayedCall(GIRIS_KORUMA_MS, () => (this.hazir = true));
+    this.time.delayedCall(GIRIS_KORUMA_MS, () => {
+      this.hazir = true;
+      if (bekleyen) devam();
+    });
     sfx.play('kagitKay');
     this.time.delayedCall(250, () => sfx.play('kagitBirak'));
     // G32 (T24): gazete masaya inince bir kez, sonuçtan bağımsız jingle. Sahne kapanınca kesilir.

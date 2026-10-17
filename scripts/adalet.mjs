@@ -392,7 +392,13 @@ for (let tohum = 1; tohum <= 40; tohum++) {
 console.log('G23b kısa yol zarf (tohum 1-40):', JSON.stringify(g23b));
 // G23b (eleştirmen 3): kısa yolda manşet ve değerlendirme yalnızca jürinin (oyuncunun) binalarından ve aynı tonda;
 // örnek binalar jürinin yanlış GÜVENLİ'sini gölgelemez (gazetenin öne çıkan satırlarında hep görünür).
-const MANSET_KOTU = ['[Manşet: denetlenmeden kalan binalar çöktü]', '[Manşet: denetimden geçen binalar çöktü]'];
+// G35: tek bina çöktüyse tekil biçim.
+const MANSET_KOTU = [
+  '[Manşet: denetlenmeden kalan binalar çöktü]',
+  '[Manşet: denetimden geçen binalar çöktü]',
+  '[Manşet: denetlenmeden kalan bina çöktü]',
+  '[Manşet: denetimden geçen bina çöktü]',
+];
 const g23bTon = { kotu: 0, orta: 0, iyi: 0, yanlisGuvenli: 0 };
 for (let tohum = 1; tohum <= 40; tohum++) {
   const ornek = O.kisaYolKayitlari(tohum);

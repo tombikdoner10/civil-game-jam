@@ -23,6 +23,9 @@ export const DOLGU_BASLIKLAR = ['[Haber başlığı]', '[Haber başlığı]', '[
 const DAMGA_AD: Record<Damga, string> = { guvenli: 'GÜVENLİ', guclendir: 'GÜÇLENDİR', bosalt: 'BOŞALT', iade: 'İADE' };
 const no = (b: DepremBinaSonucu): string => `Bina ${String(b.no).padStart(2, '0')}`;
 
+/** 5 günlük yolun gazetesinde bina adı (G35): günü ve gün sonu raporundaki adı ("Gün 3 · Bina 02", "Gün 2 · Bina H1"). */
+export const binaAdi = (b: Pick<DepremBinaSonucu, 'gun' | 'adres'>): string => `Gün ${b.gun} · ${b.adres}`;
+
 const durumAdi = (b: DepremBinaSonucu): string =>
   b.coktu ? 'çöktü' : b.durum === 'agirHasar' ? 'ağır hasarlı' : b.durum === 'hasarli' ? 'hasarlı' : 'ayakta';
 
@@ -33,12 +36,26 @@ const gecmis = (b: DepremBinaSonucu): string =>
 /** Gazetede zarf alınan binanın satırına eklenen kısım (yer tutucu). */
 const ZARF_SATIR_EK = ', zarf alınmıştı';
 
+/** Sayıya göre tekil ya da çoğul biçim (G35): tek bina için tekil. */
+interface SayiMetni {
+  tekil: string;
+  cogul: string;
+}
+const sayiyla = (n: number, m: SayiMetni): string => (n === 1 ? m.tekil : m.cogul);
+
+/** Manşetlerin sayıya bağlı biçimleri (yer tutucu; TODO(takım)). */
+const MANSET_SAYILI: Record<'iadeCoken' | 'doluCoken' | 'bosCoken', SayiMetni> = {
+  iadeCoken: { tekil: '[Manşet: denetlenmeden kalan bina çöktü]', cogul: '[Manşet: denetlenmeden kalan binalar çöktü]' },
+  doluCoken: { tekil: '[Manşet: denetimden geçen bina çöktü]', cogul: '[Manşet: denetimden geçen binalar çöktü]' },
+  bosCoken: { tekil: '[Manşet: çöken bina boşaltılmıştı]', cogul: '[Manşet: çöken binalar boşaltılmıştı]' },
+};
+
 /** Ana manşet: duruma göre dört şablondan biri. */
 export function manset(o: DepremOzeti): string {
   if (o.toplam === 0) return '[Manşet: sokakta denetlenmiş bina yoktu]';
-  if (o.doluCoken > 0 && o.doluCoken === o.iadeCoken) return '[Manşet: denetlenmeden kalan binalar çöktü]';
-  if (o.doluCoken > 0) return '[Manşet: denetimden geçen binalar çöktü]';
-  if (o.coken > 0) return '[Manşet: çöken binalar boşaltılmıştı]';
+  if (o.doluCoken > 0 && o.doluCoken === o.iadeCoken) return sayiyla(o.doluCoken, MANSET_SAYILI.iadeCoken);
+  if (o.doluCoken > 0) return sayiyla(o.doluCoken, MANSET_SAYILI.doluCoken);
+  if (o.coken > 0) return sayiyla(o.coken, MANSET_SAYILI.bosCoken);
   if (o.hasarli > 0) return '[Manşet: sokakta hasar var, çöken yok]';
   return '[Manşet: sokak ayakta]';
 }
@@ -94,9 +111,16 @@ const agirlik = (b: DepremBinaSonucu): number => (b.coktu ? 3 : b.durum === 'agi
 
 /**
  * Öne çıkan binalar (en çok 3 satır) ve fotoğrafın odaklanacağı bina (ilk satırınki). oncelik (G21 kısa yol):
- * oyuncunun kendi binaları önce, en ağır sonuçtan başlayarak.
+ * oyuncunun kendi binaları önce, en ağır sonuçtan başlayarak. gunlu (G35, 5 günlük yol): bina adı günüyle
+ * (binaAdi); verilmezse sokak sırası ("Bina 02").
  */
-export function oneCikanlar(s: readonly DepremBinaSonucu[], oncelik?: ReadonlySet<string>): { satirlar: string[]; odak?: DepremBinaSonucu } {
+export function oneCikanlar(
+  s: readonly DepremBinaSonucu[],
+  oncelik?: ReadonlySet<string>,
+  gunlu = false,
+): { satirlar: string[]; odak?: DepremBinaSonucu } {
+  // 5 günlük yolda (G35) bina adı gün sonu raporundakiyle aynı ve günüyle: "Gün 3 · Bina 02"; kısa yolda sokak sırası.
+  const ad = (b: DepremBinaSonucu): string => (gunlu ? binaAdi(b) : no(b));
   const out: { b: DepremBinaSonucu; metin: string }[] = [];
   // Zarf alınan binanın satırında zarf da geçer (G23): "[Bina 02 çöktü; denetimden GÜVENLİ geçmişti, zarf alınmıştı]".
   const ekle = (b: DepremBinaSonucu | undefined, metin: (b: DepremBinaSonucu) => string): void => {
@@ -104,33 +128,39 @@ export function oneCikanlar(s: readonly DepremBinaSonucu[], oncelik?: ReadonlySe
   };
   if (oncelik)
     for (const b of s.filter((x) => oncelik.has(x.dosyaId)).sort((a, c) => agirlik(c) - agirlik(a) || a.no - c.no))
-      ekle(b, (b) => (b.bos ? `[${no(b)} ${durumAdi(b)}; boşaltılmıştı, içinde kimse yoktu]` : `[${no(b)} ${durumAdi(b)}; ${gecmis(b)}]`));
+      ekle(b, (b) => (b.bos ? `[${ad(b)} ${durumAdi(b)}; boşaltılmıştı, içinde kimse yoktu]` : `[${ad(b)} ${durumAdi(b)}; ${gecmis(b)}]`));
   const doluCoken = s.filter((b) => b.coktu && !b.bos);
-  ekle(doluCoken[0], (b) => `[${no(b)} çöktü; ${gecmis(b)}]`);
+  ekle(doluCoken[0], (b) => `[${ad(b)} çöktü; ${gecmis(b)}]`);
   // İADE edilen bina: oyuncunun denetlemeden bıraktığı (bilinçli) risk; gazetede ayrı satır.
   ekle(
     s.find((b) => b.damga === 'iade' && !b.coktu),
-    (b) => `[${no(b)}: iade edilmişti, denetlenmeden kaldı; ${durumAdi(b)}]`,
+    (b) => `[${ad(b)}: iade edilmişti, denetlenmeden kaldı; ${durumAdi(b)}]`,
   );
   ekle(
     s.find((b) => b.coktu && b.bos),
-    (b) => `[${no(b)} çöktü; boşaltılmıştı, içinde kimse yoktu]`,
+    (b) => `[${ad(b)} çöktü; boşaltılmıştı, içinde kimse yoktu]`,
   );
   ekle(
     s.find((b) => b.damga === 'guclendir' && b.kusurlu && !b.coktu && b.durum !== 'agirHasar'),
-    (b) => `[${no(b)} ${b.durum === 'ayakta' ? 'ayakta' : 'hasarlı ama ayakta'}: güçlendirilmişti]`,
+    (b) => `[${ad(b)} ${b.durum === 'ayakta' ? 'ayakta' : 'hasarlı ama ayakta'}: güçlendirilmişti]`,
   );
-  ekle(doluCoken[1], (b) => `[${no(b)} çöktü; ${gecmis(b)}]`);
+  ekle(doluCoken[1], (b) => `[${ad(b)} çöktü; ${gecmis(b)}]`);
   ekle(
     s.find((b) => !b.coktu && !b.bos && b.durum === 'agirHasar'),
-    (b) => `[${no(b)} ağır hasarlı; ${gecmis(b)}]`,
+    (b) => `[${ad(b)} ağır hasarlı; ${gecmis(b)}]`,
   );
   ekle(
     s.find((b) => b.damga === 'guvenli' && !b.kusurlu && b.durum === 'ayakta'),
-    (b) => `[${no(b)} ayakta: denetimden GÜVENLİ geçmişti, kusuru yoktu]`,
+    (b) => `[${ad(b)} ayakta: denetimden GÜVENLİ geçmişti, kusuru yoktu]`,
   );
   return { satirlar: out.map((x) => x.metin), odak: out[0]?.b };
 }
+
+/** Değerlendirmenin sayıya bağlı biçimleri (yer tutucu; TODO(takım)). */
+const DEGERLENDIRME_SAYILI: Record<'iadeCoken' | 'doluCoken', SayiMetni> = {
+  iadeCoken: { tekil: 'iade ettiğin bina denetlenmeden çöktü', cogul: 'iade ettiğin binalar denetlenmeden çöktü' },
+  doluCoken: { tekil: 'onayladığın bina çöktü', cogul: 'onayladığın binalar çöktü' },
+};
 
 /**
  * Sonuç ekranındaki değerlendirme satırı (üç şablon). Zarf (G22): zarf alınan bina hasar gördüyse satıra eklenir
@@ -144,8 +174,8 @@ export function degerlendirme(o: DepremOzeti): { metin: string; ton: 'iyi' | 'or
   });
   // Manşetle aynı durum (G23b): damgalı bina yoksa "denetlediğin bina yoktu".
   if (o.toplam === 0) return d('denetlediğin bina yoktu', 'orta');
-  if (o.doluCoken > 0 && o.doluCoken === o.iadeCoken) return d('iade ettiğin binalar denetlenmeden çöktü', 'kotu');
-  if (o.doluCoken > 0) return d('onayladığın binalar çöktü', 'kotu');
+  if (o.doluCoken > 0 && o.doluCoken === o.iadeCoken) return d(sayiyla(o.doluCoken, DEGERLENDIRME_SAYILI.iadeCoken), 'kotu');
+  if (o.doluCoken > 0) return d(sayiyla(o.doluCoken, DEGERLENDIRME_SAYILI.doluCoken), 'kotu');
   if (o.doluAgir > 0) return d('yıkım yok ama ağır hasar var', 'orta');
   return d('sokak depreme hazırdı', 'iyi');
 }

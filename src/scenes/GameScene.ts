@@ -84,9 +84,10 @@ const ISTE_BASLIK: Record<IsteAlani, string> = {
 const SAHA_SAYAC = { x: 1048, y: BANT_H + 24, w: 152, h: 40 };
 /**
  * Saha testinin süre göstergesi (G24): tezgâhtaki saatin (Window, x 248) hemen altında asılı kısa etiket. Saha
- * paneli masayı örttüğü için onun üstünde (derinlik).
+ * paneli masayı örttüğü için onun üstünde (derinlik). G35: tezgâh panellerinin altı ile saha yüzeyinin çerçevesi
+ * arasındaki şeride sığar (beton yüzeyine taşmaz); boy yazı boyuyla birlikte.
  */
-const SAAT_YANI = { x: 248, y: BANT_H + 46, derinlik: 7620 };
+const SAAT_YANI = { x: 248, y: BANT_H + 44, boy: 24, derinlik: 7620 };
 /** Öncü etiketlerinin üstü ile pencerenin iç üst kenarı arasındaki en az boşluk (oyun pikseli; 1280×720'de 8 px). */
 const ETIKET_UST_PAY = 12;
 /** Köşedeki fişin (gölgesi dahil) alt kenarı ile ekranın altı arasındaki boşluk (0: gölge ekranın alt kenarında). */
@@ -831,7 +832,7 @@ export class GameScene extends Phaser.Scene {
     const yazi = this.add
       .text(SAAT_YANI.x, SAAT_YANI.y, SAHA_SURE.replace('{dk}', String(TUNING.saha.dakika)), {
         fontFamily: FONT,
-        fontSize: '32px',
+        fontSize: `${SAAT_YANI.boy}px`,
         color: '#f0e6cc',
         backgroundColor: PAL.damgaBosalt,
         padding: { x: 6, y: 0 },

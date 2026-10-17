@@ -74,6 +74,8 @@ export interface Karar {
   kaynak?: DosyaBilgisi['kaynak'];
   /** O günün kurallarına göre dosyadaki kusurlar (geri bildirim fişi için). */
   kusurlar: KusurId[];
+  /** kusurlar ile aynı sırada fişte görünen etiketler (kaçak katta fark: "Kaçak kat (+2)"). Gün sonu raporu da bunu kullanır. */
+  etiketler?: string[];
   /** Oyuncunun inceleme modunda bu dosyada bulduğu kusurlar (gün sonu ekranı için). */
   bulunan: KusurId[];
   /** Gişede teklif edilen zarf (kabul edildiyse damga istenen damgadır; para gün sonuna eklenir). */
@@ -146,6 +148,8 @@ export interface DepremBinaSonucu {
   no: number;
   /** Damgalandığı gün. */
   gun: number;
+  /** Binanın gün sonu raporundaki adı (ör. "Bina 03", hikâye binasında "Bina H1"; G35 gazete). */
+  adres: string;
   damga: Damga;
   /** Oyuncunun kararı o günün kurallarına göre doğru muydu. */
   dogru: boolean;
@@ -175,6 +179,7 @@ export function buyukDeprem(tohum: number, kayitlar: readonly GunKaydi[], zarfKa
       dosyaId: s.bina.id,
       no: i + 1,
       gun: s.gun,
+      adres: s.bina.adres,
       damga: s.damga,
       dogru: dogru.get(s.bina.id) ?? false,
       kusurlu: fizikselKusurlar(s.bina, s.gun).length > 0,
@@ -260,6 +265,15 @@ export interface OyunToplami {
  */
 export function bulunanSayisi(c: Pick<Karar, 'bulunan' | 'kusurlar'>): number {
   return c.bulunan.filter((id) => c.kusurlar.includes(id)).length;
+}
+
+/**
+ * Bulunan kusurun gün sonu raporundaki etiketi (G35): fişle aynı kaynak (kararın kusur etiketleri; kaçak katta fark
+ * "(+n)"). Kusur dosyanın son listesinde yoksa yer tutucu etiket.
+ */
+export function kusurEtiketi(c: Pick<Karar, 'kusurlar' | 'etiketler'>, id: KusurId): string {
+  const i = c.kusurlar.indexOf(id);
+  return (i >= 0 ? c.etiketler?.[i] : undefined) ?? KUSUR_BILGI[id].etiket;
 }
 
 export function oyunToplami(kayitlar: readonly GunKaydi[]): OyunToplami {
@@ -693,7 +707,8 @@ export class GunOturumu {
     // Sahte rapor getirildiyse dosyanın kusuru sayılır (doğru damga zaten İADE ya da BOŞALT).
     if (this.sahteRaporlar.length > 0) gorunen.push({ id: 'sahteRapor', ...KUSUR_BILGI.sahteRapor });
     const kusurlar = gorunen.map((k) => k.id);
-    const sonuc: DamgaSonucu = { dogru, dogruDamga: dogru ? damga : tercih, kabul, kusurlar, etiketler: gorunen.map((k) => k.etiket) };
+    const etiketler = gorunen.map((k) => k.etiket);
+    const sonuc: DamgaSonucu = { dogru, dogruDamga: dogru ? damga : tercih, kabul, kusurlar, etiketler };
     const karar: Karar = {
       dosyaId: b.id,
       damga,
@@ -701,6 +716,7 @@ export class GunOturumu {
       dogru,
       kabul,
       kusurlar,
+      etiketler: etiketler.slice(),
       bulunan: this.bulunan.slice(),
     };
     if (dis) karar.kaynak = { ...this.bilgi.kaynak };

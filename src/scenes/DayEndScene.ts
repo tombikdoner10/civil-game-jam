@@ -11,8 +11,7 @@ import { SON_GUN } from '../game/days';
 import { ZARF_ETIKET } from '../game/diyalog';
 import { KISA_YOL_ACIKLAMA, KISA_YOL_DEVAM, KISA_YOL_DUGME, kucukDepremSatiri } from '../game/gazete';
 import { kisaYolKayitlari } from '../game/ornek';
-import { KUSUR_BILGI } from '../game/rules';
-import { gunHesabi, type GunKaydi, type Karar, type SarsintiKaydi } from '../game/session';
+import { gunHesabi, kusurEtiketi, type GunKaydi, type Karar, type SarsintiKaydi } from '../game/session';
 import { TUNING } from '../game/tuning';
 import { fadeIn, goTo } from '../systems/transition';
 import type { GameData } from './GameScene';
@@ -121,7 +120,8 @@ export class DayEndScene extends Phaser.Scene {
       if (k) {
         ogeler.push(...this.damgaCip(L + SUTUN.damga, y, k.damga));
         ogeler.push(...this.damgaCip(L + SUTUN.dogru, y, k.dogruDamga));
-        const bulunan = k.bulunan.map((id) => KUSUR_BILGI[id].etiket).join(', ') || '—';
+        // Fişle aynı etiket (G35): kaçak katta fark "(+n)" da görünür.
+        const bulunan = k.bulunan.map((id) => kusurEtiketi(k, id)).join(', ') || '—';
         // Zarf alınan dosya (G22): sonuç sütununun solunda kırmızı işaret; kusur yazısı ona yer bırakır.
         const zarf = !!k.zarf?.kabul;
         ogeler.push(this.sigdir(yaz(L + SUTUN.kusur, y, bulunan, 30), SUTUN.sonuc - SUTUN.kusur - (zarf ? 250 : 150)));

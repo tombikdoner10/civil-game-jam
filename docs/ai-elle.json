@@ -253,5 +253,19 @@
     "yer": "src/game/rules.ts, src/game/session.ts, src/scenes/GameScene.ts, src/scenes/ResultScene.ts, scripts/adalet.mjs",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T06:19:06.977Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G35 cila: rapor kusur etiketi, gazete bina adları, inceleme çerçevesi/etiket yeri, saha süre etiketi, gazete Enter bekletme (Bash betiğiyle düzenleme)",
+    "yer": "src/game/session.ts, src/scenes/DayEndScene.ts, src/scenes/NewspaperScene.ts, src/desk/Inspect.ts, src/scenes/GameScene.ts, scripts/adalet.mjs",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T07:01:33.021Z"
+  },
+  {
+    "kategori": "text",
+    "amac": "G35: manşet ve değerlendirme yer tutucularının tekil biçimleri (Bash betiğiyle düzenleme)",
+    "yer": "src/game/gazete.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T07:01:33.076Z"
   }
 ]
