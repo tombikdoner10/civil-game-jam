@@ -8,7 +8,8 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G49 [teknik] (sürüyor, Opus/high) İnceleme modunda kusur etiketi belgedeki değer alanını örtmesin (gün 2 KESİK KOLON etiketi "7 kolon" satırının üstünde); bütün günlerde etiket yerleşimi.
+- [ ] G50 [teknik] (sürüyor, Opus/high) İnceleme modunda kapalı klasöre tıklamak klasörü açıyor ve aynı tıklamayla açılan sayfadaki kural satırını seçiyor (G49 raporu, önceden var olan hata).
+- [ ] G49 [teknik] (bitti 2066a4c, test sürüyor, Opus/low) İnceleme modunda kusur etiketi belgedeki değer alanını örtmesin (gün 2 KESİK KOLON etiketi "7 kolon" satırının üstünde); bütün günlerde etiket yerleşimi.
 
 ## Sırada
 
