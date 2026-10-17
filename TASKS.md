@@ -8,8 +8,8 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G47 [teknik] (sürüyor, Opus/high) Kapsam garantisi: her kusur türü tanıtıldığı gün en az bir kez görünür (1000 tohumda 13/13); oyunda henüz sahte rapor gelmediyse gün 3+ ikinci İSTE'den itibaren sahte rapor gelir; adalet denetimi.
-- [ ] G48 [teknik] (sırada) Yeni araçlar için tek seferlik ipucu: SOR (gün 2), İSTE ve SAHA (gün 3); kullanılınca kalkar.
+- [ ] G47 [teknik] (bitti ea4cdc6, test sürüyor, Opus/low) Kapsam garantisi: her kusur türü tanıtıldığı gün en az bir kez görünür (1000 tohumda 13/13); oyunda henüz sahte rapor gelmediyse gün 3+ ikinci İSTE'den itibaren sahte rapor gelir; adalet denetimi.
+- [ ] G48 [teknik] (sürüyor, Opus/high) Yeni araçlar için tek seferlik ipucu: SOR (gün 2), İSTE ve SAHA (gün 3); kullanılınca kalkar.
 
 ## Sırada
 
