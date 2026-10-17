@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G40 [teknik] (sürüyor, Opus/high) Portreler: kodla daha ayrıntılı yüz (burun, kaş, çene, kırışıklık/yaş, göz tipleri, daha çok saç/sakal/başlık, üç tonlu ışık-gölge) ve mizaç ifadeleri (sinirli çatık kaş, telaşlı kalkık kaş+ter, kurnaz yan gülüş, çekingen aşağı bakış, kibar gülümseme); T33 kişi tipleri gelirse onlara göre.
 
 ## Sırada
 
@@ -73,6 +72,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G40 Portreler: yaş, burun/göz/kaş/çene tipleri, kulak, yeni saç ve sakallar, 3 tonlu ışık; mizaç × ifade tablosu (IFADE_TABLO); sabit kısım bir kez çiziliyor; galeri 24 portre + 5 mizaç satırı (92f0b90, Opus/high; test sürüyor)
 - [x] G39 Deprem hızlandırma yumuşak 3 kat (kısa yolda sallantı ~8,7 sn, 5 günde ~10,6 sn) + ikinci basış sona atlar ("[Enter: geç]"); müşteri 4 adımda yürüyerek gelir, 3 adımda gider, 1 sn boş gişe, saat durur; adalet 35263/0 (710bbef, Opus/high; test geçti)
 - [x] G37 Kısa yol manşeti ve değerlendirmesi "senin binaların + sokak" (kusursuzda yeşil + iyi jingle); zarf+onay tek ifade (5 günlük yolda da); uzun manşet iki satır; adalet 35263/0 (163f58c + 79561a0, Opus/high; test geçti)
 - [x] G38 Emeği Geçenler sırası (Takım → Takımın kararları (boşsa gizli) → Hazır kaynaklar → AI); deprem genel planı ölçek ≥2/3, etiketler ekran içinde; npm run yer-tutucu (476 dize) (62f4707, Opus/high; test geçti)
