@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G46 [teknik] (sürüyor, Opus/high) Eleştirmen 8 düzeltmeleri: gün 1 kural notu (GÜVENLİ durumu, "Fotoğrafta 1 kat fazlaysa"); gazetede "Bunlardan boşaltılmış" kalkar, sonuç kutusu alt yazısı "N binadan"; Takımın kararları 6. madde ve AI özeti "other" beyanla tutarlı (ses seçimi Claude'da, ses ortamı ve görsel yön takımda); "Senin evin" cümleleri (katılamamıştın, -mıştın biçimleri, boşaltılmış evde "Ailen hazırlıksız kaldı.").
 
 ## Sırada
 
