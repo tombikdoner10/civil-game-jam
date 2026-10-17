@@ -8,7 +8,8 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G57 [teknik] (sürüyor, Opus/high) Müfettiş: zarflı yanlış karar gün sonunda %50 yakalanır, zarfa el konur ve 40 TL ceza; dürüstlük övgüsü (GERİ VER gazete ve sonuçta). Özellik dondurma bu iş için 01.00.
+- [ ] G57b [teknik] (sürüyor, Opus/high) Raporda müfettiş satırı küçük deprem satırının hemen altında; "Zarf: +0 TL (1 kabul)" yerine el konulanı söyleyen metin.
+- [ ] G57 [teknik] (bitti 96064cd + 62e74eb, test sürüyor, Opus/low) Müfettiş: zarflı yanlış karar gün sonunda %50 yakalanır, zarfa el konur ve 40 TL ceza; dürüstlük övgüsü (GERİ VER gazete ve sonuçta). Özellik dondurma bu iş için 01.00.
 
 ## Sırada
 
