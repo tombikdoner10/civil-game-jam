@@ -83,6 +83,7 @@ Ara testte takım oyunu fazla Papers, Please'e benzer buldu. Seçilenlerin hepsi
 
 - **Kısa yol gazetesi istatistiği (T22):** Önce jürinin kendi binaları ("senin binaların"), sonra bütün sokak. Jürinin görmediği İADE ve "içi boş" satırları gizlenir. 5 günlük normal yol değişmez. → G30
 - **Kısa yol ifadesi (T23):** Düğme soru olarak kalır ("[BÜYÜK DEPREM BU GECE OLSAYDI?]"); rapordaki satır kısalır: "[Kararlarının sonucunu şimdi gör.]" (tekrar kalkar). → G32
+- **Diyalog çeşitliliği (takım isteği, 07:54):** Gişedeki kişilerin cümleleri çeşitli ve değişken: her kişiye bir mizaç (kibar, sinirli, telaşlı, kurnaz, çekingen) ve ona uygun selam, bekleme, sabırsızlık, zarf ve damga tepkileri; aynı oyunda cümle tekrar etmez (deste); cümlelerde bina ayrıntıları ({kat}, {yil}, {ada}, {bina}); kişi denetçiye tepki verir (3. sorudan sonra sabırsızlanır, uzun beklemede söylenir). Mizaç yalnızca tonu seçer, kuralları ve dengeyi değiştirmez. Taslakları Claude yazdı (src/game/diyalog-metin.ts, 393 cümle), takım düzeltecek (T28). → G33
 - **Ses ortamı (T24):** Masa sessiz kalır (ciddi ton). Gazete ve sonuç ekranına Kenney Music Jingles paketinden kısa jingle (gün sonu raporunda zaten aynı paket var; yeni lisans yok). → G32
 
 ### Kurallar netleşti (takım kararı, 16 Ekim 23.53)
