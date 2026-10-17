@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G62 [teknik] (sürüyor, Opus/high) Kartlarda "Beton dayanımı"/"Zemin türü" ve getirilen raporda "Tarih"/"Lab mührü" satırlarının etiket kısmı da seçilebilsin.
+- [ ] G62 [teknik] (bitti f3340ed, test sürüyor, Opus/low) Kartlarda "Beton dayanımı"/"Zemin türü" ve getirilen raporda "Tarih"/"Lab mührü" satırlarının etiket kısmı da seçilebilsin.
 
 ## Sırada
 
