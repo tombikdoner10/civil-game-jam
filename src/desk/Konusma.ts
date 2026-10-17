@@ -17,6 +17,8 @@ export interface SoyleSecenek {
 
 const KAGIT = '#e3d8b8';
 const KAGIT_KOYU = '#bfb08a';
+/** Yarıda kapatılan balon tamamlanınca solmadan önce bu kadar kalır (ms). */
+const YARIM_KALIS = 500;
 
 /**
  * Gişedeki kişinin konuşma balonu (G17): cama iliştirilmiş kâğıt fiş gibi, VT323. Metin harf harf yazılır
@@ -32,6 +34,8 @@ export class Konusma {
   private solma?: Phaser.Time.TimerEvent;
   private secenek: SoyleSecenek = {};
   private sayac = 0;
+  /** Solmakta olan önceki balon: yeni cümle gelirse hemen kalkar (üst üste binmesin). */
+  private solan?: Phaser.GameObjects.Container;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -49,6 +53,8 @@ export class Konusma {
   /** Yeni cümle: öncekinin yerine geçer. */
   soyle(metin: string, secenek: SoyleSecenek = {}): void {
     this.temizle();
+    this.solan?.destroy();
+    this.solan = undefined;
     this.secenek = secenek;
     const s = this.scene;
     const { x, y, w } = this.alan;
@@ -114,13 +120,29 @@ export class Konusma {
     this.bitir();
   }
 
-  /** Balonu sol (hemen değil, kısa bir solmayla). */
+  /**
+   * Balonu sol (hemen değil, kısa bir solmayla). Yazı henüz bitmediyse (G28: kişi cümle bitmeden gişeden ayrılır)
+   * cümle anında tamamlanır ve okunsun diye kısa bir an (YARIM_KALIS ms) durduktan sonra solar; balon hiç yarım
+   * cümleyle kaybolmaz. Oyun akışı beklemez.
+   */
   kapat(): void {
     const kap = this.kap;
     if (!kap) return;
+    const yarim = this.yaziyor;
+    if (yarim) this.yazi?.setText(this.tam);
     this.temizle(false);
     for (const o of kap.list) (o as Phaser.GameObjects.Image).disableInteractive?.();
-    this.scene.tweens.add({ targets: kap, alpha: 0, duration: 200, onComplete: () => kap.destroy() });
+    this.solan = kap;
+    this.scene.tweens.add({
+      targets: kap,
+      alpha: 0,
+      duration: 200,
+      delay: yarim ? YARIM_KALIS : 0,
+      onComplete: () => {
+        if (this.solan === kap) this.solan = undefined;
+        kap.destroy();
+      },
+    });
   }
 
   /** Her şeyi hemen kaldır. */

@@ -10,8 +10,8 @@ import type { DepremBinaSonucu, DepremOzeti } from './session';
 
 /** Gece geçişindeki yazı (G24: deprem önceden bilinmez; saat ya da tarih iddiası yok). */
 export const GECE_SAATI = '[Bir gece]';
-/** Büyük deprem sahnesinin köşesindeki ipucu (G25): birkaç saniye sonra Enter/Space/tık depremi hızlandırır. */
-export const DEPREM_GEC = '[Enter: geç]';
+/** Büyük deprem sahnesinin köşesindeki ipucu (G25, G28): Enter/Space/tık depremi hızlandırır (gece kartında da). */
+export const DEPREM_GEC = '[Enter ya da tıkla: hızlandır]';
 
 export const GAZETE_ADI = '[GAZETE ADI]';
 /** Gazete künyesi. G11: tarih yok (deprem dili: tarih ve kehanet verilmez). */

@@ -51,16 +51,21 @@ export function sonucRengi(s: DepremBinaSonucu): string {
 /** Sahne zamanlaması (ms): saat yazısı, perdenin açılması, depremin başlaması, gazeteye geçiş. */
 const ZAMAN = { saatGel: 400, saatGit: 2600, perde: 3000, perdeSure: 1600, deprem: 5200, sonra: 2400 };
 /**
- * Hızlı geçiş (G25, jüri için): sahne açıldıktan bekleme ms sonra Enter/Space/tık depremi kat kat hızlandırır (sahnenin
- * zamanlayıcıları ve tween'leri); deprem bitince normal hıza döner, genel görünüm sonra ms durur ve gazeteye geçilir.
- * Sonuçlar baştan hesaplı olduğu için değişmez. Deprem bittikten sonra Enter/Space/tık hemen gazeteye geçer.
+ * Hızlı geçiş (G25, G28; jüri için): Enter/Space/tık depremi kat kat hızlandırır (sahnenin zamanlayıcıları ve
+ * tween'leri); deprem bitince normal hıza döner, genel görünüm sonra ms durur ve gazeteye geçilir. Sonuçlar baştan
+ * hesaplı olduğu için değişmez. Deprem bittikten sonra Enter/Space/tık hemen gazeteye geçer.
+ * Gece kartı ("[Bir gece]") göründükten koruma ms sonra gelen YENİ basış (tuş tekrarı değil) saklanır ve kart bitince
+ * uygulanır (G28): rapordan kısa yolu başlatan Enter ya da basılı tutulan tuş depremi atlatmaz. Hiç basılmazsa deprem
+ * tam süre oynar. Kart bittikten sonraki basış hemen hızlandırır.
  */
-const ATLA = { bekle: 3000, kat: 10 };
+const ATLA = { koruma: 250, kat: 10 };
+/** Hızlandırma ipucu (G28): sağ altta, koyu zemin üstünde tam opak; hızlandırılana kadar hafifçe nabız gibi atar. */
+const IPUCU = { x: 1880, y: 1036, boyut: 44, pay: 18, nabiz: 0.06, nabizMs: 520 };
 
 /**
  * Büyük deprem (G5): gece geçişi (kararma, saat), sonra oyuncunun kararlarıyla dolan sokak tam ekran ve gece.
  * Sokak binalık gruplarla taranır, her bina adalet kurallarıyla (session.buyukDeprem) tepki verir; sonunda bütün
- * sokak görünür ve gazeteye geçilir. Enter/Space/tık birkaç saniye sonra depremi hızlandırır (G25, ATLA); Esc
+ * sokak görünür ve gazeteye geçilir. Enter/Space/tık depremi hızlandırır (G25, G28: gece kartında da; ATLA); Esc
  * duraklatır (gürleme susar, sekans durur).
  */
 export class QuakeScene extends Phaser.Scene {
@@ -150,36 +155,83 @@ export class QuakeScene extends Phaser.Scene {
       const data: NewspaperData = { ...v, sonuclar };
       goTo(this, SCENES.Newspaper, data, 600);
     };
+    // İpucu: koyu zemin üstünde büyük ve tam opak (G28); gece kartı göründüğünde belirir, hızlandırılana kadar atar.
+    const ipucuYazi = this.add
+      .text(0, 0, DEPREM_GEC, { fontFamily: FONT, fontSize: `${IPUCU.boyut}px`, color: PAL.saat })
+      .setOrigin(1, 1);
+    const ipucuZemin = this.add
+      .rectangle(IPUCU.pay, IPUCU.pay * 0.5, ipucuYazi.width + IPUCU.pay * 2, ipucuYazi.height + IPUCU.pay, 0x0e0d10, 0.85)
+      .setOrigin(1, 1)
+      .setStrokeStyle(4, 0x3a3644);
     const ipucu = this.add
-      .text(1872, 1040, DEPREM_GEC, { fontFamily: FONT, fontSize: '32px', color: PAL.panelYazi })
-      .setOrigin(1, 0.5)
+      .container(IPUCU.x - IPUCU.pay, IPUCU.y - IPUCU.pay * 0.5, [ipucuZemin, ipucuYazi])
       .setDepth(102)
       .setAlpha(0);
+    let nabiz: Phaser.Tweens.Tween | undefined;
+    // Kart bitince hızlandırma serbest (saklanan basış varsa hemen uygulanır).
+    const kartSonu = zaman.saatGit + (v.kisa ? 300 : 400);
+    const girisAcik = zaman.saatGel + ATLA.koruma;
+    let saklanabilir = false;
     let atlanabilir = false;
-    this.time.delayedCall(ATLA.bekle, () => {
-      atlanabilir = true;
-      this.tweens.add({ targets: ipucu, alpha: 0.75, duration: 300, ease: 'Stepped', easeParams: [3] });
+    let saklandi = false;
+    this.time.delayedCall(girisAcik, () => {
+      saklanabilir = true;
+      if (gidildi) return;
+      this.tweens.add({ targets: ipucu, alpha: 1, duration: 240, ease: 'Stepped', easeParams: [3] });
+      nabiz = this.tweens.add({
+        targets: ipucu,
+        scale: 1 + IPUCU.nabiz,
+        duration: IPUCU.nabizMs,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      });
     });
-    const atla = (): void => {
-      if (!atlanabilir || gidildi) return;
-      if (bitti) {
-        gazeteyeGec();
-        return;
-      }
-      if (hizli) return;
+    // Basış alındı: ipucu durur ve söner (kartta saklanan basışın da görünür karşılığı).
+    const ipucuSondur = (): void => {
+      nabiz?.stop();
+      nabiz = undefined;
+      this.tweens.killTweensOf(ipucu);
+      ipucu.setScale(1).setAlpha(0.55);
+    };
+    const hizlandir = (): void => {
+      if (hizli || gidildi) return;
       hizli = true;
+      ipucuSondur();
       this.time.timeScale = ATLA.kat;
       this.tweens.timeScale = ATLA.kat;
       kontrol?.hizlandir(ATLA.kat);
     };
+    this.time.delayedCall(kartSonu, () => {
+      atlanabilir = true;
+      if (saklandi) hizlandir();
+    });
+    const atla = (e?: { repeat?: boolean }): void => {
+      if (gidildi || e?.repeat) return;
+      if (!atlanabilir) {
+        // Gece kartında: koruma süresinden sonraki yeni basış saklanır, kart bitince uygulanır.
+        if (saklanabilir && !saklandi) {
+          saklandi = true;
+          ipucuSondur();
+        }
+        return;
+      }
+      if (bitti) {
+        gazeteyeGec();
+        return;
+      }
+      hizlandir();
+    };
+    const tus = (e: KeyboardEvent): void => atla(e);
+    const tik = (): void => atla();
     const kb = this.input.keyboard;
-    kb?.on('keydown-ENTER', atla);
-    kb?.on('keydown-SPACE', atla);
-    this.input.on(Phaser.Input.Events.POINTER_DOWN, atla);
+    kb?.on('keydown-ENTER', tus);
+    kb?.on('keydown-SPACE', tus);
+    this.input.on(Phaser.Input.Events.POINTER_DOWN, tik);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      kb?.off('keydown-ENTER', atla);
-      kb?.off('keydown-SPACE', atla);
-      this.input.off(Phaser.Input.Events.POINTER_DOWN, atla);
+      kb?.off('keydown-ENTER', tus);
+      kb?.off('keydown-SPACE', tus);
+      this.input.off(Phaser.Input.Events.POINTER_DOWN, tik);
     });
 
     this.time.delayedCall(zaman.deprem, () => {
