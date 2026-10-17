@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G41 [teknik] (sürüyor, Opus/high) Rapordan depreme geçişte basış kaybı (önce yeniden üret); canlıda menüde ilk tıklama kaybı; genel planda soldaki solgun/kırpık etiket; Oyna sonrası fotoğrafın kural notu üstünden kayması.
 
 ## Sırada
 
@@ -74,6 +73,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G41 Rapordan depreme geçişte basış tamponu (girisTamponu.ts), menüde erken tık saklanıyor, genel planda etiket tam opak ya da gizli, belgeler kural notunun altından kayıyor (0e6a5f8, Opus/high; test sürüyor)
 - [x] G40 Portreler: yaş, burun/göz/kaş/çene tipleri, kulak, yeni saç ve sakallar, 3 tonlu ışık; mizaç × ifade tablosu (IFADE_TABLO); sabit kısım bir kez çiziliyor; galeri 24 portre + 5 mizaç satırı (92f0b90 + ek dfb4353: dişsiz gergin yüz, 3,5 sn sonra taban ifade, kibar kaş, kurnaz/çekingen belirgin; + ek 2 be264b1: taban yüzde ağız kapalı, sakal/bıyıkta kapalı ağız okunur; Opus/high; test geçti)
 - [x] G39 Deprem hızlandırma yumuşak 3 kat (kısa yolda sallantı ~8,7 sn, 5 günde ~10,6 sn) + ikinci basış sona atlar ("[Enter: geç]"); müşteri 4 adımda yürüyerek gelir, 3 adımda gider, 1 sn boş gişe, saat durur; adalet 35263/0 (710bbef, Opus/high; test geçti)
 - [x] G37 Kısa yol manşeti ve değerlendirmesi "senin binaların + sokak" (kusursuzda yeşil + iyi jingle); zarf+onay tek ifade (5 günlük yolda da); uzun manşet iki satır; adalet 35263/0 (163f58c + 79561a0, Opus/high; test geçti)
