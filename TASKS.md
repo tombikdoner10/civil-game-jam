@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G51 [teknik] (bitti 494526b, test sürüyor, Opus/low) Eleştirmen 9 düzeltmeleri: Esc önce açık klasörü kapatır; kısa yolda GÜÇLENDİR damgalı hasarlı bina gazete/sonuçta "hasarlı ama ayakta: güçlendirilmişti"; zarf alınmış dosyanın fişinde inceleme ipucu yok; para eksiye düşmez; damgadan sonra etiketteki SOR/İSTE sönük.
 
 ## Sırada
 
@@ -74,6 +73,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G51 Eleştirmen 9 düzeltmeleri: Esc sırası, kısa yolda GÜÇLENDİR ödülü, zarflı fiş, para en az 0 ("Ceza maaşı aştı"), damga sonrası sönük düğmeler (494526b, Opus/high; test GEÇTİ, 7 koşu)
 - [x] G50 İnceleme modunda kapalı klasöre tık yalnızca açıyor, kural satırı seçmiyor (e6bbad4, Opus/high; test GEÇTİ, 7 koşu)
 - [x] G49 Kusur etiketi değerleri, mührü, düğmeleri, zarfı ve fişi örtmüyor (ağırlıklı yerleşim); gün 1 kaçak kat etiketi fotoğrafın altında (2066a4c, Opus/high; test GEÇTİ)
 - [x] G48 Yeni araçlar için tek seferlik ipucu: SOR (gün 2–3), İSTE ve SAHA (gün 3–4), kullanılınca kalkar (680b3f8, Opus/high; test GEÇTİ, 9 koşu hatasız)
