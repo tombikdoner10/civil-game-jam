@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G63b [teknik] (sürüyor, Opus/high) Impact Sounds metnine kilitli kaşe ve alınamayan ev kalemi; ekran ve README hazır kaynak satırları birebir (Tiny Town yolu, Phaser, Fontsource).
+- [ ] G63b [teknik] (bitti f927c21, G63 ile birlikte test sürüyor, Opus/low) Impact Sounds metnine kilitli kaşe ve alınamayan ev kalemi; ekran ve README hazır kaynak satırları birebir (Tiny Town yolu, Phaser, Fontsource).
 - [ ] G63 [teknik] (bitti d6177b1; test G63b ile birlikte) Emeği Geçenler ikinci denetim düzeltmeleri: Metin araç satırına Sonnet 5.5 (kritik), Diğer'e oynanış önerileri, Ses'te müzik ifadesi, Impact Sounds ve RPG Audio kullanım metinleri, başlık "Yapay zekâ beyanı", ses paket adları öneksiz.
 
 ## Sırada
