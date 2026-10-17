@@ -16,7 +16,7 @@ Son test (xhigh, 78/100) sonrası (G34, G36, G35, G38, G37 bitti; sırada G31)
 
 Eleştirmen 4 sonrası (sıra: G31 (metinler gelince))
 
-- [ ] G44 [teknik] (düşük) 5 günlük yolda kendi apartman 2/3 taksitte "Evin çöktü" (soyut evde 2/3 = hasarlı): kısmi taksit kendi apartmanda da bir kademe iyileştirsin ya da soyut evle aynı mantık; dev ?ev= bedelsiz kademeler "Evine harcanan"a yazılmasın.
+- [ ] G44 [teknik] (sürüyor, Opus/high) (düşük) 5 günlük yolda kendi apartman 2/3 taksitte "Evin çöktü" (soyut evde 2/3 = hasarlı): kısmi taksit kendi apartmanda da bir kademe iyileştirsin ya da soyut evle aynı mantık; dev ?ev= bedelsiz kademeler "Evine harcanan"a yazılmasın.
 - [ ] G31 [teknik] (metinler gelince; ek: 5 günlük değerlendirme şeridi uzunsa okunurluk, iki satırlık manşet ile fotoğraf arası boşluk) Takım metinleri gelince tutarlılık geçişi: TITLE (config.ts) HTML başlığı, Splash, README, BENIOKU'da; köşeli parantezli yer tutucular kalkar; fiş, kural notu, rapor 1080p ve 720p'de taşmıyor (fiş-not arası G26'da ~10 px).
 
 Çekirdek döngü (hedef: Cumartesi 14.00 ara test; sıra: G4 → G4b → G12 → G5 → G13)
