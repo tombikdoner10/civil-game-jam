@@ -10,7 +10,7 @@
         "src/desk/tiles.ts (hasarCiz)",
         "src/desk/Portre.ts, Konusma.ts, Zarf.ts, Window.ts, Inspect.ts, documents.ts, RuleBook.ts",
         "src/desk/documents.ts (ruhsat, vaziyet planı, karot, zemin etüdü, getirilen belgeler)",
-        "src/desk/ (20 dosya)",
+        "src/desk/ (21 dosya)",
         "src/scenes/ (4 dosya)",
         "src/ui/ (2 dosya)"
       ]
@@ -41,7 +41,7 @@
         "src/game/{building,rules,kisi,session,days,tuning,ornek}.ts, src/scenes/GameScene.ts, src/desk/{Inspect,RuleBook,Street,yerlesim}.ts, scripts/adalet.mjs",
         "src/scenes/GameScene.ts, src/desk/{Kaselik,Klasor,documents,props,yerlesim}.ts, src/game/days.ts, src/audio/sesler.ts",
         "src/desk/{BinaEtiketi,Inspect,Kaselik,Klasor,Quake,Street,Window,documents}.ts, src/scenes/{Game,DayEnd,Newspaper,Quake,Result}Scene.ts, src/game/gazete.ts, README.md, docs/BENIOKU.txt",
-        "src/game/ (8 dosya)",
+        "src/game/ (9 dosya)",
         "src/scenes/ (5 dosya)",
         "scripts/ (2 dosya)",
         "src/desk/yerlesim.ts",
