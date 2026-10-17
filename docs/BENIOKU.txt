@@ -25,8 +25,9 @@ KONTROLLER
 - Space: inceleme modunu aç / kapa (inceleme modunda iki alana tıkla)
 - Yönetmelik klasörüne tıkla: kuralları aç (gün 2'den)
 - Esc ya da P: duraklat
-- Enter ya da Space: gün sonu raporunda sonraki gün
-- D: gün 1 sonu raporunda "Depremi şimdi yaşa" (büyük depreme kısa yol)
+- Enter ya da Space: gün sonu raporunda sonraki gün (gün 1 raporunda kısa yol)
+- N: gün 1 sonu raporunda sonraki gün
+- D: gün 1 sonu raporunda "[Büyük deprem bu gece olsaydı?]" (büyük depreme kısa yol)
 
 BİLİNEN SORUNLAR
 - Yok.

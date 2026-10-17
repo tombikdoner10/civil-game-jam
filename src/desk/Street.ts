@@ -360,6 +360,17 @@ export class Sokak {
     }
   }
 
+  /** Lamba ışığı sayısı (menü: arızalı lamba titrer, G11). */
+  get lambaSayisi(): number {
+    return this.lambalar.length;
+  }
+
+  /** i. lamba ışığının parlaklığı (k: taban saydamlığın katı; 1 = olağan). */
+  lambaParlakligi(i: number, k: number): void {
+    const l = this.lambalar[i];
+    if (l) l.img.setAlpha(l.alfa * k);
+  }
+
   /** Bir sanat pikselinin ekran boyu. */
   get olcek(): number {
     return this.O;

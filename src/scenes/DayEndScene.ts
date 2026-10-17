@@ -85,8 +85,8 @@ export class DayEndScene extends Phaser.Scene {
       this.add.text(snap(x), snap(y), t, { fontFamily: FONT, fontSize: `${size}px`, color: renk }).setOrigin(ox, 0.5);
 
     // Başlık
+    // Gün sayacı ("1/5") yok (G11): deprem önceden bilinmez, kaçıncı günde olacağı ima edilmesin.
     yaz(L + 40, T + 44, `GÜN ${v.gun} · GÜN SONU`, 64, PAL.kremAcik);
-    yaz(L + KAGIT.w - 40, T + 44, `${v.gun}/${SON_GUN}`, 40, PAL.kremAcik, 1);
     yaz(L + 40, T + 124, 'Günlük denetim raporu', 30, PAL.murekkepSoluk);
 
     // Tablo başlığı
@@ -160,7 +160,8 @@ export class DayEndScene extends Phaser.Scene {
 
     // Hesap
     const P = TUNING.para;
-    const hy = Math.max(y + 24 + oncuH, T + 700);
+    // Hesap bloğu düğmelerin odak çerçevesine değmesin (G11): en geç T + 680'de başlar.
+    const hy = Math.max(y + 24 + oncuH, T + 680);
     this.add.rectangle(L + 32, hy - 16, KAGIT.w - 64, PX, num(PAL.murekkepSoluk)).setOrigin(0);
     const sol = L + 40;
     // Sayılar toplanınca dosya sayısını verir (G5b): Doğru + Yanlış + İşlenmedi = dosya. İADE ayrı bir sayı değil;
@@ -200,7 +201,7 @@ export class DayEndScene extends Phaser.Scene {
       yaz(deger, yy, b, i === 3 ? 44 : 36, renk, 1);
     });
 
-    // Sonraki gün düğmesi; gün 1'de yanında kısa yol (G21, jüri yolu): "Depremi şimdi yaşa". Gün 1'de kısa yol
+    // Sonraki gün düğmesi; gün 1'de yanında kısa yol (G21, jüri yolu; soru biçimli düğme). Gün 1'de kısa yol
     // birincil (G21b, lider kararı): Enter/Space ve D onu seçer, düğmesi çerçeveli ve nabız gibi atar; "Sonraki gün"
     // ikincil (gri, tıklama ya da N). Gün 2-5'te Enter/Space yine "Sonraki gün".
     const son = v.gun >= SON_GUN;
@@ -215,7 +216,7 @@ export class DayEndScene extends Phaser.Scene {
     };
     const dugme = pikselDugme(
       this,
-      L + KAGIT.w / 2 - (kisaVar ? 300 : 0),
+      L + KAGIT.w / 2,
       by,
       son ? 'GECE' : 'SONRAKİ GÜN',
       kisaVar ? 'N' : 'Enter',
@@ -225,12 +226,17 @@ export class DayEndScene extends Phaser.Scene {
     this.tweens.add({ targets: dugme, alpha: 1, duration: 120 });
     let birincil = dugme;
     if (kisaVar) {
-      const kx = L + KAGIT.w / 2 + 300;
-      const kd = pikselDugme(this, kx, by, KISA_YOL_DUGME, 'Enter', kisaTus, {
+      const kd = pikselDugme(this, L + KAGIT.w / 2, by, KISA_YOL_DUGME, 'Enter', kisaTus, {
         govde: PAL.damgaBosalt,
         acik: '#c4544a',
         koyu: '#6e2a24',
       });
+      // İki düğme kâğıdın ortasına göre simetrik (G11): aralarında boşluk, ikisinin toplamı ortalanır.
+      const ara = 64;
+      const sol = L + KAGIT.w / 2 - (dugme.width + ara + kd.width) / 2;
+      dugme.setX(snap(sol + dugme.width / 2));
+      const kx = snap(sol + dugme.width + ara + kd.width / 2);
+      kd.setX(kx);
       this.tweens.add({ targets: kd, alpha: 1, duration: 120 });
       birincil = kd;
       // Odak çerçevesi: birincil düğmenin çevresinde, nabız gibi.

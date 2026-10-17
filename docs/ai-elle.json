@@ -53,7 +53,7 @@
   },
   {
     "kategori": "code",
-    "amac": "G4b: kalıcı sokak ve öncü sarsıntı bağlantıları (betikle düzenleme)",
+    "amac": "G4b: kalıcı sokak ve küçük deprem bağlantıları (betikle düzenleme)",
     "yer": "src/game/session.ts, rules.ts, tuning.ts, src/scenes/GameScene.ts, DayEndScene.ts, src/desk/Window.ts",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-16T19:38:53.970Z"
@@ -75,7 +75,7 @@
   {
     "kategori": "audio",
     "amac": "Deprem gürlemesinin tabanını kodla üreten döngü (kahverengi gürültü, filtre, dalgalanma) ve Kenney ses dosyalarının hız/perde/katman ayarları",
-    "yer": "Öncü sarsıntı sesi (src/audio/sfx.ts, src/audio/sesler.ts)",
+    "yer": "Küçük deprem sesi (src/audio/sfx.ts, src/audio/sesler.ts)",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-16T19:55:25.439Z"
   },
@@ -151,7 +151,7 @@
   },
   {
     "kategori": "code",
-    "amac": "G5b toplu düzeltmeler (öncü etiketleri, klasör, inceleme, gün sonu, tarih paneli, gazete): kod düzenlemelerinin bir kısmı Claude'un Python değiştirme betiğiyle yapıldı",
+    "amac": "G5b toplu düzeltmeler (küçük deprem etiketleri, klasör, inceleme, gün sonu, tarih paneli, gazete): kod düzenlemelerinin bir kısmı Claude'un Python değiştirme betiğiyle yapıldı",
     "yer": "src/desk/{BinaEtiketi,Inspect,Kaselik,Klasor,Quake,Street,Window,documents}.ts, src/scenes/{Game,DayEnd,Newspaper,Quake,Result}Scene.ts, src/game/gazete.ts, README.md, docs/BENIOKU.txt",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-16T23:29:51.271Z"
@@ -176,5 +176,19 @@
     "yer": "src/desk/Klasor.ts, src/desk/props.ts, src/scenes/GameScene.ts, src/scenes/DayEndScene.ts, src/scenes/NewspaperScene.ts",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T02:01:55.586Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G11: menü sokağı, ruhsat kâğıdı ve gün sonu düğmeleri; kâğıt, kenar karartma, sokak lambası ve gün sonu kodunun bir kısmı Python değiştirme betiğiyle düzenlendi",
+    "yer": "src/ui/kagit.ts, src/ui/backdrop.ts, src/desk/Street.ts, src/scenes/DayEndScene.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T02:15:00.687Z"
+  },
+  {
+    "kategori": "text",
+    "amac": "G11: README, BENIOKU ve AI beyanı açıklamalarında küçük deprem ve soru biçimli kısa yol ifadeleri (Python betiğiyle düzenleme)",
+    "yer": "README.md, docs/BENIOKU.txt, docs/ai-elle.json",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T02:15:00.747Z"
   }
 ]

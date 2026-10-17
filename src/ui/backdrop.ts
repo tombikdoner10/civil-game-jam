@@ -10,11 +10,16 @@ import { masaCiz } from '../desk/props';
 export function addBackdrop(scene: Phaser.Scene): void {
   scene.cameras.main.setRoundPixels(true);
   masaCiz(scene, 0).setDepth(-20);
-  const g = scene.add.graphics().setDepth(-19);
+  kenarKarart(scene, -19);
+}
+
+/** Kenarlardan ortaya doğru azalan karartma (4 px'lik bantlar, piksel tarzı). guc: en dıştaki bandın koyuluğu katı. */
+export function kenarKarart(scene: Phaser.Scene, derinlik: number, guc = 1): void {
+  const g = scene.add.graphics().setDepth(derinlik);
   // Kenarlardan ortaya doğru azalan karartma (4 px'lik bantlar, piksel tarzı).
   const adim = 8;
   for (let i = 0; i < adim; i++) {
-    const a = 0.07 * (adim - i) / adim;
+    const a = (0.07 * guc * (adim - i)) / adim;
     const pay = i * 24;
     g.fillStyle(0x000000, a);
     g.fillRect(0, 0, WIDTH, pay + 24);
