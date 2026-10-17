@@ -117,7 +117,7 @@ export const KURALLAR: Kural[] = [
     id: 'kat',
     ilkGun: 1,
     kusurlar: ['kacakKat'],
-    metin: `Kural: ruhsattaki kat sayısı (zemin dahil) fotoğraftakiyle aynı olmalı. 1 kat fazlaysa GÜÇLENDİR, ${TUNING.kacakKatBosaltFark} ve üstüyse BOŞALT.`,
+    metin: `Kural: ruhsattaki kat sayısı (zemin dahil) fotoğraftakiyle aynı olmalı. Fotoğrafta 1 kat fazlaysa GÜÇLENDİR, ${TUNING.kacakKatBosaltFark} ve üstü fazlaysa BOŞALT.`,
   },
   {
     id: 'kolon',
@@ -220,7 +220,7 @@ export function yeniKusurlari(k: Kural, gun: number): KusurId[] {
 export const YONERGE_NOTU = 'Belediye denetim yönergesi (oyun için sadeleştirilmiştir)';
 
 /** Gün 1 kural notunun ilk satırı: oyunun hedefi. */
-export const GOREV_NOTU = 'Belgeleri karşılaştır, kurala uymayanı damgala.';
+export const GOREV_NOTU = 'Belgeleri karşılaştır, her dosyaya bir kaşe vur. Sorun yoksa GÜVENLİ.';
 
 function kusur(id: KusurId): Kusur {
   return { id, ...KUSUR_BILGI[id] };

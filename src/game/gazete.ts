@@ -98,11 +98,12 @@ export function manset(o: DepremOzeti, kisa?: KisaYolBilgisi): string {
 }
 
 /**
- * Sayı satırı (bina sayıları). Sonuç ekranıyla aynı tanımlar (G5b): "içi boş" çökenlerin boşaltılmış olanları,
- * "Bunlardan boşaltılmış" ayakta, hasarlı ve çöken binaların (sokağın tamamının) içinden boşaltılmış olanlar.
+ * Sayı satırı (bina sayıları). Sonuç ekranıyla aynı tanımlar (G5b): "içi boş" çökenlerin boşaltılmış olanları.
+ * Sokağın tamamındaki boşaltılmış sayısı gazetede ayrı kalem değil (G46: çökenlerdeki "içi boş" ile çelişkili
+ * okunuyordu); sonuç ekranında BOŞALTILMIŞ kutusu "N binadan" alt yazısıyla gösterir.
  */
 export function sayiSatiri(o: DepremOzeti): string {
-  const k = [`Ayakta: ${o.ayakta} bina`, `Hasarlı: ${o.hasarli}`, `Çöken: ${o.coken}${o.coken > 0 ? ` (içi boş: ${o.cokenBos})` : ''}`, `Bunlardan boşaltılmış: ${o.bos}`];
+  const k = [`Ayakta: ${o.ayakta} bina`, `Hasarlı: ${o.hasarli}`, `Çöken: ${o.coken}${o.coken > 0 ? ` (içi boş: ${o.cokenBos})` : ''}`];
   if (o.iade > 0) k.push(`İade edilmiş: ${o.iade}`);
   return kalemDizisi(k);
 }
@@ -134,8 +135,9 @@ export function juriGordukleri(s: readonly DepremBinaSonucu[], juri: ReadonlySet
  * Kısa yol gazetesinin sayıları (G30, takım kararı T22): önce jürinin kendi binaları, sonra bütün sokak. Tanımlar
  * sayiSatiri ile aynı; jürinin özeti sonuç ekranındaki "Senin binaların" ile aynı (oyuncuOzeti). Jürinin görmediği
  * satırlar gizli: "İade edilmiş" yalnızca jüri en az bir İADE vurduysa, "içi boş" yalnızca jürinin BOŞALT damgalı
- * binalarından biri çöktüyse ya da hasar gördüyse. Sıfır olan kalemler yazılmaz. Kalemler ayrı döner (G31c): gazete
- * onları dar sütuna " · " ile kendisi dizer (satır yalnızca kalemler arasında kırılır).
+ * binalarından biri çöktüyse ya da hasar gördüyse. Sıfır olan kalemler yazılmaz; boşaltılmış sayısı ayrı kalem değil
+ * (G46). Kalemler ayrı döner (G31c): gazete onları dar sütuna " · " ile kendisi dizer (satır yalnızca kalemler
+ * arasında kırılır).
  */
 export function kisaSayiBloklari(s: readonly DepremBinaSonucu[], juri: ReadonlySet<string>): { baslik: string; kalemler: string[] }[] {
   const j = s.filter((b) => juri.has(b.dosyaId));
@@ -145,7 +147,6 @@ export function kisaSayiBloklari(s: readonly DepremBinaSonucu[], juri: ReadonlyS
     if (o.ayakta > 0) k.push(`Ayakta: ${o.ayakta} bina`);
     if (o.hasarli > 0) k.push(`Hasarlı: ${o.hasarli}`);
     if (o.coken > 0) k.push(`Çöken: ${o.coken}${icBos && o.cokenBos > 0 ? ` (içi boş: ${o.cokenBos})` : ''}`);
-    if (o.bos > 0) k.push(`Bunlardan boşaltılmış: ${o.bos}`);
     if (iade && o.iade > 0) k.push(`İade edilmiş: ${o.iade}`);
     return k;
   };

@@ -11,7 +11,6 @@ import { ZARF_ETIKET } from '../game/diyalog';
 import { degerlendirme, juriGordukleri, KISA_SONUC, seninBinalarin, sokakCokenSayisi, sonucEtiketi, zarfOzeti } from '../game/gazete';
 import { EV_KADEME, evSonucu } from '../game/ev';
 import {
-  EV_CANTA_METIN,
   EV_DURUM_METIN,
   EV_GUCLENDIRME_METIN,
   EV_KENDI_BINA,
@@ -19,6 +18,7 @@ import {
   EV_SABITLEME_METIN,
   EV_SONUC_BASLIK,
   evBaglamCumlesi,
+  evCantaCumlesi,
   evCoktu,
   evHarcananSatiri,
   evTaksitSatiri,
@@ -213,9 +213,9 @@ export class ResultScene extends Phaser.Scene {
       ['AYAKTA', oz.ayakta, PAL.damgaGuvenli],
       ['HASARLI', oz.hasarli, PAL.damgaGuclendir],
       // Gazeteyle aynı tanımlar (G5b): çökenlerin "içi boş" olanları; BOŞALTILMIŞ, ayakta + hasarlı + çöken binaların
-      // (sokağın tamamının) içinden boşaltılmış olanlar (G31c: alt yazı "bunlardan", ayrı bir sayı değil).
+      // (sokağın tamamının) içinden boşaltılmış olanlar (G46: alt yazı "N binadan", N sokaktaki bina sayısı).
       ['ÇÖKEN', oz.coken, PAL.damgaBosalt, gor.icBos && icBos ? `içi boş: ${oz.cokenBos}` : undefined],
-      ['BOŞALTILMIŞ', oz.bos, PAL.murekkepSoluk, 'bunlardan'],
+      ['BOŞALTILMIŞ', oz.bos, PAL.murekkepSoluk, `${oz.toplam} binadan`],
     ];
     // İADE: denetlenmeden kalan binalar (içleri doluydu); kaçının çöktüğü alt satırda (G31c: "çöken: N").
     if (gor.iade)
@@ -391,7 +391,7 @@ export class ResultScene extends Phaser.Scene {
       y += o.height + 16;
     };
     satir(s.guclendirme, EV_GUCLENDIRME_METIN[s.guclendirme]);
-    satir(s.canta, EV_CANTA_METIN[s.canta]);
+    satir(s.canta, evCantaCumlesi(s));
     // G45: ev çöktüyse eşya sabitleme cümlesi yok (çanta cümlesi kalır).
     if (!evCoktu(s)) satir(s.sabitleme, EV_SABITLEME_METIN[s.sabitleme]);
     if (s.kendiBina?.evPayi) y += metin(X + 32, y, EV_PAYLI, 28, PAL.murekkepSoluk).height + 16;

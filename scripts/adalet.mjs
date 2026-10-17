@@ -1031,16 +1031,19 @@ console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19
   const SOYUT = ['agir', 'hasarli', 'hafif', 'saglam'];
   bak(JSON.stringify(EV.EV_SOYUT_DURUM) === JSON.stringify(SOYUT), `G45 soyut ev kademeleri ${EV.EV_SOYUT_DURUM}`);
   // Beklenen "Senin evin" cümleleri (G45): durum, bağlam (soyut ev hasarlı / ağır ve en çok 1 taksit), güçlendirme, çanta,
-  // sabitleme (ev çöktüyse yok), zarf.
+  // sabitleme (ev çöktüyse yok), zarf. G46: ev boşaltılmışsa (kendi apartman BOŞALT damgalı) 0 kademe çanta cümlesi
+  // EV_CANTA_BOS_METIN.
+  const evBos = (s) => s.durum === 'coktuBos' || s.kendiBina?.damga === 'bosalt';
+  const bekCanta = (s) => (s.canta === 0 && evBos(s) ? EM.EV_CANTA_BOS_METIN : EM.EV_CANTA_METIN[s.canta]);
   const bekCumleler = (s, zBek) => {
     const out = [EM.EV_DURUM_METIN[s.durum]];
     if (!s.kendiBina && s.guclendirme <= 1 && zBek.length === 0 && (s.durum === 'hasarli' || s.durum === 'agir')) out.push(EM.EV_BAGLAM_METIN);
-    out.push(EM.EV_GUCLENDIRME_METIN[s.guclendirme], EM.EV_CANTA_METIN[s.canta]);
+    out.push(EM.EV_GUCLENDIRME_METIN[s.guclendirme], bekCanta(s));
     if (s.durum !== 'coktu' && s.durum !== 'coktuBos') out.push(EM.EV_SABITLEME_METIN[s.sabitleme]);
     if (zBek.length) out.push(zBek.length === 1 ? EM.EV_ZARF_METIN[zBek[0]] : EM.EV_ZARF_METIN.birden);
     return out;
   };
-  const g45ev = { baglam: 0, coktuSabitlemesiz: 0, kendiKademe: [0, 0, 0, 0] };
+  const g45ev = { baglam: 0, coktuSabitlemesiz: 0, kendiKademe: [0, 0, 0, 0], bosEvHazirliksiz: 0 };
   // EVİN kartı (G45): alınan son kademenin adı; tamamsa TAMAM; hiç alınmadıysa yok.
   for (const k of kalemler)
     for (let n = 0; n <= N; n++) {
@@ -1078,7 +1081,7 @@ console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19
   for (const dizi of [EM.EV_GUCLENDIRME_METIN, EM.EV_CANTA_METIN, EM.EV_SABITLEME_METIN])
     bak(dizi.length === N + 1 && new Set(dizi).size === N + 1, 'G43 kademe cümleleri farklı değil');
   // Ton (GDD T4): ev cümlelerinde sayı yok (kademe sayaçları yalnızca durum etiketlerinde).
-  for (const m of [...Object.values(EM.EV_DURUM_METIN), ...EM.EV_GUCLENDIRME_METIN, ...EM.EV_CANTA_METIN, ...EM.EV_SABITLEME_METIN, ...Object.values(EM.EV_ZARF_METIN), EM.EV_PAYLI, EM.EV_BAGLAM_METIN])
+  for (const m of [...Object.values(EM.EV_DURUM_METIN), ...EM.EV_GUCLENDIRME_METIN, ...EM.EV_CANTA_METIN, ...EM.EV_SABITLEME_METIN, ...Object.values(EM.EV_ZARF_METIN), EM.EV_PAYLI, EM.EV_BAGLAM_METIN, EM.EV_CANTA_BOS_METIN])
     bak(!/\d/.test(m), `G43 ev cümlesinde sayı: ${m}`);
 
   // Bina sonuçları: ev seçeneği verilmezse ya da güçlendirme 0-1 taksitse aynı; 2/3 taksitte (G44) yalnızca oyuncunun
@@ -1154,13 +1157,19 @@ console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19
           const cm = EM.evCumleleri(s);
           bak(JSON.stringify(cm) === JSON.stringify(bekCumleler(s, [])) && !cm.includes(EM.EV_BAGLAM_METIN), `${e} g=${g}: kendi apartman cümleleri`);
           if (kb.coktu) {
-            bak(!EM.EV_SABITLEME_METIN.some((m) => cm.includes(m)) && cm.includes(EM.EV_CANTA_METIN[0]), `${e} g=${g}: çöken evde sabitleme cümlesi`);
+            bak(!EM.EV_SABITLEME_METIN.some((m) => cm.includes(m)) && cm.includes(bekCanta(s)), `${e} g=${g}: çöken evde sabitleme cümlesi`);
             g45ev.coktuSabitlemesiz++;
           }
+          // G46: boşaltılmış evde (çantasız) "sokağa hazırlıksız çıktı" yok, "hazırlıksız kaldı" var.
+          if (evBos(s)) {
+            bak(cm.includes(EM.EV_CANTA_BOS_METIN) && !cm.includes(EM.EV_CANTA_METIN[0]), `${e} g=${g}: boşaltılmış evde çanta cümlesi`);
+            g45ev.bosEvHazirliksiz++;
+          } else bak(!cm.includes(EM.EV_CANTA_BOS_METIN), `${e} g=${g}: boşaltılmamış evde "hazırlıksız kaldı"`);
         } else bak(s.durum === SOYUT[g] && !s.kendiBina, `${e} g=${g}: soyut ev durumu`);
       }
     }
   bak(g43.kendiBina > 0, 'G43 kendi apartman hiç sokakta değil');
+  bak(g45ev.bosEvHazirliksiz > 0, 'G46 boşaltılmış ev hiç denetlenmedi');
   console.log('G43 (para × zarf × 6 tuşluk sıra; 4×4×4 sonuç; tohum 1-10):', JSON.stringify(g43));
   // G45: kendi apartmanın toplam hasar kademesi taksitle kesin azalır (0 → 3 taksit).
   bak(g45ev.kendiKademe.every((n, i) => i === 0 || n < g45ev.kendiKademe[i - 1]), `G45 kendi apartman kademeleri taksitle azalmıyor: ${g45ev.kendiKademe}`);

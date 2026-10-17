@@ -54,7 +54,7 @@ export const TAKIM_KARARLARI: string[] = [
   'Kurallar: kaçak katta +1 GÜÇLENDİR, +2 BOŞALT; geçersiz belgeler İADE; saha testi tek başına GÜVENLİ verdirmez.',
   'Deprem dili: kehanet yok, "deprem her an olabilir". Kısa yol bir soru: "Büyük deprem bu gece olsaydı?"',
   'Kendi evin: paranın karşılığı ailenin hazırlığı (çanta, sabitleme, güçlendirme). Rüşvet aileni koruyabilir ama onayladığın bina çöker.',
-  'Seçimler: görsel yön (Papers, Please ilhamı, Tiny Town), Kenney sesleri, metinlerin seçimi ve düzenlenmesi takımın.',
+  "Seçimler: görsel yön (Papers, Please ilhamı, boyanmış Tiny Town) ve ses ortamı (masa sessiz, gazete ve sonuçta kısa müzik) takımın. Metinleri Claude yazdı; takım tonu belirledi, son seçimi Claude'a bıraktı.",
 ];
 
 /**

@@ -92,7 +92,7 @@ export const EV_DURUM_METIN: Record<EvDurum, string> = {
 };
 /** Güçlendirme payı, ödenen taksite göre (0..3). */
 export const EV_GUCLENDIRME_METIN: readonly string[] = [
-  'Binanın güçlendirmesine katılmamıştın.',
+  'Binanın güçlendirmesine katılamamıştın.',
   'Güçlendirme çalışması başlamıştı ama bitmemişti.',
   'Güçlendirmenin çoğu bitmişti.',
   'Güçlendirme tamamlanmıştı.',
@@ -104,6 +104,20 @@ export const EV_CANTA_METIN: readonly string[] = [
   'Ailen ilk yardım çantasıyla çıktı.',
   'Ailen buluşma noktasında bir araya geldi.',
 ];
+/** Çanta 0 kademe ve ev boşaltılmışsa (G46): aile o gece evde değildi, "sokağa çıktı" yanlış okunur. */
+export const EV_CANTA_BOS_METIN = 'Ailen hazırlıksız kaldı.';
+
+/**
+ * Ev boşaltılmış mı (G46): kendi apartmanın BOŞALT damgalıysa (çöktüyse coktuBos) içinde kimse yoktu.
+ */
+export function evBosaltildi(s: EvSonucu): boolean {
+  return s.durum === 'coktuBos' || s.kendiBina?.damga === 'bosalt';
+}
+
+/** Çanta cümlesi (G46): boşaltılmış evde 0 kademe EV_CANTA_BOS_METIN, öbür durumlarda EV_CANTA_METIN. */
+export function evCantaCumlesi(s: EvSonucu): string {
+  return s.canta === 0 && evBosaltildi(s) ? EV_CANTA_BOS_METIN : EV_CANTA_METIN[s.canta];
+}
 /** Eşya sabitleme, kademeye göre (0..3). */
 export const EV_SABITLEME_METIN: readonly string[] = [
   'Dolaplar devrildi.',
@@ -113,10 +127,10 @@ export const EV_SABITLEME_METIN: readonly string[] = [
 ];
 /** Zarf bağı: bir kalemin en az bir kademesi zarf parası olmadan alınamazdı (tek kalem: kalemin cümlesi; birden çok: genel). */
 export const EV_ZARF_METIN: Record<EvKalem, string> & { birden: string } = {
-  canta: 'Deprem çantasını zarf parasıyla hazırladın.',
-  sabitleme: 'Eşyaları zarf parasıyla sabitledin.',
-  guclendirme: 'Güçlendirme payını zarf parasıyla ödedin.',
-  birden: 'Evinin hazırlığını zarf parasıyla yaptın.',
+  canta: 'Deprem çantasını zarf parasıyla hazırlamıştın.',
+  sabitleme: 'Eşyaları zarf parasıyla sabitlemiştin.',
+  guclendirme: 'Güçlendirme payını zarf parasıyla ödemiştin.',
+  birden: 'Evinin hazırlığını zarf parasıyla yapmıştın.',
 };
 
 /**
@@ -144,7 +158,7 @@ export function evCumleleri(s: EvSonucu): string[] {
   const out = [EV_DURUM_METIN[s.durum]];
   const b = evBaglamCumlesi(s);
   if (b) out.push(b);
-  out.push(EV_GUCLENDIRME_METIN[s.guclendirme], EV_CANTA_METIN[s.canta]);
+  out.push(EV_GUCLENDIRME_METIN[s.guclendirme], evCantaCumlesi(s));
   if (!evCoktu(s)) out.push(EV_SABITLEME_METIN[s.sabitleme]);
   const z = evZarfCumlesi(s);
   if (z) out.push(z);

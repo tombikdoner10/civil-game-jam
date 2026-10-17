@@ -309,5 +309,26 @@
     "yer": "src/scenes/NewspaperScene.ts, src/desk/documents.ts, src/scenes/CreditsScene.ts",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T14:48:18.904Z"
+  },
+  {
+    "kategori": "text",
+    "amac": "G46 metin düzeltmeleri (Bash betiğiyle düzenlendi): gün 1 kural notu ve kat kuralı, Senin evin cümleleri (-mıştın biçimleri, boşaltılmış evde Ailen hazırlıksız kaldı), sonuç kutusu N binadan, Takımın kararları Seçimler maddesi",
+    "yer": "src/game/rules.ts, src/game/ev-metin.ts, src/scenes/ResultScene.ts, src/data/credits.ts, README.md, docs/TAKIM_CEVAPLARI.md",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T15:33:47.596Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G46 (Bash betiğiyle düzenlendi): gazetede boşaltılmış kalemi kalktı, kural notu konumu, adalet denetimine boşaltılmış ev çanta cümlesi",
+    "yer": "src/game/gazete.ts, src/desk/yerlesim.ts, scripts/adalet.mjs",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T15:33:47.648Z"
+  },
+  {
+    "kategori": "other",
+    "amac": "G46 AI özeti Diğer amacı düzeltildi (Bash betiğiyle): ses ortamı kararı takımın, tek tek ses seçimi Claude'da",
+    "yer": "docs/ai-ozet.json",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T15:33:47.710Z"
   }
 ]

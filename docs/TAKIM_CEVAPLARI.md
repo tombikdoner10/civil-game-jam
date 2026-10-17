@@ -119,7 +119,7 @@ Jüride iki inşaat mühendisi var; oyun gerçek yönetmeliği taklit etmiyor, s
 3. **Kurallar:** Kaçak katta +1 GÜÇLENDİR, +2 BOŞALT; geçersiz belgeler İADE; saha testi tek başına GÜVENLİ verdirmez.
 4. **Deprem dili:** Kehanet yok; "deprem her an olabilir"; kısa yol "Büyük deprem bu gece olsaydı?" sorusuyla.
 5. **Kendi evin:** Paranın karşılığı ailenin hazırlığı (çanta, sabitleme, güçlendirme); rüşvet aileni koruyabilir ama onayladığın bina çöker.
-6. **Seçimler:** Görsel yön (Papers, Please ilhamı, Tiny Town), Kenney sesleri, metinlerin seçimi ve düzenlenmesi takımın.
+6. **Seçimler:** Görsel yön (Papers, Please ilhamı, boyanmış Tiny Town) ve ses ortamı (masa sessiz, gazete ve sonuçta kısa müzik) takımın. Metinleri Claude yazdı; takım tonu belirledi, son seçimi Claude'a bıraktı. (G46'da AI beyanıyla tutarlı olsun diye güncellendi.)
 
 **Lider onayı (16:22):** Taslak G31 ile oyuna giriyor (beyanda AI taslağı olarak). Madde 4.3 için takımın bu maddeleri kendi cümleleriyle yeniden yazması hâlâ önerilir.
 
