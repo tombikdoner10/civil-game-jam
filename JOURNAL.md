@@ -7,7 +7,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
 - Kontrol 2 (ara oyun testi): TAMAM (16 Ekim 23.53, geri bildirim işlendi)
 - Kontrol 3 (son teslim): BEKLİYOR
-- Son eleştirmen: 2026-10-17T10:23+03:00
+- Son eleştirmen: 2026-10-17T12:51+03:00
 - Kullanım düzeyi: normal
 
 ## Günlük
@@ -166,3 +166,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 12:32 · Test (G40 son, opus/low, 7 koşu hatasız, 5/5 GEÇTİ): gün 1 iki koşuda ilk müşterilerin ağzı konuşma sonrası kapalı, 48 taban yüzde açık ağız yok, 5×5 ifade okunuyor, gün 1 tıklamalı akış ve kısa yol, menü be264b1 · Gözlem: gür sakallıda ağız neredeyse görünmüyor (kapalı okunuyor) · Karar: G40 yayına
 - 12:33 · G40 canlıda (26bf652; JS paketinde hash ve canlı smoke doğrulandı; son-saglam taşındı) · Takımın üç isteği (hızlandırma, yürüyüş, yüzler) bitti · Sıradaki: eleştirmen 6 (~13.20), takım metinleri
 - 12:38 · Eleştirmen 6 başladı (kullanıcı isteği; opus/high, canlı 26bf652; G37–G40 sonrası)
+- 12:51 · Eleştirmen 6 (opus/high, canlı 26bf652, 6 koşu hatasız): 30 sn EVET; hızlı jüri ~60–70 sn (E5 84), gerçekçi 2:00–2:20; tema EVET; portreler gişedekini "biri" yapıyor ama PPye yaklaştırıyor — sunumda sokak ve deprem öne; puan ~84 (metinlerle ~88; E5 82/86) · Hatalar: yer tutucular (478), rapordan depreme geçişte basışın sayılmaması (yeniden üretilmeli), canlıda menüde ilk tıklama kaybı, genel planda soldaki solgun etiket, Oyna sonrası fotoğrafın kural notu üstünden kayması · Takıma: metin yedek planı, boş gişe 1 sn mi 0,4 mü, yüz-bina bağı (yeni özellik), T33 gerekli mi, T26
