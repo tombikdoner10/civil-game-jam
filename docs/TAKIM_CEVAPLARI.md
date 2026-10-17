@@ -1,5 +1,7 @@
 # Takımın cevapları ve Claude'un önerileri (17 Ekim)
 
+> **16:22 güncellemesi:** Takım kararları lidere bıraktı. Aşağıdaki öneriler lider tarafından onaylandı ve G31 ile oyuna giriyor. **Takımdan hâlâ beklenenler:** üye adları ve rolleri (9), isterseniz Takımın kararlarını kendi cümlelerinizle yeniden yazmak (10), sesleri dinlemek (C), Pazar video ve sunum (D).
+
 Her maddede **Claude'un kararı** (teknik/işlevsel maddeler) ya da **Claude'un önerisi** (yaratıcı maddeler, seçim takımın) var.
 Altındaki **Yorumunuz:** satırına "tamam", bir seçenek ya da kendi metninizi yazın; sohbete yazmanız da yeterli.
 Onayladığınız metinleri Claude oyuna yerleştirir, köşeli parantezleri kaldırır, taşmayı kontrol eder ve test eder (G31).
@@ -21,7 +23,7 @@ Claude'un önerisi:
 - **Kurgusal şehir:** 1. **Dereboyu** (önerilen; dere kuralına bağlanır) 2. **Yenikent** 3. **Fayvadi**
 - **Gazete:** 1. **Dereboyu Postası** (önerilen) 2. **Sabah Haber** 3. **Kent Gazetesi**
 
-Yorumunuz:
+**Lider onayı (16:22):** Onaylandı; G31 ile oyuna giriyor.
 
 ### 2. Gün 1'de jürinin ilk 30 saniyede gördükleri (T31, T11) — Claude'un kararı
 Takımın daha önce kararlaştırdığı dil korunur, yalnızca yer tutucu işaretleri kalkar ve kural daha okunur yazılır:
@@ -33,7 +35,7 @@ Takımın daha önce kararlaştırdığı dil korunur, yalnızca yer tutucu işa
 | İnceleme ipucu | Space ile incele, kusuru kanıtla |
 | Fiş başlıkları | Doğru karar · Yanlış karar · Doğrusu: (aynı kalır) |
 
-Yorumunuz:
+**Lider onayı (16:22):** Onaylandı; G31 ile oyuna giriyor.
 
 ### 3. Gün sonu raporu ve deprem (T31) — Claude'un kararı
 | Ne | Karar |
@@ -47,7 +49,7 @@ Yorumunuz:
 | İkinci basış ipucu | Enter ya da tıkla: geç (tıklama da çalıştığı için eklendi) |
 | Etiket | SENİN DAMGAN |
 
-Yorumunuz:
+**Lider onayı (16:22):** Onaylandı; G31 ile oyuna giriyor.
 
 ### 4. Gazete ve sonuç (T4, T30, G37) — Claude'un önerisi
 Mevcut yer tutucuların anlamı korunur; "Manşet:" ve "Değerlendirme:" etiketleri kalkar, manşetler gazete diliyle büyük harf olur:
@@ -63,12 +65,12 @@ Mevcut yer tutucuların anlamı korunur; "Manşet:" ve "Değerlendirme:" etiketl
 | Fotoğraf altı | Deprem sonrası sokak |
 | Zarf izi | Denetçinin masasında zarf bulundu |
 
-Yorumunuz:
+**Lider onayı (16:22):** Onaylandı; G31 ile oyuna giriyor.
 
 ### 5. Gişe diyalogları (T28, T17) — Claude'un önerisi
 393 taslak cümle (`src/game/diyalog-metin.ts`) köşeli parantezsiz kalsın; takım yalnızca **gün 1'de görünenleri** okusun (5 mizacın selamı, damga tepkileri, zarf cümleleri, kaçak kat bahane/itiraf/zarf; toplam ~80 cümle) ve beğenmediklerini işaretlesin. Gerisi taslak olarak kalır; beyanda "AI taslağı, takım seçti".
 
-Yorumunuz:
+**Lider onayı (16:22):** Onaylandı; G31 ile oyuna giriyor.
 
 ### 6. Kendi evin (T35) — Claude'un kararı (AFAD önerileriyle uyumlu, işlevsel metin)
 | Kalem | Kademe 1 | Kademe 2 | Kademe 3 |
@@ -83,7 +85,7 @@ Yorumunuz:
 - Sabitleme 0–3: Dolaplar devrildi · Dolaplar yerinde, beyaz eşya kaydı · Büyük eşyalar yerinde, camlar kırıldı · Evde hiçbir şey devrilmedi
 - Zarf: Evinin hazırlığını zarf parasıyla yaptın.
 
-Yorumunuz:
+**Lider onayı (16:22):** Onaylandı; G31 ile oyuna giriyor.
 
 ### 7. Mühendislik doğruluğu (T2, T12, T21) — Claude'un kararı
 Jüride iki inşaat mühendisi var; oyun gerçek yönetmeliği taklit etmiyor, sadeleştiriyor. Bunu dürüstçe göstermek için kural notunun başına bir satır: **"Belediye denetim yönergesi (oyun için sadeleştirilmiştir)"**. Tek tek:
@@ -93,23 +95,23 @@ Jüride iki inşaat mühendisi var; oyun gerçek yönetmeliği taklit etmiyor, s
 - **Dere 30 m / fay 150 m:** Sabit ulusal bir değer değil; dere için taşkın alanı/imar planı, fay için diri fay sakınım bandı kararları yerel ve değişken. Karar: "yönerge mesafesi" olarak kalsın (oyun kuralı).
 - **Sıvılaşma her zaman BOŞALT mı:** Gerçekte zemin iyileştirmesiyle çözülebilir; oyunda sadeleştirme olarak BOŞALT kalsın. Zemin sınıfları (ZA–ZF) eklenmesin.
 
-Yorumunuz:
+**Lider onayı (16:22):** Onaylandı; G31 ile oyuna giriyor.
 
 ### 8. Hikâye binaları (T3) — Claude'un önerisi
 - **Bina H1 (gün 2, kesik kolon):** sahibi **Kasap Rıza Usta**; sözü: "Kolonu kestirince dükkân iki katına çıktı, işler açıldı."
 - **[Kendi apartmanın] (gün 5):** adı **Senin apartmanın**; konuşan **Komşun Nermin Hanım**; sözü: "Siz de bu binada oturuyorsunuz, bilirsiniz ne halde olduğunu."
 
-Yorumunuz:
+**Lider onayı (16:22):** Onaylandı; G31 ile oyuna giriyor.
 
 ---
 
 ## B. Teslimden önce: beyan ve takım bilgisi
 
 ### 9. Takım (T32) — adlar takımın
-- Üyelerin adları ve rolleri: **siz yazın** (Claude bilemez).
+- Üyelerin adları ve rolleri: **siz yazın** (Claude bilemez). Gelene kadar yer tutucu satırlar Emeği Geçenler'de gizlenir; yalnızca takım adı ve temsilci görünür.
 - BENIOKU "Amaç" (Claude'un kararı): "Belediyenin yapı denetçisisin. Binaların belgelerini inceleyip kurala göre damgala; büyük deprem gelince kararlarının sonucunu gör."
 
-Yorumunuz:
+**Lider onayı (16:22):** Onaylandı; G31 ile oyuna giriyor.
 
 ### 10. Takımın kararları (T26) — Claude'un taslağı (GDD'deki gerçek kararlarınızdan)
 1. **Tema yorumu:** Afet anında değil, öncesinde: oyuncu denetim masasında karar verir; deprem bu kararları sınar.
@@ -119,12 +121,12 @@ Yorumunuz:
 5. **Kendi evin:** Paranın karşılığı ailenin hazırlığı (çanta, sabitleme, güçlendirme); rüşvet aileni koruyabilir ama onayladığın bina çöker.
 6. **Seçimler:** Görsel yön (Papers, Please ilhamı, Tiny Town), Kenney sesleri, metinlerin seçimi ve düzenlenmesi takımın.
 
-Yorumunuz (kendi cümlelerinizle yeniden yazmanız madde 4.3 için en iyisi):
+**Lider onayı (16:22):** Taslak G31 ile oyuna giriyor (beyanda AI taslağı olarak). Madde 4.3 için takımın bu maddeleri kendi cümleleriyle yeniden yazması hâlâ önerilir.
 
 ### 11. AI beyanı (T27) — Claude'un kararı
 Özet doğru ve eksiksiz (araçlar, modeller, beş kategori). Metinler girince "Metin" bölümü şöyle güncellenecek: "Arayüz ve oyun metinlerinin taslaklarını yazdı; takım seçti ve düzenledi. Oyun adı ve takımın kararları takımındır." (Takım kendi yazdığı metinleri belirtirse ona göre.)
 
-Yorumunuz:
+**Lider onayı (16:22):** Onaylandı; G31 ile oyuna giriyor.
 
 ---
 
@@ -134,7 +136,7 @@ Yorumunuz:
 - **İnceleme modunda saat:** Akmaya devam etsin (zaman baskısı oyunun parçası).
 - **Zarf sıklığı:** Gün 5'te %60 kalsın (son gün baskısı).
 
-Yorumunuz:
+**Lider onayı (16:22):** Onaylandı; G31 ile oyuna giriyor.
 
 ---
 
