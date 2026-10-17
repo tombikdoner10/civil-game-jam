@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G42 [teknik] (sürüyor, Opus/high) Kendi evinin hazırlığı: gün sonu raporunda 3 satın alma (çanta, sabitleme, güçlendirme payı), büyük depremde gazete ve sonuçta "Senin evin".
 
 ## Sırada
 
@@ -37,6 +38,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Takım işleri
 
+- [ ] T35 [takım] G42 metinleri ve fiyatları: hazırlık seçeneklerinin adları ve açıklamaları, fiyatlar, "Senin evin" sonuç cümleleri (ton: kurban yok, sayı yok); gerçek hazırlık bilgisini AFAD kaynaklarıyla doğrula.
 - [ ] T32 [takım] Takım üyelerinin adları ve rolleri (src/data/credits.ts MEMBERS, README Takım bölümü; şu an [Takım üyesi 2] · [rol]); BENIOKU Amaç satırı (docs/BENIOKU.txt).
 - [ ] T31 [takım] ÖNCELİKLİ METİNLER (18.00; madde 4.3): oyun adı (config.ts TITLE), gazete adı ve şehir adı, çerçeve cümlesi (diyalog.ts CERCEVE), gün 1 kural notu (rules.ts), manşetler ve değerlendirmeler (gazete.ts; tekil/çoğul T30; kısa yol "senin binaların + sokak" G37), gün 1de görünen selam, damga tepkisi ve zarf cümleleri (diyalog-metin.ts). Diyalog taslaklarını okuyup seç/düzelt (T28). Bitince beyan "AI taslağı, takım düzenledi" olur (G31). G37 yeni yer tutucuları (yer-tutucu betiği görmüyor, elle bak): gazete.ts KISA_SENIN, KISA_SOKAK_COKEN, DEGERLENDIRME_ZARFLI; manşet ve değerlendirme kısa olursa büyük kalır.
 - [ ] T30 [takım] Manşet ve değerlendirme metinlerinin tekil ve çoğul biçimleri (src/game/gazete.ts, {tekil, cogul} çiftleri; G35 yer tutucu yazdı).
