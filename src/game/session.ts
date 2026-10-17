@@ -83,6 +83,8 @@ export interface Karar {
   zarf?: ZarfKaydi;
   /** Eksik belge istendiyse kişinin cevabı. */
   iste?: Partial<Record<BilgiAlani, IsteTuru>>;
+  /** Gişedeki kişiye SORulan kusurlar (G48: SOR ipucu günler arasında bir daha çıkmasın). */
+  sorulan?: KusurId[];
 }
 
 /** Bir sarsıntıda tek binanın sonucu. */
@@ -139,6 +141,29 @@ export function isteGecmisi(kayitlar: readonly GunKaydi[]): IsteGecmisi {
       }
   }
   return { sayi, sahteGeldi };
+}
+
+/** Yeni araçlar oyunda kullanıldı mı (G48 tek seferlik ipuçları): SOR, İSTE, saha testi. */
+export interface AracGecmisi {
+  sor: boolean;
+  iste: boolean;
+  saha: boolean;
+}
+
+/**
+ * Önceki günlerin kararlarından araç kullanımı (G48). isteGecmisi'yle aynı kural: başka tohumlu örnek kayıtlar (kısa
+ * yol) sayılmaz; yeni oyunda kayıt yok, hepsi kullanılmamış. Saha testi tamamlanınca karot bilgisinin kaynağı 'saha'.
+ */
+export function aracGecmisi(kayitlar: readonly GunKaydi[]): AracGecmisi {
+  const out: AracGecmisi = { sor: false, iste: isteGecmisi(kayitlar).sayi > 0, saha: false };
+  for (const k of kayitlar) {
+    if (k.tohum !== undefined) continue;
+    for (const c of k.kararlar) {
+      if (c.sorulan?.length) out.sor = true;
+      if (c.kaynak?.karot === 'saha') out.saha = true;
+    }
+  }
+  return out;
 }
 
 /**
@@ -859,6 +884,7 @@ export class GunOturumu {
     if (this.zarfTeklif) karar.zarf = { miktar: this.zarfTeklif.miktar, kabul: this.zarfTeklif.kabul === true, istenen: this.zarfTeklif.istenen };
     const iste = Object.entries(this.istenen) as [BilgiAlani, IsteCevap][];
     if (iste.length > 0) karar.iste = Object.fromEntries(iste.map(([a, c]) => [a, c.tur]));
+    if (this.sorulan.length > 0) karar.sorulan = this.sorulan.slice();
     this.kararlar.push(karar);
     this.bulunan = [];
     this.idx++;

@@ -90,6 +90,12 @@ export const TUNING = {
     dosyaSayisi: [3, 5, 6, 7, 8],
     /** Gün 1'de inceleme ipucu ekrandayken (ilk Space'e kadar) saatin hızı. */
     ipucuHiz: 0.5,
+    /**
+     * Yeni araç ipuçları (G48, takım kararı): araç oyunda hiç kullanılmadıysa düğmenin yanında. SOR bu günden; İSTE
+     * kisi.isteIlkGun'den, SAHA saha.ilkGun'den. Her biri tanıtıldığı gün ve sonraki (gunSayisi - 1) gün çıkar.
+     * Saati yavaşlatmaz.
+     */
+    aracIpucu: { sorIlkGun: 2, gunSayisi: 2 },
   },
 
   /**

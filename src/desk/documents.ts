@@ -469,6 +469,10 @@ const ISTE_YERI: Partial<Record<BelgeTuru, [number, number]>> = { karot: [0, 72]
 /** İSTE ile SAHA yan yana (G19): kart ortasından yana kayma. */
 const YAN = 76;
 
+/** Kart üstündeki İSTE ve SAHA düğmelerinin adları (G48: araç ipucu bunlarla bulur; tıklanabilirken ipucu çıkar). */
+export const ISTE_DUGME_AD = 'iste-dugme';
+export const SAHA_DUGME_AD = 'saha-dugme';
+
 /**
  * "Rapor yok" kartına İSTE düğmesi (G17): tıklanınca is() çağrılır ve düğme "İSTENDİ" olarak söner.
  * İnceleme modunda da çalışır (alan seçimi sayılmaz). yanda: yanında SAHA düğmesi var (G19), İSTE sola kayar.
@@ -481,6 +485,8 @@ export function isteDugmesi(kart: DocumentCard, is: () => void, yanda = false): 
   const h = 40;
   const kutu = s.add.rectangle(x, y, w, h, 0x151413).setStrokeStyle(PX, 0x57524a);
   const yazi = s.add.text(x, y, 'İSTE', { fontFamily: FONT, fontSize: '34px', color: PAL.saat }).setOrigin(0.5);
+  // G48: GameScene'in araç ipucu düğmeyi adıyla bulur.
+  kutu.setName(ISTE_DUGME_AD);
   kutu.setInteractive({ useHandCursor: true }).setData('incelemeYok', true);
   kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => kutu.setFillStyle(0x3a2f22));
   kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => kutu.setFillStyle(0x151413));
@@ -506,6 +512,7 @@ export function sahaDugmesi(kart: DocumentCard, durum: () => 'acik' | 'hakYok' |
   const h = 40;
   const kutu = s.add.rectangle(x, y, w, h, 0x151413).setStrokeStyle(PX, 0x57524a);
   const yazi = s.add.text(x, y, SAHA_METIN.dugme, { fontFamily: FONT, fontSize: '34px', color: PAL.saat }).setOrigin(0.5);
+  kutu.setName(SAHA_DUGME_AD);
   kutu.setInteractive({ useHandCursor: true }).setData('incelemeYok', true);
   kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => kutu.setFillStyle(0x3a2f22));
   kutu.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => kutu.setFillStyle(0x151413));

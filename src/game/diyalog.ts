@@ -17,6 +17,16 @@ export const CERCEVE = 'Belediyenin yapı denetçisisin. Deprem her an olabilir.
  */
 export const INCELE_IPUCU = 'Space ile incele, kusuru kanıtla';
 
+/**
+ * Yeni araç ipuçları (G48, lider metni): düğmenin sağında "<" ile; düğmenin solunda gösterilirse "<" düşer, sona ">"
+ * gelir (GameScene). Araç bir kez kullanılınca oyunun geri kalanında çıkmaz.
+ */
+export const ARAC_IPUCU = {
+  sor: '< SOR: kusuru mal sahibine sor',
+  iste: '< İSTE: eksik belgenin aslını iste',
+  saha: '< SAHA: Schmidt çekiciyle beton ölç',
+} as const;
+
 /** Saha testi bitince tezgâhtaki saatin yanında kısa süre (G24): testin zaman bedeli. {dk}: dakika. */
 export const SAHA_SURE = '+{dk} dk';
 

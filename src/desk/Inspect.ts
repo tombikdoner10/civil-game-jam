@@ -45,9 +45,10 @@ export interface InspectAyar {
   sahaAcik?: (id: KusurId) => boolean;
 }
 
-type DugmeTur = 'sor' | 'iste' | 'saha';
+export type DugmeTur = 'sor' | 'iste' | 'saha';
 interface EtiketDugme {
   tur: DugmeTur;
+  kutu: Phaser.GameObjects.Rectangle;
   sondur: () => void;
   sondu: () => boolean;
   /** Yalnızca SAHA: aç / söndür (geri açılabilir). */
@@ -210,6 +211,28 @@ export class Inspect extends Phaser.Events.EventEmitter {
     this.secili = [];
     for (const b of this.bulunanlar) b.etiket.destroy();
     this.bulunanlar = [];
+  }
+
+  /**
+   * G48 araç ipucu: görünen kusur etiketlerindeki tıklanabilir (sönmemiş) düğmeler; düğmenin ve etiketin ekran
+   * sınırları. Etiket büyüme animasyonundayken (ölçek 1 değil) boş: ipucu oturmuş etiketin yanına gelsin.
+   */
+  dugmeSinirlari(tur: DugmeTur): { dugme: Phaser.Geom.Rectangle; etiket: Phaser.Geom.Rectangle }[] {
+    if (this.gizli) return [];
+    const out: { dugme: Phaser.Geom.Rectangle; etiket: Phaser.Geom.Rectangle }[] = [];
+    for (const b of this.bulunanlar) {
+      if (!b.etiket.visible || b.etiket.scale !== 1) continue;
+      const liste = (b.etiket.getData('dugmeler') as EtiketDugme[] | undefined) ?? [];
+      for (const d of liste)
+        if (d.tur === tur && !d.sondu() && d.kutu.input?.enabled) out.push({ dugme: d.kutu.getBounds(), etiket: b.etiket.getBounds() });
+    }
+    return out;
+  }
+
+  /** Görünen kusur etiketlerinin ekran sınırları (G48: ipucu etiketleri örtmesin). */
+  etiketSinirlari(): Phaser.Geom.Rectangle[] {
+    if (this.gizli) return [];
+    return this.bulunanlar.filter((b) => b.etiket.visible).map((b) => b.etiket.getBounds());
   }
 
   /** Noktadaki seçilebilir öğe: en üstteki yüzeyin alanlarından, üst üste binenlerde en küçüğü. */
@@ -378,7 +401,7 @@ export class Inspect extends Phaser.Events.EventEmitter {
               dyazi.setColor(acik ? PAL.saat : PAL.murekkepAcik);
             }
           : undefined;
-      sonduruculer.push({ tur, sondur, sondu: () => !!dyazi.getData('sondu'), ayarla });
+      sonduruculer.push({ tur, kutu, sondur, sondu: () => !!dyazi.getData('sondu'), ayarla });
     });
     kap.setData('dugmeler', sonduruculer);
     return kap;

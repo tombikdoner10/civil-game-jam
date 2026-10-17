@@ -2,7 +2,7 @@ import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
 import { DEV, FONT } from '../config';
 import { DocumentCard, MASA, ustKatman } from '../desk/DocumentCard';
-import { belgeKur, BOY, isteDugmesi, raporKur, sahaDugmesi, sahaNotuKur } from '../desk/documents';
+import { belgeKur, BOY, ISTE_DUGME_AD, isteDugmesi, raporKur, SAHA_DUGME_AD, sahaDugmesi, sahaNotuKur } from '../desk/documents';
 import { SahaTesti } from '../desk/Saha';
 import { PX, snap } from '../desk/pixel';
 import { DUGME, Inspect, type Yuzey } from '../desk/Inspect';
@@ -19,6 +19,7 @@ import { Cekmece, Zarf, ZARF_ALAN } from '../desk/Zarf';
 import { Portre, PORTRE_EKRAN } from '../desk/Portre';
 import type { Bina, Damga, KusurId, Kural } from '../game/building';
 import {
+  ARAC_IPUCU,
   CERCEVE,
   degiskenler,
   desteler,
@@ -39,7 +40,7 @@ import { KUCUK_DEPREM_SERIT, oncuEtiketi } from '../game/gazete';
 import { KUSUR_BILGI } from '../game/rules';
 import { ornekKayitlar } from '../game/ornek';
 import { gunAyar } from '../game/days';
-import { GunOturumu, gunHesabi, isteGecmisi, sokakKayitlari, type GunKaydi, type SarsintiKaydi } from '../game/session';
+import { aracGecmisi, GunOturumu, gunHesabi, isteGecmisi, sokakKayitlari, type AracGecmisi, type GunKaydi, type SarsintiKaydi } from '../game/session';
 import type { SahaSonucu } from '../game/saha';
 import { TUNING } from '../game/tuning';
 import type { DayEndData } from './DayEndScene';
@@ -136,6 +137,13 @@ export class GameScene extends Phaser.Scene {
   private inceleme!: Inspect;
   private kitap?: Klasor;
   private ipucu?: Phaser.GameObjects.Text;
+  /** Yeni araç ipucu (G48): oyunda hiç kullanılmamış SOR / İSTE / SAHA düğmesinin yanında; anahtar: tür ve yön. */
+  private aracIpucu?: Phaser.GameObjects.Text;
+  private aracIpucuAnahtar = '';
+  /** Araç ipucu yazısının ölçüsü (anahtar: tür ve yön; genişlik, yükseklik). */
+  private readonly aracIpucuOlcu = new Map<string, [number, number]>();
+  /** Araçlar oyunda kullanıldı mı (önceki günlerin kayıtları ve bugün; G48). */
+  private aracKullanildi: AracGecmisi = { sor: false, iste: false, saha: false };
   /** Bu günün öncü sarsıntı sonucu (gün sonu raporuna gider). */
   private oncu?: SarsintiKaydi;
   /** Gişeden kayan zarf (G17) ve onu alan çekmece. */
@@ -187,6 +195,9 @@ export class GameScene extends Phaser.Scene {
     this.fis = undefined;
     this.ilkDosya = true;
     this.ipucu = undefined;
+    this.aracIpucu = undefined;
+    this.aracIpucuAnahtar = '';
+    this.aracKullanildi = aracGecmisi(this.kayitlar);
     this.not = undefined;
     this.kitap = undefined;
     this.oncu = undefined;
@@ -239,6 +250,10 @@ export class GameScene extends Phaser.Scene {
     this.cekmece = new Cekmece(this);
     if (ayar.sahaHak > 0) this.sahaSayacKur();
     this.incelemeKur();
+    // G48: araç ipucu inceleme çiziminden sonra (etiketler o karede yerine oturmuş olsun).
+    const aracIpucu = (): void => this.aracIpucuGuncelle();
+    this.events.on(Phaser.Scenes.Events.POST_UPDATE, aracIpucu);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off(Phaser.Scenes.Events.POST_UPDATE, aracIpucu));
     this.dosyaGetir();
     if (DEV && new URLSearchParams(location.search).has('portreler')) this.portreler();
 
@@ -282,17 +297,7 @@ export class GameScene extends Phaser.Scene {
   /** İnceleme modu: açıkken belgeler sürüklenmez; kaşeye dokunmak modu kapatır. */
   private incelemeKur(): void {
     this.inceleme = new Inspect(this, {
-      yuzeyler: () => {
-        const out: Yuzey[] = this.masadakiKartlar().map((k) => ({
-          derinlik: k.depth,
-          sinir: k.sinir(),
-          alanlar: k.alanlar(),
-        }));
-        if (this.not?.active) out.push(this.not.yuzey());
-        const kitap = this.kitap?.yuzey();
-        if (kitap) out.push(kitap);
-        return out;
-      },
+      yuzeyler: () => this.yuzeyListesi(),
       kontrol: (secim) => this.oturum.incele(secim),
       izin: () => !this.mesgul && !this.bitirildi && !this.saha,
       sorulabilir: (id) => this.oturum.sorulabilir(id),
@@ -340,6 +345,151 @@ export class GameScene extends Phaser.Scene {
         .setDepth(3020);
       this.tweens.add({ targets: this.ipucu, alpha: 0.25, duration: 420, yoyo: true, repeat: -1 });
     }
+  }
+
+  /** Masadaki yüzeyler (belgeler, kural notu, açık klasör): inceleme modu ve araç ipucunun örtülü düğme denetimi. */
+  private yuzeyListesi(): Yuzey[] {
+    const out: Yuzey[] = this.masadakiKartlar().map((k) => ({
+      derinlik: k.depth,
+      sinir: k.sinir(),
+      alanlar: k.alanlar(),
+    }));
+    if (this.not?.active) out.push(this.not.yuzey());
+    const kitap = this.kitap?.yuzey();
+    if (kitap) out.push(kitap);
+    return out;
+  }
+
+  // ---- Yeni araç ipuçları (G48) ----
+
+  /** Araç ipucunun bugün çıkabileceği günler mi ve araç oyunda henüz kullanılmadı mı. */
+  private aracIpucuUygun(tur: keyof AracGecmisi): boolean {
+    if (this.aracKullanildi[tur]) return false;
+    const A = TUNING.mesai.aracIpucu;
+    const ilk = tur === 'sor' ? A.sorIlkGun : tur === 'iste' ? TUNING.kisi.isteIlkGun : TUNING.saha.ilkGun;
+    return this.gun >= ilk && this.gun < ilk + A.gunSayisi;
+  }
+
+  /**
+   * Gösterilecek araç ipucu (öncelik İSTE, SAHA, SOR): tıklanabilir düğmenin sınırı ve ipucunun yanına konabileceği
+   * kutular (önce düğmenin kendisi). Kart düğmesinde ikinci kutu karttaki İSTE + SAHA ikilisi (öbür düğmeyi örtmesin);
+   * etiket düğmesinde bütün etiket (ipucu etiketin yanında durur).
+   */
+  private aracIpucuHedefi(): { tur: keyof AracGecmisi; dugme: Phaser.Geom.Rectangle; kutular: Phaser.Geom.Rectangle[] } | null {
+    const kartDugmesi = (ad: string): { dugme: Phaser.Geom.Rectangle; kutular: Phaser.Geom.Rectangle[] } | null => {
+      for (const k of this.kartlar) {
+        if (!k.active || k.alpha < 1) continue;
+        const d = k.getByName(ad) as Phaser.GameObjects.Rectangle | null;
+        if (!d?.input?.enabled) continue;
+        const r = d.getBounds();
+        // Üstüne daha yüksekte bir belge, not ya da açık klasör çekilmişse düğme görünmüyor.
+        if (this.yuzeyListesi().some((y) => y.derinlik > k.depth && y.sinir.contains(r.centerX, r.centerY))) continue;
+        const ikili = [ISTE_DUGME_AD, SAHA_DUGME_AD]
+          .map((a) => k.getByName(a) as Phaser.GameObjects.Rectangle | null)
+          .filter((x): x is Phaser.GameObjects.Rectangle => !!x)
+          .map((x) => x.getBounds())
+          .reduce((a, b) => Phaser.Geom.Rectangle.Union(a, b));
+        return { dugme: r, kutular: [r, ikili] };
+      }
+      return null;
+    };
+    for (const tur of ['iste', 'saha', 'sor'] as const) {
+      if (!this.aracIpucuUygun(tur)) continue;
+      const kart = tur === 'iste' ? kartDugmesi(ISTE_DUGME_AD) : tur === 'saha' ? kartDugmesi(SAHA_DUGME_AD) : null;
+      if (kart) return { tur, ...kart };
+      const [e] = this.inceleme.dugmeSinirlari(tur);
+      if (e) return { tur, dugme: e.dugme, kutular: [e.etiket] };
+    }
+    return null;
+  }
+
+  /**
+   * Araç ipucu her karede: uygun düğme varsa yanında (sağında "<" ile, sığmazsa ya da bir şeyi örtecekse solunda ">"
+   * ile), yoksa kalkar. Yer: belgeleri, etiketleri, düğmeleri ve zarfı en az örten aday; masanın içinde kalır.
+   */
+  private aracIpucuGuncelle(): void {
+    const h = this.mesgul || this.bitirildi || this.saha ? null : this.aracIpucuHedefi();
+    if (!h) {
+      this.aracIpucuKaldir();
+      return;
+    }
+    const metin = { sag: ARAC_IPUCU[h.tur], sol: `${ARAC_IPUCU[h.tur].replace(/^<\s*/, '')} >` };
+    const yazi =
+      this.aracIpucu ??
+      this.add
+        .text(0, 0, metin.sag, { fontFamily: FONT, fontSize: '32px', color: PAL.saat, backgroundColor: '#151413', padding: { x: 10, y: 4 } })
+        .setOrigin(0, 0.5)
+        .setDepth(9002);
+    if (!this.aracIpucu) {
+      this.aracIpucu = yazi;
+      this.tweens.add({ targets: yazi, alpha: 0.25, duration: 420, yoyo: true, repeat: -1 });
+    }
+    // İki yönün genişliği tür başına bir kez ölçülür (her karede yazı yeniden çizilmesin).
+    const olcu = (yon: 'sag' | 'sol'): [number, number] => {
+      const a = `${h.tur}:${yon}`;
+      let o = this.aracIpucuOlcu.get(a);
+      if (!o) {
+        yazi.setText(metin[yon]);
+        o = [yazi.width, yazi.height];
+        this.aracIpucuOlcu.set(a, o);
+        this.aracIpucuAnahtar = a;
+      }
+      return o;
+    };
+    // Engeller ve ağırlıkları: düğmeler ve etiketler hiç örtülmesin, zarf ve açık klasör neredeyse hiç, belgelerdeki
+    // değerler (inceleme alanları) az, kâğıdın boş yeri en az.
+    const engel: [Phaser.Geom.Rectangle, number][] = [];
+    for (const y of this.yuzeyListesi())
+      for (const a of y.alanlar) {
+        const n = a.nesne as unknown as Phaser.GameObjects.Components.GetBounds & Phaser.GameObjects.Components.Visible;
+        if (a.nesne.active && n.visible) engel.push([n.getBounds(), 50]);
+      }
+    for (const k of this.masadakiKartlar()) {
+      engel.push([k.sinir(), 1]);
+      for (const ad of [ISTE_DUGME_AD, SAHA_DUGME_AD]) {
+        const d = k.getByName(ad) as Phaser.GameObjects.Rectangle | null;
+        if (d) engel.push([d.getBounds(), 1000]);
+      }
+    }
+    if (this.not?.active) engel.push([this.not.sinir(), 1]);
+    if (this.kitap) engel.push([this.kitap.sinir, this.kitap.acik ? 50 : 1]);
+    if (this.zarf?.active) engel.push([this.zarf.getBounds(), 100]);
+    if (this.fis?.active) engel.push([this.fis.getBounds(), 100]);
+    for (const r of this.inceleme.etiketSinirlari()) engel.push([r, 1000]);
+    const masa = new Phaser.Geom.Rectangle(8, MASA_Y + 8, RAF_SOL - 16, 1080 - MASA_Y - 10);
+    let en: { x: number; y: number; sol: boolean; puan: number } | null = null;
+    // Adaylar: her kutunun sağı ("<") ve solu (">"), düğme hizasında ya da biraz aşağı / yukarı (ok yine düğmenin
+    // yanında); eşitlikte önceki aday (düğmenin kendi yanı, sağ, tam hiza) kalır.
+    for (const kutu of h.kutular)
+      for (const sol of [false, true])
+        for (const dy of [0, 24, -24, 40, -40]) {
+          const [w, yuk] = olcu(sol ? 'sol' : 'sag');
+          const x = snap(sol ? kutu.left - 16 - w : kutu.right + 16);
+          const y = snap(h.dugme.centerY + dy);
+          const r = new Phaser.Geom.Rectangle(x, y - yuk / 2, w, yuk);
+          const ic = Phaser.Geom.Rectangle.Intersection(r, masa);
+          let puan = (r.width * r.height - ic.width * ic.height) * 10_000 + Math.abs(dy) * 10;
+          for (const [e, agirlik] of engel) {
+            const k = Phaser.Geom.Rectangle.Intersection(r, e);
+            puan += k.width * k.height * agirlik;
+          }
+          if (!en || puan < en.puan) en = { x, y, sol, puan };
+        }
+    if (!en) return;
+    const a = `${h.tur}:${en.sol ? 'sol' : 'sag'}`;
+    if (a !== this.aracIpucuAnahtar) {
+      yazi.setText(en.sol ? metin.sol : metin.sag);
+      this.aracIpucuAnahtar = a;
+    }
+    yazi.setPosition(en.x, en.y);
+  }
+
+  private aracIpucuKaldir(): void {
+    if (!this.aracIpucu) return;
+    this.tweens.killTweensOf(this.aracIpucu);
+    this.aracIpucu.destroy();
+    this.aracIpucu = undefined;
+    this.aracIpucuAnahtar = '';
   }
 
   /** Masadaki belgeler: mevcut dosyanınkiler ve damgalanıp henüz kalkmamış olanlar. */
@@ -538,6 +688,7 @@ export class GameScene extends Phaser.Scene {
     const kisi = this.oturum.kisi;
     const c = this.oturum.sor(id);
     if (!c || !kisi) return;
+    this.aracKullanildi.sor = true;
     this.eylem();
     const baslik = `SOR · ${KUSUR_BILGI[id].etiket.toLocaleUpperCase('tr-TR')}`;
     const [metin, ifade] = this.sorMetni(kisi, c);
@@ -678,6 +829,7 @@ export class GameScene extends Phaser.Scene {
     const c = this.oturum.iste(alan);
     const bina = this.oturum.mevcut;
     if (!c || !bina || !kisi) return;
+    this.aracKullanildi.iste = true;
     this.eylem();
     const anahtar = `${eksik ? 'iste' : 'isteBelge'}:${c.tur}`;
     const govde = this.deste.cek(anahtar, (eksik ? ISTE_METIN : ISTE_BELGE_METIN)[c.tur], this.degisken());
@@ -844,6 +996,7 @@ export class GameScene extends Phaser.Scene {
     const bina = this.oturum.mevcut;
     const sonuc = this.oturum.sahaOnizle();
     if (!bina || !sonuc) return;
+    this.aracKullanildi.saha = true;
     this.eylem();
     if (this.inceleme.acik) this.inceleme.kapa();
     this.inceleme.gizle(true);

@@ -337,5 +337,12 @@
     "yer": "src/game/building.ts, src/game/tuning.ts, src/scenes/GameScene.ts, scripts/adalet.mjs",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T16:23:16.170Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G48: araç ipucu kodunun bir kısmı Node betiğiyle (metin değiştirme) düzenlendi",
+    "yer": "src/scenes/GameScene.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T16:45:00.216Z"
   }
 ]
