@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G60 [teknik] (sürüyor, Opus/high) İnceleme: başka binanın belgesindeki alan seçilince "Tutarsızlık yok" yerine ada/parsel ipucu; sonuç ekranında zarf özeti okunur satırlara bölünsün, "Birikmiş para" ile çakışmasın.
 
 ## Sırada
 
