@@ -38,9 +38,13 @@ export interface AiCredit {
   where: string[];
 }
 
-// TODO(takım): Diğer iki üyenin adlarını ve rollerini ekle (T32). Köşeli parantezli (yer tutucu) satırlar Emeği
-// Geçenler'de gizlenir (CreditsScene). Temsilci: Egemen.
-export const MEMBERS: Member[] = [{ name: 'Egemen', role: 'Takım temsilcisi' }];
+// Takım üyeleri (T32, G52): adlar ve roller takımın yazdığı gibi. Temsilci: Egemen. Köşeli parantezli (yer tutucu)
+// satırlar Emeği Geçenler'de gizlenir (CreditsScene).
+export const MEMBERS: Member[] = [
+  { name: 'Egemen', role: 'Takım temsilcisi' },
+  { name: 'Deniz Demir', role: 'Game Tester and Ideator' },
+  { name: 'Ahmet Ata Tuncer', role: 'Sound Designer and Ideator' },
+];
 
 /**
  * Takımın kararları (Emeği Geçenler'de Takım'dan hemen sonra, hazır kaynaklardan ve yapay zekâdan önce): takımın
