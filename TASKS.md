@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G47 [teknik] (bitti ea4cdc6, test sürüyor, Opus/low) Kapsam garantisi: her kusur türü tanıtıldığı gün en az bir kez görünür (1000 tohumda 13/13); oyunda henüz sahte rapor gelmediyse gün 3+ ikinci İSTE'den itibaren sahte rapor gelir; adalet denetimi.
 - [ ] G48 [teknik] (sürüyor, Opus/high) Yeni araçlar için tek seferlik ipucu: SOR (gün 2), İSTE ve SAHA (gün 3); kullanılınca kalkar.
 
 ## Sırada
@@ -75,6 +74,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G47 Kapsam garantisi: 13 kusur türünün hepsi tanıtıldığı gün (1000 tohumda %2,7 → %100), sahte rapor garantisi (oyunun 2. İSTE'sinden itibaren), gün 1 aynı (001ab61 + ea4cdc6, Opus/high; test GEÇTİ, lider oyun içinde doğruladı)
 - [x] G46 Eleştirmen 8 düzeltmeleri: kural notu GÜVENLİ ve "Fotoğrafta 1 kat fazlaysa", gazetede boşaltılmış kalemi yok, sonuç "N binadan", Takımın kararları + AI beyanı tutarlı, Senin evin cümleleri (762b468, Opus/high; test GEÇTİ, 10 koşu hatasız)
 - [x] G31d G31c testinin kalan cilası: gazete "·" yalnızca kalemler arasında, Emeği Geçenler maskesi satıra oturuyor, "Ben pek bilmem ama..." (4c71006, Opus/high; test GEÇTİ)
 - [x] G31c G31 testinin cila bulguları: gün sonu cümlesi, kaçak kat diyalogları nötr, EVİN "Sıradaki:", "Bunlardan boşaltılmış", İADE "çöken: N", gazetede kalemler arası kırma, ruhsat kat satırı çerçeve içinde, Emeği Geçenler kenar şeridi (ba47f38, Opus/high; test GEÇTİ, 8 koşu hatasız)
