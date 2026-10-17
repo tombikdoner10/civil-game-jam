@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G58 [teknik] (sürüyor, Opus/high) Gün sonu raporu çok satırda taşmasın: gün 2–5'te 2–3 müfettiş satırı (gerçek oyunda ulaşılabilir durumlar), uzun küçük deprem satırı.
+- [ ] G58 [teknik] (bitti 8be5b23, test sürüyor, Opus/low) Gün sonu raporu çok satırda taşmasın: gün 2–5'te 2–3 müfettiş satırı (gerçek oyunda ulaşılabilir durumlar), uzun küçük deprem satırı.
 
 ## Sırada
 
