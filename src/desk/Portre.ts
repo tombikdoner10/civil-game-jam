@@ -5,6 +5,9 @@ import type { Ifade } from '../game/kisi';
 import { KONTUR } from './palette';
 import { PX, rastgele, Tuval } from './pixel';
 
+/** Anlık ifadenin mizacın taban yüzüne dönme süresi (konuşma sürüyorsa konuşma bitince). */
+const IFADE_DONUS_MS = 3500;
+
 /** Portre tuvali (sanat pikseli): göğüs hizasına kadar, gişe camının arkasında. */
 export const PORTRE_W = 72;
 export const PORTRE_H = 80;
@@ -212,7 +215,6 @@ type Agiz =
   | 'sikik'
   | 'asik'
   | 'kucukAsik'
-  | 'disler'
   | 'aralik'
   | 'kucuk'
   | 'dalgali';
@@ -265,13 +267,13 @@ const TABAN: YuzDurum = {
 const IFADE_TABLO: Record<Mizac | 'yok', Record<Ifade, Partial<YuzDurum>>> = {
   yok: {
     notr: {},
-    gergin: { kasIc: -2, agiz: 'disler', ter: 1 },
+    gergin: { kasIc: -2, agiz: 'aralik', ter: 1 },
     kizgin: { kasIc: 2, kasKalin: true, goz: 'kisik', agiz: 'asik', alin: 'catik' },
     mahcup: { kasIc: -2, bakY: 1, agiz: 'dalgali', kizar: 1 },
     sevincli: { kasIc: -1, kasDis: -1, agiz: 'genis' },
   },
   kibar: {
-    notr: { kasIc: -1, kasDis: 0, agiz: 'gulumse' },
+    notr: { agiz: 'gulumse' },
     gergin: { kasIc: -2, agiz: 'duz', ter: 1, alin: 'endise' },
     kizgin: { kasIc: 1, agiz: 'kucukAsik' },
     mahcup: { kasIc: -2, bakY: 1, agiz: 'gulumse', kizar: 1 },
@@ -279,27 +281,27 @@ const IFADE_TABLO: Record<Mizac | 'yok', Record<Ifade, Partial<YuzDurum>>> = {
   },
   sinirli: {
     notr: { kasIc: 2, kasKalin: true, agiz: 'sikik', ofke: 1, alin: 'catik' },
-    gergin: { kasIc: 2, kasKalin: true, agiz: 'disler', ofke: 1, alin: 'catik' },
-    kizgin: { kasIc: 2, kasKalin: true, goz: 'kisik', agiz: 'asik', ofke: 2, alin: 'catik' },
+    gergin: { kasIc: 2, kasKalin: true, bakX: -1, agiz: 'sikik', ofke: 1, ter: 1, alin: 'catik' },
+    kizgin: { kasIc: 2, kasKalin: true, goz: 'kisik', agiz: 'sikik', ofke: 2, alin: 'catik' },
     mahcup: { kasIc: 1, bakX: 1, agiz: 'sikik', kizar: 1 },
     sevincli: { kasIc: 1, kasKalin: true, agiz: 'genis', ofke: 1 },
   },
   telasli: {
     notr: { kasIc: -2, goz: 'iri', agiz: 'aralik', alin: 'endise' },
-    gergin: { kasIc: -2, goz: 'iri', bebekKucuk: true, agiz: 'disler', ter: 2, alin: 'endise' },
+    gergin: { kasIc: -2, goz: 'iri', bebekKucuk: true, agiz: 'aralik', ter: 2, alin: 'endise' },
     kizgin: { kasIc: -1, goz: 'iri', agiz: 'asik', ter: 1 },
     mahcup: { kasIc: -2, goz: 'iri', bakY: 1, agiz: 'dalgali', kizar: 1, ter: 1 },
     sevincli: { kasIc: -1, kasDis: -1, goz: 'iri', agiz: 'genis' },
   },
   kurnaz: {
-    notr: { kasSol: -2, kasSag: 1, goz: 'kisik', bakX: 1, agiz: 'sirit' },
+    notr: { kasSol: -3, kasSag: 1, goz: 'kisik', bakX: 1, agiz: 'sirit' },
     gergin: { kasIc: -1, kasSol: -1, bakX: -1, agiz: 'duz', ter: 1 },
     kizgin: { kasIc: 2, kasSol: -1, goz: 'kisik', agiz: 'asik', alin: 'catik' },
     mahcup: { kasSol: -1, bakX: 1, bakY: 1, agiz: 'sirit', kizar: 1 },
-    sevincli: { kasSol: -2, kasSag: 1, goz: 'kisik', agiz: 'siritGenis' },
+    sevincli: { kasSol: -3, kasSag: 1, goz: 'kisik', agiz: 'siritGenis' },
   },
   cekingen: {
-    notr: { kasDis: 1, bakX: -1, bakY: 1, agiz: 'kucuk' },
+    notr: { kasIc: -1, kasDis: 1, bakX: -1, bakY: 1, agiz: 'kucuk' },
     gergin: { kasIc: -2, kasDis: 1, bakY: 1, agiz: 'kucuk', ter: 1, alin: 'endise' },
     kizgin: { kasIc: 1, kasDis: 1, bakX: -1, bakY: 1, agiz: 'kucukAsik' },
     mahcup: { kasIc: -2, kasDis: 1, bakX: -1, bakY: 1, agiz: 'dalgali', kizar: 2 },
@@ -328,6 +330,10 @@ export class Portre {
   private konusuyor = false;
   private agizSaat?: Phaser.Time.TimerEvent;
   private kirpSaat?: Phaser.Time.TimerEvent;
+  private donusSaat?: Phaser.Time.TimerEvent;
+  /** İfadenin süresi doldu; konuşma bitince taban yüze dönülür. */
+  private donusBekliyor = false;
+  private donusYok = false;
   /** Çizim hedefi: katman kurulurken katmanın, sonra dokunun bağlamı. */
   private hedef: CanvasRenderingContext2D;
   /** Ten pikselleri (kızarma yalnızca tene düşer); alt katman çizilirken doldurulur. */
@@ -357,10 +363,24 @@ export class Portre {
     this.img.once(Phaser.GameObjects.Events.DESTROY, () => {
       this.agizSaat?.remove();
       this.kirpSaat?.remove();
+      this.donusSaat?.remove();
     });
   }
 
+  /**
+   * Anlık ifade. Nötr dışındaki ifade IFADE_DONUS_MS sonra (konuşma sürüyorsa konuşma bitince) mizacın taban yüzüne
+   * (notr) döner; yeni bir ifade sayacı baştan kurar.
+   */
   setIfade(i: Ifade): void {
+    this.donusSaat?.remove();
+    this.donusSaat = undefined;
+    this.donusBekliyor = false;
+    if (i !== 'notr' && !this.donusYok && this.img?.active)
+      this.donusSaat = this.scene.time.delayedCall(IFADE_DONUS_MS, () => {
+        this.donusSaat = undefined;
+        if (this.konusuyor) this.donusBekliyor = true;
+        else this.setIfade('notr');
+      });
     if (this.ifade === i) return;
     this.ifade = i;
     this.yenile();
@@ -381,9 +401,12 @@ export class Portre {
           this.yenile();
         },
       });
-    } else if (this.agizAcik) {
-      this.agizAcik = false;
-      this.yenile();
+    } else {
+      if (this.agizAcik) {
+        this.agizAcik = false;
+        this.yenile();
+      }
+      if (this.donusBekliyor) this.setIfade('notr');
     }
   }
 
@@ -391,10 +414,11 @@ export class Portre {
     this.img.destroy();
   }
 
-  /** Yalnızca dev galerisi: göz kırpma durur (ekran görüntüsünde kapalı göz olmasın). */
-  kirpmaDurdur(): void {
+  /** Yalnızca dev galerisi: göz kırpma durur ve ifade taban yüze dönmez (ekran görüntüsünde sabit kalsın). */
+  galeriKipi(): void {
     this.kirpSaat?.remove();
     this.kirpSaat = undefined;
+    this.donusYok = true;
   }
 
   private kirpmaKur(): void {
@@ -733,10 +757,13 @@ export class Portre {
   private kirisik(): void {
     const o = this.o;
     const tK = o.ten[2];
+    // Alın çizgisi açık tonda ve örtülü yüzde hiç yok (kaş gibi okunmasın).
+    const alinK = karis(o.ten[1], tK, 0.55);
+    const alin = o.baslik !== 'ortu';
     const gy = o.cy - 1;
     const bas = (x: number, y: number): boolean => this.basIcinde(x, y);
     if (o.yas === 'yasli') {
-      for (const y of [gy - 6, gy - 8]) for (let x = o.cx - 5; x <= o.cx + 4; x++) if (bas(x, y) && (x * 3 + y) % 7 !== 0) this.p(x, y, tK);
+      if (alin) for (const y of [gy - 6, gy - 8]) for (let x = o.cx - 5; x <= o.cx + 4; x++) if (bas(x, y) && (x * 3 + y) % 7 !== 0) this.p(x, y, alinK);
       // Kaz ayağı
       this.p(o.cx - 9, gy, tK);
       this.p(o.cx - 9, gy + 2, tK);
@@ -753,7 +780,7 @@ export class Portre {
         this.r(ex + 1, gy + 3, 2, 1, tK);
       }
     } else if (o.yas === 'orta') {
-      for (let x = o.cx - 3; x <= o.cx + 2; x++) if (bas(x, gy - 7) && x % 2 === 0) this.p(x, gy - 7, tK);
+      if (alin) for (let x = o.cx - 3; x <= o.cx + 2; x++) if (bas(x, gy - 7) && x % 2 === 0) this.p(x, gy - 7, alinK);
       this.p(o.cx - 4, o.cy + 8, tK);
       this.p(o.cx + 4, o.cy + 8, tK);
       this.p(o.cx - 9, gy + 1, tK);
@@ -1008,7 +1035,6 @@ export class Portre {
     } else {
       // İnce, düz bıyık (uçları ağız köşesine inmez; asık ağız gibi okunmasın)
       this.r(o.cx - 4, ay - 2, 9, 1, b);
-      this.r(o.cx - 2, ay - 1, 5, 1, koyu(b, 1.15));
     }
   }
 
@@ -1099,7 +1125,10 @@ export class Portre {
       }
       // Üst kapak (kısık gözde ağır ve koyu); aşağı bakarken kapak iner
       this.r(ex, g.y - 1, g.w, 1, d.goz === 'kisik' ? koyu(tK, 0.78) : tK);
-      if (d.bakY > 0 && g.h >= 2) this.r(ex, g.y, g.w, 1, tK);
+      if (d.bakY > 0 && g.h >= 2) {
+        this.r(ex, g.y, g.w, 1, tK);
+        this.r(ex, g.y - 1, g.w, 1, koyu(tK, 0.78));
+      }
       // Yaşlıda dış köşede sarkık kapak
       if (o.yas === 'yasli') this.p(sol ? ex : ex + g.w - 1, g.y, tK);
       // İri açılmış gözde alt kapak
@@ -1126,12 +1155,14 @@ export class Portre {
     const g = this.gozKutusu(d);
     const by = Math.min(g.y, o.cy - 1) - 3;
     const bas = o.kasTipi === 'gur' ? -1 : 0;
+    // Kibar mizaçta kaş hep yumuşak kavisli (tohumdaki eğik ya da düz kaş somurtkan okunmasın).
+    const kasBicim = this.mizac === 'kibar' ? 'kavisli' : o.kasBicim;
     for (const sol of [true, false]) {
       let onceki: number | undefined;
       for (let i = bas; i <= 4; i++) {
         // i=0 dış uç, i=4 iç uç (burna yakın)
         const t = Math.max(0, i) / 4;
-        const bicim = o.kasBicim === 'kavisli' ? (i === 1 || i === 2 ? -1 : 0) : o.kasBicim === 'egik' ? (i <= 0 ? 1 : 0) : 0;
+        const bicim = kasBicim === 'kavisli' ? (i === 1 || i === 2 ? -1 : 0) : kasBicim === 'egik' ? (i <= 0 ? 1 : 0) : 0;
         const y = by + Math.round(d.kasDis + (d.kasIc - d.kasDis) * t) + bicim + (sol ? d.kasSol : d.kasSag);
         const x = sol ? o.cx - 8 + i : o.cx + 7 - i;
         this.p(x, y, kas);
@@ -1229,10 +1260,11 @@ export class Portre {
       case 'sirit':
         // Yan gülüş: sağ uç yukarı, yanında gamze
         this.r(x - w, ay, 2 * w, 1, DUDAK);
-        this.p(x + w, ay - 1, DUDAK);
-        this.p(x + w + 1, ay - 2, DUDAK);
-        this.p(x + w + 2, ay - 1, tK);
-        this.p(x - w - 1, ay, tK);
+        this.r(x + w, ay - 1, 2, 1, DUDAK);
+        this.p(x + w + 2, ay - 2, DUDAK);
+        this.p(x + w + 3, ay - 1, tK);
+        this.p(x + w + 2, ay, tK);
+        this.p(x - w - 1, ay + 1, tK);
         break;
       case 'siritGenis':
         this.r(x - w, ay, 2 * w + 1, 1, DUDAK);
@@ -1262,15 +1294,6 @@ export class Portre {
         this.p(x - 2, ay + 1, DUDAK);
         this.p(x + 2, ay + 1, DUDAK);
         this.r(x - 1, ay + 1, 3, 1, DUDAK_ALT);
-        break;
-      case 'disler':
-        // Sıkılmış dişler
-        this.r(x - 4, ay - 1, 9, 4, DUDAK);
-        this.r(x - 3, ay, 7, 2, DIS);
-        for (let i = -2; i <= 2; i += 2) {
-          this.p(x + i, ay, AGIZ_IC);
-          this.p(x + i, ay + 1, AGIZ_IC);
-        }
         break;
       case 'aralik':
         this.r(x - 2, ay, 5, 1, DUDAK);

@@ -1174,7 +1174,7 @@ export class GameScene extends Phaser.Scene {
       const y = 30 + Math.floor(i / 6) * (h + 26);
       const p = new Portre(this, tohum, x, y, m);
       p.img.setScale(PX * s).setDepth(D + 1);
-      p.kirpmaDurdur();
+      p.galeriKipi();
       yazi(x + 4, y + h + 2, m);
     }
     const x0 = 1020;
@@ -1186,8 +1186,8 @@ export class GameScene extends Phaser.Scene {
       ifadeler.forEach((f, j) => {
         const p = new Portre(this, tohum, x0 + j * (w + 4), y, m);
         p.img.setScale(PX * s).setDepth(D + 1);
+        p.galeriKipi();
         p.setIfade(f);
-        p.kirpmaDurdur();
       });
     });
   }
