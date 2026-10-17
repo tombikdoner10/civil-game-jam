@@ -9,7 +9,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 ## Şimdi
 
 - [ ] G50 [teknik] (sürüyor, Opus/high) İnceleme modunda kapalı klasöre tıklamak klasörü açıyor ve aynı tıklamayla açılan sayfadaki kural satırını seçiyor (G49 raporu, önceden var olan hata).
-- [ ] G49 [teknik] (bitti 2066a4c, test sürüyor, Opus/low) İnceleme modunda kusur etiketi belgedeki değer alanını örtmesin (gün 2 KESİK KOLON etiketi "7 kolon" satırının üstünde); bütün günlerde etiket yerleşimi.
 
 ## Sırada
 
@@ -75,6 +74,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G49 Kusur etiketi değerleri, mührü, düğmeleri, zarfı ve fişi örtmüyor (ağırlıklı yerleşim); gün 1 kaçak kat etiketi fotoğrafın altında (2066a4c, Opus/high; test GEÇTİ)
 - [x] G48 Yeni araçlar için tek seferlik ipucu: SOR (gün 2–3), İSTE ve SAHA (gün 3–4), kullanılınca kalkar (680b3f8, Opus/high; test GEÇTİ, 9 koşu hatasız)
 - [x] G47 Kapsam garantisi: 13 kusur türünün hepsi tanıtıldığı gün (1000 tohumda %2,7 → %100), sahte rapor garantisi (oyunun 2. İSTE'sinden itibaren), gün 1 aynı (001ab61 + ea4cdc6, Opus/high; test GEÇTİ, lider oyun içinde doğruladı)
 - [x] G46 Eleştirmen 8 düzeltmeleri: kural notu GÜVENLİ ve "Fotoğrafta 1 kat fazlaysa", gazetede boşaltılmış kalemi yok, sonuç "N binadan", Takımın kararları + AI beyanı tutarlı, Senin evin cümleleri (762b468, Opus/high; test GEÇTİ, 10 koşu hatasız)
