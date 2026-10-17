@@ -191,7 +191,7 @@ export function sokakKayitlari(tohum: number, kayitlar: readonly GunKaydi[]): So
 /** Büyük depremde tek binanın sonucu (gazete ve sonuç ekranı). */
 export interface DepremBinaSonucu {
   dosyaId: string;
-  /** Sokaktaki sıra (1 tabanlı; gazetede "Bina 07"). */
+  /** Sokaktaki sıra (1 tabanlı; fotoğrafın odağı). Gazetede görünen numara adres'te (G54). */
   no: number;
   /** Damgalandığı gün. */
   gun: number;

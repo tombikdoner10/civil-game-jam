@@ -382,8 +382,12 @@ export class Klasor {
     const rozetW = olcRozet.width;
     olcRozet.destroy();
     let sekmeY = ust + 140;
+    // G54: numaralar görünen sırayla (sekme sırası, bölüm içinde kural sırası) 1'den; GENEL "1." ile başlar. Yalnızca
+    // görüntü: kural kimlikleri ve KURALLAR sırası değişmez.
+    const sira = new Map<string, number>();
+    for (const B of BOLUMLER) for (const k of kurallar) if (bolumu(k) === B.id) sira.set(k.id, sira.size + 1);
     for (const B of BOLUMLER) {
-      const liste = kurallar.map((k, i) => ({ k, no: i + 1 })).filter(({ k }) => bolumu(k) === B.id);
+      const liste = kurallar.filter((k) => bolumu(k) === B.id).map((k) => ({ k, no: sira.get(k.id) ?? 0 }));
       if (liste.length === 0) continue;
       const bi = this.bolumler.length;
       const yeni = liste.some(({ k }) => kuralYeni(k, this.gun));
@@ -420,12 +424,18 @@ export class Klasor {
       // G53: yeni kuralın "YENİ" rozeti son satırın sonuna sığıyorsa oraya konur ve yazı tam genişlikte kırılır
       // (rozet için sağda boşluk bırakmak satır sayısını artırıp bölümü ikinci sayfaya taşıyordu); sığmazsa eskisi
       // gibi sağ üstte, yazı rozet kadar dar.
+      // G54: numara sütunu bölümün en büyük numarasına göre ("10." yazıya yapışmasın); tek haneli bölümlerde eskisi
+      // gibi 44 px, yazı aradaki fark kadar daralır.
       const olc = (boy: number) => {
+        const enBuyuk = s.add.text(0, 0, `${Math.max(...liste.map((x) => x.no))}.`, { fontFamily: FONT, fontSize: `${boy}px` });
+        const metinX = sagSol + 20 + Math.max(44, snap(enBuyuk.width + 14));
+        enBuyuk.destroy();
+        const genis = genislik - (metinX - (sagSol + 64));
         const out = liste.map(({ k, no }) => {
           const yk = kuralYeni(k, this.gun);
           const yaz = (w: number) =>
             s.add
-              .text(sagSol + 64, 0, kuralSatiri(k, this.gun), {
+              .text(metinX, 0, kuralSatiri(k, this.gun), {
                 fontFamily: FONT,
                 fontSize: `${boy}px`,
                 color: PAL.murekkep,
@@ -433,7 +443,7 @@ export class Klasor {
                 wordWrap: { width: w, useAdvancedWrap: true },
               })
               .setOrigin(0);
-          let yazi = yaz(genislik);
+          let yazi = yaz(genis);
           let rozet: { x: number; dy: number } | null = null;
           if (yk) {
             const satir = yazi.getWrappedText();
@@ -441,11 +451,11 @@ export class Klasor {
             const son = s.add.text(0, 0, satir[n - 1] ?? '', { fontFamily: FONT, fontSize: `${boy}px` });
             const sonW = son.width;
             son.destroy();
-            if (sonW + 12 + rozetW <= genislik) {
-              rozet = { x: snap(sagSol + 64 + sonW + 12), dy: Math.round(((yazi.height + 2) / n) * (n - 1)) + 2 };
+            if (sonW + 12 + rozetW <= genis) {
+              rozet = { x: snap(metinX + sonW + 12), dy: Math.round(((yazi.height + 2) / n) * (n - 1)) + 2 };
             } else {
               yazi.destroy();
-              yazi = yaz(genislik - 56);
+              yazi = yaz(genis - 56);
             }
           }
           return { k, no, yk, yazi, boy, rozet, h: snap(Math.max(yazi.height, 32) + 12) };

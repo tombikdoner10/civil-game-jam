@@ -175,7 +175,7 @@ export class ResultScene extends Phaser.Scene {
       juriSonuc.slice(0, 3).forEach((s, i) => {
         const x = L + 40 + i * sw;
         const kap = this.add.container(snap(x), snap(jy + 76));
-        const ad = this.add.text(0, 0, `Bina ${String(s.no).padStart(2, '0')}`, { fontFamily: FONT, fontSize: '32px', color: PAL.murekkep }).setOrigin(0, 0.5);
+        const ad = this.add.text(0, 0, s.adres, { fontFamily: FONT, fontSize: '32px', color: PAL.murekkep }).setOrigin(0, 0.5);
         kap.add(ad);
         let cx = snap(ad.width + 16);
         const cip = (metin: string, renk: string): void => {

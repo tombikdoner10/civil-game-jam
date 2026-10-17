@@ -71,6 +71,17 @@ function listeden<T>(liste: readonly T[], gun: number): T {
   return liste[Math.min(sinirla(gun), liste.length) - 1];
 }
 
+/**
+ * Sokak boyunca tek bina numarası (G54): günün ilk dosyasından önceki günlerin dosya sayısı toplamı. Dosya i (0
+ * tabanlı) "Bina (binaNoBaslangic(gun) + i + 1)" olur: gün 1 Bina 01-03, gün 2 04-08, gün 3 09-14, gün 4 15-21,
+ * gün 5 22-29 (TUNING.mesai.dosyaSayisi). Bina kimliği (g3-02) değişmez; yalnızca görünen adres.
+ */
+export function binaNoBaslangic(gun: number): number {
+  let n = 0;
+  for (let g = 1; g < sinirla(gun); g++) n += listeden(TUNING.mesai.dosyaSayisi, g);
+  return n;
+}
+
 /** Günün yapılandırması (gün 1-5; dışındakiler sınıra çekilir). */
 export function gunAyar(gun: number): GunAyar {
   const g = sinirla(gun);

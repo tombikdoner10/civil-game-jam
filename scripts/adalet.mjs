@@ -45,6 +45,9 @@ for (let tohum = 1; tohum <= 10; tohum++) {
     const sokak = S.sokakKayitlari(tohum, k);
     const sonuc = S.buyukDeprem(tohum, k);
     bak(sokak.length === sonuc.length, `t${tohum} ${bicim}: sonuç sayısı`);
+    // G54: sokakta (5 günlük yol ve kısa yol) aynı adres iki ayrı binada yok.
+    const adresler = sonuc.map((r) => r.adres);
+    bak(new Set(adresler).size === adresler.length, `t${tohum} ${bicim}: sokakta aynı adres iki kez [${adresler.join(',')}]`);
     if (bicim === 'kisa') {
       // Oyuncunun gün 1 binaları sokakta önde; toplam = gün 1 + örnek bina sayısı.
       const g1 = k[0].kararlar.map((c) => c.dosyaId);
@@ -1229,9 +1232,10 @@ const HIK = await server.ssrLoadModule('/src/game/stories.ts');
 {
   const N = 1000;
   const hepsi = new Set(R.KURALLAR.flatMap((k) => [...k.kusurlar, ...(k.ek?.kusurlar ?? [])]));
-  const g47 = { tamOyun: 0, tanitim: 0, temizGun: 0, kusurluGun: 0, acilis: 0, hikaye: 0, ayniTohum: 0 };
+  const g47 = { tamOyun: 0, tanitim: 0, temizGun: 0, kusurluGun: 0, acilis: 0, hikaye: 0, ayniTohum: 0, tekilAdres: 0 };
   for (let t = 1; t <= N; t++) {
     const ilk = new Map();
+    const adresler = [];
     for (let g = 1; g <= 5; g++) {
       const ds = BLD.gunDosyalari(t, g, D.gunAyar(g).dosyaSayisi);
       const gor = ds.map((b) => R.gorunenKusurlar(b, g));
@@ -1267,7 +1271,20 @@ const HIK = await server.ssrLoadModule('/src/game/stories.ts');
         const ayni = JSON.stringify(BLD.gunDosyalari(t, g, D.gunAyar(g).dosyaSayisi)) === JSON.stringify(ds);
         bak(ayni, `${e}: aynı tohum farklı dosyalar`);
         if (ayni) g47.ayniTohum++;
+        // G54: normal binaların adresi sokak boyunca tek numara (gün 3 dosya 2 → Bina 10).
+        ds.forEach((b, i) => {
+          if (b.hikaye) return;
+          adresler.push(b.adres);
+          const bek = `Bina ${String(D.binaNoBaslangic(g) + i + 1).padStart(2, '0')}`;
+          bak(b.adres === bek, `${e}: ${b.id} adresi ${b.adres} ≠ ${bek}`);
+        });
       }
+    }
+    // G54: 5 günlük oyunda bütün normal binaların adresleri tekil.
+    if (t <= 50) {
+      const tekil = new Set(adresler).size === adresler.length;
+      bak(tekil, `G54 t${t}: aynı adres iki binada [${adresler.join(',')}]`);
+      if (tekil) g47.tekilAdres++;
     }
     // Her kusur türü oyunda ve tanıtıldığı gün.
     const tamOyun = [...hepsi].every((id) => {

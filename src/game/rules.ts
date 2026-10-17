@@ -136,7 +136,7 @@ export const KURALLAR: Kural[] = [
     id: 'karot',
     ilkGun: 3,
     kusurlar: ['karotYok'],
-    metin: 'Kural: karot raporu yoksa İSTE; gelmezse SAHA testi yap ya da → İADE',
+    metin: 'Kural: karot raporu yoksa İSTE; gelmezse → İADE (ya da SAHA testiyle ölç)',
   },
   {
     id: RAPOR_KURALI,
@@ -164,7 +164,7 @@ export const KURALLAR: Kural[] = [
     id: 'zeminEtudu',
     ilkGun: 4,
     kusurlar: ['zeminEtuduYok'],
-    metin: 'Kural: zemin etüdü yoksa İSTE; gelmezse SAHA testi yap ya da → İADE',
+    metin: 'Kural: zemin etüdü yoksa İSTE; gelmezse → İADE',
   },
   { id: 'sivilasma', ilkGun: 4, kusurlar: ['sivilasma'], metin: 'Kural: sıvılaşma riski varsa → BOŞALT' },
   {

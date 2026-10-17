@@ -1,5 +1,6 @@
 import { Rng } from './rng';
 import { TUNING } from './tuning';
+import { binaNoBaslangic } from './days';
 import { gorunenKusurlar, KURALLAR, kuralKusurlari, yeniKusurlari } from './rules';
 import { HIKAYELER, hikayeBinasiKur } from './stories';
 
@@ -574,10 +575,12 @@ function plandanBina(rng: Rng, gun: number, plan: Plan, ek: BinaEk): Bina {
  */
 export function gunDosyalari(tohum: number, gun: number, adet: number, secenek: GunDosyaSecenekleri = {}): Bina[] {
   const rng = new Rng(((tohum >>> 0) ^ Math.imul(gun, 0x9e3779b1)) >>> 0);
-  const ek = (i: number): BinaEk => {
-    const no = String(i + 1).padStart(2, '0');
-    return { id: `g${gun}-${no}`, adres: `Bina ${no}` };
-  };
+  // Kimlik günün dosya sırasıyla (g3-02); adres sokak boyunca tek numara (G54: gün 3 dosya 2 → Bina 10).
+  const bas = binaNoBaslangic(gun);
+  const ek = (i: number): BinaEk => ({
+    id: `g${gun}-${String(i + 1).padStart(2, '0')}`,
+    adres: `Bina ${String(bas + i + 1).padStart(2, '0')}`,
+  });
   const plan = gunPlani(rng, gun, adet);
 
   // Hikâye binaları ilk iki dosyaya girmez; mümkünse aynı kusurlu bir planın yerine ve aynı kusurun

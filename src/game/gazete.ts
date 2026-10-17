@@ -23,9 +23,8 @@ export const FOTO_ALTI = 'Deprem sonrası sokak';
 export const DOLGU_BASLIKLAR = ['Toplanma alanları yeniden işaretlendi', 'Okullarda deprem tatbikatı yapıldı', 'Dere kenarındaki imar tartışılıyor'];
 
 const DAMGA_AD: Record<Damga, string> = { guvenli: 'GÜVENLİ', guclendir: 'GÜÇLENDİR', bosalt: 'BOŞALT', iade: 'İADE' };
-const no = (b: DepremBinaSonucu): string => `Bina ${String(b.no).padStart(2, '0')}`;
 
-/** 5 günlük yolun gazetesinde bina adı (G35): günü ve gün sonu raporundaki adı ("Gün 3 · Bina 02", "Gün 2 · Bina H1"). */
+/** 5 günlük yolun gazetesinde bina adı (G35): günü ve gün sonu raporundaki adı ("Gün 3 · Bina 10", "Gün 2 · Bina H1"). */
 export const binaAdi = (b: Pick<DepremBinaSonucu, 'gun' | 'adres'>): string => `Gün ${b.gun} · ${b.adres}`;
 
 const durumAdi = (b: DepremBinaSonucu): string =>
@@ -161,15 +160,15 @@ const agirlik = (b: DepremBinaSonucu): number => (b.coktu ? 3 : b.durum === 'agi
 /**
  * Öne çıkan binalar (en çok 3 satır) ve fotoğrafın odaklanacağı bina (ilk satırınki). oncelik (G21 kısa yol):
  * oyuncunun kendi binaları önce, en ağır sonuçtan başlayarak. gunlu (G35, 5 günlük yol): bina adı günüyle
- * (binaAdi); verilmezse sokak sırası ("Bina 02").
+ * (binaAdi); verilmezse yalnızca adres ("Bina 10"; G54: sokak boyunca tek numara, gün sonu raporundakiyle aynı).
  */
 export function oneCikanlar(
   s: readonly DepremBinaSonucu[],
   oncelik?: ReadonlySet<string>,
   gunlu = false,
 ): { satirlar: string[]; odak?: DepremBinaSonucu } {
-  // 5 günlük yolda (G35) bina adı gün sonu raporundakiyle aynı ve günüyle: "Gün 3 · Bina 02"; kısa yolda sokak sırası.
-  const ad = (b: DepremBinaSonucu): string => (gunlu ? binaAdi(b) : no(b));
+  // 5 günlük yolda (G35) bina adı gün sonu raporundakiyle aynı ve günüyle: "Gün 3 · Bina 10"; kısa yolda yalnızca adres.
+  const ad = (b: DepremBinaSonucu): string => (gunlu ? binaAdi(b) : b.adres);
   const out: { b: DepremBinaSonucu; metin: string }[] = [];
   // Zarf alınan binanın satırında zarf da geçer (G23): "Bina 02 çöktü; denetimden GÜVENLİ geçmişti, zarf alınmıştı".
   const ekle = (b: DepremBinaSonucu | undefined, metin: (b: DepremBinaSonucu) => string): void => {
@@ -185,10 +184,11 @@ export function oneCikanlar(
       );
   const doluCoken = s.filter((b) => b.coktu && !b.bos);
   ekle(doluCoken[0], (b) => `${ad(b)} çöktü; ${gecmis(b)}`);
-  // İADE edilen bina: oyuncunun denetlemeden bıraktığı (bilinçli) risk; gazetede ayrı satır.
+  // İADE edilen bina: oyuncunun denetlemeden bıraktığı (bilinçli) risk; gazetede ayrı satır. G54: öbür satırlar gibi
+  // durumla başlar ("Bina 05 ayakta; iade edilmişti, denetlenmeden kaldı").
   ekle(
     s.find((b) => b.damga === 'iade' && !b.coktu),
-    (b) => `${ad(b)}: iade edilmişti, denetlenmeden kaldı; ${durumAdi(b)}`,
+    (b) => `${ad(b)} ${durumAdi(b)}; ${gecmis(b)}`,
   );
   ekle(
     s.find((b) => b.coktu && b.bos),

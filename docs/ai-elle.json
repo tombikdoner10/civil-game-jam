@@ -372,5 +372,33 @@
     "yer": "src/desk/Klasor.ts",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T19:07:54.583Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G54: sokak boyunca tek bina numarası ve gazete iade satırı düzeni (Python betiğiyle düzenleme)",
+    "yer": "src/game/days.ts, src/game/building.ts, src/game/gazete.ts, src/scenes/ResultScene.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T19:11:39.400Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G54: adalet denetimine tekil bina adresi denetimi (Python betiğiyle düzenleme)",
+    "yer": "scripts/adalet.mjs",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T19:11:56.897Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G54: klasörde iki haneli kural numarası sütunu (Python betiğiyle düzenleme)",
+    "yer": "src/desk/Klasor.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T19:12:45.703Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G54: klasörde kural numaraları sekme sırasıyla; karot ve zemin etüdü kural metni (lider metni, Python betiğiyle düzenleme)",
+    "yer": "src/desk/Klasor.ts, src/game/rules.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T19:14:56.045Z"
   }
 ]
