@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G52 [teknik] (sürüyor, Opus/high) Takım üyeleri Emeği Geçenler ve README'de (T32).
+- [ ] G52 [teknik] (bitti f1ed17c, test sürüyor, Opus/low) Takım üyeleri Emeği Geçenler ve README'de (T32).
 
 ## Sırada
 
