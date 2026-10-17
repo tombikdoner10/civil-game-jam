@@ -76,7 +76,7 @@ Ara testte takım oyunu fazla Papers, Please'e benzer buldu. Seçilenlerin hepsi
 ### Eleştirmen 3 sonrası kararlar (takım, 17 Ekim 04:26)
 
 - **Deprem dili:** Deprem önceden bilinemez. "Öncü sarsıntı, asıl deprem gelecek" ve "5 gün sonra büyük deprem" gibi kehanet ve tarih yok. Gün 1 sonundaki sarsıntı "küçük bir deprem"; büyük deprem "bir gece" gelir; kısa yol düğmesi bir soruya döner (ör. "[Büyük deprem bu gece olsaydı?]"). Mesaj: deprem her an olabilir, hazırlık bugün.
-- **İnceleme:** İsteğe bağlı kalır; ilk yanlış karardan sonra fişte "Space ile incele, kusuru kanıtla" ipucu (ceza yok).
+- **İnceleme:** İsteğe bağlı kalır; ilk yanlış karardan sonra fişte "Space ile incele, kusuru kanıtla" ipucu (ceza yok). Yalnızca kanıtlanacak kusuru olan dosyada; kusursuz dosyadaki yanlış ipucu hakkını harcamaz (G27).
 - **G20 takip denetimi kesildi.** Bundan sonra yeni özellik yok, yalnızca cila ve takımın metinleri.
 
 ### Kurallar netleşti (takım kararı, 16 Ekim 23.53)
