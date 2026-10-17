@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G56 [teknik] (bitti c9ef294, test sürüyor, Opus/low) Takım bölümü: Egemen AYVAZ · Takım Lideri; roller Türkçe (Oyun Testçisi ve Fikir Geliştirici, Ses Tasarımcısı ve Fikir Geliştirici).
 
 ## Sırada
 
@@ -74,6 +73,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G56 Takım bölümü Türkçe: Egemen AYVAZ · Takım Lideri, Deniz Demir · Oyun Testçisi ve Fikir Geliştirici, Ahmet Ata Tuncer · Ses Tasarımcısı ve Fikir Geliştirici (c9ef294, Opus/high; test GEÇTİ)
 - [x] G55 Gün sonu raporunda NO sütunu yok, BİNA ilk sütun (4097393, Opus/high; test GEÇTİ)
 - [x] G54 Sokak boyunca tek bina numarası; iade satırı durumla; klasör numaraları sekme sırasıyla, iki haneli numara yapışmıyor; karot/zemin etüdü metni (e14cf70, Opus/high; test GEÇTİ)
 - [x] G53 Kısa kural metinleri; klasörde KONUM sekmesi (dere, fay), saha testi BETON'da; gün 2–5 her sekme tek sayfa (88decf8, Opus/high; test GEÇTİ)

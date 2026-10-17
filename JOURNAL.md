@@ -243,3 +243,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 22:46 · G55 canlıda (f0388ab; JS paketinde hash (CDN birkaç sn gecikti) ve canlı smoke doğrulandı; son-saglam taşındı) · Takımın üç bulgusu (kural metinleri, klasör sekmesi, gazete çelişkisi) kapandı · Açık teknik görev yok · Özellik dondurma 24.00
 - 22:50 · Takım isteği: Egemen satırı 'Egemen AYVAZ · Team Leader', sonra Takım bölümü Türkçe · Karar (lider, çeviri): Egemen AYVAZ · Takım Lideri; Deniz Demir · Oyun Testçisi ve Fikir Geliştirici; Ahmet Ata Tuncer · Ses Tasarımcısı ve Fikir Geliştirici (adlar verildiği gibi) · G56 geliştiricide
 - 22:52 · G56 bitti (c9ef294, opus/high): Takım bölümü Türkçe, Egemen AYVAZ · Takım Lideri; README aynı; HD/720p taşmasız · G56 testi başladı (opus/low, teslim/test-c9ef294)
+- 22:54 · Test (G56, opus/low, hatasız): üç satır harf harf doğru (HD/720p), Türkçe karakterler doğru, taşma yok, README uyumlu GEÇTİ · Karar: G56 yayına
