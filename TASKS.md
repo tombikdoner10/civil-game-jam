@@ -12,10 +12,10 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Sırada
 
-Eleştirmen 4 sonrası (sıra: G28 → G29 → G30 (T22 kararına bağlı) → G31 (metinler gelince))
+Eleştirmen 4 sonrası (sıra: G28 → G30 → G29 → G31 (metinler gelince))
 
 - [ ] G29 [teknik] Emeği Geçenler'de AI beyanı kategori başına kısa özet (araç, amaç, yer); iç görev kodları (G4b…) ve günlük dili oyunda görünmesin. docs/AI_BEYAN.md (teslim formu metni) tam ve doğru kalır; içerik eksilmez.
-- [ ] G30 [teknik] Kısa yol gazetesi istatistiği T22 kararına göre (ör. önce "senin binaların", İADE/içi boş satırları sıfırsa ya da jüri görmediyse gizli).
+- [ ] G30 [teknik] Kısa yol gazetesi istatistiği (T22 kararı): önce "senin binaların", sonra bütün sokak; jürinin görmediği İADE ve "içi boş" satırları gizli; 5 günlük yol değişmez.
 - [ ] G31 [teknik] Takım metinleri gelince tutarlılık geçişi: TITLE (config.ts) HTML başlığı, Splash, README, BENIOKU'da; köşeli parantezli yer tutucular kalkar; fiş, kural notu, rapor 1080p ve 720p'de taşmıyor (fiş-not arası G26'da ~10 px).
 
 Çekirdek döngü (hedef: Cumartesi 14.00 ara test; sıra: G4 → G4b → G12 → G5 → G13)
@@ -37,7 +37,6 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Takım işleri
 
-- [ ] T22 [takım] Eleştirmen 4: kısa yol gazetesinin istatistiği: (a) yalnızca jürinin binaları, (b) önce "senin binaların", sonra bütün sokak, (c) olduğu gibi (örnek binalar dahil; jüri görmediği "İade edilmiş: 1" satırını da okuyor). → G30
 - [ ] T23 [takım] Rapordaki çift ifade: satırda "Varsayalım: büyük deprem bu gece oldu", düğmede "BÜYÜK DEPREM BU GECE OLSAYDI?". (1) düğme soru kalsın, satır kısalsın (2) ikisi de varsayım dili (3) olduğu gibi.
 - [ ] T24 [takım] Ses ortamı: oyunda müzik/ortam sesi yok. (a) kasıtlı sessizlik (b) yalnızca gazete ve sonuçta Kenney Music Jingles (havuzda var, CC0; küçük iş) (c) masa ortam döngüsü (küçük–orta). Ayrıca T6: 42 Kenney sesi dinlenmedi.
 - [ ] T25 [takım] Sunum: anlatıcının ilk cümlesi (ör. "Kurala uymayanı damgala, sonra raporda kırmızı düğme"); jüri bilgisayarında oyun önceden açık olsun ya da ZIP sürümü (canlı sitede ilk yükleme birkaç sn, bu sırada tıklamalar kayboluyor). Gerçekçi jüri yolu 2:00–2:40.
@@ -51,6 +50,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 - [ ] T13 [takım] Ara testte ayarla: maaş/ceza değerleri ve para birimi (şu an doğru 20, yanlış 10 TL), gün süreleri (90/180/200/220/240 sn), dosya sayıları (3/5/6/7/8); karot "Rapor yok" kusur sayılsın mı?
 - [ ] T14 [takım] Öncü sarsıntı: doğru BOŞALT damgalanan zayıf bina da "boş" olarak çatlıyor; böyle mi kalsın, yoksa boşaltılanlar sağlam mı görünsün? Öncü şiddeti/süresi (TUNING.oncu). İskele, şerit, çatlak çizimleri onayı. Tavanda sallanan lamba istenir mi?
 - [ ] T15 [takım] Büyük deprem ağırlığı: örnek oyunda 29 binadan 14'ü çöktü (10'u boşaltılmıştı). Doğru BOŞALT damgalı ağır kusurlu binalar çöksün mü, ağır hasarlı mı kalsın (TUNING.buyukDeprem.kademe.bosaltKusur 3 → 2)? Gazete ve sonuç metinleri src/game/gazete.ts (T4 ile).
+- [x] T22 [takım] KARAR (06:34): kısa yol gazetesinde önce jürinin binaları ("senin binaların"), sonra bütün sokak; görmediği İADE/içi boş satırları gizli. → G30
 - [x] T16 [takım] KARAR A + C (01.30): gün 1 sonunda "Depremi şimdi yaşa" (G21) + video/anlatım. Jüri büyük depremi normal yolla göremiyor (5 gün ~8–10 dk). Seçenekler: menüde "Depremi göster" düğmesi, kısa mod, ya da yalnızca sunum/video için ?dev&deprem adresi. Karar takımın (tema ve yaratıcılık puanı).
 - [ ] T17 [takım] Diyalog metinleri: mal sahiplerinin bahaneleri, itirafları, zarf teklifleri, belge getirme/getirememe cümleleri (G17 yer tutucuları). Kural kitabı satırlarının son metni (G16).
 - [ ] T18 [takım] G16 sonrası: fay kuralı (şu an dere gibi zemine bağlı; TUNING.fayKurali "bosalt" yapılabilir), gün 4'te sıvılaşma sıklığı (yakinZemin.sivilasma 0.3 → 0.2?), İADE rengi ve sesi, sahte belge cezası (şu an GÜÇLENDİR).

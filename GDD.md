@@ -79,6 +79,10 @@ Ara testte takım oyunu fazla Papers, Please'e benzer buldu. Seçilenlerin hepsi
 - **İnceleme:** İsteğe bağlı kalır; ilk yanlış karardan sonra fişte "Space ile incele, kusuru kanıtla" ipucu (ceza yok). Yalnızca kanıtlanacak kusuru olan dosyada; kusursuz dosyadaki yanlış ipucu hakkını harcamaz (G27).
 - **G20 takip denetimi kesildi.** Bundan sonra yeni özellik yok, yalnızca cila ve takımın metinleri.
 
+### Eleştirmen 4 sonrası kararlar (takım, 17 Ekim 06:34)
+
+- **Kısa yol gazetesi istatistiği (T22):** Önce jürinin kendi binaları ("senin binaların"), sonra bütün sokak. Jürinin görmediği İADE ve "içi boş" satırları gizlenir. 5 günlük normal yol değişmez. → G30
+
 ### Kurallar netleşti (takım kararı, 16 Ekim 23.53)
 
 - Kural kitabındaki her kural satırı vurulacak damgayı açıkça yazar (ör. "→ BOŞALT").
