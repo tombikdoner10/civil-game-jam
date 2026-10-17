@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G45 [teknik] (sürüyor, Opus/high) Gün 1 son kusurlu dosyada zarf kendiliğinden; her taksit evi bir kademe iyileştirir (0 ağır, 1 hasarlı, 2 hafif, 3 sağlam; kendi apartmanda da); EVİN kartında alınanı göster; dürüst jüriye ev bağlam cümlesi (yer tutucu); çöken evde eşya cümlesi çelişkisi.
 
 ## Sırada
 
