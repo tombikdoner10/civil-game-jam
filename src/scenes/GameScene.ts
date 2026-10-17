@@ -43,6 +43,7 @@ import { GunOturumu, gunHesabi, sokakKayitlari, type GunKaydi, type SarsintiKayd
 import type { SahaSonucu } from '../game/saha';
 import { TUNING } from '../game/tuning';
 import type { DayEndData } from './DayEndScene';
+import { yeniEv, type EvHazirlik } from '../game/ev';
 import { Controls } from '../systems/controls';
 import { punch } from '../systems/fx';
 import { fadeIn, goTo } from '../systems/transition';
@@ -56,6 +57,8 @@ export interface GameData {
   para?: number;
   /** Önceki günlerin kararları (sokak ve deprem günü için; G4b/G5). */
   kayitlar?: GunKaydi[];
+  /** Kendi evinin hazırlığı (G42; oturum boyunca kalıcı, menüden boş). */
+  ev?: EvHazirlik;
   /** İnceleme ipucunu yeniden aç (G36: duraklatmadan Yeniden Başla; jüri bilgisayarında kişi değişebilir). */
   ipucuSifirla?: boolean;
 }
@@ -118,6 +121,7 @@ export class GameScene extends Phaser.Scene {
   private tohum = 0;
   private para = 0;
   private kayitlar: GunKaydi[] = [];
+  private ev: EvHazirlik = yeniEv();
   private yer!: Yerlesim;
   private not?: RuleNote;
   private kartlar: DocumentCard[] = [];
@@ -161,6 +165,7 @@ export class GameScene extends Phaser.Scene {
     this.tohum = data?.tohum ?? Math.floor(Math.random() * 1_000_000_000);
     this.para = data?.para ?? TUNING.para.baslangic;
     this.kayitlar = data?.kayitlar ?? [];
+    this.ev = data?.ev ?? yeniEv();
     // ?dev&gun=N&tohum=M yalnızca ilk girişte (menüden); sonraki günler veriden gelir.
     if (DEV && data?.gun === undefined) {
       const q = new URLSearchParams(location.search);
@@ -1204,13 +1209,14 @@ export class GameScene extends Phaser.Scene {
       dosyalar: this.oturum.dosyalar.map((b) => ({ id: b.id, adres: b.adres })),
       kayitlar: this.kayitlar,
       oncu: this.oncu,
+      ev: this.ev,
     };
     goTo(this, SCENES.DayEnd, data);
   }
 
   pauseGame(): void {
     // "Yeniden Başla" bu günü aynı tohum, para ve önceki günlerin kayıtlarıyla baştan kurar.
-    const yeniden: GameData = { gun: this.gun, tohum: this.tohum, para: this.para, kayitlar: this.kayitlar, ipucuSifirla: true };
+    const yeniden: GameData = { gun: this.gun, tohum: this.tohum, para: this.para, kayitlar: this.kayitlar, ev: this.ev, ipucuSifirla: true };
     this.scene.launch(SCENES.Pause, { from: SCENES.Game, yeniden });
     this.scene.pause();
   }

@@ -7,6 +7,7 @@ import { Sokak, type SokakGirdi } from '../desk/Street';
 import { CATI_H, CEPHE_W, cepheSecimi, KAT_H } from '../desk/tiles';
 import { gunDosyalari, type Damga } from '../game/building';
 import { gunAyar, SON_GUN } from '../game/days';
+import { EV_KALEMLER, satinAl, yeniEv, zarfToplami, type EvKalem } from '../game/ev';
 import { ornekKayitlar } from '../game/ornek';
 import { GunOturumu, gunHesabi } from '../game/session';
 import { TUNING } from '../game/tuning';
@@ -32,8 +33,14 @@ function devDeprem(): DepremData | null {
   const t = Number(q.get('tohum'));
   const tohum = q.has('tohum') && Number.isFinite(t) ? t : Math.floor(Math.random() * 1_000_000_000);
   const kayitlar = ornekKayitlar(tohum, SON_GUN + 1);
-  const para = kayitlar.reduce((n, k) => n + gunHesabi(k.kararlar, gunAyar(k.gun).dosyaSayisi).toplam, 0);
-  return { tohum, para, kayitlar };
+  let para = kayitlar.reduce((n, k) => n + gunHesabi(k.kararlar, gunAyar(k.gun).dosyaSayisi).toplam, 0);
+  // G42: &ev=canta,sabitleme,guclendirme evin kalemlerini gün 5 sonunda alınmış sayar (para yettiği kadar).
+  let ev = yeniEv();
+  for (const k of (q.get('ev') ?? '').split(',') as EvKalem[]) {
+    const r = EV_KALEMLER.includes(k) ? satinAl(ev, k, para, zarfToplami(kayitlar), SON_GUN) : null;
+    if (r) ({ ev, para } = r);
+  }
+  return { tohum, para, kayitlar, ev };
 }
 
 /**

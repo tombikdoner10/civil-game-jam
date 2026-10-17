@@ -15,6 +15,7 @@ import { tamponAl } from '../systems/girisTamponu';
 import { goTo } from '../systems/transition';
 import { SCENES } from './keys';
 import type { NewspaperData } from './NewspaperScene';
+import type { EvHazirlik } from '../game/ev';
 
 /** Gün 5 sonundan büyük depreme taşınan durum. */
 export interface DepremData {
@@ -25,6 +26,8 @@ export interface DepremData {
   kayitlar: GunKaydi[];
   /** Kısa yol (G21, gün 1 raporundan "Depremi şimdi yaşa"); yoksa normal oyun sonu. */
   kisa?: KisaYol;
+  /** Kendi evinin hazırlığı (G42): gazete ve sonuçta "Senin evin"; güçlendirme payı kendi apartmanını etkiler. */
+  ev?: EvHazirlik;
 }
 
 /** Kısa yolun taşıdığı durum: sokak (kayitlar) oyuncunun günleri + örnek binalar; oyuncunun kendi kayıtları ayrı. */
@@ -118,7 +121,8 @@ export class QuakeScene extends Phaser.Scene {
     const zaman = v.kisa ? K.zaman : ZAMAN;
 
     // Kısa yolda zarf işareti yalnızca oyuncunun kendi kararlarından (G23b).
-    const sonuclar = buyukDeprem(v.tohum, v.kayitlar, v.kisa?.gercek);
+    // G42: güçlendirme payı ödendiyse oyuncunun kendi apartmanı (5 günlük yol, gün 5) en az GÜÇLENDİR sayılır.
+    const sonuclar = buyukDeprem(v.tohum, v.kayitlar, v.kisa?.gercek, { guclendirmePayi: !!v.ev?.alinan.guclendirme });
     const sonucu = new Map(sonuclar.map((s) => [s.dosyaId, s]));
     // Sokak ekrandan biraz taşar: kamera sarsıntısında kenarlarda boşluk görünmesin (kaldırım yine y=1038'de).
     const sokak = new Sokak(this, { x: -48, y: -48, w: 2016, h: 1128 }, SON_GUN, sokakKayitlari(v.tohum, v.kayitlar), SOKAK_D, {

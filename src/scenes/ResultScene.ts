@@ -9,6 +9,8 @@ import { gunAyar, SON_GUN } from '../game/days';
 import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
 import { ZARF_ETIKET } from '../game/diyalog';
 import { degerlendirme, juriGordukleri, KISA_SONUC, seninBinalarin, sokakCokenSayisi, sonucEtiketi, zarfOzeti } from '../game/gazete';
+import { evSonucu } from '../game/ev';
+import { EV_CANTA_METIN, EV_DURUM_METIN, EV_KENDI_BINA, EV_PAYLI, EV_SABITLEME_METIN, EV_SONUC_BASLIK, evHarcananSatiri, evZarfCumlesi } from '../game/ev-metin';
 import { bulunanSayisi, depremOzeti, gunHesabi, oyuncuOzeti, oyunToplami } from '../game/session';
 import { fadeIn, goTo } from '../systems/transition';
 import type { GameData } from './GameScene';
@@ -19,8 +21,10 @@ import { sonucRengi } from './QuakeScene';
 /** Sonuç ekranına gelen veri: beş günün kayıtları, birikmiş para ve büyük depremin sonuçları. */
 export type ResultData = NewspaperData;
 
-/** Dosya kâğıdı (ekran pikseli). */
-const KAGIT = { x: 288, y: 40, w: 1344, h: 1000 };
+/** Dosya kâğıdı (ekran pikseli). G42: sola kaydı, sağında "Senin evin" kâğıdı (gün sonu raporuyla aynı yer). */
+const KAGIT = { x: 40, y: 40, w: 1344, h: 1000 };
+/** "Senin evin" kâğıdı (G42). */
+const EV = { x: 1408, y: 40, w: 472, h: 1000 };
 const SATIR_H = 48;
 /** Tablo sütunlarının sağ kenarı (kâğıdın solundan); GÜN sütunu sol hizalı. */
 const SUTUN = { gun: 40, dosya: 420, dogru: 600, yanlis: 780, islenmeyen: 990, kusur: 1180, para: KAGIT.w - 40 };
@@ -44,6 +48,7 @@ export class ResultScene extends Phaser.Scene {
   init(data: ResultData): void {
     this.veri = { tohum: data?.tohum ?? 0, para: data?.para ?? 0, kayitlar: data?.kayitlar ?? [], sonuclar: data?.sonuclar ?? [] };
     if (data?.kisa) this.veri.kisa = data.kisa;
+    if (data?.ev) this.veri.ev = data.ev;
     this.gecildi = false;
   }
 
@@ -228,12 +233,15 @@ export class ResultScene extends Phaser.Scene {
     gorun(dzKap, dGec + 700);
     gorun(dz, dGec + 700);
 
+    // Senin evin (G42): raporun sağındaki kâğıt; değerlendirmeden önce belirir.
+    this.evKagidi(dGec + 400);
+
     // Düğmeler
     const yeniden = (): void => this.git(SCENES.Game, { gun: 1 } satisfies GameData);
     const menu = (): void => this.git(SCENES.Menu);
     // Kısa yol: oyunu gün 2'den sürdür (oyuncunun gerçek kayıtları ve parasıyla; örnek binalar karışmaz).
     const surdur = (): void => {
-      if (kisa) this.git(SCENES.Game, { gun: 2, tohum: v.tohum, para: v.para, kayitlar: kisa.gercek } satisfies GameData);
+      if (kisa) this.git(SCENES.Game, { gun: 2, tohum: v.tohum, para: v.para, kayitlar: kisa.gercek, ev: v.ev } satisfies GameData);
     };
     const by = T + KAGIT.h - 64;
     const ara = kisa ? 440 : 460;
@@ -308,6 +316,75 @@ export class ResultScene extends Phaser.Scene {
     this.gecildi = true;
     sfx.play('confirm');
     goTo(this, key, data);
+  }
+
+  /**
+   * "Senin evin" kâğıdı (G42): evin durumu (renkli şerit), çanta ve sabitleme sonucu (işaretli satırlar), varsa kendi
+   * apartmanın ve güçlendirme payı notu, zarf yan cümlesi; altta evine harcanan. Metinler yer tutucu (ev-metin.ts).
+   */
+  private evKagidi(gecikme: number): void {
+    const v = this.veri;
+    const s = evSonucu(v.ev, v.sonuclar);
+    const X = EV.x;
+    const Y = EV.y;
+    const W = EV.w / PX;
+    const H = EV.h / PX;
+    const t = new Tuval(this, W + 2, H + 3, 'evSonuc');
+    t.rect(2, 3, W, H, '#00000066');
+    t.rect(0, 0, W, H, PAL.krem);
+    t.benek(0, 0, W, H, PAL.kremKoyu, 0.035, rastgele(v.tohum * 13 + 9));
+    t.frame(0, 0, W, H, PAL.kremKoyu);
+    t.frame(2, 2, W - 4, H - 4, PAL.kremKoyu);
+    t.dither(1, H - 2, W - 2, 1, PAL.kremKoyu);
+    t.rect(3, 3, W - 6, 22, PAL.mavisi);
+    for (let x = 3; x < W - 3; x += 2) {
+      t.px(x, 3, '#2f3b5c');
+      t.px(x + 1, 24, '#2f3b5c');
+    }
+    t.goruntu(X, Y).setOrigin(0);
+    const ogeler: Phaser.GameObjects.GameObject[] = [];
+    const tw = EV.w - 64;
+    const metin = (x: number, y: number, m: string, boy: number, renk: string, w = tw): Phaser.GameObjects.Text => {
+      const o = this.add
+        .text(snap(x), snap(y), m, { fontFamily: FONT, fontSize: `${boy}px`, color: renk, wordWrap: { width: w, useAdvancedWrap: true }, lineSpacing: 2 })
+        .setOrigin(0, 0);
+      ogeler.push(o);
+      return o;
+    };
+    const baslik = this.sigdir(this.add.text(snap(X + 32), snap(Y + 44), EV_SONUC_BASLIK, { fontFamily: FONT, fontSize: '52px', color: PAL.kremAcik }).setOrigin(0, 0.5), tw);
+    ogeler.push(baslik);
+    let y = Y + 112;
+    if (s.kendiBina) y += metin(X + 32, y, EV_KENDI_BINA, 26, PAL.murekkepSoluk).height + 16;
+    // Evin durumu: tonun renginde dolu şerit, üstünde açık yazı (değerlendirme şeridi gibi).
+    const renk = s.durum === 'saglam' ? PAL.damgaGuvenli : s.durum === 'hafif' ? PAL.damgaGuclendir : PAL.damgaBosalt;
+    const durum = metin(X + 48, y + 16, EV_DURUM_METIN[s.durum], 34, '#f4ecd6', tw - 32);
+    const serit = this.add.rectangle(snap(X + 32), snap(y), snap(tw), snap(durum.height + 32), num(renk)).setOrigin(0);
+    ogeler.push(serit);
+    durum.setDepth(1);
+    y += durum.height + 32 + 24;
+    // Çanta ve sabitleme: solda işaret kutusu (var: yeşil, yok: kırmızı), yanında cümle.
+    const satir = (var_: boolean, m: string): void => {
+      const kutu = this.add.rectangle(snap(X + 32), snap(y + 4), 24, 24, num(var_ ? PAL.damgaGuvenli : PAL.damgaBosalt)).setOrigin(0);
+      ogeler.push(kutu);
+      const o = metin(X + 72, y, m, 30, PAL.murekkep, tw - 40);
+      y += o.height + 16;
+    };
+    satir(s.canta, s.canta ? EV_CANTA_METIN.var : EV_CANTA_METIN.yok);
+    satir(s.sabitleme, s.sabitleme ? EV_SABITLEME_METIN.var : EV_SABITLEME_METIN.yok);
+    if (s.kendiBina?.evPayi) y += metin(X + 32, y, EV_PAYLI, 28, PAL.murekkepSoluk).height + 16;
+    // Zarf bağı: zarf parası olmadan alınamayacak kalem alındıysa.
+    const z = evZarfCumlesi(s);
+    if (z) y += metin(X + 32, y + 8, z, 30, PAL.damgaBosalt).height + 24;
+    // Altta evine harcanan (birikmiş para harcamalardan sonraki para).
+    const alt = Y + EV.h - 64;
+    const cizgi = this.add.rectangle(snap(X + 24), snap(alt - 32), EV.w - 48, PX, num(PAL.murekkepSoluk)).setOrigin(0);
+    ogeler.push(cizgi);
+    ogeler.push(this.sigdir(this.add.text(snap(X + 32), snap(alt), evHarcananSatiri(para(s.harcanan)), { fontFamily: FONT, fontSize: '30px', color: PAL.murekkep }).setOrigin(0, 0.5), tw));
+    for (const o of ogeler) {
+      const a = o as unknown as Phaser.GameObjects.Components.Alpha;
+      a.setAlpha(0);
+      this.tweens.add({ targets: o, alpha: 1, duration: 160, delay: gecikme });
+    }
   }
 
   /** Metin genişliği aşarsa küçült. */

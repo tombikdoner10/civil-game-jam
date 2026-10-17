@@ -10,9 +10,12 @@ import type { Damga } from '../game/building';
 import { SON_GUN } from '../game/days';
 import { ZARF_ETIKET } from '../game/diyalog';
 import { KISA_YOL_ACIKLAMA, KISA_YOL_DEVAM, KISA_YOL_DUGME, kucukDepremSatiri } from '../game/gazete';
+import { alimDurumu, EV_KALEMLER, evFiyat, evHarcanan, satinAl, yeniEv, zarfToplami, type EvHazirlik, type EvKalem } from '../game/ev';
+import { EV_ALIM_ETIKET, EV_ALT, EV_BASLIK, EV_IPUCU, EV_KALEM_METIN, EV_PARAN, evHarcananSatiri } from '../game/ev-metin';
 import { kisaYolKayitlari } from '../game/ornek';
 import { gunHesabi, kusurEtiketi, type GunKaydi, type Karar, type SarsintiKaydi } from '../game/session';
 import { TUNING } from '../game/tuning';
+import { floatText, pulse } from '../systems/fx';
 import { tamponBaslat } from '../systems/girisTamponu';
 import { fadeIn, goTo } from '../systems/transition';
 import type { GameData } from './GameScene';
@@ -31,10 +34,18 @@ export interface DayEndData {
   kayitlar: GunKaydi[];
   /** Günün sonundaki öncü sarsıntı (varsa): raporda bir satır, kayıtta sokağın hasarı. */
   oncu?: SarsintiKaydi;
+  /** Kendi evinin hazırlığı (G42; gün başındaki durum). */
+  ev?: EvHazirlik;
 }
 
-/** Rapor kâğıdı (ekran pikseli). */
-const KAGIT = { x: 288, y: 40, w: 1344, h: 1000 };
+/** Rapor kâğıdı (ekran pikseli). G42: sola kaydı, sağında "Evin" kâğıdı. */
+const KAGIT = { x: 40, y: 40, w: 1344, h: 1000 };
+/** "Evin" kâğıdı (G42): raporun sağında, aynı yükseklikte; kenar boşlukları raporunkiyle aynı (40 px). */
+const EV = { x: 1408, y: 40, w: 472, h: 1000 };
+/** Evin kâğıdındaki kalem kartları: ilk kartın üstü (kâğıdın üstünden), kart yüksekliği, aralık ve yan boşluk. */
+const EV_KART = { ust: 160, h: 200, ara: 16, kenar: 24 };
+/** Para yetmeyen kalem kartının saydamlığı. */
+const EV_SOLUK = 0.45;
 const SATIR_H = 52;
 /** Sütunların sol kenarı (kâğıdın solundan). */
 const SUTUN = { no: 40, bina: 104, damga: 400, dogru: 640, kusur: 880, sonuc: KAGIT.w - 40 };
@@ -56,6 +67,17 @@ const IKILI = { boyut: 36, ara: 48 };
  */
 const GIRIS_KORUMA_MS = 300;
 
+/** Evin kâğıdındaki bir kalem kartı (G42). */
+interface EvKarti {
+  kalem: EvKalem;
+  kap: Phaser.GameObjects.Container;
+  /** Kartın içi (para yetmeyince soluk; dıştaki kap açılışta belirir). */
+  ic: Phaser.GameObjects.Container;
+  zemin: Phaser.GameObjects.Rectangle;
+  etiket: Phaser.GameObjects.Text;
+  cip: Phaser.GameObjects.Rectangle;
+}
+
 /**
  * Gün sonu ekranı (Papers, Please'in gün sonu özeti gibi): masada bir rapor kâğıdı. Her dosya için bina,
  * verdiğin damga, doğru damga, inceleme modunda bulduğun kusurlar ve sonuç; altta maaş, ceza, günün
@@ -67,6 +89,15 @@ export class DayEndScene extends Phaser.Scene {
   private veri!: DayEndData;
   private hazir = false;
   private gecildi = false;
+  /** Birikmiş para (gün sonu hesabından sonra; G42 harcamalarıyla canlı düşer). */
+  private para = 0;
+  private ev: EvHazirlik = yeniEv();
+  /** Bugüne kadar kabul edilen zarfların toplamı (G42: zarf parasıyla alınan kalem). */
+  private zarfToplam = 0;
+  private birikmisYazi?: Phaser.GameObjects.Text;
+  private evParaYazi?: Phaser.GameObjects.Text;
+  private evHarcananYazi?: Phaser.GameObjects.Text;
+  private evKartlar: EvKarti[] = [];
 
   constructor() {
     super(SCENES.DayEnd);
@@ -76,6 +107,12 @@ export class DayEndScene extends Phaser.Scene {
     this.veri = data;
     this.hazir = false;
     this.gecildi = false;
+    this.ev = data.ev ?? yeniEv();
+    this.zarfToplam = zarfToplami(data.kayitlar, data.kararlar);
+    this.evKartlar = [];
+    this.birikmisYazi = undefined;
+    this.evParaYazi = undefined;
+    this.evHarcananYazi = undefined;
   }
 
   create(): void {
@@ -84,6 +121,7 @@ export class DayEndScene extends Phaser.Scene {
     const v = this.veri;
     const hesap = gunHesabi(v.kararlar, v.dosyalar.length);
     const yeniPara = v.paraOnce + hesap.toplam;
+    this.para = yeniPara;
 
     masaCiz(this, 0);
     this.kagitCiz();
@@ -203,8 +241,12 @@ export class DayEndScene extends Phaser.Scene {
       const yy = hy + 24 + i * 48;
       if (i === 2) this.add.rectangle(ad, yy - 26, deger - ad, PX, num(PAL.murekkepSoluk)).setOrigin(0);
       yaz(ad, yy, a, 36, i >= 2 ? PAL.murekkep : PAL.etiket);
-      yaz(deger, yy, b, i === 3 ? 44 : 36, renk, 1);
+      const t = yaz(deger, yy, b, i === 3 ? 44 : 36, renk, 1);
+      if (i === 3) this.birikmisYazi = t;
     });
+
+    // Kendi evinin hazırlığı (G42): raporun sağındaki kâğıt; 1/2/3 ya da tıklama. Enter satın alma yapmaz.
+    this.evKagidi();
 
     // Sonraki gün düğmesi; gün 1'de yanında kısa yol (G21, jüri yolu; soru biçimli düğme). Gün 1'de kısa yol
     // birincil (G21b, lider kararı): Enter/Space ve D onu seçer, düğmesi çerçeveli ve nabız gibi atar; "Sonraki gün"
@@ -213,8 +255,8 @@ export class DayEndScene extends Phaser.Scene {
     const kisaVar = v.gun === 1 && !son;
     const by = T + KAGIT.h - 64;
     const kb = this.input.keyboard;
-    const tus = (): void => this.devam(yeniPara);
-    const kisaTus = (): void => this.devam(yeniPara, true);
+    const tus = (): void => this.devam();
+    const kisaTus = (): void => this.devam(true);
     // Enter (G26): giriş koruması sürerken (rapor kararmadan açılırken) basılan Enter kaybolmaz, koruma bitince bir
     // kez işlenir. Basılı tutulan tuşun tekrarı (önceki sahneden kalan) beklemeye alınmaz. Space, D ve N eskisi gibi.
     let bekleyen: (() => void) | undefined;
@@ -286,6 +328,15 @@ export class DayEndScene extends Phaser.Scene {
       kb?.on('keydown-ENTER', enterTus);
       kb?.on('keydown-SPACE', tus);
     }
+    // G42: 1 / 2 / 3 (üst sıra ya da sayı tuşları) evin kalemlerini alır.
+    const evTus = (e: KeyboardEvent): void => {
+      if (e.ctrlKey || e.altKey || e.metaKey || e.repeat) return;
+      const i = ['Digit1', 'Digit2', 'Digit3'].indexOf(e.code);
+      const j = ['Numpad1', 'Numpad2', 'Numpad3'].indexOf(e.code);
+      const k = i >= 0 ? i : j >= 0 ? j : ['1', '2', '3'].indexOf(e.key);
+      if (k >= 0) this.evAl(EV_KALEMLER[k]);
+    };
+    kb?.on('keydown', evTus);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       for (const ad of ['keydown-ENTER', 'keydown-SPACE', 'keydown-D']) {
         kb?.off(ad, tus);
@@ -294,6 +345,7 @@ export class DayEndScene extends Phaser.Scene {
       kb?.off('keydown-ENTER', enterTus);
       kb?.off('keydown-ENTER', enterKisa);
       kb?.off('keydown', nTus);
+      kb?.off('keydown', evTus);
       // Gün sonu jingle'ı depreme ya da sonraki günün masasına taşmasın (G32).
       sfx.jingleSustur();
     });
@@ -309,11 +361,14 @@ export class DayEndScene extends Phaser.Scene {
     this.time.delayedCall(350, () => sfx.play(iyi ? 'gunIyi' : 'gunKotu'));
   }
 
-  private devam(yeniPara: number, kisa = false): void {
+  private devam(kisa = false): void {
     if (!this.hazir || this.gecildi) return;
     this.gecildi = true;
     sfx.play('confirm');
     const v = this.veri;
+    // G42: evine harcanan düşülmüş para ve evin hazırlığı sonraki güne, depreme ve sonuca taşınır.
+    const yeniPara = this.para;
+    const ev = this.ev;
     const kayit: GunKaydi = { gun: v.gun, kararlar: v.kararlar };
     if (v.oncu) kayit.oncu = v.oncu;
     const kayitlar: GunKaydi[] = [...v.kayitlar, kayit];
@@ -325,6 +380,7 @@ export class DayEndScene extends Phaser.Scene {
         para: yeniPara,
         kayitlar: [...kayitlar, ...kisaYolKayitlari(v.tohum)],
         kisa: { gercek: kayitlar, juri: v.kararlar.map((k) => k.dosyaId) },
+        ev,
       };
       // Kararma sırasında gelen yeni basış kaybolmasın (G41): depremde hızlandırma olarak uygulanır.
       tamponBaslat();
@@ -333,13 +389,136 @@ export class DayEndScene extends Phaser.Scene {
     }
     if (v.gun >= SON_GUN) {
       // Son gün: gece ve büyük deprem (gece geçişi QuakeScene'de; buradan daha yavaş kararır).
-      const data: DepremData = { tohum: v.tohum, para: yeniPara, kayitlar };
+      const data: DepremData = { tohum: v.tohum, para: yeniPara, kayitlar, ev };
       tamponBaslat();
       goTo(this, SCENES.Quake, data, 600);
       return;
     }
-    const data: GameData = { gun: v.gun + 1, tohum: v.tohum, para: yeniPara, kayitlar };
+    const data: GameData = { gun: v.gun + 1, tohum: v.tohum, para: yeniPara, kayitlar, ev };
     goTo(this, SCENES.Game, data);
+  }
+
+  /**
+   * "Evin" kâğıdı (G42): başlık, üç kalem kartı (tuş, ad, açıklama, fiyat, durum), altta paran ve evine harcanan.
+   * Kart tıklanınca ya da 1/2/3 ile alınır; para yetmeyen kart soluk, alınan kart yeşil.
+   */
+  private evKagidi(): void {
+    const X = EV.x;
+    const Y = EV.y;
+    const W = EV.w / PX;
+    const H = EV.h / PX;
+    const rnd = rastgele(this.veri.gun * 97 + 3);
+    const t = new Tuval(this, W + 2, H + 3, 'evKagit');
+    t.rect(2, 3, W, H, '#00000066');
+    t.rect(0, 0, W, H, PAL.krem);
+    t.benek(0, 0, W, H, PAL.kremKoyu, 0.035, rnd);
+    t.frame(0, 0, W, H, PAL.kremKoyu);
+    t.frame(2, 2, W - 4, H - 4, PAL.kremKoyu);
+    t.dither(1, H - 2, W - 2, 1, PAL.kremKoyu);
+    // Başlık şeridi (dosya kapağı mavisi; rapordan ayrı bir kâğıt olduğu belli olsun).
+    t.rect(3, 3, W - 6, 22, PAL.mavisi);
+    for (let x = 3; x < W - 3; x += 2) {
+      t.px(x, 3, '#2f3b5c');
+      t.px(x + 1, 24, '#2f3b5c');
+    }
+    t.goruntu(X, Y).setOrigin(0);
+    const yaz = (x: number, y: number, s: string, size: number, renk: string, ox = 0): Phaser.GameObjects.Text =>
+      this.add.text(snap(x), snap(y), s, { fontFamily: FONT, fontSize: `${size}px`, color: renk }).setOrigin(ox, 0.5);
+    this.sigdir(yaz(X + 32, Y + 44, EV_BASLIK, 56, PAL.kremAcik), EV.w - 64);
+    this.sigdir(yaz(X + 32, Y + 124, EV_ALT, 28, PAL.murekkepSoluk), EV.w - 64);
+
+    const kx = X + EV_KART.kenar;
+    const kw = EV.w - EV_KART.kenar * 2;
+    const kh = EV_KART.h;
+    EV_KALEMLER.forEach((kalem, i) => {
+      const ky = Y + EV_KART.ust + i * (kh + EV_KART.ara);
+      const kap = this.add.container(snap(kx), snap(ky));
+      const ic = this.add.container(0, 0);
+      const cerceve = this.add.rectangle(0, 0, kw, kh, num(PAL.kremKoyu)).setOrigin(0);
+      const zemin = this.add.rectangle(PX, PX, kw - PX * 2, kh - PX * 2, num(PAL.kremAcik)).setOrigin(0);
+      const m = EV_KALEM_METIN[kalem];
+      // Tuş kutusu (1 / 2 / 3)
+      const tusKutu = this.add.rectangle(16, 16, 44, 44, num(PAL.cerceve)).setOrigin(0);
+      const tusYazi = this.add.text(38, 38, String(i + 1), { fontFamily: FONT, fontSize: '30px', color: PAL.kremAcik }).setOrigin(0.5);
+      const ad = this.sigdir(this.add.text(76, 38, m.ad, { fontFamily: FONT, fontSize: '32px', color: PAL.murekkep }).setOrigin(0, 0.5), kw - 92);
+      const aciklama = this.add
+        .text(16, 72, m.aciklama, { fontFamily: FONT, fontSize: '26px', color: PAL.murekkepSoluk, wordWrap: { width: kw - 32, useAdvancedWrap: true }, lineSpacing: 0 })
+        .setOrigin(0, 0);
+      for (let boy = 26; aciklama.height > 64 && boy > 20; ) aciklama.setFontSize((boy -= 2));
+      const fiyat = this.add.text(16, kh - 36, `${evFiyat(kalem)} TL`, { fontFamily: FONT, fontSize: '36px', color: PAL.murekkep }).setOrigin(0, 0.5);
+      const cip = this.add.rectangle(kw - 16, kh - 36, 10, 44, num(PAL.damgaGuvenli)).setOrigin(1, 0.5);
+      const etiket = this.add.text(kw - 28, kh - 36, '', { fontFamily: FONT, fontSize: '28px', color: '#f0e6cc' }).setOrigin(1, 0.5);
+      ic.add([cerceve, zemin, tusKutu, tusYazi, ad, aciklama, fiyat, cip, etiket]);
+      kap.add(ic);
+      kap.setSize(kw, kh);
+      // Container'ın etkileşim alanı yerel noktaya displayOrigin (yarı boyut) eklenerek sınanır; kart sol üstten
+      // kurulduğu için alan yarım boyut kaydırılır (kartın tamamı tıklanır).
+      kap.setInteractive(new Phaser.Geom.Rectangle(kw / 2, kh / 2, kw, kh), Phaser.Geom.Rectangle.Contains);
+      kap.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => {
+        if (alimDurumu(this.ev, kalem, this.para) !== 'alinabilir') return;
+        zemin.setFillStyle(num(PAL.kirliBeyaz));
+        this.input.setDefaultCursor('pointer');
+      });
+      kap.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => {
+        this.input.setDefaultCursor('default');
+        this.evYenile();
+      });
+      kap.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => this.evAl(kalem));
+      kap.setAlpha(0);
+      this.tweens.add({ targets: kap, alpha: 1, duration: 160, delay: 300 + i * 90 });
+      this.evKartlar.push({ kalem, kap, ic, zemin, etiket, cip });
+    });
+
+    const py = Y + EV_KART.ust + 3 * (kh + EV_KART.ara) + 24;
+    this.add.rectangle(snap(X + 24), snap(py - 24), EV.w - 48, PX, num(PAL.murekkepSoluk)).setOrigin(0);
+    yaz(X + 32, py + 20, EV_PARAN, 32, PAL.etiket);
+    this.evParaYazi = yaz(X + EV.w - 32, py + 20, '', 44, PAL.murekkep, 1);
+    this.evHarcananYazi = yaz(X + 32, py + 72, '', 26, PAL.murekkepSoluk);
+    this.sigdir(yaz(X + 32, py + 116, EV_IPUCU, 24, PAL.murekkepSoluk), EV.w - 64);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.setDefaultCursor('default'));
+    this.evYenile();
+  }
+
+  /** Kartların durumunu, paran ve harcanan satırlarını ve rapordaki "Birikmiş"i güncelle. */
+  private evYenile(): void {
+    for (const k of this.evKartlar) {
+      const d = alimDurumu(this.ev, k.kalem, this.para);
+      k.etiket.setText(EV_ALIM_ETIKET[d]);
+      k.etiket.setColor(d === 'yetmiyor' ? PAL.murekkepSoluk : '#f0e6cc');
+      k.cip.setVisible(d !== 'yetmiyor');
+      k.cip.setFillStyle(num(d === 'alindi' ? PAL.damgaGuvenli : PAL.damgaGuclendir));
+      k.cip.setSize(snap(k.etiket.width + 24), 44);
+      k.zemin.setFillStyle(num(d === 'alindi' ? PAL.fisYesil : PAL.kremAcik));
+      k.ic.setAlpha(d === 'yetmiyor' ? EV_SOLUK : 1);
+    }
+    const tl = para(this.para);
+    this.evParaYazi?.setText(tl);
+    this.evHarcananYazi?.setText(evHarcananSatiri(para(evHarcanan(this.ev))));
+    this.birikmisYazi?.setText(tl);
+  }
+
+  /** Kalemi al (G42): para düşer, kart yeşile döner; alınmış ya da para yetmiyorsa kısa "olmaz" sesi. */
+  private evAl(kalem: EvKalem): void {
+    if (!this.hazir || this.gecildi) return;
+    const kart = this.evKartlar.find((k) => k.kalem === kalem);
+    const r = satinAl(this.ev, kalem, this.para, this.zarfToplam, this.veri.gun);
+    if (!r) {
+      sfx.play('kaseKilit');
+      if (kart && alimDurumu(this.ev, kalem, this.para) === 'yetmiyor' && !this.tweens.isTweening(kart.ic))
+        this.tweens.add({ targets: kart.ic, x: 8, duration: 40, yoyo: true, repeat: 2, onComplete: () => kart.ic.setX(0) });
+      return;
+    }
+    this.ev = r.ev;
+    this.para = r.para;
+    sfx.play('zarfCekmece');
+    this.evYenile();
+    if (kart) {
+      const { x, y, width: w, height: h } = kart.kap;
+      const parla = this.add.rectangle(x, y, w, h, 0xf0e6cc, 0.7).setOrigin(0);
+      this.tweens.add({ targets: parla, alpha: 0, duration: 260, onComplete: () => parla.destroy() });
+      floatText(this, x + w - 90, y + h - 60, `−${evFiyat(kalem)} TL`, 0xa8352d, 36);
+    }
+    for (const t of [this.evParaYazi, this.birikmisYazi]) if (t && !this.tweens.isTweening(t)) pulse(this, t, 0.12, 120);
   }
 
   /** Metin genişliği aşarsa küçült. */

@@ -8,6 +8,8 @@ import { hazirGostergesi, masaCiz, pikselDugme } from '../desk/props';
 import { Sokak, type SokakGirdi } from '../desk/Street';
 import { SON_GUN } from '../game/days';
 import { DOLGU_BASLIKLAR, FOTO_ALTI, GAZETE_ADI, GAZETE_TARIH, kisaSayiBloklari, manset, oneCikanlar, sayiSatiri, sokakCokenSayisi, zarfSatiri } from '../game/gazete';
+import { evSonucu } from '../game/ev';
+import { EV_GAZETE_BASLIK, evCumleleri } from '../game/ev-metin';
 import { depremOzeti, oyuncuOzeti, sokakKayitlari, type DepremBinaSonucu } from '../game/session';
 import { fadeIn, goTo } from '../systems/transition';
 import { SCENES } from './keys';
@@ -38,6 +40,9 @@ const FOTO_PARSEL = 18;
  * atlatmasın. Koruma sürerken birincil düğmede "hazır" şeridi dolar (gün sonu raporuyla aynı gösterge).
  */
 const GIRIS_KORUMA_MS = 500;
+
+/** "Senin evin" kutusu (G42): üçüncü sütunun altında; en çok bu yükseklikte (yazı sığana kadar küçülür). */
+const EV_KUTU = { enCokH: 236, ic: 16 };
 
 /** Sonuç ekranına geçişin kararma süresi (ms; ana ve fotoğraf kamerası birlikte). */
 const GECIS_MS = 220;
@@ -144,6 +149,8 @@ export class NewspaperScene extends Phaser.Scene {
     cizgi(altY);
     const sut = 3;
     const sutW = (KAGIT.w - 80 - (sut - 1) * 40) / sut;
+    // G42: üçüncü sütunun altında "Senin evin" kutusu; o sütunun doldurma çizgileri kutunun üstünde biter.
+    const evUst = this.evKutusu(L + 40 + 2 * (sutW + 40), sutW, T + KAGIT.h - 40);
     for (let i = 0; i < sut; i++) {
       const x0 = L + 40 + i * (sutW + 40);
       const baslik = one.satirlar[i] ?? DOLGU_BASLIKLAR[i % DOLGU_BASLIKLAR.length];
@@ -156,8 +163,9 @@ export class NewspaperScene extends Phaser.Scene {
           lineSpacing: 2,
         })
         .setOrigin(0, 0);
-      for (let yy = snap(altY + 20 + b.height + 20); yy < T + KAGIT.h - 40; yy += 20) {
-        const son = yy + 20 >= T + KAGIT.h - 40 || rnd() < 0.12;
+      const sonY = i === sut - 1 ? evUst - 24 : T + KAGIT.h - 40;
+      for (let yy = snap(altY + 20 + b.height + 20); yy < sonY; yy += 20) {
+        const son = yy + 20 >= sonY || rnd() < 0.12;
         const w = son ? sutW * (0.3 + rnd() * 0.5) : sutW - rnd() * 24;
         this.add.rectangle(snap(x0), snap(yy), snap(w), 8, 0x6e675c, 0.55).setOrigin(0);
       }
@@ -204,6 +212,30 @@ export class NewspaperScene extends Phaser.Scene {
     // goTo yalnızca ana kamerayı karartır: fotoğraf kamerası da aynı sürede sönsün (siyah ekranda asılı kalmasın).
     this.fotoKamera?.fadeOut(GECIS_MS, 0, 0, 0);
     goTo(this, SCENES.Result, data, GECIS_MS);
+  }
+
+  /**
+   * "Senin evin" kutusu (G42; kısa yolda da 5 günlük yolda da): çerçeveli küçük haber kutusu, başlık ve evin
+   * durumu, çanta, sabitleme ve (varsa) zarf cümleleri. Alt kenarı alt'ta; yazı enCokH'ye sığana kadar küçülür.
+   * Dönüş: kutunun üst kenarı.
+   */
+  private evKutusu(x: number, w: number, alt: number): number {
+    const s = evSonucu(this.veri.ev, this.veri.sonuclar);
+    const ic = EV_KUTU.ic;
+    const baslik = this.add.text(0, 0, EV_GAZETE_BASLIK, { fontFamily: FONT, fontSize: '32px', color: MUREKKEP }).setOrigin(0, 0);
+    const govde = this.add
+      .text(0, 0, evCumleleri(s).join(' '), { fontFamily: FONT, fontSize: '28px', color: MUREKKEP, wordWrap: { width: w - ic * 2, useAdvancedWrap: true }, lineSpacing: 2 })
+      .setOrigin(0, 0);
+    const yuk = (): number => ic + baslik.height + 8 + govde.height + ic;
+    for (let boy = 28; yuk() > EV_KUTU.enCokH && boy > 20; ) govde.setFontSize((boy -= 2));
+    const h = snap(yuk());
+    const ust = snap(alt - h);
+    this.add.rectangle(snap(x), ust, snap(w), h, 0x1d1a18).setOrigin(0);
+    this.add.rectangle(snap(x) + PX, ust + PX, snap(w) - PX * 2, h - PX * 2, 0xcfc8b4).setOrigin(0);
+    baslik.setPosition(snap(x + ic), ust + ic).setDepth(1);
+    this.add.rectangle(snap(x + ic), snap(ust + ic + baslik.height + 2), snap(w - ic * 2), PX, 0x1d1a18, 0.6).setOrigin(0);
+    govde.setPosition(snap(x + ic), snap(ust + ic + baslik.height + 8)).setDepth(1);
+    return ust;
   }
 
   /**
