@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G58 [teknik] (bitti 8be5b23, test sürüyor, Opus/low) Gün sonu raporu çok satırda taşmasın: gün 2–5'te 2–3 müfettiş satırı (gerçek oyunda ulaşılabilir durumlar), uzun küçük deprem satırı.
 
 ## Sırada
 
@@ -74,6 +73,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G58 Gün sonu raporu içeriğe göre yerleşir, taşmaz (8be5b23, Opus/high; test GEÇTİ, 7 koşu)
 - [x] G57b Raporda müfettiş satırı küçük depremin altında; "Zarf: el konuldu"; sonuçta "(el konuldu)" (dd8809e, Opus/high; test GEÇTİ)
 - [x] G57 Müfettiş (zarflı yanlış karar %50 yakalanır, zarfa el konur, 40 TL ceza) ve dürüstlük övgüsü (96064cd + 62e74eb, Opus/high; test GEÇTİ, 8 koşu)
 - [x] G56 Takım bölümü Türkçe: Egemen AYVAZ · Takım Lideri, Deniz Demir · Oyun Testçisi ve Fikir Geliştirici, Ahmet Ata Tuncer · Ses Tasarımcısı ve Fikir Geliştirici (c9ef294, Opus/high; test GEÇTİ)
