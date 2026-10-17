@@ -9,7 +9,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 ## Şimdi
 
 - [ ] G58 [teknik] (sürüyor, Opus/high) Gün sonu raporu çok satırda taşmasın: gün 2–5'te 2–3 müfettiş satırı (gerçek oyunda ulaşılabilir durumlar), uzun küçük deprem satırı.
-- [ ] G57b [teknik] (bitti dd8809e, test sürüyor, Opus/low) Raporda müfettiş satırı küçük deprem satırının hemen altında; "Zarf: +0 TL (1 kabul)" yerine el konulanı söyleyen metin; sonuç ekranı zarf toplamında "(el konuldu)".
 
 ## Sırada
 
@@ -75,6 +74,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G57b Raporda müfettiş satırı küçük depremin altında; "Zarf: el konuldu"; sonuçta "(el konuldu)" (dd8809e, Opus/high; test GEÇTİ)
 - [x] G57 Müfettiş (zarflı yanlış karar %50 yakalanır, zarfa el konur, 40 TL ceza) ve dürüstlük övgüsü (96064cd + 62e74eb, Opus/high; test GEÇTİ, 8 koşu)
 - [x] G56 Takım bölümü Türkçe: Egemen AYVAZ · Takım Lideri, Deniz Demir · Oyun Testçisi ve Fikir Geliştirici, Ahmet Ata Tuncer · Ses Tasarımcısı ve Fikir Geliştirici (c9ef294, Opus/high; test GEÇTİ)
 - [x] G55 Gün sonu raporunda NO sütunu yok, BİNA ilk sütun (4097393, Opus/high; test GEÇTİ)
