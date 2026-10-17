@@ -47,6 +47,15 @@ export function evKademeBasligi(k: EvKalem, n: number): string {
   const ad = EV_KADEME_METIN[k][n - 1].ad;
   return k === 'guclendirme' ? `${evTaksitEtiketi(n)} ${ad}` : ad;
 }
+/** Kartta alınan son kademe (G45): "Alındı: …" satırı; kalem tamamsa EV_ALINDI_TAMAM. */
+export const evAlindiSatiri = (ad: string): string => `[Alındı: ${ad.replace(/^\[|\]$/g, '')}]`;
+export const EV_ALINDI_TAMAM = '[Alındı: TAMAM]';
+/** Kalemin kartta okunacak "Alındı" satırı (n: alınan kademe sayısı); hiç alınmadıysa null. */
+export function evAlindi(k: EvKalem, n: number): string | null {
+  if (n <= 0) return null;
+  if (n >= EV_KADEME) return EV_ALINDI_TAMAM;
+  return evAlindiSatiri(EV_KADEME_METIN[k][n - 1].ad);
+}
 /** Kalemin durumu (rapordaki etiket). */
 export const EV_ALIM_ETIKET: Record<AlimDurumu, string> = {
   tamam: '[TAMAM]',
@@ -106,9 +115,33 @@ export const EV_ZARF_METIN: Record<EvKalem, string> & { birden: string } = {
   birden: '[Evinin hazırlığını zarf parasıyla yaptın.]',
 };
 
-/** "Senin evin" cümleleri sırasıyla: evin durumu, güçlendirme, çanta, sabitleme ve (varsa) zarf yan cümlesi. */
+/**
+ * Bağlam cümlesi (G45): soyut ev (kendi apartmanını damgalamadın) hasarlı ya da ağır hasarlı ve güçlendirmenin en çok
+ * bir taksiti ödendiyse nedeni. Kusursuz dürüst oyuncunun yeşil değerlendirmesiyle kırmızı evi arasındaki çelişkiyi
+ * açıklar: dürüst maaş güçlendirmeye zamanla yeter.
+ */
+export const EV_BAGLAM_METIN = '[Güçlendirme tek maaşla bitmez.]';
+
+export function evBaglamCumlesi(s: EvSonucu): string | null {
+  if (s.kendiBina || s.guclendirme > 1) return null;
+  return s.durum === 'hasarli' || s.durum === 'agir' ? EV_BAGLAM_METIN : null;
+}
+
+/** Ev çöktü mü (G45): çöken evde eşya sabitleme cümlesi gösterilmez (devrilen dolap çöken binada anlamsız). */
+export function evCoktu(s: EvSonucu): boolean {
+  return s.durum === 'coktu' || s.durum === 'coktuBos';
+}
+
+/**
+ * "Senin evin" cümleleri sırasıyla: evin durumu, (varsa) bağlam cümlesi, güçlendirme, çanta, sabitleme (ev çöktüyse
+ * yok; G45) ve (varsa) zarf yan cümlesi.
+ */
 export function evCumleleri(s: EvSonucu): string[] {
-  const out = [EV_DURUM_METIN[s.durum], EV_GUCLENDIRME_METIN[s.guclendirme], EV_CANTA_METIN[s.canta], EV_SABITLEME_METIN[s.sabitleme]];
+  const out = [EV_DURUM_METIN[s.durum]];
+  const b = evBaglamCumlesi(s);
+  if (b) out.push(b);
+  out.push(EV_GUCLENDIRME_METIN[s.guclendirme], EV_CANTA_METIN[s.canta]);
+  if (!evCoktu(s)) out.push(EV_SABITLEME_METIN[s.sabitleme]);
   const z = evZarfCumlesi(s);
   if (z) out.push(z);
   return out;

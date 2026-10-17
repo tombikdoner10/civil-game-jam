@@ -281,5 +281,12 @@
     "yer": "src/scenes/CreditsScene.ts, README.md",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T07:39:06.513Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G45 kendiliğinden zarf ve taksit kademeleri (Bash içinde node/python ile düzenleme)",
+    "yer": "src/game/kisi.ts, src/game/tuning.ts, src/game/session.ts, src/game/ev.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T13:33:00.947Z"
   }
 ]

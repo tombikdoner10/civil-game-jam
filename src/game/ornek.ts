@@ -14,7 +14,7 @@ const YANLIS: Record<Damga, Damga> = { guvenli: 'bosalt', guclendir: 'bosalt', b
  * bir yanlış damga, her yedinci (gün 3'ten) İADE (dosya eksiksizse yanlış).
  * G17: eksik belgeli her ikinci dosyada belge sahibinden İSTENİR (gerçek rapor gelirse gerçek duruma göre damga);
  * her beşinci dosyada bulunan ilk kusur SORULUR, zarf gelirse çift sırada kabul (damga kişinin istediği; G22), tek
- * sırada ret.
+ * sırada ret. G45: gün 1'in son kusurlu dosyasında kendiliğinden zarf da gelir (aynı kabul kuralı).
  * G17b: geçersiz belgeli (elle düzeltilmiş, başka binanın, imzasız) her ikinci dosyada kusur bulunur ve belgenin
  * düzgünü İSTENİR (gerçeği gelirse gerçek duruma göre damga, gelmezse İADE).
  * Doğru kararlarda kusurlar bulunmuş sayılır. Öncü sarsıntılı günlerde sarsıntı sonucu oyundaki kuralla.
@@ -55,6 +55,8 @@ export function ornekKayitlar(tohum: number, gun: number, ilk = 1, zarfsiz = fal
           if (c?.zarf !== undefined) o.zarfKarar(!zarfsiz && i % 2 === 0);
         }
       }
+      // G45: kendiliğinden zarf (gün 1'in son kusurlu dosyası) oyundaki gibi gelir; SOR zarfıyla aynı kabul kuralı.
+      if (o.kendiZarfSirada && o.kendiZarf()) o.zarfKarar(!zarfsiz && i % 2 === 0);
       const dogru = dogruDamga(b, g, Object.keys(bilgi).length > 0 ? bilgi : undefined);
       // Zarf alındıysa damga kişinin istediği (G22).
       const z = o.zarf;

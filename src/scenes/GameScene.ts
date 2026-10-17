@@ -33,7 +33,7 @@ import {
   type Degiskenler,
   type Desteler,
 } from '../game/diyalog';
-import { ISTE_BELGE_METIN, ISTE_METIN, MIZAC_IFADE, MIZAC_METIN, MIZACLAR, SOR_METIN, ZARF_ISTEK } from '../game/diyalog-metin';
+import { ISTE_BELGE_METIN, ISTE_METIN, KENDI_ZARF_GIRIS, MIZAC_IFADE, MIZAC_METIN, MIZACLAR, SOR_METIN, ZARF_ISTEK } from '../game/diyalog-metin';
 import { mizacSec, type Ifade, type IsteAlani, type Kisi, type SorCevap, type ZarfIstek } from '../game/kisi';
 import { KUCUK_DEPREM_SERIT, oncuEtiketi } from '../game/gazete';
 import { KUSUR_BILGI } from '../game/rules';
@@ -231,8 +231,9 @@ export class GameScene extends Phaser.Scene {
       dokunuldu: () => {
         if (this.inceleme.acik) this.inceleme.kapa();
       },
-      // Zarfın bedeli (G22): zarf karar beklerken hiçbir kaşe, zarf alındıysa yalnızca istenen kaşe.
-      izin: (d) => this.oturum.damgaIzinli(d),
+      // Zarfın bedeli (G22): zarf karar beklerken hiçbir kaşe, zarf alındıysa yalnızca istenen kaşe. G45: kendiliğinden
+      // zarf sıradayken de kilitli (zarf masaya gelmeden damga vurulup zarf kaçmasın).
+      izin: (d) => !this.oturum.kendiZarfSirada && this.oturum.damgaIzinli(d),
     });
 
     this.cekmece = new Cekmece(this);
@@ -470,6 +471,8 @@ export class GameScene extends Phaser.Scene {
           if (this.oturum.mevcut?.id !== id || this.bitirildi) return;
           const m = kisi.mizac;
           this.pencere.soyle(this.deste.cek(`selam:${m}`, MIZAC_METIN[m].selam, degiskenler(bina)), MIZAC_IFADE[m].selam);
+          // G45: gün 1'in son kusurlu dosyasında kişi selamdan kısa süre sonra zarfı kendisi uzatır.
+          if (this.oturum.kendiZarfSirada) this.time.delayedCall(TUNING.kisi.kendiZarf.gecikmeMs, () => this.kendiZarf(id));
         });
       });
     }
@@ -548,6 +551,34 @@ export class GameScene extends Phaser.Scene {
         if (this.oturum.mevcut?.id === dosya && !this.mesgul) this.zarfGetir(miktar, istenen);
       });
     }
+  }
+
+  /**
+   * Kendiliğinden zarf (G45): kişi SOR beklemeden zarfı uzatır. Cümle: mizacın giriş cümlesi (sığarsa), kusurun zarf
+   * cümlesi ve istenen damga; zarf SOR zarfı gibi masaya kayar (AL / GERİ VER, sürükleme, kaşeler kilitli).
+   */
+  private kendiZarf(dosya: string): void {
+    if (this.oturum.mevcut?.id !== dosya || this.bitirildi) return;
+    const kisi = this.oturum.kisi;
+    const c = this.oturum.kendiZarf();
+    if (!c || !kisi || c.zarf === undefined) return;
+    this.eylem();
+    const D = this.deste;
+    const m = kisi.mizac;
+    const d = degiskenler(this.oturum.mevcut, c.zarf);
+    let metin = D.cek(`sor:${c.kusur}:zarf`, SOR_METIN[c.kusur].zarf, d);
+    if (c.istenen) metin += `\n${D.cek(`istek:${c.istenen}`, ZARF_ISTEK[c.istenen], d)}`;
+    const anahtar = `kendiZarfGiris:${m}`;
+    const uzun = `${D.cek(anahtar, KENDI_ZARF_GIRIS[m], d)}\n${metin}`;
+    if (this.pencere.sigar(uzun)) metin = uzun;
+    else D.geriKoy(anahtar);
+    this.pencere.soyle(metin, c.ifade);
+    this.kaseDurum();
+    const miktar = c.zarf;
+    const istenen = c.istenen ?? 'guvenli';
+    this.time.delayedCall(700, () => {
+      if (this.oturum.mevcut?.id === dosya && !this.bitirildi && this.oturum.zarfBekliyor) this.zarfGetir(miktar, istenen);
+    });
   }
 
   /**

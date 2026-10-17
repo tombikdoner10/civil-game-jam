@@ -11,7 +11,7 @@ import { SON_GUN } from '../game/days';
 import { ZARF_ETIKET } from '../game/diyalog';
 import { KISA_YOL_ACIKLAMA, KISA_YOL_DEVAM, KISA_YOL_DUGME, kucukDepremSatiri } from '../game/gazete';
 import { alimDurumu, EV_KADEME, EV_KALEMLER, evHarcanan, evKademe, satinAl, siradakiFiyat, yeniEv, zarfToplami, type EvHazirlik, type EvKalem } from '../game/ev';
-import { EV_ALIM_ETIKET, EV_ALT, EV_BASLIK, EV_IPUCU, EV_KADEME_METIN, EV_KALEM_METIN, EV_PARAN, EV_TAMAM_METIN, evHarcananSatiri, evKademeBasligi } from '../game/ev-metin';
+import { EV_ALIM_ETIKET, EV_ALT, EV_BASLIK, EV_IPUCU, EV_KADEME_METIN, EV_KALEM_METIN, EV_PARAN, EV_TAMAM_METIN, evAlindi, evHarcananSatiri, evKademeBasligi } from '../game/ev-metin';
 import { kisaYolKayitlari } from '../game/ornek';
 import { gunHesabi, kusurEtiketi, type GunKaydi, type Karar, type SarsintiKaydi } from '../game/session';
 import { TUNING } from '../game/tuning';
@@ -46,7 +46,7 @@ const EV = { x: 1408, y: 40, w: 472, h: 1000 };
  * Evin kâğıdındaki kalem kartları: ilk kartın üstü (kâğıdın üstünden), kart yüksekliği, aralık ve yan boşluk. G43:
  * sağ üstte kademe ilerlemesi (kutu kenarı, kutular arası boşluk).
  */
-const EV_KART = { ust: 160, h: 200, ara: 16, kenar: 24, kutu: 20, kutuAra: 8 };
+const EV_KART = { ust: 152, h: 212, ara: 14, kenar: 24, kutu: 20, kutuAra: 8 };
 /** Para yetmeyen kalem kartının saydamlığı. */
 const EV_SOLUK = 0.45;
 const SATIR_H = 52;
@@ -82,6 +82,8 @@ interface EvKarti {
   /** G43: sıradaki kademenin adı ve açıklaması, fiyatı, ilerleme kutuları. */
   kademeAd: Phaser.GameObjects.Text;
   kademeAciklama: Phaser.GameObjects.Text;
+  /** G45: alınan son kademenin adı ("Alındı: …"; hiç alınmadıysa boş). */
+  alindi: Phaser.GameObjects.Text;
   fiyat: Phaser.GameObjects.Text;
   ilerleme: Phaser.GameObjects.Rectangle[];
 }
@@ -463,12 +465,14 @@ export class DayEndScene extends Phaser.Scene {
       }
       const ad = this.sigdir(this.add.text(76, 38, m.ad, { fontFamily: FONT, fontSize: '32px', color: PAL.murekkep }).setOrigin(0, 0.5), ilerX - 16 - 76);
       // Sıradaki kademe: adı (güçlendirmede taksit) ve kısa açıklaması; evYenile doldurur.
-      const kademeAd = this.add.text(16, 86, '', { fontFamily: FONT, fontSize: '28px', color: PAL.murekkep }).setOrigin(0, 0.5);
-      const kademeAciklama = this.add.text(16, 120, '', { fontFamily: FONT, fontSize: '24px', color: PAL.murekkepSoluk }).setOrigin(0, 0.5);
-      const fiyat = this.add.text(16, kh - 36, '', { fontFamily: FONT, fontSize: '36px', color: PAL.murekkep }).setOrigin(0, 0.5);
-      const cip = this.add.rectangle(kw - 16, kh - 36, 10, 44, num(PAL.damgaGuvenli)).setOrigin(1, 0.5);
-      const etiket = this.add.text(kw - 28, kh - 36, '', { fontFamily: FONT, fontSize: '28px', color: '#f0e6cc' }).setOrigin(1, 0.5);
-      ic.add([cerceve, zemin, tusKutu, tusYazi, ...kutular, ad, kademeAd, kademeAciklama, fiyat, cip, etiket]);
+      const kademeAd = this.add.text(16, 84, '', { fontFamily: FONT, fontSize: '28px', color: PAL.murekkep }).setOrigin(0, 0.5);
+      const kademeAciklama = this.add.text(16, 116, '', { fontFamily: FONT, fontSize: '24px', color: PAL.murekkepSoluk }).setOrigin(0, 0.5);
+      // G45: alınan son kademe (ör. "Alındı: Su ve fener"); kart ilerlemesi kutularla birlikte okunur.
+      const alindi = this.add.text(16, 146, '', { fontFamily: FONT, fontSize: '24px', color: PAL.damgaGuvenli }).setOrigin(0, 0.5);
+      const fiyat = this.add.text(16, kh - 30, '', { fontFamily: FONT, fontSize: '36px', color: PAL.murekkep }).setOrigin(0, 0.5);
+      const cip = this.add.rectangle(kw - 16, kh - 30, 10, 44, num(PAL.damgaGuvenli)).setOrigin(1, 0.5);
+      const etiket = this.add.text(kw - 28, kh - 30, '', { fontFamily: FONT, fontSize: '28px', color: '#f0e6cc' }).setOrigin(1, 0.5);
+      ic.add([cerceve, zemin, tusKutu, tusYazi, ...kutular, ad, kademeAd, kademeAciklama, alindi, fiyat, cip, etiket]);
       kap.add(ic);
       kap.setSize(kw, kh);
       // Container'ın etkileşim alanı yerel noktaya displayOrigin (yarı boyut) eklenerek sınanır; kart sol üstten
@@ -486,7 +490,7 @@ export class DayEndScene extends Phaser.Scene {
       kap.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => this.evAl(kalem));
       kap.setAlpha(0);
       this.tweens.add({ targets: kap, alpha: 1, duration: 160, delay: 300 + i * 90 });
-      this.evKartlar.push({ kalem, kap, ic, zemin, etiket, cip, kademeAd, kademeAciklama, fiyat, ilerleme });
+      this.evKartlar.push({ kalem, kap, ic, zemin, etiket, cip, kademeAd, kademeAciklama, alindi, fiyat, ilerleme });
     });
 
     const py = Y + EV_KART.ust + 3 * (kh + EV_KART.ara) + 24;
@@ -516,6 +520,8 @@ export class DayEndScene extends Phaser.Scene {
       const sira = d === 'tamam' ? EV_TAMAM_METIN[k.kalem] : { ad: evKademeBasligi(k.kalem, n + 1), aciklama: EV_KADEME_METIN[k.kalem][n].aciklama };
       this.sigdirYaz(k.kademeAd, sira.ad, 28, kw - 32);
       this.sigdirYaz(k.kademeAciklama, sira.aciklama, 24, kw - 32);
+      // G45: alınan son kademenin adı (tamamsa "TAMAM"); hiç alınmadıysa boş.
+      this.sigdirYaz(k.alindi, evAlindi(k.kalem, n) ?? '', 24, kw - 32);
       const f = siradakiFiyat(this.ev, k.kalem);
       k.fiyat.setText(f === null ? '' : `${f} TL`);
     }

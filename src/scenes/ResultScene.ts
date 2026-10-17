@@ -10,7 +10,20 @@ import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
 import { ZARF_ETIKET } from '../game/diyalog';
 import { degerlendirme, juriGordukleri, KISA_SONUC, seninBinalarin, sokakCokenSayisi, sonucEtiketi, zarfOzeti } from '../game/gazete';
 import { EV_KADEME, evSonucu } from '../game/ev';
-import { EV_CANTA_METIN, EV_DURUM_METIN, EV_GUCLENDIRME_METIN, EV_KENDI_BINA, EV_PAYLI, EV_SABITLEME_METIN, EV_SONUC_BASLIK, evHarcananSatiri, evTaksitSatiri, evZarfCumlesi } from '../game/ev-metin';
+import {
+  EV_CANTA_METIN,
+  EV_DURUM_METIN,
+  EV_GUCLENDIRME_METIN,
+  EV_KENDI_BINA,
+  EV_PAYLI,
+  EV_SABITLEME_METIN,
+  EV_SONUC_BASLIK,
+  evBaglamCumlesi,
+  evCoktu,
+  evHarcananSatiri,
+  evTaksitSatiri,
+  evZarfCumlesi,
+} from '../game/ev-metin';
 import { bulunanSayisi, depremOzeti, gunHesabi, oyuncuOzeti, oyunToplami } from '../game/session';
 import { fadeIn, goTo } from '../systems/transition';
 import type { GameData } from './GameScene';
@@ -363,6 +376,9 @@ export class ResultScene extends Phaser.Scene {
     ogeler.push(serit);
     durum.setDepth(1);
     y += durum.height + 32 + 24;
+    // G45: soyut ev hasarlı ya da ağır hasarlı ve en çok bir taksit ödendiyse nedeni (bağlam cümlesi).
+    const baglam = evBaglamCumlesi(s);
+    if (baglam) y += metin(X + 32, y, baglam, 28, PAL.murekkepSoluk).height + 16;
     // G43: güçlendirme taksit durumu; güçlendirme, çanta ve sabitleme cümleleri kademeye göre. Solda işaret kutusu
     // (hiç alınmadı: kırmızı, kısmen: sarı, tamam: yeşil), yanında cümle.
     y += metin(X + 32, y, evTaksitSatiri(s.guclendirme), 28, PAL.etiket).height + 16;
@@ -375,7 +391,8 @@ export class ResultScene extends Phaser.Scene {
     };
     satir(s.guclendirme, EV_GUCLENDIRME_METIN[s.guclendirme]);
     satir(s.canta, EV_CANTA_METIN[s.canta]);
-    satir(s.sabitleme, EV_SABITLEME_METIN[s.sabitleme]);
+    // G45: ev çöktüyse eşya sabitleme cümlesi yok (çanta cümlesi kalır).
+    if (!evCoktu(s)) satir(s.sabitleme, EV_SABITLEME_METIN[s.sabitleme]);
     if (s.kendiBina?.evPayi) y += metin(X + 32, y, EV_PAYLI, 28, PAL.murekkepSoluk).height + 16;
     // Zarf bağı: zarf parası olmadan alınamayacak kalem alındıysa.
     const z = evZarfCumlesi(s);

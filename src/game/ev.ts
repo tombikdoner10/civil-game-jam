@@ -107,7 +107,7 @@ export function satinAl(
 }
 
 /**
- * Evin depremdeki durumu. hasarli (G43): güçlendirme 2/3 (soyut ev). coktuBos: kendi apartmanın BOŞALT damgalıydı
+ * Evin depremdeki durumu. hasarli (G45): güçlendirme 1/3 (soyut ev). coktuBos: kendi apartmanın BOŞALT damgalıydı
  * (içinde kimse yoktu).
  */
 export type EvDurum = 'saglam' | 'hafif' | 'hasarli' | 'agir' | 'coktu' | 'coktuBos';
@@ -125,14 +125,17 @@ export interface EvSonucu {
   kendiBina?: DepremBinaSonucu;
 }
 
-/** Soyut evin (kendi apartmanını damgalamadıysan) güçlendirme kademesine göre durumu. */
-export const EV_SOYUT_DURUM: readonly EvDurum[] = ['agir', 'agir', 'hasarli', 'hafif'];
+/**
+ * Soyut evin (kendi apartmanını damgalamadıysan) güçlendirme kademesine göre durumu (G45, takım kararı: her taksit bir
+ * kademe): 0 ağır hasar, 1/3 hasarlı, 2/3 hafif hasar, 3/3 hasarsız.
+ */
+export const EV_SOYUT_DURUM: readonly EvDurum[] = ['agir', 'hasarli', 'hafif', 'saglam'];
 
 /**
  * "Senin evin" (G42, G43 kademeli; deterministik). Kendi apartmanını damgaladıysan (5 günlük yol, gün 5) evin durumu
- * onun deprem sonucudur (güçlendirme 3/3 taksitse en az GÜÇLENDİR sayılmış, G44: 2/3 taksitte bir kademe iyileşmiş
- * olarak; bkz. session.buyukDeprem; sokak, gazete ve sonuç aynı sonucu gösterir). Yoksa
- * (kısa yol ya da damgalanmadı) güçlendirme kademesine göre: 0 ve 1 ağır hasar, 2 hasarlı, 3 hafif hasar. Çanta ve
+ * onun deprem sonucudur (G45: her taksit bir kademe iyileşmiş, 3/3 taksitse GÜÇLENDİR sayılmış ve en az iki kademe iyi;
+ * bkz. session.buyukDeprem; sokak, gazete ve sonuç aynı sonucu gösterir). Yoksa (kısa yol ya da damgalanmadı)
+ * güçlendirme kademesine göre (EV_SOYUT_DURUM): 0 ağır hasar, 1 hasarlı, 2 hafif hasar, 3 hasarsız. Çanta ve
  * sabitleme kademeleri ayrı cümlelere bağlanır (ev-metin.ts).
  */
 export function evSonucu(ev: EvHazirlik | undefined, sonuclar: readonly DepremBinaSonucu[]): EvSonucu {

@@ -217,10 +217,17 @@ for (let tohum = 1; tohum <= 40; tohum++) {
 const K = await server.ssrLoadModule('/src/game/kisi.ts');
 const TUM_DAMGA = ['guvenli', 'guclendir', 'bosalt', 'iade'];
 const g17 = { gercek: 0, sahte: 0, yok: 0, bahane: 0, itiraf: 0, zarf: 0, sahteBulundu: 0, zarfKabul: 0, zarfKabulYanlis: 0, zarfRet: 0, istenenGuclendir: 0 };
+// G45: kendiliğinden zarf sayısı ve SOR zarflarının güne göre sayısı (gün 2-5 G45 öncesiyle aynı olmalı).
+const g45 = { teklif: 0, kusursuzGun1: 0, sorZarfGun: [0, 0, 0, 0, 0] };
 for (let tohum = 1; tohum <= 40; tohum++) {
   for (let g = 1; g <= 5; g++) {
     const o = new S.GunOturumu(g, tohum);
     const ikiz = new S.GunOturumu(g, tohum);
+    // G45: kendiliğinden zarfın dosyası yalnızca gün 1'de, son kusurlu (sorulabilir kusuru görünen) dosya.
+    const kusurlular = o.dosyalar.filter((x) => R.gorunenKusurlar(x, g).some((k) => K.sorulabilir(k.id)));
+    const bekDosya = g === T.kisi.kendiZarf.gun ? kusurlular[kusurlular.length - 1]?.id : undefined;
+    bak(o.kendiZarfDosyasi === bekDosya, `t${tohum} g${g}: kendiliğinden zarf dosyası ${o.kendiZarfDosyasi} ≠ ${bekDosya}`);
+    if (g === 1 && !bekDosya) g45.kusursuzGun1++;
     while (o.mevcut && !o.bitti) {
       const b = o.mevcut;
       const e = `t${tohum} g${g} ${b.id}`;
@@ -257,6 +264,32 @@ for (let tohum = 1; tohum <= 40; tohum++) {
       const gelen = {};
       for (const alan of ['karot', 'zemin']) if (o.edinilenBilgi.kaynak[alan] === 'iste') gelen[alan] = o.edinilenBilgi.bilgi[alan];
       if (Object.keys(gelen).length > 0) kabulBeklenen = R.dogruDamgalar(b, g, gelen);
+      // G45: kendiliğinden zarf (gün 1'in son kusurlu dosyası). Çift tohumda SOR'dan önce, tek tohumda sonra gelir;
+      // her iki sırada da SOR o dosyada ikinci zarf getirmez.
+      const kendiDosya = b.id === o.kendiZarfDosyasi;
+      const kendiZarfAl = () => {
+        if (!kendiDosya) {
+          bak(!o.kendiZarfSirada && o.kendiZarf() === null, `${e}: kendiliğinden zarf yanlış dosyada`);
+          return;
+        }
+        bak(o.kendiZarfSirada, `${e}: kendiliğinden zarf sırada değil`);
+        const c = o.kendiZarf();
+        const c2 = ikiz.kendiZarf();
+        bak(c && c2 && JSON.stringify(c) === JSON.stringify(c2), `${e}: kendiliğinden zarf deterministik değil`);
+        bak(o.kendiZarf() === null && !o.kendiZarfSirada, `${e}: ikinci kendiliğinden zarf`);
+        if (!c) return;
+        g45.teklif++;
+        const Z = T.kisi.kendiZarf.miktar;
+        bak(c.tur === 'zarf' && c.zarf >= Z.min && c.zarf <= Z.max && c.zarf % T.kisi.zarfMiktar.adim === 0, `${e}: kendiliğinden zarf miktarı ${c.zarf}`);
+        const cid = R.gorunenKusurlar(b, g).find((x) => K.sorulabilir(x.id))?.ciddiyet;
+        bak(c.istenen === 'guvenli' || (c.istenen === 'guclendir' && cid === 'bosalt'), `${e}: kendiliğinden zarfta istenen ${c.istenen}`);
+        bak(o.ayar.kaseler.includes(c.istenen), `${e}: istenen damga kaşelikte yok`);
+        bak(o.zarfBekliyor && TUM_DAMGA.every((d) => !o.damgaIzinli(d) && o.damgala(d) === null), `${e}: kendiliğinden zarf beklerken damga vuruldu`);
+        o.zarfKarar(tohum % 2 === 0);
+        ikiz.zarfKarar(tohum % 2 === 0);
+        bak(!o.zarfBekliyor, `${e}: karar sonrası kendiliğinden zarf hâlâ bekliyor`);
+      };
+      if (tohum % 2 === 0) kendiZarfAl();
       // SOR: her görünen kusur bulunur ve (sorulabilirse) sorulur.
       for (const k of R.gorunenKusurlar(b, g)) {
         o.incele(R.kanitOgeleri(k));
@@ -270,6 +303,8 @@ for (let tohum = 1; tohum <= 40; tohum++) {
         bak(c && c2 && c.tur === c2.tur && c.secim === c2.secim && c.zarf === c2.zarf && c.istenen === c2.istenen, `${e}: SOR deterministik değil`);
         bak(o.sor(k.id) === null, `${e}: aynı kusur iki kez soruldu`);
         if (c) g17[c.tur]++;
+        if (c?.tur === 'zarf') g45.sorZarfGun[g - 1]++;
+        if (kendiDosya) bak(c?.zarf === undefined, `${e}: kendiliğinden zarfın dosyasında SOR ikinci zarf getirdi`);
         if (c?.zarf !== undefined) {
           bak(c.zarf > 0 && c.zarf % 10 === 0, `${e}: zarf miktarı ${c.zarf}`);
           // İstenen damga (G22): GÜVENLİ ya da (BOŞALT gerektiren kusurda) GÜÇLENDİR; kaşelikte var.
@@ -285,6 +320,7 @@ for (let tohum = 1; tohum <= 40; tohum++) {
           bak(!o.zarfBekliyor, `${e}: karar sonrası zarf hâlâ bekliyor`);
         }
       }
+      if (tohum % 2 === 1) kendiZarfAl();
       const zarf = o.zarf ? { ...o.zarf } : undefined;
       // Zarf alındı (G22): yalnızca istenen damga vurulur; doğruluk gerçek kurallara göre.
       if (zarf?.kabul) {
@@ -337,6 +373,12 @@ for (let tohum = 1; tohum <= 40; tohum++) {
     bak(h.zarf === zarfTop && h.toplam === h.maas - h.ceza + zarfTop, `t${tohum} g${g}: gün hesabında zarf`);
   }
 }
+// G45: gün 1'de kusurlu dosya olan her oyunda kendiliğinden zarf teklif edildi; gün 2-5'in SOR zarfları G45 öncesiyle
+// aynı (tohum 1-40, bu döngüde G45 öncesi ölçüm: gün 1-5 = 15, 28, 56, 54, 110; gün 1'de yalnızca kendiliğinden zarfın
+// dosyasındaki SOR zarfları düşer).
+bak(g45.teklif === 40 - g45.kusursuzGun1, `G45 kendiliğinden zarf ${g45.teklif} ≠ ${40 - g45.kusursuzGun1}`);
+bak(JSON.stringify(g45.sorZarfGun.slice(1)) === JSON.stringify([28, 56, 54, 110]), `G45 gün 2-5 SOR zarfları değişti: ${g45.sorZarfGun}`);
+console.log('G45 kendiliğinden zarf (tohum 1-40):', JSON.stringify(g45));
 // Deprem sonucu yalnızca vurulan damgaya bağlı (zarf alanı yalnızca işaret); zarflı kararda damga istenen damga,
 // sokakta zarf izi kabul edilen zarflarla aynı (G22).
 for (let tohum = 1; tohum <= 10; tohum++) {
@@ -981,7 +1023,28 @@ console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19
   }
 
   // "Senin evin" (kendi bina yok): 4×4×4 bileşim (× zarf işareti), deterministik ve kademelere göre.
-  const SOYUT = ['agir', 'agir', 'hasarli', 'hafif'];
+  // G45: her taksit bir kademe (0 ağır hasar, 1/3 hasarlı, 2/3 hafif hasar, 3/3 hasarsız).
+  const SOYUT = ['agir', 'hasarli', 'hafif', 'saglam'];
+  bak(JSON.stringify(EV.EV_SOYUT_DURUM) === JSON.stringify(SOYUT), `G45 soyut ev kademeleri ${EV.EV_SOYUT_DURUM}`);
+  // Beklenen "Senin evin" cümleleri (G45): durum, bağlam (soyut ev hasarlı / ağır ve en çok 1 taksit), güçlendirme, çanta,
+  // sabitleme (ev çöktüyse yok), zarf.
+  const bekCumleler = (s, zBek) => {
+    const out = [EM.EV_DURUM_METIN[s.durum]];
+    if (!s.kendiBina && s.guclendirme <= 1 && (s.durum === 'hasarli' || s.durum === 'agir')) out.push(EM.EV_BAGLAM_METIN);
+    out.push(EM.EV_GUCLENDIRME_METIN[s.guclendirme], EM.EV_CANTA_METIN[s.canta]);
+    if (s.durum !== 'coktu' && s.durum !== 'coktuBos') out.push(EM.EV_SABITLEME_METIN[s.sabitleme]);
+    if (zBek.length) out.push(zBek.length === 1 ? EM.EV_ZARF_METIN[zBek[0]] : EM.EV_ZARF_METIN.birden);
+    return out;
+  };
+  const g45ev = { baglam: 0, coktuSabitlemesiz: 0, kendiKademe: [0, 0, 0, 0] };
+  // EVİN kartı (G45): alınan son kademenin adı; tamamsa TAMAM; hiç alınmadıysa yok.
+  for (const k of kalemler)
+    for (let n = 0; n <= N; n++) {
+      const a = EM.evAlindi(k, n);
+      if (n === 0) bak(a === null, `G45 ${k} 0 kademede Alındı satırı`);
+      else if (n === N) bak(a === EM.EV_ALINDI_TAMAM, `G45 ${k} tamamda Alındı: ${a}`);
+      else bak(a === EM.evAlindiSatiri(EM.EV_KADEME_METIN[k][n - 1].ad) && a.includes(EM.EV_KADEME_METIN[k][n - 1].ad.replace(/^\[|\]$/g, '')), `G45 ${k} ${n}: Alındı ${a}`);
+    }
   for (let c = 0; c <= N; c++)
     for (let sb = 0; sb <= N; sb++)
       for (let g = 0; g <= N; g++)
@@ -999,12 +1062,10 @@ console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19
           const zBek = kalemler.filter((k) => kad[k] > 0 && (zk === k || zk === 'hepsi'));
           bak(JSON.stringify(s1.zarfla) === JSON.stringify(zBek), `${e}: zarfla ${s1.zarfla}`);
           const cm = EM.evCumleleri(s1);
-          bak(
-            cm[0] === EM.EV_DURUM_METIN[SOYUT[g]] && cm[1] === EM.EV_GUCLENDIRME_METIN[g] && cm[2] === EM.EV_CANTA_METIN[c] && cm[3] === EM.EV_SABITLEME_METIN[sb],
-            `${e}: cümleler`,
-          );
-          bak(cm.length === (zBek.length ? 5 : 4), `${e}: zarf yan cümlesi`);
-          if (zBek.length) bak(cm[4] === (zBek.length === 1 ? EM.EV_ZARF_METIN[zBek[0]] : EM.EV_ZARF_METIN.birden), `${e}: zarf cümlesi`);
+          bak(JSON.stringify(cm) === JSON.stringify(bekCumleler(s1, zBek)), `${e}: cümleler ${cm.join(' ')}`);
+          // Bağlam cümlesi (G45): 0 ve 1 taksitte var, 2 ve 3'te yok.
+          bak(cm.includes(EM.EV_BAGLAM_METIN) === g <= 1 && (EM.evBaglamCumlesi(s1) !== null) === g <= 1, `${e}: bağlam cümlesi`);
+          if (g <= 1) g45ev.baglam++;
           bak(s1.harcanan === kalemler.reduce((n, k) => n + F[k].slice(0, kad[k]).reduce((a, b) => a + b, 0), 0), `${e}: harcanan`);
           g43.sonuc++;
         }
@@ -1012,7 +1073,7 @@ console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19
   for (const dizi of [EM.EV_GUCLENDIRME_METIN, EM.EV_CANTA_METIN, EM.EV_SABITLEME_METIN])
     bak(dizi.length === N + 1 && new Set(dizi).size === N + 1, 'G43 kademe cümleleri farklı değil');
   // Ton (GDD T4): ev cümlelerinde sayı yok (kademe sayaçları yalnızca durum etiketlerinde).
-  for (const m of [...Object.values(EM.EV_DURUM_METIN), ...EM.EV_GUCLENDIRME_METIN, ...EM.EV_CANTA_METIN, ...EM.EV_SABITLEME_METIN, ...Object.values(EM.EV_ZARF_METIN), EM.EV_PAYLI])
+  for (const m of [...Object.values(EM.EV_DURUM_METIN), ...EM.EV_GUCLENDIRME_METIN, ...EM.EV_CANTA_METIN, ...EM.EV_SABITLEME_METIN, ...Object.values(EM.EV_ZARF_METIN), EM.EV_PAYLI, EM.EV_BAGLAM_METIN])
     bak(!/\d/.test(m), `G43 ev cümlesinde sayı: ${m}`);
 
   // Bina sonuçları: ev seçeneği verilmezse ya da güçlendirme 0-1 taksitse aynı; 2/3 taksitte (G44) yalnızca oyuncunun
@@ -1036,24 +1097,26 @@ console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19
       let oncekiEv = -1;
       for (let g = 0; g <= N; g++) {
         const c = S.buyukDeprem(tohum, k, zk, { guclendirmeKademe: g });
-        if (g < N - 1) bak(JSON.stringify(a) === JSON.stringify(c), `${e} g=${g}: 2/3'ten az taksitte sonuç değişti`);
-        else if (g === N - 1)
+        if (g === 0) bak(JSON.stringify(a) === JSON.stringify(c), `${e} g=${g}: taksitsiz sonuç değişti`);
+        else if (g < N)
+          // G45: 1/3 bir, 2/3 iki kademe iyi (öncü hasarın altına inmez).
           a.forEach((r, i) => {
             const p = c[i];
             const payDamga = r.kendiBinan && (r.damga === 'guvenli' || r.damga === 'iade');
             if (!payDamga) {
-              bak(JSON.stringify(r) === JSON.stringify(p), `${e} ${r.dosyaId}: 2/3 taksit başka binayı değiştirdi`);
+              bak(JSON.stringify(r) === JSON.stringify(p), `${e} ${r.dosyaId}: ${g}/3 taksit başka binayı değiştirdi`);
               return;
             }
             const s = sokak[i];
             const taban = s.hasar ? HK.indexOf(s.hasar) : 0;
-            const bek = Math.max(kademeOf(r) - 1, taban);
-            bak(kademeOf(p) === bek && p.bos === r.bos && p.damga === r.damga && !p.evPayi, `${e} ${r.dosyaId}: 2/3 sonuç bir kademe iyi değil (${kademeOf(r)} → ${kademeOf(p)}, beklenen ${bek})`);
+            const bek = Math.max(kademeOf(r) - g, taban);
+            bak(kademeOf(p) === bek && p.bos === r.bos && p.damga === r.damga && !p.evPayi, `${e} ${r.dosyaId}: ${g}/3 sonuç ${g} kademe iyi değil (${kademeOf(r)} → ${kademeOf(p)}, beklenen ${bek})`);
             bak(!!p.evKismi === bek < kademeOf(r), `${e} ${r.dosyaId}: evKismi yanlış`);
-            if (r.coktu) bak(!p.coktu, `${e} ${r.dosyaId}: 2/3 taksitte kendi apartman yine çöktü`);
+            if (r.coktu) bak(!p.coktu, `${e} ${r.dosyaId}: ${g}/3 taksitte kendi apartman yine çöktü`);
             if (JSON.stringify(r) !== JSON.stringify(p)) g43.kismiFark++;
           });
         else
+          // 3/3: üç kademe iyi (her taksit bir kademe) ve en az GÜÇLENDİR (dolayısıyla en az iki kademe).
           a.forEach((r, i) => {
             const p = c[i];
             const payli = r.kendiBinan && (r.damga === 'guvenli' || r.damga === 'iade');
@@ -1062,8 +1125,11 @@ console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19
               return;
             }
             const s = sokak[i];
+            const taban = s.hasar ? HK.indexOf(s.hasar) : 0;
             const gs = R.buyukDepremSonucu(s.bina, 'guclendir', s.gun, { oncuHasar: s.hasar });
-            bak(p.evPayi === true && p.durum === gs.durum && p.coktu === gs.coker && p.bos === false && p.damga === r.damga, `${e} ${r.dosyaId}: 3/3 sonuç GÜÇLENDİR değil`);
+            const bek = Math.min(gs.kademe, Math.max(kademeOf(r) - 3, taban));
+            bak(p.evPayi === true && !p.evKismi && kademeOf(p) === bek && p.bos === false && p.damga === r.damga, `${e} ${r.dosyaId}: 3/3 sonuç (${kademeOf(r)} → ${kademeOf(p)}, beklenen ${bek})`);
+            bak(kademeOf(p) <= gs.kademe && kademeOf(p) <= Math.max(kademeOf(r) - 2, taban), `${e} ${r.dosyaId}: 3/3 GÜÇLENDİR'den ya da iki kademeden kötü`);
             bak(!p.coktu && p.durum !== 'agirHasar', `${e} ${r.dosyaId}: 3/3 kendi apartman ağır`);
             if (JSON.stringify(r) !== JSON.stringify(p)) g43.payliFark++;
           });
@@ -1078,11 +1144,22 @@ console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19
           bak(evSira(s.durum) >= oncekiEv, `${e} g=${g}: taksit arttı, ev kötüleşti`);
           oncekiEv = evSira(s.durum);
           g43.kendiSonuc++;
+          g45ev.kendiKademe[g] += kademeOf(kb);
+          // Cümleler (G45): kendi apartmanda bağlam cümlesi yok; ev çöktüyse sabitleme cümlesi yok.
+          const cm = EM.evCumleleri(s);
+          bak(JSON.stringify(cm) === JSON.stringify(bekCumleler(s, [])) && !cm.includes(EM.EV_BAGLAM_METIN), `${e} g=${g}: kendi apartman cümleleri`);
+          if (kb.coktu) {
+            bak(!EM.EV_SABITLEME_METIN.some((m) => cm.includes(m)) && cm.includes(EM.EV_CANTA_METIN[0]), `${e} g=${g}: çöken evde sabitleme cümlesi`);
+            g45ev.coktuSabitlemesiz++;
+          }
         } else bak(s.durum === SOYUT[g] && !s.kendiBina, `${e} g=${g}: soyut ev durumu`);
       }
     }
   bak(g43.kendiBina > 0, 'G43 kendi apartman hiç sokakta değil');
   console.log('G43 (para × zarf × 6 tuşluk sıra; 4×4×4 sonuç; tohum 1-10):', JSON.stringify(g43));
+  // G45: kendi apartmanın toplam hasar kademesi taksitle kesin azalır (0 → 3 taksit).
+  bak(g45ev.kendiKademe.every((n, i) => i === 0 || n < g45ev.kendiKademe[i - 1]), `G45 kendi apartman kademeleri taksitle azalmıyor: ${g45ev.kendiKademe}`);
+  console.log('G45 ev (bağlam cümlesi, çöken evde sabitlemesiz, kendi apartman toplam kademe 0/1/2/3 taksit):', JSON.stringify(g45ev));
 
   // Ekonomi denetimi: kusursuz dürüst oyuncu (zarf yok, hep doğru) gün sonunda en çok ne kadar alabilir. Gün kazancı
   // dosyaSayisi × maaş; gerçek oturumla da doğrulanır (tohum 1-20). Alım: her gün sonunda en ucuz sıradaki kademe
@@ -1119,6 +1196,8 @@ console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19
   bak(kazanc[0] >= F.canta[0] + F.sabitleme[0], 'G43 gün 1 çanta 1 + sabitleme 1 alınamıyor');
   // Gün 1'de bir dosyada zarf (BOŞALT zarfının en azı) alıp o dosyayı yanlış damgalayan: güçlendirmeye başlayabilir.
   bak(kazanc[0] - T.para.maas - T.para.ceza + T.kisi.zarfMiktar.bosalt.min >= F.guclendirme[0], 'G43 gün 1 zarfla güçlendirme 1. taksit alınamıyor');
+  // G45: kendiliğinden zarfı (en azı) alıp istenen damgayı vuran, öbür dosyaları doğru damgalayan oyuncu 1. taksiti alabilir.
+  bak(kazanc[0] - T.para.maas - T.para.ceza + T.kisi.kendiZarf.miktar.min >= F.guclendirme[0], 'G45 gün 1 kendiliğinden zarfla 1. taksit alınamıyor');
   bak(tablo[1].kademe < tumu, 'G43 kusursuz oyuncu gün 2 sonunda hepsini bitiriyor');
   bak(tablo[3].kademe < tumu, 'G43 kusursuz oyuncu gün 4 sonunda hepsini bitiriyor');
   bak(tablo[4].kademe === tumu, 'G43 kusursuz oyuncu gün 5 sonunda tamamlayamıyor');

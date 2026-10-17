@@ -7,6 +7,7 @@ import {
   ipucuAlani,
   ISTE_KUSURU,
   isteCevabi,
+  kendiZarfCevabi,
   kisiKur,
   sorCevabi,
   sorulabilir,
@@ -165,15 +166,16 @@ export interface DepremBinaSonucu {
   kendiBinan?: true;
   /** G42: güçlendirme payı tam ödendiği (G43: 3/3 taksit) için GÜÇLENDİR sayıldı (damgası GÜVENLİ ya da İADE'ydi). */
   evPayi?: true;
-  /** G44: güçlendirme payının 2/3 taksiti ödendiği için sonucu bir kademe iyileşti (damgası GÜVENLİ ya da İADE'ydi). */
+  /** G44, G45: güçlendirme payının 1/3 ya da 2/3 taksiti ödendiği için sonucu taksit başına bir kademe iyileşti (damgası GÜVENLİ ya da İADE'ydi). */
   evKismi?: true;
 }
 
 /** Büyük depremin oyuncunun evine bağlı seçeneği (G42; G43 kademeli). */
 export interface DepremEvSecenek {
   /**
-   * Güçlendirme payının ödenen taksit sayısı; hepsi (3/3) ödendiyse kendi apartmanın en az GÜÇLENDİR sayılır, 2/3'te
-   * (G44) sonucu bir kademe iyileşir (öncü sarsıntı hasarının altına inmez).
+   * Güçlendirme payının ödenen taksit sayısı (G45): her taksit kendi apartmanın sonucunu bir kademe iyileştirir (1/3
+   * bir, 2/3 iki, 3/3 üç kademe); hepsi (3/3) ödendiyse ayrıca en az GÜÇLENDİR sayılır (öncü sarsıntı hasarının altına
+   * inmez).
    */
   guclendirmeKademe?: number;
 }
@@ -183,8 +185,8 @@ export interface DepremEvSecenek {
  * zarfKaynak (G23b, kısa yol): zarf işareti yalnızca bu kayıtlardaki (oyuncunun kendi) kabul edilen zarflardan;
  * verilmezse bütün kayıtlardan (normal oyunda hepsi oyuncunun). ev (G42): oyuncunun kendi apartmanı (zarfKaynak'taki
  * kendiBinan binası) güçlendirme payının bütün taksitleri (G43: 3/3) ödendiyse GÜVENLİ ya da İADE damgalı olsa da GÜÇLENDİR sonucunu alır;
- * 2/3 taksitte (G44) aynı damgalarla sonucu bir kademe iyileşir (çöktü → ağır hasar → hasarlı → ayakta). Öbür binalar
- * ve ev verilmediğinde ya da 0-1 taksitte hepsi değişmez.
+ * G45: aynı damgalarla her taksit sonucu bir kademe iyileştirir (1/3 bir, 2/3 iki kademe; çöktü → ağır hasar → hasarlı
+ * → ayakta; 3/3 üç kademe ve en az GÜÇLENDİR). Öbür binalar ve ev verilmediğinde ya da 0 taksitte hepsi değişmez.
  */
 export function buyukDeprem(
   tohum: number,
@@ -207,18 +209,21 @@ export function buyukDeprem(
     const tumu = TUNING.ev.kademe.guclendirme.length;
     const payDamga = kendiBinan && (s.damga === 'guvenli' || s.damga === 'iade');
     const payli = payDamga && taksit >= tumu;
-    const r = buyukDepremSonucu(s.bina, payli ? 'guclendir' : s.damga, s.gun, { oncuHasar: s.hasar });
+    const r = buyukDepremSonucu(s.bina, s.damga, s.gun, { oncuHasar: s.hasar });
     const ek: Pick<DepremBinaSonucu, 'kendiBinan' | 'evPayi' | 'evKismi'> = {};
     if (kendiBinan) ek.kendiBinan = true;
     if (payli) ek.evPayi = true;
-    // G44: 2/3 taksit, sonucu bir kademe iyileştirir (soyut evdeki "hasarlı" ile aynı mantık); öncü hasarın altına inmez.
+    // G45: her taksit sonucu bir kademe iyileştirir (1/3 bir, 2/3 iki, 3/3 üç kademe; soyut evle aynı mantık: üçüncü
+    // taksit de görünür fayda verir); 3/3 ayrıca en az GÜÇLENDİR sayılır. Öncü hasarın altına inmez.
     let { durum, coker } = r;
-    if (payDamga && taksit === tumu - 1) {
-      const kademe = Math.max(r.kademe - 1, s.hasar ? HASAR_KADEME.indexOf(s.hasar) : 0);
+    if (payDamga && taksit > 0) {
+      const taban = s.hasar ? HASAR_KADEME.indexOf(s.hasar) : 0;
+      let kademe = Math.max(r.kademe - taksit, taban);
+      if (payli) kademe = Math.min(kademe, buyukDepremSonucu(s.bina, 'guclendir', s.gun, { oncuHasar: s.hasar }).kademe);
       if (kademe < r.kademe) {
         durum = HASAR_KADEME[Math.min(kademe, 2)];
         coker = kademe >= 3;
-        ek.evKismi = true;
+        if (!payli) ek.evKismi = true;
       }
     }
     return {
@@ -422,6 +427,11 @@ export class GunOturumu {
   private zarfTeklif?: { miktar: number; istenen: ZarfIstek; kabul?: boolean };
   /** Günün kalan saha testi hakkı (G19). */
   private sahaKalan: number;
+  /**
+   * Kendiliğinden zarfın dosyası (G45): TUNING.kisi.kendiZarf.gun'ün son kusurlu (sorulabilir kusuru görünen) dosyası;
+   * o gün değilse ya da hiç kusurlu dosya yoksa undefined.
+   */
+  readonly kendiZarfDosyasi?: string;
 
   constructor(
     readonly gun: number,
@@ -430,7 +440,38 @@ export class GunOturumu {
     this.ayar = gunAyar(gun);
     this.dosyalar = gunDosyalari(tohum, gun, this.ayar.dosyaSayisi);
     this.sahaKalan = this.ayar.sahaHak;
+    if (this.ayar.sor && this.ayar.gun === TUNING.kisi.kendiZarf.gun)
+      this.kendiZarfDosyasi = [...this.dosyalar].reverse().find((b) => this.kendiZarfKusuru(b) !== null)?.id;
     this.bilgiSifirla();
+  }
+
+  /** Kendiliğinden zarfın konusu olan kusur (G45): dosyada o günün kurallarıyla görünen ilk sorulabilir kusur. */
+  private kendiZarfKusuru(b: Bina): Kusur | null {
+    return gorunenKusurlar(b, this.gun).find((k) => sorulabilir(k.id)) ?? null;
+  }
+
+  /**
+   * Kendiliğinden zarf sırada mı (G45): mevcut dosya kendiliğinden zarfın dosyası ve zarf henüz uzatılmadı. Sahne bu
+   * sürede kaşeleri kilitli tutar (zarf masaya gelmeden damga vurulup zarf kaçmasın); oturumun kendi damgala'sı
+   * kilitlemez (simülasyonlar kendiZarf çağırmadan da ilerler).
+   */
+  get kendiZarfSirada(): boolean {
+    const b = this.mevcut;
+    return !!b && !this.bitti && b.id === this.kendiZarfDosyasi && this.zarfTeklif === undefined;
+  }
+
+  /**
+   * Kişi zarfı SOR beklemeden uzatır (G45): yalnızca kendiliğinden zarfın dosyasında ve bu dosyada henüz zarf yoksa.
+   * Zarf, SOR zarfı gibi masaya gelir: karar verilene kadar damga yok, kabulde istenen damga zorunlu (G22).
+   */
+  kendiZarf(): SorCevap | null {
+    const b = this.mevcut;
+    if (!b || !this.kendiZarfSirada) return null;
+    const k = this.kendiZarfKusuru(b);
+    if (!k || !sorulabilir(k.id)) return null;
+    const c = kendiZarfCevabi(this.tohum, b, k.id, k.ciddiyet);
+    this.zarfTeklif = { miktar: c.zarf ?? 0, istenen: c.istenen ?? 'guvenli' };
+    return c;
   }
 
   /** Gişedeki kişi (mevcut dosyanın sahibi). */
@@ -473,7 +514,9 @@ export class GunOturumu {
     const kisi = this.kisiBilgi;
     if (!b || !kisi || !this.sorulabilir(id) || !sorulabilir(id)) return null;
     const ciddiyet = id === 'sahteRapor' ? 'iade' : (this.gorunen(b).find((k) => k.id === id)?.ciddiyet ?? KUSUR_BILGI[id].ciddiyet);
-    const c = sorCevabi(this.tohum, b, kisi, id, ciddiyet, this.ayar, this.zarfTeklif !== undefined);
+    // G45: kendiliğinden zarfın dosyasında SOR ikinci bir zarf getirmez (zarf ya geldi ya gelecek).
+    const zarfVar = this.zarfTeklif !== undefined || b.id === this.kendiZarfDosyasi;
+    const c = sorCevabi(this.tohum, b, kisi, id, ciddiyet, this.ayar, zarfVar);
     this.sorulan.push(id);
     if (c.zarf !== undefined) this.zarfTeklif = { miktar: c.zarf, istenen: c.istenen ?? 'guvenli' };
     return c;

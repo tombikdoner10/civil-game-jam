@@ -140,6 +140,12 @@ export const TUNING = {
     zarfMiktar: { guclendir: { min: 40, max: 80 }, bosalt: { min: 80, max: 160 }, adim: 10 },
     /** Zarfla istenen damga (G22): genelde GÜVENLİ; BOŞALT gerektiren kusurda bu olasılıkla GÜÇLENDİR. */
     zarfIstekGuclendir: 0.4,
+    /**
+     * Kendiliğinden zarf (G45, Eleştirmen 7 sonrası takım kararı): bu günün son kusurlu dosyasında kişi zarfı SOR
+     * beklemeden, selamdan gecikmeMs sonra uzatır. Tutar bu aralıktan (TL): en azı, kalan dosyaları doğru damgalayan
+     * oyuncunun gün sonunda güçlendirmenin 1. taksitini alabileceği kadar (adalet.mjs denetler).
+     */
+    kendiZarf: { gun: 1, gecikmeMs: 1100, miktar: { min: 60, max: 100 } },
     /** Hangi günden itibaren: SOR, İSTE (eksik belgede) ve sahte rapor. */
     sorIlkGun: 1,
     isteIlkGun: 3,

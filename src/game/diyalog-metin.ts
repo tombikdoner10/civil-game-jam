@@ -203,6 +203,18 @@ export const MIZAC_METIN: Record<Mizac, MizacMetin> = {
   },
 };
 
+/**
+ * Kendiliğinden zarfın giriş cümlesi (G45): kişi SOR beklemeden zarfı uzatırken mizacına göre (sorGiris bir soruya
+ * cevap verir; bu, sorulmadan söze giriş). YER TUTUCU: TODO(takım).
+ */
+export const KENDI_ZARF_GIRIS: Record<Mizac, string[]> = {
+  kibar: ['[Müsaadenizle bir şey rica edeceğim]', '[Kusura bakmayın, bir konu var]'],
+  sinirli: ['[Bakın, uzatmayalım]', '[Lafı dolandırmayacağım]'],
+  telasli: ['[Vaktim yok, kısaca söyleyeyim]', '[Acelem var, şöyle yapalım]'],
+  kurnaz: ['[Aramızda kalsın hocam]', '[Hocam, bir şey diyeceğim]'],
+  cekingen: ['[Ş-şey, bir şey soracaktım]', '[Ben... bunu bırakayım dedim]'],
+};
+
 /** SOR cevabı: kusura ve cevap türüne göre (mizaçtan bağımsız; mizaç sorGiris ile ton katar). */
 export const SOR_METIN: Record<SorulanKusur, Record<SorTuru, string[]>> = {
   kacakKat: {

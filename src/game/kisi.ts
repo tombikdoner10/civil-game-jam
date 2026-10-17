@@ -129,6 +129,21 @@ export function sorCevabi(
 }
 
 /**
+ * Kendiliğinden zarf (G45): gün TUNING.kisi.kendiZarf.gun'ün son kusurlu dosyasında kişi zarfı SOR beklemeden uzatır
+ * (her oyuncu bir zarf kararı verir). Kişilikten bağımsız; tutar o günün aralığından (TUNING.kisi.kendiZarf.miktar),
+ * istenen damga SOR zarfıyla aynı kuralla. Ayrı bir dizi (anahtar 'zarf:kendi'): oyun RNG'si ve SOR cevapları değişmez.
+ */
+export function kendiZarfCevabi(tohum: number, bina: Bina, kusur: SorulanKusur, ciddiyet: Ciddiyet): SorCevap {
+  const r = rng(tohum, bina, 'zarf:kendi');
+  const secim = r.int(0, 999);
+  const Z = TUNING.kisi.kendiZarf.miktar;
+  const adim = TUNING.kisi.zarfMiktar.adim;
+  const zarf = Math.round(r.int(Z.min, Z.max) / adim) * adim;
+  const istenen: ZarfIstek = ciddiyet === 'bosalt' && r.chance(TUNING.kisi.zarfIstekGuclendir) ? 'guclendir' : 'guvenli';
+  return { kusur, tur: 'zarf', secim, zarf, istenen, ifade: 'sevincli' };
+}
+
+/**
  * Sahte belgeyi ele veren ipucu: laboratuvar mührü yok, tarih bugünden ileri, değer elle düzeltilmiş; getirilen
  * ruhsatta imza yok ya da getirilen planın ada / parseli yine farklı (G17b).
  */
