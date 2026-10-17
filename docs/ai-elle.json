@@ -246,5 +246,12 @@
     "yer": "docs/BENIOKU.txt (teslim ZIP'i), README.md",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T06:02:46.609Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G36: sahte ruhsat İADE kuralı, bulunan sayımı, Yeniden Başla ipucu ve adalet denetimi (Bash/Python ile düzenlendi)",
+    "yer": "src/game/rules.ts, src/game/session.ts, src/scenes/GameScene.ts, src/scenes/ResultScene.ts, scripts/adalet.mjs",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T06:19:06.977Z"
   }
 ]
