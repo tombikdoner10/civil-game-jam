@@ -8,13 +8,12 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G37 [teknik] (sürüyor, Opus/high) Kısa yol manşeti ve değerlendirmesi "senin binaların + sokak" (T31 kararı: senin binaların ayakta, sokakta denetlenmeyen binalar çöktü; yer tutucu); değerlendirmede aynı binanın iki kez sayılması (onaylı + zarflı aynı bina).
 
 ## Sırada
 
-Son test (xhigh, 78/100) sonrası (G34, G36, G35 bitti; sırada G38 → G37 → G31)
+Son test (xhigh, 78/100) sonrası (G34, G36, G35, G38 bitti; sırada G37 → G31)
 
-- [ ] G37 [teknik] Kısa yol manşeti ve değerlendirmesi "senin binaların + sokak" (T31 kararı: senin binaların ayakta, sokakta denetlenmeyen binalar çöktü; yer tutucu); değerlendirmede aynı binanın iki kez sayılması (onaylı + zarflı aynı bina).
-- [ ] G38 [teknik] (sürüyor, Opus/high) Emeği Geçenler sırası (Takım → Takımın kararları → Hazır kaynaklar → AI; boş TAKIM_KARARLARI gizli); deprem genel planı kadrajı ve etiket kırpılması; npm run yer-tutucu betiği.
 
 Eleştirmen 4 sonrası (sıra: G31 (metinler gelince))
 
@@ -72,6 +71,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G38 Emeği Geçenler sırası (Takım → Takımın kararları (boşsa gizli) → Hazır kaynaklar → AI); deprem genel planı ölçek ≥2/3, etiketler ekran içinde; npm run yer-tutucu (476 dize) (62f4707, Opus/high; test sürüyor)
 - [x] G35 Son test cilası: raporda kaçak kat farkı, 5 günlük gazetede Gün N · Bina, tekil/çoğul manşet ve değerlendirme (5 metin), inceleme çerçeve/etiket çakışmaları, [+30 dk] saat altında, gazetede erken Enter bekletme (c5a4d56, Opus/high; test geçti)
 - [x] G36 Sahte ruhsat İADE (yalnızca gün 5; İADE kaşesi gün 3ten); kural metni yer tutucusu İADE; bulunan ≤ kusur sayımı; Yeniden Başlada ipucu sıfırlanıyor; adalet 33301/0 (4a4da7d + e7df6b4, Opus/high; test geçti)
 - [x] G34 İSTE/saha sonrası fiş, gerekçe ve rapor aynı ve bilgiye göre doğru; inceleme ipucu yeni oyunda sıfırlanıyor; adalet bayt bayt aynı (767d109, Opus/high; test geçti)
