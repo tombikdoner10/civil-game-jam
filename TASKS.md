@@ -8,8 +8,8 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G53 [teknik] (sürüyor, Opus/high) Kural metinleri kısa ve öz (takım isteği); klasörde SAHA sekmesi KONUM (dere, fay), saha testi kuralı BETON'a; her sekme tek sayfa.
-- [ ] G54 [teknik] (sırada) Sokak boyunca tek bina numarası (gün 1: 01–03 … gün 5: 22–29; kısa yol dahil), gazetede iade satırı durumla başlar.
+- [ ] G53 [teknik] (bitti 88decf8, test sürüyor, Opus/low) Kural metinleri kısa ve öz (takım isteği); klasörde SAHA sekmesi KONUM (dere, fay), saha testi kuralı BETON'a; her sekme tek sayfa.
+- [ ] G54 [teknik] (sürüyor, Opus/high) Sokak boyunca tek bina numarası (gün 1: 01–03 … gün 5: 22–29; kısa yol dahil), gazetede iade satırı durumla başlar; klasörde iki haneli kural numarası yazıya yapışmasın.
 
 ## Sırada
 
