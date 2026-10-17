@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G31c [teknik] (sürüyor, Opus/high) G31 testinin cila bulguları: gün sonu çift iki nokta; kaçak kat diyaloğu tekil "kat"; EVİN kartında sıradaki taksit ile ilerleme çubuğu çelişkisi; "Boşaltılmış (toplam)" toplamla karışıyor; sonuçta İADE altı "1 çöktü" belirsiz; gazete sayı satırında "·" satır başına düşüyor; incelemede "(zemin dahil)" vurgu çerçevesine biniyor; Emeği Geçenler kaydırma maskesinde kalıntı.
+- [ ] G31c [teknik] (bitti ba47f38, test sürüyor, Opus/low) G31 testinin cila bulguları: gün sonu çift iki nokta; kaçak kat diyaloğu tekil "kat"; EVİN kartında sıradaki taksit ile ilerleme çubuğu çelişkisi; "Boşaltılmış (toplam)" toplamla karışıyor; sonuçta İADE altı "1 çöktü" belirsiz; gazete sayı satırında "·" satır başına düşüyor; incelemede "(zemin dahil)" vurgu çerçevesine biniyor; Emeği Geçenler kaydırma maskesinde kalıntı.
 
 ## Sırada
 
