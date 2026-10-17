@@ -35,10 +35,15 @@ export class CreditsScene extends Phaser.Scene {
     const left = WIDTH / 2 - COLUMN / 2;
     this.content = this.add.container(left, TOP);
     let y = 0;
-    const add = (text: string, o: LabelOptions = {}, gap = 14): void => {
-      const t = label(this, 0, y, text, { size: 38, align: 'left', wrap: COLUMN, color: num(PAL.murekkep), ...o }).setOrigin(0, 0);
+    const add = (text: string, o: LabelOptions = {}, gap = 14, x = 0): void => {
+      const t = label(this, x, y, text, { size: 38, align: 'left', wrap: COLUMN - x, color: num(PAL.murekkep), ...o }).setOrigin(0, 0);
       this.content.add(t);
       y += t.height + gap;
+    };
+    /** Madde imli satır: imden sonra asılı girinti. */
+    const bullet = (text: string, o: LabelOptions = {}, gap = 6): void => {
+      this.content.add(label(this, 12, y, '·', { size: 30, align: 'left', color: num(PAL.murekkepSoluk), ...o }).setOrigin(0, 0));
+      add(text, { size: 30, color: num(PAL.murekkepSoluk), ...o }, gap, 44);
     };
     const header = (text: string): void => {
       y += 30;
@@ -49,6 +54,27 @@ export class CreditsScene extends Phaser.Scene {
     add(`${SUBTITLE} için 48 saatte geliştirildi.`, { color: num(PAL.murekkepSoluk) });
     header('Takım');
     MEMBERS.forEach((m) => add(`${m.name}  ·  ${m.role}`));
+    // Yapay zekâ beyanı (okunur özet, docs/ai-ozet.json): araç bir kez, sonra her kategori için
+    // Kullanıldı / Kullanılmadı, kısa amaç ve kullanıldığı yerler. Ayrıntılı kayıt docs/AI_BEYAN.md'de.
+    header('Yapay zekâ kullanımı');
+    const tools = [...new Set(CATEGORIES.flatMap(({ id }) => AI[id].map((a) => a.tool)))];
+    if (tools.length === 1) add(`Araç: ${tools[0]}`, { size: 32, color: num(PAL.murekkepSoluk) }, 10);
+    for (const { id, label: kategori } of CATEGORIES) {
+      const items = AI[id];
+      y += 14;
+      if (items.length === 0) {
+        add(`${kategori}: Kullanılmadı`, { size: 38, color: num(PAL.murekkepSoluk) }, 12);
+        continue;
+      }
+      add(`${kategori}: Kullanıldı`, { size: 40, color: num(PAL.basikSerit) }, 8);
+      for (const a of items) {
+        if (tools.length > 1) add(`Araç: ${a.tool}`, { size: 30, color: num(PAL.murekkepSoluk) }, 6);
+        add(a.purpose, { size: 34 }, 8);
+        a.where.forEach((w) => bullet(w));
+        y += 10;
+      }
+    }
+
     // Teslim formundaki gibi: beş kategorinin her biri için Kullanıldı / Kullanılmadı.
     const declaration = <T,>(title: string, data: Record<Category, T[]>, describe: (item: T) => [string, string]): void => {
       header(title);
@@ -66,7 +92,6 @@ export class CreditsScene extends Phaser.Scene {
         }
       }
     };
-    declaration('Yapay zekâ kullanımı', AI, (a) => [`${a.tool}: ${a.purpose}`, `Kullanıldığı yer: ${a.where}`]);
     declaration('Hazır kaynaklar', ASSETS, (a) => [`${a.name}  ·  ${a.author}`, `${a.license}  ·  ${a.usage}  ·  ${a.url}`]);
 
     const maskShape = this.make.graphics({}, false).fillStyle(0xffffff).fillRect(left - 20, TOP, COLUMN + 40, VIEW_HEIGHT);

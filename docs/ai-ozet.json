@@ -1,0 +1,46 @@
+{
+  "_aciklama": "Yapay zekâ beyanının okunur özeti (elle yazılır). scripts/beyan.mjs bunu oyundaki Emeği Geçenler'e, docs/AI_BEYAN.md'nin üstüne (teslim formu) ve README tablosuna koyar; ayrıntılı kayıt docs/AI_BEYAN.md'nin altında eksiksiz durur. Ayrıntılı kayda yeni bir kullanım türü eklenirse burayı da güncelle. Araç satırı kayıttan otomatik gelir.",
+  "visual": {
+    "amac": "Oyundaki görselleri kodla, piksel piksel çizen kodu yazdı: arayüz ve menü, masa ve belgeler, gişedeki kişilerin portreleri, kaşeler, bina cephesi ayrıntıları, sokak, deprem hasarı ve efektler. Bina ve sokak karoları hazır paketten gelir (Hazır kaynaklar bölümü).",
+    "yer": [
+      "Menü sokağı ve bütün arayüz: düğmeler, kâğıt paneller, arka plan, parçacık ve ekran efektleri",
+      "Masa: belgeler (yazılar, ada/parsel satırları, imzalar, elle düzeltme izleri), kaşeler ve kaşelik, yönetmelik klasörü, kural notları, inceleme modu, masa eşyaları",
+      "Gişe: kişi portreleri, konuşma balonu, zarf ve çekmece, SOR/İSTE düğmeleri, getirilen raporlar",
+      "Sokak: bina cephesi ayrıntıları (kat bandı, vitrin), bina etiketleri, deprem çatlakları ve sıva dökülmesi",
+      "Saha testi (kolon yakın planı), deprem, gün sonu, gazete ve sonuç ekranları"
+    ]
+  },
+  "audio": {
+    "amac": "Ses efektlerini ve müziği kodla üreten sentezleyiciyi, deprem gürlemesini kodla üreten sesi ve ses ayarlarını yazdı. Hazır paketteki Kenney seslerinin hız, perde ve katman ayarlarını yaptı.",
+    "yer": [
+      "Arayüz ve oyun ses efektleri, müzik altyapısı",
+      "Deprem gürlemesi",
+      "Kenney seslerinin çalınışı (hız, perde, katman)",
+      "Ses düzeyi ayarları"
+    ]
+  },
+  "code": {
+    "amac": "Oyunun bütün kodunu yazdı (jam öncesi hazırlanan şablon dahil): oynanış ve kurallar, belgeler ve gişe diyaloğu, deprem, gün sonu, gazete ve sonuç ekranları, menüler, ses bağlantıları. Ayrıca oyunun dengesini ve kararların adil sonuçlanmasını denetleyen bir araç ile otomatik ekran testi aracını yazdı.",
+    "yer": [
+      "Oyunun tamamı: menü, masa, gişe, sokak, saha testi, deprem, gün sonu, gazete, sonuç, ayarlar, duraklatma",
+      "Geliştirme araçları: denge denetimi ve otomatik test (oyunda görünmez)"
+    ]
+  },
+  "text": {
+    "amac": "Arayüz metinlerini, README'yi, BENIOKU'yu, ses listesini ve beyan açıklamalarını yazdı. Gişe diyalogları, zarf ve rapor satırları, kural metinleri, gazete ve deprem anlatımı için yer tutucu metinler yazdı; takım bunları yeniden yazacak.",
+    "yer": [
+      "Menü, ayarlar, oyun içi ipuçları ve göstergeler",
+      "Gişe diyalogları (SOR, İSTE), zarf ve rapor satırları, yönetmelik kuralları (yer tutucu)",
+      "Gazete, küçük deprem şeridi, kısa yol sorusu ve çerçeve cümlesi (yer tutucu)",
+      "Emeği Geçenler, README, BENIOKU"
+    ]
+  },
+  "other": {
+    "amac": "Tema yorumu için konsept seçenekleri önerdi, Kenney seslerinden ölçüme dayalı adaylar seçti, hazır kaynak beyanını ve ses listesini yazdı; konsept seçimi, son ses seçimi ve kararlar takımın. Geliştirme sürecini görevlere bölüp yönetti, oyunu otomatik oynayarak test etti ve jam ölçütlerine göre değerlendirip öneriler sundu.",
+    "yer": [
+      "Oyun fikri aşaması",
+      "Ses seçimi ve hazır kaynak beyanı (Emeği Geçenler, README)",
+      "Geliştirme, test ve değerlendirme süreci (oyunda doğrudan yer almaz)"
+    ]
+  }
+}

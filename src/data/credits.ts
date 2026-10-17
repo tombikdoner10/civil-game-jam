@@ -34,7 +34,8 @@ export interface AssetCredit {
 export interface AiCredit {
   tool: string;
   purpose: string;
-  where: string;
+  /** Oyunda kullanıldığı yerler (ekran ve öğe adları). */
+  where: string[];
 }
 
 // TODO(takım): Üç üyenin adlarını ve rollerini yaz (köşeli parantezli metinler yer tutucu). Temsilci: Egemen.
@@ -45,13 +46,14 @@ export const MEMBERS: Member[] = [
 ];
 
 /**
- * Yapay zekâ kullanımı: elle yazılmaz. `scripts/beyan.mjs`, Claude Code kancasının otomatik kaydından
- * (docs/ai-kayit.jsonl) ve elle eklenenlerden (docs/ai-elle.json) ai-beyan.json'u üretir; her commit'te yenilenir.
+ * Yapay zekâ kullanımı: burada elle yazılmaz. `scripts/beyan.mjs`, kategori başına okunur özetten (docs/ai-ozet.json)
+ * ai-beyan.json'u üretir; özeti, Claude Code kancasının otomatik kaydı (docs/ai-kayit.jsonl) ve elle eklenenler
+ * (docs/ai-elle.json) ile denetler. Ayrıntılı kayıt docs/AI_BEYAN.md'nin altındadır. Her commit'te yenilenir.
  */
 export const AI = Object.fromEntries(
   CATEGORIES.map(({ id }) => {
     const c = aiBeyan.kategoriler[id];
-    return [id, c.kullanildi ? [{ tool: c.arac, purpose: c.amac, where: c.yer.join(', ') }] : []];
+    return [id, c.kullanildi ? [{ tool: c.arac, purpose: c.amac, where: c.yer }] : []];
   }),
 ) as Record<Category, AiCredit[]>;
 
