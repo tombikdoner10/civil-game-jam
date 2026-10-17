@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G50 [teknik] (bitti e6bbad4, test sürüyor, Opus/low) İnceleme modunda kapalı klasöre tıklamak klasörü açıyor ve aynı tıklamayla açılan sayfadaki kural satırını seçiyor (G49 raporu, önceden var olan hata).
 
 ## Sırada
 
@@ -74,6 +73,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G50 İnceleme modunda kapalı klasöre tık yalnızca açıyor, kural satırı seçmiyor (e6bbad4, Opus/high; test GEÇTİ, 7 koşu)
 - [x] G49 Kusur etiketi değerleri, mührü, düğmeleri, zarfı ve fişi örtmüyor (ağırlıklı yerleşim); gün 1 kaçak kat etiketi fotoğrafın altında (2066a4c, Opus/high; test GEÇTİ)
 - [x] G48 Yeni araçlar için tek seferlik ipucu: SOR (gün 2–3), İSTE ve SAHA (gün 3–4), kullanılınca kalkar (680b3f8, Opus/high; test GEÇTİ, 9 koşu hatasız)
 - [x] G47 Kapsam garantisi: 13 kusur türünün hepsi tanıtıldığı gün (1000 tohumda %2,7 → %100), sahte rapor garantisi (oyunun 2. İSTE'sinden itibaren), gün 1 aynı (001ab61 + ea4cdc6, Opus/high; test GEÇTİ, lider oyun içinde doğruladı)
