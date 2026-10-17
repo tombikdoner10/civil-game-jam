@@ -12,8 +12,9 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Sırada
 
-Son test (xhigh, 78/100) sonrası (sıra: G34 → G35 → G31)
+Son test (xhigh, 78/100) sonrası (sıra: G34 → G36 → G35 → G31)
 
+- [ ] G36 [teknik] Takım kararı: sahte ruhsatın doğru damgası İADE (öteki geçersiz belgeler gibi); kural notu/klasör yer tutucu metni ve fiş buna uysun; adalet denetimi güncellensin.
 - [ ] G35 [teknik] Cila: raporda bulunan kusurda kaçak kat farkı (+n); 5 günlük yol gazetesinde bina adları raporla eşleşsin ("Gün N · Bina 0X"); gazete/değerlendirmede tekil/çoğul ("bina çöktü" / "binalar çöktü") seçimi; gün 5 inceleme çerçevesi ve etiketin belge değerlerini örtmesi; saha "[+30 dk]" etiketinin beton yüzeyine taşması.
 
 Eleştirmen 4 sonrası (sıra: G31 (metinler gelince))
@@ -53,6 +54,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 - [ ] T13 [takım] Ara testte ayarla: maaş/ceza değerleri ve para birimi (şu an doğru 20, yanlış 10 TL), gün süreleri (90/180/200/220/240 sn), dosya sayıları (3/5/6/7/8); karot "Rapor yok" kusur sayılsın mı?
 - [ ] T14 [takım] Öncü sarsıntı: doğru BOŞALT damgalanan zayıf bina da "boş" olarak çatlıyor; böyle mi kalsın, yoksa boşaltılanlar sağlam mı görünsün? Öncü şiddeti/süresi (TUNING.oncu). İskele, şerit, çatlak çizimleri onayı. Tavanda sallanan lamba istenir mi?
 - [ ] T15 [takım] Büyük deprem ağırlığı: örnek oyunda 29 binadan 14'ü çöktü (10'u boşaltılmıştı). Doğru BOŞALT damgalı ağır kusurlu binalar çöksün mü, ağır hasarlı mı kalsın (TUNING.buyukDeprem.kademe.bosaltKusur 3 → 2)? Gazete ve sonuç metinleri src/game/gazete.ts (T4 ile).
+- [x] T29 [takım] KARAR (09:01): gün 1de zarf açık; zarf bedeli böyle; sahte ruhsat İADE (→ G36); iyi saha sonucu GÜVENLİ verdirmez (böyle kalır; kural notu metni T21)
 - [x] T23 [takım] KARAR (07:21): düğme soru kalır, satır "[Kararlarının sonucunu şimdi gör.]" → G32
 - [x] T24 [takım] KARAR (07:21): masa sessiz; gazete ve sonuçta Kenney Music Jingles → G32
 - [x] T22 [takım] KARAR (06:34): kısa yol gazetesinde önce jürinin binaları ("senin binaların"), sonra bütün sokak; görmediği İADE/içi boş satırları gizli. → G30
