@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G35 [teknik] (sürüyor, Opus/high) Cila: raporda bulunan kusurda kaçak kat farkı (+n); 5 günlük yol gazetesinde bina adları raporla eşleşsin ("Gün N · Bina 0X"); gazete/değerlendirmede tekil/çoğul ("bina çöktü" / "binalar çöktü") seçimi; gün 5 inceleme çerçevesi ve etiketin belge değerlerini örtmesi; saha "[+30 dk]" etiketinin beton yüzeyine taşması.
 
 ## Sırada
 
@@ -38,6 +37,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Takım işleri
 
+- [ ] T30 [takım] Manşet ve değerlendirme metinlerinin tekil ve çoğul biçimleri (src/game/gazete.ts, {tekil, cogul} çiftleri; G35 yer tutucu yazdı).
 - [ ] T28 [takım] Diyalog taslaklarını oku ve düzelt: src/game/diyalog-metin.ts (393 cümle; 5 mizaç × selam/bekleme/sabırsızlık/giriş/zarf/damga tepkisi; 12 kusur × bahane/itiraf/zarf; İSTE; zarf isteği). Beğenmediğini sil ya da değiştir; köşeli parantezleri onayladıklarından kaldır. Son tarih 18.00. Test gözlemi: damga tepkileri mizaç başına 3 cümle, uzun oyunda/oyunlar arası tekrar edebilir; çoğaltmak isterseniz ekleyin.
 - [ ] T6 [takım] (T24 sonrası) Sesleri dinle: 42 Kenney sesi + G32 jingle'ları; değiştirmek istediğini söyle.
 - [ ] T25 [takım] Sunum: anlatıcının ilk cümlesi (ör. "Kurala uymayanı damgala, sonra raporda kırmızı düğme"); jüri bilgisayarında oyun önceden açık olsun ya da ZIP sürümü (canlı sitede ilk yükleme birkaç sn, bu sırada tıklamalar kayboluyor). Gerçekçi jüri yolu 2:00–2:40.
@@ -69,6 +69,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G35 Son test cilası: raporda kaçak kat farkı, 5 günlük gazetede Gün N · Bina, tekil/çoğul manşet ve değerlendirme (5 metin), inceleme çerçeve/etiket çakışmaları, [+30 dk] saat altında, gazetede erken Enter bekletme (c5a4d56, Opus/high; test sürüyor)
 - [x] G36 Sahte ruhsat İADE (yalnızca gün 5; İADE kaşesi gün 3ten); kural metni yer tutucusu İADE; bulunan ≤ kusur sayımı; Yeniden Başlada ipucu sıfırlanıyor; adalet 33301/0 (4a4da7d + e7df6b4, Opus/high; test geçti)
 - [x] G34 İSTE/saha sonrası fiş, gerekçe ve rapor aynı ve bilgiye göre doğru; inceleme ipucu yeni oyunda sıfırlanıyor; adalet bayt bayt aynı (767d109, Opus/high; test geçti)
 - [x] G33 Diyalog çeşitliliği: mizaç (portre tohumundan), tekrarsız deste, ruhsat değişkenleri, sabırsızlık (sinirli 2., diğerleri 3. soru) ve ~25 sn bekleme; 393 taslak cümle (dde59ff + c0a76cc, Opus/high; test geçti)
