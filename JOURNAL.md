@@ -89,3 +89,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 04:27 · 0f2204e canlıda (G19 Schmidt çekici; JS paketinde hash doğrulandı), smoke hatasız, son-saglam taşındı · Sıradaki: G23b geliştiricide, sonra G24, G11
 - 04:41 · G23b bitti (089c397, Opus/high): zarf satırı hatası giderildi, kısa yol manşeti/değerlendirme jüri binalarına dayalı; adalet 30909 denetim 0 hata · Karar: test-oyuncusu G23b (opus/low) sabit kopyada (teslim/test-089c397), paralelde G24 · Sıradaki: G24
 - 04:54 · Test (G23b, opus/low): hata yok; zarfsız kısa yolda zarf satırı yok, zarflıda var; manşet/değerlendirme tutarlı; yanlış GÜVENLİ öne çıkıyor; küçük n, soluk odak dışı, 720p, fiş GEÇTİ; deprem dili G24'te · Karar: G23b yayına · Sıradaki: G24
+- 04:55 · 67d46f1 canlıda (G23b; JS paketinde hash doğrulandı; push edilen kaynak yalnızca G23b), smoke hatasız, son-saglam taşındı · Sıradaki: G24 geliştiricide, sonra G11 menü
