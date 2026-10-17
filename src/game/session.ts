@@ -165,11 +165,16 @@ export interface DepremBinaSonucu {
   kendiBinan?: true;
   /** G42: güçlendirme payı tam ödendiği (G43: 3/3 taksit) için GÜÇLENDİR sayıldı (damgası GÜVENLİ ya da İADE'ydi). */
   evPayi?: true;
+  /** G44: güçlendirme payının 2/3 taksiti ödendiği için sonucu bir kademe iyileşti (damgası GÜVENLİ ya da İADE'ydi). */
+  evKismi?: true;
 }
 
 /** Büyük depremin oyuncunun evine bağlı seçeneği (G42; G43 kademeli). */
 export interface DepremEvSecenek {
-  /** Güçlendirme payının ödenen taksit sayısı; hepsi (3/3) ödendiyse kendi apartmanın en az GÜÇLENDİR sayılır. */
+  /**
+   * Güçlendirme payının ödenen taksit sayısı; hepsi (3/3) ödendiyse kendi apartmanın en az GÜÇLENDİR sayılır, 2/3'te
+   * (G44) sonucu bir kademe iyileşir (öncü sarsıntı hasarının altına inmez).
+   */
   guclendirmeKademe?: number;
 }
 
@@ -177,8 +182,9 @@ export interface DepremEvSecenek {
  * Büyük deprem: sokaktaki her bina için sonuç (sokak sırasıyla). Saf; Quake görüntüsü ve gazete bunu kullanır.
  * zarfKaynak (G23b, kısa yol): zarf işareti yalnızca bu kayıtlardaki (oyuncunun kendi) kabul edilen zarflardan;
  * verilmezse bütün kayıtlardan (normal oyunda hepsi oyuncunun). ev (G42): oyuncunun kendi apartmanı (zarfKaynak'taki
- * kendiBinan binası) güçlendirme payının bütün taksitleri (G43: 3/3) ödendiyse GÜVENLİ ya da İADE damgalı olsa da GÜÇLENDİR sonucunu alır; öbür
- * binalar ve ev verilmediğinde hepsi değişmez.
+ * kendiBinan binası) güçlendirme payının bütün taksitleri (G43: 3/3) ödendiyse GÜVENLİ ya da İADE damgalı olsa da GÜÇLENDİR sonucunu alır;
+ * 2/3 taksitte (G44) aynı damgalarla sonucu bir kademe iyileşir (çöktü → ağır hasar → hasarlı → ayakta). Öbür binalar
+ * ve ev verilmediğinde ya da 0-1 taksitte hepsi değişmez.
  */
 export function buyukDeprem(
   tohum: number,
@@ -197,11 +203,24 @@ export function buyukDeprem(
     }
   return sokakKayitlari(tohum, kayitlar).map((s, i) => {
     const kendiBinan = !!s.bina.kendiBinan && kendi.has(s.bina.id);
-    const payli = kendiBinan && (ev.guclendirmeKademe ?? 0) >= TUNING.ev.kademe.guclendirme.length && (s.damga === 'guvenli' || s.damga === 'iade');
+    const taksit = ev.guclendirmeKademe ?? 0;
+    const tumu = TUNING.ev.kademe.guclendirme.length;
+    const payDamga = kendiBinan && (s.damga === 'guvenli' || s.damga === 'iade');
+    const payli = payDamga && taksit >= tumu;
     const r = buyukDepremSonucu(s.bina, payli ? 'guclendir' : s.damga, s.gun, { oncuHasar: s.hasar });
-    const ek: Pick<DepremBinaSonucu, 'kendiBinan' | 'evPayi'> = {};
+    const ek: Pick<DepremBinaSonucu, 'kendiBinan' | 'evPayi' | 'evKismi'> = {};
     if (kendiBinan) ek.kendiBinan = true;
     if (payli) ek.evPayi = true;
+    // G44: 2/3 taksit, sonucu bir kademe iyileştirir (soyut evdeki "hasarlı" ile aynı mantık); öncü hasarın altına inmez.
+    let { durum, coker } = r;
+    if (payDamga && taksit === tumu - 1) {
+      const kademe = Math.max(r.kademe - 1, s.hasar ? HASAR_KADEME.indexOf(s.hasar) : 0);
+      if (kademe < r.kademe) {
+        durum = HASAR_KADEME[Math.min(kademe, 2)];
+        coker = kademe >= 3;
+        ek.evKismi = true;
+      }
+    }
     return {
       ...ek,
       dosyaId: s.bina.id,
@@ -212,12 +231,15 @@ export function buyukDeprem(
       dogru: dogru.get(s.bina.id) ?? false,
       kusurlu: fizikselKusurlar(s.bina, s.gun).length > 0,
       zarf: zarf.has(s.bina.id),
-      durum: r.durum,
-      coktu: r.coker,
+      durum,
+      coktu: coker,
       bos: r.bos,
     };
   });
 }
+
+/** Büyük deprem kademesinden hasar durumu (rules.buyukDepremSonucu ile aynı sıra; 3 ve üstü çöker). */
+const HASAR_KADEME: readonly HasarDurumu[] = ['ayakta', 'hasarli', 'agirHasar'];
 
 /** Deprem sonrası sokak özeti. "Hasarlı" ayakta kalan hasarlı ve ağır hasarlı binalar; çökenler ayrı. */
 export interface DepremOzeti {

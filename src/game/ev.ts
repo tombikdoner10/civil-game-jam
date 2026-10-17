@@ -56,7 +56,7 @@ export function guclendirmeTam(ev: EvHazirlik | undefined): boolean {
   return evKademe(ev, 'guclendirme') >= EV_KADEME;
 }
 
-/** Evine harcanan toplam (TL). */
+/** Evine harcanan toplam (TL; yalnızca gerçek satın almalar, dev'de bedelsiz eklenen kademelerin fiyatı 0). */
 export function evHarcanan(ev: EvHazirlik | undefined): number {
   if (!ev) return 0;
   return EV_KALEMLER.reduce((n, k) => n + (ev.alinan[k] ?? []).reduce((m, a) => m + a.fiyat, 0), 0);
@@ -130,7 +130,8 @@ export const EV_SOYUT_DURUM: readonly EvDurum[] = ['agir', 'agir', 'hasarli', 'h
 
 /**
  * "Senin evin" (G42, G43 kademeli; deterministik). Kendi apartmanını damgaladıysan (5 günlük yol, gün 5) evin durumu
- * onun deprem sonucudur (güçlendirme 3/3 taksitse en az GÜÇLENDİR sayılmış olarak; bkz. session.buyukDeprem). Yoksa
+ * onun deprem sonucudur (güçlendirme 3/3 taksitse en az GÜÇLENDİR sayılmış, G44: 2/3 taksitte bir kademe iyileşmiş
+ * olarak; bkz. session.buyukDeprem; sokak, gazete ve sonuç aynı sonucu gösterir). Yoksa
  * (kısa yol ya da damgalanmadı) güçlendirme kademesine göre: 0 ve 1 ağır hasar, 2 hasarlı, 3 hafif hasar. Çanta ve
  * sabitleme kademeleri ayrı cümlelere bağlanır (ev-metin.ts).
  */

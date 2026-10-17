@@ -903,7 +903,7 @@ console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19
 {
   const EV = await server.ssrLoadModule('/src/game/ev.ts');
   const EM = await server.ssrLoadModule('/src/game/ev-metin.ts');
-  const g43 = { alim: 0, zarfla: 0, yetmedi: 0, tamamSonrasi: 0, kendiBina: 0, payliFark: 0, sonuc: 0, kendiSonuc: 0 };
+  const g43 = { alim: 0, zarfla: 0, yetmedi: 0, tamamSonrasi: 0, kendiBina: 0, payliFark: 0, kismiFark: 0, sonuc: 0, kendiSonuc: 0 };
   const F = T.ev.kademe;
   const N = EV.EV_KADEME;
   const kalemler = [...EV.EV_KALEMLER];
@@ -1015,8 +1015,13 @@ console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19
   for (const m of [...Object.values(EM.EV_DURUM_METIN), ...EM.EV_GUCLENDIRME_METIN, ...EM.EV_CANTA_METIN, ...EM.EV_SABITLEME_METIN, ...Object.values(EM.EV_ZARF_METIN), EM.EV_PAYLI])
     bak(!/\d/.test(m), `G43 ev cümlesinde sayı: ${m}`);
 
-  // Bina sonuçları: ev seçeneği verilmezse ya da güçlendirme 0-2 taksitse aynı; 3/3 taksitte yalnızca oyuncunun kendi
-  // apartmanı (GÜVENLİ / İADE damgalıysa) GÜÇLENDİR sonucunu alır. Ev sonucu kendi apartmanınla tutarlı.
+  // Bina sonuçları: ev seçeneği verilmezse ya da güçlendirme 0-1 taksitse aynı; 2/3 taksitte (G44) yalnızca oyuncunun
+  // kendi apartmanı (GÜVENLİ / İADE damgalıysa) bir kademe iyileşir (öncü hasarın altına inmez); 3/3 taksitte o bina
+  // GÜÇLENDİR sonucunu alır. Ev sonucu kendi apartmanınla tutarlı; taksit arttıkça ev kötüleşmez.
+  const EV_SIRA = ['coktu', 'agir', 'hasarli', 'hafif', 'saglam'];
+  const evSira = (d) => (d === 'coktuBos' ? 0 : EV_SIRA.indexOf(d));
+  const HK = ['ayakta', 'hasarli', 'agirHasar'];
+  const kademeOf = (r) => (r.coktu ? 3 : HK.indexOf(r.durum));
   for (let tohum = 1; tohum <= 10; tohum++)
     for (const bicim of ['ornek', 'dogru', 'guvenli', 'guclendir', 'bosalt', 'iade', 'kisa']) {
       const k = kayitlar(tohum, bicim);
@@ -1028,9 +1033,26 @@ console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19
       bak(kendi.length <= 1, `${e}: birden çok kendi apartman`);
       if (bicim === 'kisa') bak(kendi.length === 0, `${e}: kısa yolda örnek bina kendi apartman sayıldı`);
       if (kendi.length) g43.kendiBina++;
+      let oncekiEv = -1;
       for (let g = 0; g <= N; g++) {
         const c = S.buyukDeprem(tohum, k, zk, { guclendirmeKademe: g });
-        if (g < N) bak(JSON.stringify(a) === JSON.stringify(c), `${e} g=${g}: 3/3'ten az taksitte sonuç değişti`);
+        if (g < N - 1) bak(JSON.stringify(a) === JSON.stringify(c), `${e} g=${g}: 2/3'ten az taksitte sonuç değişti`);
+        else if (g === N - 1)
+          a.forEach((r, i) => {
+            const p = c[i];
+            const payDamga = r.kendiBinan && (r.damga === 'guvenli' || r.damga === 'iade');
+            if (!payDamga) {
+              bak(JSON.stringify(r) === JSON.stringify(p), `${e} ${r.dosyaId}: 2/3 taksit başka binayı değiştirdi`);
+              return;
+            }
+            const s = sokak[i];
+            const taban = s.hasar ? HK.indexOf(s.hasar) : 0;
+            const bek = Math.max(kademeOf(r) - 1, taban);
+            bak(kademeOf(p) === bek && p.bos === r.bos && p.damga === r.damga && !p.evPayi, `${e} ${r.dosyaId}: 2/3 sonuç bir kademe iyi değil (${kademeOf(r)} → ${kademeOf(p)}, beklenen ${bek})`);
+            bak(!!p.evKismi === bek < kademeOf(r), `${e} ${r.dosyaId}: evKismi yanlış`);
+            if (r.coktu) bak(!p.coktu, `${e} ${r.dosyaId}: 2/3 taksitte kendi apartman yine çöktü`);
+            if (JSON.stringify(r) !== JSON.stringify(p)) g43.kismiFark++;
+          });
         else
           a.forEach((r, i) => {
             const p = c[i];
@@ -1053,6 +1075,8 @@ console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19
           const bek = kb.coktu ? (kb.bos ? 'coktuBos' : 'coktu') : kb.durum === 'agirHasar' ? 'agir' : kb.durum === 'hasarli' ? 'hafif' : 'saglam';
           bak(s.durum === bek && s.kendiBina === kb && s.guclendirme === g, `${e} g=${g}: ev durumu kendi apartmanla tutarsız (${s.durum} ≠ ${bek})`);
           bak(!!kb.evPayi === (g === N && (kb.damga === 'guvenli' || kb.damga === 'iade')), `${e} g=${g}: evPayi yanlış`);
+          bak(evSira(s.durum) >= oncekiEv, `${e} g=${g}: taksit arttı, ev kötüleşti`);
+          oncekiEv = evSira(s.durum);
           g43.kendiSonuc++;
         } else bak(s.durum === SOYUT[g] && !s.kendiBina, `${e} g=${g}: soyut ev durumu`);
       }

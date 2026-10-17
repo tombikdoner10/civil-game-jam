@@ -7,7 +7,7 @@ import { Sokak, type SokakGirdi } from '../desk/Street';
 import { CATI_H, CEPHE_W, cepheSecimi, KAT_H } from '../desk/tiles';
 import { gunDosyalari, type Damga } from '../game/building';
 import { gunAyar, SON_GUN } from '../game/days';
-import { EV_KADEME, EV_KALEMLER, evKademe, satinAl, siradakiFiyat, yeniEv, zarfToplami, type EvHazirlik, type EvKalem } from '../game/ev';
+import { EV_KADEME, EV_KALEMLER, evKademe, satinAl, yeniEv, zarfToplami, type EvHazirlik, type EvKalem } from '../game/ev';
 import { ornekKayitlar } from '../game/ornek';
 import { GunOturumu, gunHesabi } from '../game/session';
 import { TUNING } from '../game/tuning';
@@ -25,7 +25,8 @@ import type { DepremData } from './QuakeScene';
 /**
  * Yalnızca dev (G42, G43): &ev=canta2,sabitleme1,guclendirme3 evin kalemlerini o kademeye kadar alınmış sayar (kademe
  * yazılmazsa tamamı, 3). Kademeler sırayla, önce paradan satın alınır (zarf işareti oyundaki gibi); para yetmeyen
- * kademe dev için yine eklenir ve para sıfıra iner.
+ * kademe dev için bedelsiz eklenir (fiyat 0, para değişmez; G44: "Evine harcanan" yalnızca gerçek alımlar, harcanan
+ * + kalan = kazanç).
  */
 function devEv(q: URLSearchParams, para: number, zarfToplam: number, gun: number): { ev: EvHazirlik; para: number } {
   let ev = yeniEv();
@@ -38,10 +39,8 @@ function devEv(q: URLSearchParams, para: number, zarfToplam: number, gun: number
       const r = satinAl(ev, k, para, zarfToplam, gun);
       if (r) ({ ev, para } = r);
       else {
-        const fiyat = siradakiFiyat(ev, k) ?? 0;
-        const alim = { kademe: evKademe(ev, k) + 1, gun, fiyat, zarfla: false };
+        const alim = { kademe: evKademe(ev, k) + 1, gun, fiyat: 0, zarfla: false };
         ev = { ...ev, alinan: { ...ev.alinan, [k]: [...(ev.alinan[k] ?? []), alim] } };
-        para = Math.max(0, para - fiyat);
       }
     }
   }
@@ -76,8 +75,8 @@ function devKisaYol(): DayEndData | null {
   const t = Number(q.get('tohum'));
   const tohum = q.has('tohum') && Number.isFinite(t) ? t : Math.floor(Math.random() * 1_000_000_000);
   const [gun1] = ornekKayitlar(tohum, 2);
-  // G43: &ev=... gün başında alınmış kademeler (dev; para sıfırken bedelsiz eklenir).
-  const { ev } = devEv(q, TUNING.para.baslangic, 0, 1);
+  // G43: &ev=... gün başında alınmış kademeler (dev; bedelsiz eklenir, paraOnce değişmez; G44).
+  const { ev } = devEv(q, 0, 0, 1);
   return {
     gun: 1,
     tohum,
