@@ -400,6 +400,7 @@ const MANSET_KOTU = [
   '[Manşet: denetimden geçen bina çöktü]',
 ];
 const g23bTon = { kotu: 0, orta: 0, iyi: 0, yanlisGuvenli: 0 };
+const g37 = { ikiParca: 0, zarfOnayCoken: 0, zarfOnayHepsi: 0 };
 for (let tohum = 1; tohum <= 40; tohum++) {
   const ornek = O.kisaYolKayitlari(tohum);
   const gunler = {
@@ -415,10 +416,25 @@ for (let tohum = 1; tohum <= 40; tohum++) {
     // Gazete ve sonuç ekranı manşeti/değerlendirmeyi bu özetten seçer (NewspaperScene, ResultScene).
     const oz = S.oyuncuOzeti(sonuc, juri);
     bak(oz.toplam === juriSonuc.length, `${e}: oyuncu özeti örnek binaları içeriyor`);
-    const m = G.manset(oz);
-    const deg = G.degerlendirme({ ...oz, zarf: 0, zarfHasar: 0, zarfCoken: 0 });
+    // G37: sokakta jürinin denetlemediği binalardan çökenler (oyundaki gibi verilir).
+    const sokakCoken = G.sokakCokenSayisi(sonuc, juri);
+    bak(sokakCoken === sonuc.filter((r) => !juri.has(r.dosyaId) && r.coktu).length, `${e}: sokakta çöken sayısı`);
+    const m = G.manset(oz, { sokakCoken });
+    const deg = G.degerlendirme({ ...oz, zarf: 0, zarfHasar: 0, zarfCoken: 0, zarfDoluCoken: 0 }, { sokakCoken });
     bak((deg.ton === 'kotu') === MANSET_KOTU.includes(m), `${e}: manşet (${m}) ile değerlendirme (${deg.metin}, ${deg.ton}) çelişiyor`);
     if (g1[0].kararlar.every((c) => c.dogru)) bak(!MANSET_KOTU.includes(m) && deg.ton !== 'kotu', `${e}: jürinin hepsi doğru ama manşet/değerlendirme kötü: ${m}`);
+    // G37 (takım kararı): jürinin binası çökmediyse ve sokakta çöken varsa manşet ve değerlendirme ikisini de söyler;
+    // sokakta çöken yoksa "sokak ayakta"/"hazırdı" kalabilir, varsa bu ikisi çıkmaz.
+    const sokakParcasi = /sokakta denetlenmeyen/;
+    if (oz.coken === 0 && sokakCoken > 0) {
+      bak(sokakParcasi.test(m) && sokakParcasi.test(deg.metin), `${e}: jürinin binaları ayakta, sokakta ${sokakCoken} çöken ama manşet/değerlendirme söylemiyor: ${m} | ${deg.metin}`);
+      g37.ikiParca++;
+    }
+    if (sokakCoken > 0) bak(!/sokak ayakta|sokak depreme hazırdı/.test(m + deg.metin), `${e}: sokakta çöken var ama "sokak ayakta": ${m} | ${deg.metin}`);
+    else bak(!sokakParcasi.test(m + deg.metin), `${e}: sokakta çöken yok ama sokak parçası: ${m} | ${deg.metin}`);
+    if (oz.doluCoken > 0) bak(!sokakParcasi.test(m + deg.metin), `${e}: jürinin binası çöktü ama sokak parçası: ${m}`);
+    // 5 günlük yol (sokakCoken verilmez) eski metinleri verir.
+    bak(G.manset(oz, { sokakCoken: 0 }) === G.manset(oz), `${e}: sokakta çöken yokken kısa yol manşeti 5 günlük yolunkiyle aynı değil`);
     g23bTon[deg.ton]++;
     const satirlar = G.oneCikanlar(sonuc, juri).satirlar;
     for (const r of juriSonuc.filter((x) => x.damga === 'guvenli' && !x.dogru)) {
@@ -429,6 +445,54 @@ for (let tohum = 1; tohum <= 40; tohum++) {
   }
 }
 console.log('G23b kısa yol manşet/değerlendirme (tohum 1-40):', JSON.stringify(g23bTon));
+// G37: kısa yolun değerlendirmesinde onaylanıp çöken binanın zarfı ayrıca "zarf aldığın N bina çöktü" diye sayılmaz
+// (aynı bina iki kez); zarf ekindeki çöken sayısı yalnızca onaylanıp çökenlerin dışındakiler. Zarflı gün 1 (örnek
+// kararlar ve her tohumda bütün damgalar GÜVENLİ). 5 günlük yolun metni değişmez (kisa verilmez).
+for (let tohum = 1; tohum <= 200; tohum++) {
+  const gunler = [O.ornekKayitlar(tohum, 2), kayitlar(tohum, 'guvenli').slice(0, 1)];
+  for (const g1 of gunler) {
+    const tum = S.buyukDeprem(tohum, [...g1, ...O.kisaYolKayitlari(tohum)], g1);
+    const juri = new Set(g1[0].kararlar.map((c) => c.dosyaId));
+    const sonuc = tum.filter((r) => juri.has(r.dosyaId));
+    const oz = S.depremOzeti(sonuc);
+    const deg = G.degerlendirme(oz, { sokakCoken: G.sokakCokenSayisi(tum, juri) }).metin;
+    const e = `t${tohum} G37 zarf`;
+    const onay = oz.doluCoken > 0 && oz.doluCoken !== oz.iadeCoken ? oz.zarfDoluCoken : 0;
+    if (onay > 0) {
+      g37.zarfOnayCoken++;
+      if (onay === oz.doluCoken) g37.zarfOnayHepsi++;
+      bak(/zarf almıştın/.test(deg), `${e}: onaylanıp çöken zarflı bina değerlendirmede yok: ${deg}`);
+      const m = deg.match(/zarf aldığın (\d+) bina depremde çöktü|binalardan (\d+) tanesi çöktü/);
+      const ekCoken = m ? Number(m[1] ?? m[2]) : 0;
+      bak(ekCoken === oz.zarfCoken - onay, `${e}: zarf ekinde onaylanan çöken bina yeniden sayıldı: ${deg}`);
+    }
+    if (oz.zarf > 0) bak(/zarf/.test(deg), `${e}: zarf alan oyuncunun değerlendirmesinde zarf yok: ${deg}`);
+    else bak(!/zarf/.test(deg), `${e}: zarf almayan oyuncuda zarf: ${deg}`);
+  }
+}
+// G37 (eleştirmen 5, b41): onayladığı tek bina zarflıydı ve çöktü → tek ifade; 5 günlük yolda metin eskisi gibi.
+{
+  const b = { gun: 1, adres: 'Bina 0', kusurlu: true, dogru: false, durum: 'agirHasar', zarf: false, bos: false, coktu: false };
+  const s41 = [
+    { ...b, no: 1, dosyaId: 'a', damga: 'guvenli', kusurlu: false, dogru: true, durum: 'ayakta' },
+    { ...b, no: 2, dosyaId: 'b', damga: 'guvenli', zarf: true, coktu: true },
+    { ...b, no: 3, dosyaId: 'c', damga: 'bosalt', dogru: true, bos: true, coktu: true },
+    { ...b, no: 4, dosyaId: 'd', damga: 'guvenli', coktu: true },
+  ];
+  const juri = new Set(['a', 'b', 'c']);
+  const oz = S.oyuncuOzeti(s41, juri);
+  const kisa = G.degerlendirme(oz, { sokakCoken: G.sokakCokenSayisi(s41, juri) }).metin;
+  bak(kisa === '[Değerlendirme: onayladığın bina çöktü; zarf almıştın]', `G37 b41: ${kisa}`);
+  bak(G.degerlendirme(oz).metin === '[Değerlendirme: onayladığın bina çöktü · zarf aldığın 1 bina depremde çöktü]', `G37 b41 5 günlük biçim değişti: ${G.degerlendirme(oz).metin}`);
+  // Kusursuz jüri, sokakta çöken var (eleştirmen 5, a19/a21).
+  const s19 = s41.map((x) => (juri.has(x.dosyaId) ? { ...x, zarf: false, coktu: false, durum: 'ayakta', bos: false, damga: 'guvenli', dogru: true } : x));
+  const oz19 = S.oyuncuOzeti(s19, juri);
+  const k19 = { sokakCoken: G.sokakCokenSayisi(s19, juri) };
+  bak(/denetlediğin binalar ayakta.*sokakta denetlenmeyen bina çöktü/.test(G.manset(oz19, k19)), `G37 a19 manşet: ${G.manset(oz19, k19)}`);
+  bak(/denetlediğin binalar ayakta.*sokakta denetlenmeyen bina çöktü/.test(G.degerlendirme(oz19, k19).metin), `G37 a21 değerlendirme: ${G.degerlendirme(oz19, k19).metin}`);
+  bak(G.manset(oz19) === '[Manşet: sokak ayakta]', 'G37: 5 günlük yol manşeti değişti');
+}
+console.log('G37 kısa yol iki parça ve zarf+onay tek ifade:', JSON.stringify(g37));
 console.log('G17 + G22 (tohum 1-40, gün 1-5):', JSON.stringify(g17));
 
 // ---- G17b: belge hileleri (elle düzeltme, başka binanın belgesi, imza yok) ----

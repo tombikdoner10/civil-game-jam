@@ -7,7 +7,7 @@ import { PX, rastgele, snap, Tuval } from '../desk/pixel';
 import { hazirGostergesi, masaCiz, pikselDugme } from '../desk/props';
 import { Sokak, type SokakGirdi } from '../desk/Street';
 import { SON_GUN } from '../game/days';
-import { DOLGU_BASLIKLAR, FOTO_ALTI, GAZETE_ADI, GAZETE_TARIH, kisaSayiBloklari, manset, oneCikanlar, sayiSatiri, zarfSatiri } from '../game/gazete';
+import { DOLGU_BASLIKLAR, FOTO_ALTI, GAZETE_ADI, GAZETE_TARIH, kisaSayiBloklari, manset, oneCikanlar, sayiSatiri, sokakCokenSayisi, zarfSatiri } from '../game/gazete';
 import { depremOzeti, oyuncuOzeti, sokakKayitlari, type DepremBinaSonucu } from '../game/session';
 import { fadeIn, goTo } from '../systems/transition';
 import { SCENES } from './keys';
@@ -73,6 +73,8 @@ export class NewspaperScene extends Phaser.Scene {
     // değerlendirmeyle aynı özet).
     const juri = v.kisa ? new Set(v.kisa.juri) : undefined;
     const mansetOzeti = oyuncuOzeti(v.sonuclar, juri);
+    // G37: kısa yolda jürinin binaları çökmediyse manşet sokakta denetlenmeyen binalardan çökenleri de söyler.
+    const kisaBilgi = juri ? { sokakCoken: sokakCokenSayisi(v.sonuclar, juri) } : undefined;
     // 5 günlük yolda bina adları gün sonu raporundaki gibi ve günüyle (G35); kısa yolda sokak sırası (değişmedi).
     const one = oneCikanlar(v.sonuclar, juri, !v.kisa);
 
@@ -95,7 +97,7 @@ export class NewspaperScene extends Phaser.Scene {
     cizgi(T + 216);
 
     // Manşet
-    this.sigdir(yaz(KAGIT.x + KAGIT.w / 2, T + 264, manset(mansetOzeti), 84, 0.5), KAGIT.w - 80);
+    this.sigdir(yaz(KAGIT.x + KAGIT.w / 2, T + 264, manset(mansetOzeti, kisaBilgi), 84, 0.5), KAGIT.w - 80);
 
     // Fotoğraf: deprem sonrası sokak (ekran dışında kurulur, ayrı kamerayla siyah beyaz gösterilir).
     this.fotoKur(v, one.odak);

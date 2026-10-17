@@ -215,6 +215,8 @@ export interface DepremOzeti {
   zarf: number;
   zarfHasar: number;
   zarfCoken: number;
+  /** Zarf alınan ve içinde insan varken çöken binalar (G37: değerlendirmede onaylanıp çökenlerle aynı bina). */
+  zarfDoluCoken: number;
 }
 
 /**
@@ -233,6 +235,7 @@ export function depremOzeti(s: readonly DepremBinaSonucu[]): DepremOzeti {
     zarf: zarf.length,
     zarfHasar: zarf.filter((b) => b.coktu || b.durum !== 'ayakta').length,
     zarfCoken: zarf.filter((b) => b.coktu).length,
+    zarfDoluCoken: zarf.filter((b) => b.coktu && !b.bos && b.damga !== 'iade').length,
     iade: iade.length,
     iadeCoken: iade.filter((b) => b.coktu).length,
     iadeAgir: iade.filter((b) => !b.coktu && b.durum === 'agirHasar').length,

@@ -50,12 +50,45 @@ const MANSET_SAYILI: Record<'iadeCoken' | 'doluCoken' | 'bosCoken', SayiMetni> =
   bosCoken: { tekil: '[Manşet: çöken bina boşaltılmıştı]', cogul: '[Manşet: çöken binalar boşaltılmıştı]' },
 };
 
-/** Ana manşet: duruma göre dört şablondan biri. */
-export function manset(o: DepremOzeti): string {
+/**
+ * Kısa yolda (G37, takım kararı) jürinin binaları çökmediyse ama sokaktaki denetlemediği binalardan çöken varsa
+ * manşet ve değerlendirme iki parçalı: önce jürinin binaları, sonra sokakta denetlenmeyenler (mesaj: hazırlık tek
+ * binayla olmaz). Parçalar yer tutucu (TODO(takım), T31); tekil/çoğul G35 gibi.
+ */
+const KISA_SENIN: Record<'ayakta' | 'hasarli' | 'agir' | 'bosCoken', SayiMetni> = {
+  ayakta: { tekil: 'denetlediğin bina ayakta', cogul: 'denetlediğin binalar ayakta' },
+  hasarli: { tekil: 'denetlediğin bina ayakta ama hasarlı', cogul: 'denetlediğin binalar ayakta, hasar var' },
+  bosCoken: { tekil: 'boşalttığın bina çöktü, içinde kimse yoktu', cogul: 'boşalttığın binalar çöktü, içlerinde kimse yoktu' },
+  agir: { tekil: 'denetlediğin binada yıkım yok ama ağır hasar var', cogul: 'denetlediğin binalarda yıkım yok ama ağır hasar var' },
+};
+const KISA_SOKAK_COKEN: SayiMetni = {
+  tekil: 'sokakta denetlenmeyen bina çöktü',
+  cogul: 'sokakta denetlenmeyen binalar çöktü',
+};
+
+/** Kısa yolun (G21) manşet ve değerlendirmeye verdiği ek bilgi (G37). 5 günlük yolda verilmez; metinler değişmez. */
+export interface KisaYolBilgisi {
+  /** Jürinin denetlemediği (sokaktaki örnek) binalardan çökenlerin sayısı. */
+  sokakCoken: number;
+}
+
+/** Kısa yolda jürinin denetlemediği (sokaktaki örnek) binalardan çökenlerin sayısı (G37). */
+export function sokakCokenSayisi(s: readonly DepremBinaSonucu[], juri: ReadonlySet<string>): number {
+  return s.filter((b) => !juri.has(b.dosyaId) && b.coktu).length;
+}
+
+/**
+ * Ana manşet: duruma göre dört şablondan biri. kisa (yalnızca kısa yol, G37): jürinin binası çökmediyse ve sokakta
+ * denetlenmeyenlerden çöken varsa manşet iki parçalı olur. 5 günlük yolda verilmez.
+ */
+export function manset(o: DepremOzeti, kisa?: KisaYolBilgisi): string {
+  const sokakCoken = kisa?.sokakCoken ?? 0;
   if (o.toplam === 0) return '[Manşet: sokakta denetlenmiş bina yoktu]';
   if (o.doluCoken > 0 && o.doluCoken === o.iadeCoken) return sayiyla(o.doluCoken, MANSET_SAYILI.iadeCoken);
   if (o.doluCoken > 0) return sayiyla(o.doluCoken, MANSET_SAYILI.doluCoken);
   if (o.coken > 0) return sayiyla(o.coken, MANSET_SAYILI.bosCoken);
+  if (sokakCoken > 0)
+    return `[Manşet: ${sayiyla(o.toplam, o.hasarli > 0 ? KISA_SENIN.hasarli : KISA_SENIN.ayakta)}, ${sayiyla(sokakCoken, KISA_SOKAK_COKEN)}]`;
   if (o.hasarli > 0) return '[Manşet: sokakta hasar var, çöken yok]';
   return '[Manşet: sokak ayakta]';
 }
@@ -163,11 +196,29 @@ const DEGERLENDIRME_SAYILI: Record<'iadeCoken' | 'doluCoken', SayiMetni> = {
 };
 
 /**
- * Sonuç ekranındaki değerlendirme satırı (üç şablon). Zarf (G22): zarf alınan bina hasar gördüyse satıra eklenir
- * ve ton kötüye döner; zarf alındı ama binalar sağlamsa yalnızca not düşülür.
+ * Kısa yolun değerlendirmesinde onaylanan çöken binalardan zarf alınmış olanlar (G37): zarf ayrıca "zarf aldığın N bina çöktü" diye
+ * sayılmaz (aynı bina iki kez), çöken binaların ifadesine eklenir. Yer tutucu (TODO(takım), T31).
  */
-export function degerlendirme(o: DepremOzeti): { metin: string; ton: 'iyi' | 'orta' | 'kotu' } {
-  const z = o.zarfHasar > 0 ? ` · ${zarfSonucu('zarf aldığın', o.zarfCoken, o.zarfHasar - o.zarfCoken)}` : o.zarf > 0 ? ' · zarf aldın' : '';
+const DEGERLENDIRME_ZARFLI: Record<'hepsi' | 'bazisi', SayiMetni> = {
+  hepsi: { tekil: 'zarf almıştın', cogul: 'hepsinden zarf almıştın' },
+  bazisi: { tekil: 'birinden zarf almıştın', cogul: 'bazılarından zarf almıştın' },
+  // bazisi: zarf alınan çöken bina sayısına göre (biri ya da birkaçı); hepsi: çöken bina sayısına göre.
+};
+
+/**
+ * Sonuç ekranındaki değerlendirme satırı (üç şablon). Zarf (G22): zarf alınan bina hasar gördüyse satıra eklenir
+ * ve ton kötüye döner; zarf alındı ama binalar sağlamsa yalnızca not düşülür. G37: onaylanıp çöken binanın zarfı
+ * çöken ifadesine eklenir, ayrıca sayılmaz. kisa (yalnızca kısa yol, G37): manset ile aynı; zarf birleştirmesi de
+ * yalnızca kısa yolda (5 günlük yolun metinleri değişmez).
+ */
+export function degerlendirme(o: DepremOzeti, kisa?: KisaYolBilgisi): { metin: string; ton: 'iyi' | 'orta' | 'kotu' } {
+  const sokakCoken = kisa?.sokakCoken ?? 0;
+  // Onaylanıp (iade değil) çöken ve zarf alınmış binalar çöken ifadesinde geçer; zarf ekinde yalnızca kalanlar.
+  const onayCoken = kisa !== undefined && o.doluCoken > 0 && o.doluCoken !== o.iadeCoken;
+  const zarfOnay = onayCoken ? o.zarfDoluCoken : 0;
+  const zCoken = o.zarfCoken - zarfOnay;
+  const zHasar = o.zarfHasar - o.zarfCoken;
+  const z = zCoken + zHasar > 0 ? ` · ${zarfSonucu('zarf aldığın', zCoken, zHasar)}` : o.zarf > 0 && zarfOnay === 0 ? ' · zarf aldın' : '';
   const d = (metin: string, ton: 'iyi' | 'orta' | 'kotu'): { metin: string; ton: 'iyi' | 'orta' | 'kotu' } => ({
     metin: `[Değerlendirme: ${metin}${z}]`,
     ton: o.zarfHasar > 0 ? 'kotu' : ton,
@@ -175,7 +226,21 @@ export function degerlendirme(o: DepremOzeti): { metin: string; ton: 'iyi' | 'or
   // Manşetle aynı durum (G23b): damgalı bina yoksa "denetlediğin bina yoktu".
   if (o.toplam === 0) return d('denetlediğin bina yoktu', 'orta');
   if (o.doluCoken > 0 && o.doluCoken === o.iadeCoken) return d(sayiyla(o.doluCoken, DEGERLENDIRME_SAYILI.iadeCoken), 'kotu');
-  if (o.doluCoken > 0) return d(sayiyla(o.doluCoken, DEGERLENDIRME_SAYILI.doluCoken), 'kotu');
+  if (o.doluCoken > 0) {
+    const coken = sayiyla(o.doluCoken, DEGERLENDIRME_SAYILI.doluCoken);
+    if (zarfOnay === 0) return d(coken, 'kotu');
+    const zarfli = zarfOnay === o.doluCoken ? sayiyla(o.doluCoken, DEGERLENDIRME_ZARFLI.hepsi) : sayiyla(zarfOnay, DEGERLENDIRME_ZARFLI.bazisi);
+    return d(`${coken}; ${zarfli}`, 'kotu');
+  }
+  // G37 (kısa yol): jürinin binaları çökmedi ama sokakta denetlenmeyenlerden çöken var.
+  if (sokakCoken > 0) {
+    // Jürinin çöken binası varsa hepsi boşaltılmıştı (dolu çöken yukarıda); manşet de "çöken bina boşaltılmıştı".
+    const senin =
+      o.coken > 0
+        ? sayiyla(o.coken, KISA_SENIN.bosCoken)
+        : sayiyla(o.toplam, o.doluAgir > 0 ? KISA_SENIN.agir : o.hasarli > 0 ? KISA_SENIN.hasarli : KISA_SENIN.ayakta);
+    return d(`${senin}; ${sayiyla(sokakCoken, KISA_SOKAK_COKEN)}`, 'orta');
+  }
   if (o.doluAgir > 0) return d('yıkım yok ama ağır hasar var', 'orta');
   return d('sokak depreme hazırdı', 'iyi');
 }

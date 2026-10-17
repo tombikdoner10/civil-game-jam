@@ -8,7 +8,7 @@ import { masaCiz, pikselDugme } from '../desk/props';
 import { gunAyar, SON_GUN } from '../game/days';
 import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
 import { ZARF_ETIKET } from '../game/diyalog';
-import { degerlendirme, juriGordukleri, KISA_SONUC, seninBinalarin, sonucEtiketi, zarfOzeti } from '../game/gazete';
+import { degerlendirme, juriGordukleri, KISA_SONUC, seninBinalarin, sokakCokenSayisi, sonucEtiketi, zarfOzeti } from '../game/gazete';
 import { bulunanSayisi, depremOzeti, gunHesabi, oyuncuOzeti, oyunToplami } from '../game/session';
 import { fadeIn, goTo } from '../systems/transition';
 import type { GameData } from './GameScene';
@@ -59,7 +59,8 @@ export class ResultScene extends Phaser.Scene {
     const juriSonuc = v.sonuclar.filter((s) => juri.has(s.dosyaId));
     const top = oyunToplami(gercek);
     const oz = depremOzeti(v.sonuclar);
-    const deg = degerlendirme(oyuncuOzeti(v.sonuclar, kisa ? juri : undefined));
+    // G37: kısa yolda değerlendirme gazetedeki manşetle aynı (jürinin binaları, ardından sokakta denetlenmeyenler).
+    const deg = degerlendirme(oyuncuOzeti(v.sonuclar, kisa ? juri : undefined), kisa ? { sokakCoken: sokakCokenSayisi(v.sonuclar, juri) } : undefined);
 
     masaCiz(this, 0);
     this.kagitCiz();
