@@ -8,8 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G63b [teknik] (bitti f927c21, G63 ile birlikte test sürüyor, Opus/low) Impact Sounds metnine kilitli kaşe ve alınamayan ev kalemi; ekran ve README hazır kaynak satırları birebir (Tiny Town yolu, Phaser, Fontsource).
-- [ ] G63 [teknik] (bitti d6177b1; test G63b ile birlikte) Emeği Geçenler ikinci denetim düzeltmeleri: Metin araç satırına Sonnet 5.5 (kritik), Diğer'e oynanış önerileri, Ses'te müzik ifadesi, Impact Sounds ve RPG Audio kullanım metinleri, başlık "Yapay zekâ beyanı", ses paket adları öneksiz.
 
 ## Sırada
 
@@ -76,6 +74,8 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G63b Hazır kaynak satırları ekran ve README'de birebir; Impact Sounds kilitli kaşe ve ev kalemi (f927c21, Opus/high; test GEÇTİ)
+- [x] G63 Emeği Geçenler ikinci denetim: Metin'e Sonnet 5.5, Diğer'e oynanış önerileri, ses metinleri, başlık (d6177b1, Opus/high; test GEÇTİ)
 - [x] G62 Belge satırlarında etiket de seçilebilir (beton, zemin türü, getirilen rapor, kolon satırı) (f3340ed, Opus/high; test GEÇTİ)
 - [x] G61b Ses beyan metinleri tamamlandı (saha testi sesleri, ekran düğmeleri); Ada/Parsel satırının tamamı seçilebilir (c9a64d7, Opus/high; test GEÇTİ)
 - [x] G61 Beyan düzeltmeleri: UI Audio, Fable 5.1 (Diğer), Müfettiş kararı; ipucu kusur bulununca çıkmaz (a06ebf8, Opus/high; test GEÇTİ)
