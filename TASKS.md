@@ -37,6 +37,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Takım işleri
 
+- [ ] T32 [takım] Takım üyelerinin adları ve rolleri (src/data/credits.ts MEMBERS, README Takım bölümü; şu an [Takım üyesi 2] · [rol]); BENIOKU Amaç satırı (docs/BENIOKU.txt).
 - [ ] T31 [takım] ÖNCELİKLİ METİNLER (18.00; madde 4.3): oyun adı (config.ts TITLE), gazete adı ve şehir adı, çerçeve cümlesi (diyalog.ts CERCEVE), gün 1 kural notu (rules.ts), manşetler ve değerlendirmeler (gazete.ts; tekil/çoğul T30; kısa yol "senin binaların + sokak" G37), gün 1de görünen selam, damga tepkisi ve zarf cümleleri (diyalog-metin.ts). Diyalog taslaklarını okuyup seç/düzelt (T28). Bitince beyan "AI taslağı, takım düzenledi" olur (G31). G37 yeni yer tutucuları (yer-tutucu betiği görmüyor, elle bak): gazete.ts KISA_SENIN, KISA_SOKAK_COKEN, DEGERLENDIRME_ZARFLI; manşet ve değerlendirme kısa olursa büyük kalır.
 - [ ] T30 [takım] Manşet ve değerlendirme metinlerinin tekil ve çoğul biçimleri (src/game/gazete.ts, {tekil, cogul} çiftleri; G35 yer tutucu yazdı).
 - [ ] T28 [takım] Diyalog taslaklarını oku ve düzelt: src/game/diyalog-metin.ts (393 cümle; 5 mizaç × selam/bekleme/sabırsızlık/giriş/zarf/damga tepkisi; 12 kusur × bahane/itiraf/zarf; İSTE; zarf isteği). Beğenmediğini sil ya da değiştir; köşeli parantezleri onayladıklarından kaldır. Son tarih 18.00. Test gözlemi: damga tepkileri mizaç başına 3 cümle, uzun oyunda/oyunlar arası tekrar edebilir; çoğaltmak isterseniz ekleyin.
@@ -61,11 +62,11 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 - [ ] T17 [takım] Diyalog metinleri: mal sahiplerinin bahaneleri, itirafları, zarf teklifleri, belge getirme/getirememe cümleleri (G17 yer tutucuları). Kural kitabı satırlarının son metni (G16).
 - [x] T18 [takım] KAPANDI (10:27, olduğu gibi): G16 sonrası: fay kuralı (şu an dere gibi zemine bağlı; TUNING.fayKurali "bosalt" yapılabilir), gün 4'te sıvılaşma sıklığı (yakinZemin.sivilasma 0.3 → 0.2?), İADE rengi ve sesi, sahte belge (G36: artık İADE; İADE edilen sahte ruhsatlı bina depremde "denetlenmedi" sayılıp ağır hasar alıyor — böyle kalsın mı?).
 - [ ] T19 [takım] G17a: portreleri ?dev&portreler ile onayla; diyalog metinleri src/game/diyalog.ts (T17); zarf sıklığı (gün 5'te %60, TUNING.kisi.zarf); konuşma/zarf seslerini dinle; oyun içi takvim (TAKVIM). Zarf alınca damga yine DOĞRU sayılıyor (rüşvetin ağırlığı düşük): sonuçta ceza, gazetede iz ya da müfettiş olayı istenir mi? İnceleme modunda saat akmaya devam ediyor (zaman baskısı); yavaşlasın mı?
-- [ ] T20 [takım] TAKVİM (takım kararı 01.30): bütün metinler (oyun adı, diyalog, kural metinleri, gazete, gün 1 çerçeve cümlesi, Emeği Geçenler isimleri) Cumartesi 18.00'e kadar; özellik dondurma Cumartesi 24.00; video Pazar 10.00–12.00; kod dondurma Pazar 15.00.
+- [x] T20 [takım] (bilgi, takvim): TAKVİM (takım kararı 01.30): bütün metinler (oyun adı, diyalog, kural metinleri, gazete, gün 1 çerçeve cümlesi, Emeği Geçenler isimleri) Cumartesi 18.00'e kadar; özellik dondurma Cumartesi 24.00; video Pazar 10.00–12.00; kod dondurma Pazar 15.00.
 - [ ] T21 [takım] Eleştirmen 3 mühendis soruları (T12 ile): Schmidt çekici tek başına BOŞALT kararı verdirir mi (TS EN 13791, karot korelasyonu, sıva), R→MPa tablosu kaynağı; mevcut binada 20 MPa tahliye nedeni mi (Riskli Yapıların Tespit Esasları 2019); dere 30 m / fay 150 m kaynağı. Metin önceliği: 1) oyun adı, menü, çerçeve cümlesi 2) gün 1'de görünen her şey 3) gazete ve değerlendirme 4) gün 1 diyalogları 5) 2–5. gün kuralları ve saha.
 - [ ] T11 [takım] Pencere sokağı, gişedeki siluet ve renk paleti onayı; uyarı fişi metinleri ("Doğru karar" / "Yanlış karar: doğrusu X" yer tutucu).
-- [ ] T7 [takım] Kararlar: imar affı belgesi olacak mı. (Deprem günü ve kaçak kat 21.49'da karara bağlandı.)
-- [ ] T8 [takım] Cumartesi 14.00 ara test: oyunu oyna, geri bildirim ver (Kontrol 2).
+- [x] T7 [takım] KAPANDI (11:11; 'yeni özellik yok' kararı gereği imar affı belgesi yok): Kararlar: imar affı belgesi olacak mı. (Deprem günü ve kaçak kat 21.49'da karara bağlandı.)
+- [x] T8 [takım] YAPILDI (Kontrol 2, 16 Ekim 23.53): Cumartesi 14.00 ara test: oyunu oyna, geri bildirim ver (Kontrol 2).
 - [ ] T9 [takım] Pazar: 1 dakikalık video (MP4) ve 3 dakikalık sunum.
 
 ## Bitti
