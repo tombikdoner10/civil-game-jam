@@ -163,21 +163,21 @@ export interface DepremBinaSonucu {
   bos: boolean;
   /** Oyuncunun kendi apartmanı (G42: gün 5 hikâye binası, oyuncu damgaladıysa); "Senin evin" sonucu bundan. */
   kendiBinan?: true;
-  /** G42: güçlendirme payı ödendiği için GÜÇLENDİR sayıldı (damgası GÜVENLİ ya da İADE'ydi). */
+  /** G42: güçlendirme payı tam ödendiği (G43: 3/3 taksit) için GÜÇLENDİR sayıldı (damgası GÜVENLİ ya da İADE'ydi). */
   evPayi?: true;
 }
 
-/** Büyük depremin oyuncunun evine bağlı seçeneği (G42). */
+/** Büyük depremin oyuncunun evine bağlı seçeneği (G42; G43 kademeli). */
 export interface DepremEvSecenek {
-  /** Güçlendirme payı ödendi: kendi apartmanın en az GÜÇLENDİR sayılır. */
-  guclendirmePayi?: boolean;
+  /** Güçlendirme payının ödenen taksit sayısı; hepsi (3/3) ödendiyse kendi apartmanın en az GÜÇLENDİR sayılır. */
+  guclendirmeKademe?: number;
 }
 
 /**
  * Büyük deprem: sokaktaki her bina için sonuç (sokak sırasıyla). Saf; Quake görüntüsü ve gazete bunu kullanır.
  * zarfKaynak (G23b, kısa yol): zarf işareti yalnızca bu kayıtlardaki (oyuncunun kendi) kabul edilen zarflardan;
  * verilmezse bütün kayıtlardan (normal oyunda hepsi oyuncunun). ev (G42): oyuncunun kendi apartmanı (zarfKaynak'taki
- * kendiBinan binası) güçlendirme payı ödendiyse GÜVENLİ ya da İADE damgalı olsa da GÜÇLENDİR sonucunu alır; öbür
+ * kendiBinan binası) güçlendirme payının bütün taksitleri (G43: 3/3) ödendiyse GÜVENLİ ya da İADE damgalı olsa da GÜÇLENDİR sonucunu alır; öbür
  * binalar ve ev verilmediğinde hepsi değişmez.
  */
 export function buyukDeprem(
@@ -197,7 +197,7 @@ export function buyukDeprem(
     }
   return sokakKayitlari(tohum, kayitlar).map((s, i) => {
     const kendiBinan = !!s.bina.kendiBinan && kendi.has(s.bina.id);
-    const payli = kendiBinan && !!ev.guclendirmePayi && (s.damga === 'guvenli' || s.damga === 'iade');
+    const payli = kendiBinan && (ev.guclendirmeKademe ?? 0) >= TUNING.ev.kademe.guclendirme.length && (s.damga === 'guvenli' || s.damga === 'iade');
     const r = buyukDepremSonucu(s.bina, payli ? 'guclendir' : s.damga, s.gun, { oncuHasar: s.hasar });
     const ek: Pick<DepremBinaSonucu, 'kendiBinan' | 'evPayi'> = {};
     if (kendiBinan) ek.kendiBinan = true;

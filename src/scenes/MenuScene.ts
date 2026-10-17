@@ -7,7 +7,7 @@ import { Sokak, type SokakGirdi } from '../desk/Street';
 import { CATI_H, CEPHE_W, cepheSecimi, KAT_H } from '../desk/tiles';
 import { gunDosyalari, type Damga } from '../game/building';
 import { gunAyar, SON_GUN } from '../game/days';
-import { EV_KALEMLER, satinAl, yeniEv, zarfToplami, type EvKalem } from '../game/ev';
+import { EV_KADEME, EV_KALEMLER, evKademe, satinAl, siradakiFiyat, yeniEv, zarfToplami, type EvHazirlik, type EvKalem } from '../game/ev';
 import { ornekKayitlar } from '../game/ornek';
 import { GunOturumu, gunHesabi } from '../game/session';
 import { TUNING } from '../game/tuning';
@@ -23,6 +23,32 @@ import type { DayEndData } from './DayEndScene';
 import type { DepremData } from './QuakeScene';
 
 /**
+ * Yalnızca dev (G42, G43): &ev=canta2,sabitleme1,guclendirme3 evin kalemlerini o kademeye kadar alınmış sayar (kademe
+ * yazılmazsa tamamı, 3). Kademeler sırayla, önce paradan satın alınır (zarf işareti oyundaki gibi); para yetmeyen
+ * kademe dev için yine eklenir ve para sıfıra iner.
+ */
+function devEv(q: URLSearchParams, para: number, zarfToplam: number, gun: number): { ev: EvHazirlik; para: number } {
+  let ev = yeniEv();
+  for (const parca of (q.get('ev') ?? '').split(',')) {
+    const m = /^([a-z]+?)(\d)?$/.exec(parca.trim());
+    const k = m?.[1] as EvKalem | undefined;
+    if (!m || !k || !EV_KALEMLER.includes(k)) continue;
+    const hedef = Math.min(EV_KADEME, m[2] === undefined ? EV_KADEME : Number(m[2]));
+    while (evKademe(ev, k) < hedef) {
+      const r = satinAl(ev, k, para, zarfToplam, gun);
+      if (r) ({ ev, para } = r);
+      else {
+        const fiyat = siradakiFiyat(ev, k) ?? 0;
+        const alim = { kademe: evKademe(ev, k) + 1, gun, fiyat, zarfla: false };
+        ev = { ...ev, alinan: { ...ev.alinan, [k]: [...(ev.alinan[k] ?? []), alim] } };
+        para = Math.max(0, para - fiyat);
+      }
+    }
+  }
+  return { ev, para };
+}
+
+/**
  * Yalnızca dev: ?dev&deprem[&tohum=N] "Oyna"yı gün 5 sonuna (büyük deprem → gazete → sonuç) bağlar; beş gün
  * örnek kararlarla (doğru ve yanlış karışık) dolu. Test ve sunum provası için.
  */
@@ -33,13 +59,9 @@ function devDeprem(): DepremData | null {
   const t = Number(q.get('tohum'));
   const tohum = q.has('tohum') && Number.isFinite(t) ? t : Math.floor(Math.random() * 1_000_000_000);
   const kayitlar = ornekKayitlar(tohum, SON_GUN + 1);
-  let para = kayitlar.reduce((n, k) => n + gunHesabi(k.kararlar, gunAyar(k.gun).dosyaSayisi).toplam, 0);
-  // G42: &ev=canta,sabitleme,guclendirme evin kalemlerini gün 5 sonunda alınmış sayar (para yettiği kadar).
-  let ev = yeniEv();
-  for (const k of (q.get('ev') ?? '').split(',') as EvKalem[]) {
-    const r = EV_KALEMLER.includes(k) ? satinAl(ev, k, para, zarfToplami(kayitlar), SON_GUN) : null;
-    if (r) ({ ev, para } = r);
-  }
+  const kazanc = kayitlar.reduce((n, k) => n + gunHesabi(k.kararlar, gunAyar(k.gun).dosyaSayisi).toplam, 0);
+  // G42/G43: &ev=... evin kademelerini gün 5 sonunda alınmış sayar (bkz. devEv).
+  const { ev, para } = devEv(q, kazanc, zarfToplami(kayitlar), SON_GUN);
   return { tohum, para, kayitlar, ev };
 }
 
@@ -54,6 +76,8 @@ function devKisaYol(): DayEndData | null {
   const t = Number(q.get('tohum'));
   const tohum = q.has('tohum') && Number.isFinite(t) ? t : Math.floor(Math.random() * 1_000_000_000);
   const [gun1] = ornekKayitlar(tohum, 2);
+  // G43: &ev=... gün başında alınmış kademeler (dev; para sıfırken bedelsiz eklenir).
+  const { ev } = devEv(q, TUNING.para.baslangic, 0, 1);
   return {
     gun: 1,
     tohum,
@@ -62,6 +86,7 @@ function devKisaYol(): DayEndData | null {
     dosyalar: new GunOturumu(1, tohum).dosyalar.map((b) => ({ id: b.id, adres: b.adres })),
     kayitlar: [],
     oncu: gun1.oncu,
+    ev,
   };
 }
 

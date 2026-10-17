@@ -9,8 +9,8 @@ import { gunAyar, SON_GUN } from '../game/days';
 import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
 import { ZARF_ETIKET } from '../game/diyalog';
 import { degerlendirme, juriGordukleri, KISA_SONUC, seninBinalarin, sokakCokenSayisi, sonucEtiketi, zarfOzeti } from '../game/gazete';
-import { evSonucu } from '../game/ev';
-import { EV_CANTA_METIN, EV_DURUM_METIN, EV_KENDI_BINA, EV_PAYLI, EV_SABITLEME_METIN, EV_SONUC_BASLIK, evHarcananSatiri, evZarfCumlesi } from '../game/ev-metin';
+import { EV_KADEME, evSonucu } from '../game/ev';
+import { EV_CANTA_METIN, EV_DURUM_METIN, EV_GUCLENDIRME_METIN, EV_KENDI_BINA, EV_PAYLI, EV_SABITLEME_METIN, EV_SONUC_BASLIK, evHarcananSatiri, evTaksitSatiri, evZarfCumlesi } from '../game/ev-metin';
 import { bulunanSayisi, depremOzeti, gunHesabi, oyuncuOzeti, oyunToplami } from '../game/session';
 import { fadeIn, goTo } from '../systems/transition';
 import type { GameData } from './GameScene';
@@ -319,8 +319,9 @@ export class ResultScene extends Phaser.Scene {
   }
 
   /**
-   * "Senin evin" kâğıdı (G42): evin durumu (renkli şerit), çanta ve sabitleme sonucu (işaretli satırlar), varsa kendi
-   * apartmanın ve güçlendirme payı notu, zarf yan cümlesi; altta evine harcanan. Metinler yer tutucu (ev-metin.ts).
+   * "Senin evin" kâğıdı (G42; G43 kademeli): evin durumu (renkli şerit), güçlendirme taksit durumu, güçlendirme, çanta
+   * ve sabitleme cümleleri (kademeye göre; işaret kutusu: hiç yok kırmızı, yarım sarı, tam yeşil), varsa kendi apartmanın
+   * ve güçlendirme payı notu, zarf yan cümlesi; altta evine harcanan. Metinler yer tutucu (ev-metin.ts).
    */
   private evKagidi(gecikme: number): void {
     const v = this.veri;
@@ -356,21 +357,25 @@ export class ResultScene extends Phaser.Scene {
     let y = Y + 112;
     if (s.kendiBina) y += metin(X + 32, y, EV_KENDI_BINA, 26, PAL.murekkepSoluk).height + 16;
     // Evin durumu: tonun renginde dolu şerit, üstünde açık yazı (değerlendirme şeridi gibi).
-    const renk = s.durum === 'saglam' ? PAL.damgaGuvenli : s.durum === 'hafif' ? PAL.damgaGuclendir : PAL.damgaBosalt;
+    const renk = s.durum === 'saglam' ? PAL.damgaGuvenli : s.durum === 'hafif' || s.durum === 'hasarli' ? PAL.damgaGuclendir : PAL.damgaBosalt;
     const durum = metin(X + 48, y + 16, EV_DURUM_METIN[s.durum], 34, '#f4ecd6', tw - 32);
     const serit = this.add.rectangle(snap(X + 32), snap(y), snap(tw), snap(durum.height + 32), num(renk)).setOrigin(0);
     ogeler.push(serit);
     durum.setDepth(1);
     y += durum.height + 32 + 24;
-    // Çanta ve sabitleme: solda işaret kutusu (var: yeşil, yok: kırmızı), yanında cümle.
-    const satir = (var_: boolean, m: string): void => {
-      const kutu = this.add.rectangle(snap(X + 32), snap(y + 4), 24, 24, num(var_ ? PAL.damgaGuvenli : PAL.damgaBosalt)).setOrigin(0);
+    // G43: güçlendirme taksit durumu; güçlendirme, çanta ve sabitleme cümleleri kademeye göre. Solda işaret kutusu
+    // (hiç alınmadı: kırmızı, kısmen: sarı, tamam: yeşil), yanında cümle.
+    y += metin(X + 32, y, evTaksitSatiri(s.guclendirme), 28, PAL.etiket).height + 16;
+    const satir = (n: number, m: string): void => {
+      const r = n === 0 ? PAL.damgaBosalt : n >= EV_KADEME ? PAL.damgaGuvenli : PAL.damgaGuclendir;
+      const kutu = this.add.rectangle(snap(X + 32), snap(y + 4), 24, 24, num(r)).setOrigin(0);
       ogeler.push(kutu);
       const o = metin(X + 72, y, m, 30, PAL.murekkep, tw - 40);
       y += o.height + 16;
     };
-    satir(s.canta, s.canta ? EV_CANTA_METIN.var : EV_CANTA_METIN.yok);
-    satir(s.sabitleme, s.sabitleme ? EV_SABITLEME_METIN.var : EV_SABITLEME_METIN.yok);
+    satir(s.guclendirme, EV_GUCLENDIRME_METIN[s.guclendirme]);
+    satir(s.canta, EV_CANTA_METIN[s.canta]);
+    satir(s.sabitleme, EV_SABITLEME_METIN[s.sabitleme]);
     if (s.kendiBina?.evPayi) y += metin(X + 32, y, EV_PAYLI, 28, PAL.murekkepSoluk).height + 16;
     // Zarf bağı: zarf parası olmadan alınamayacak kalem alındıysa.
     const z = evZarfCumlesi(s);

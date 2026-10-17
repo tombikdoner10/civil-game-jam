@@ -2,16 +2,21 @@ import type { DepremBinaSonucu, GunKaydi, Karar } from './session';
 import { TUNING } from './tuning';
 
 /**
- * Kendi evinin hazırlığı (G42, takım fikri; GDD "Para ve kendi evin"). Saf TS, Phaser yok; oyun RNG'si kullanılmaz.
- * Gün sonu raporunda birikmiş parayla üç tek seferlik kalem alınır; oturum boyunca kalıcıdır (sahneler arasında
- * veriyle taşınır). Büyük depremde "Senin evin" sonucu bunlara göre, deterministik.
+ * Kendi evinin hazırlığı (G42, takım fikri; G43 kademeli; GDD "Para ve kendi evin", "Ekonomi kademeli"). Saf TS,
+ * Phaser yok; oyun RNG'si kullanılmaz. Gün sonu raporunda birikmiş parayla üç kalemin kademeleri sırayla alınır
+ * (her kalem 3 kademe; güçlendirme payı 3 taksit). Oturum boyunca kalıcıdır (sahneler arasında veriyle taşınır).
+ * Büyük depremde "Senin evin" sonucu kademelere göre, deterministik.
  */
 
 export type EvKalem = 'canta' | 'sabitleme' | 'guclendirme';
 /** Rapordaki sıra (1 / 2 / 3 tuşları). */
 export const EV_KALEMLER: readonly EvKalem[] = ['canta', 'sabitleme', 'guclendirme'];
+/** Her kalemin kademe sayısı (güçlendirmede taksit). */
+export const EV_KADEME = 3;
 
 export interface EvAlim {
+  /** Alınan kademe (1..EV_KADEME). */
+  kademe: number;
   /** Alındığı gün. */
   gun: number;
   fiyat: number;
@@ -20,7 +25,8 @@ export interface EvAlim {
 }
 
 export interface EvHazirlik {
-  alinan: Partial<Record<EvKalem, EvAlim>>;
+  /** Her kalemin alınan kademeleri, sırayla (uzunluk = kademe). */
+  alinan: Partial<Record<EvKalem, EvAlim[]>>;
   /** Harcanan zarf parası (önce temiz para harcanır, yetmezse zarf parası). */
   zarfHarcanan: number;
 }
@@ -29,14 +35,31 @@ export function yeniEv(): EvHazirlik {
   return { alinan: {}, zarfHarcanan: 0 };
 }
 
-export function evFiyat(k: EvKalem): number {
-  return TUNING.ev.fiyat[k];
+/** Kalemin alınmış kademe sayısı (0..EV_KADEME). */
+export function evKademe(ev: EvHazirlik | undefined, k: EvKalem): number {
+  return ev?.alinan[k]?.length ?? 0;
+}
+
+/** Kalemin n. kademesinin fiyatı (n: 1..EV_KADEME). */
+export function evFiyat(k: EvKalem, n: number): number {
+  return TUNING.ev.kademe[k][n - 1];
+}
+
+/** Sıradaki kademenin fiyatı; kalem tamamsa null. */
+export function siradakiFiyat(ev: EvHazirlik, k: EvKalem): number | null {
+  const n = evKademe(ev, k);
+  return n >= EV_KADEME ? null : evFiyat(k, n + 1);
+}
+
+/** Güçlendirme payı tam ödendi (3/3 taksit): 5 günlük yolda kendi apartmanın en az GÜÇLENDİR sayılır. */
+export function guclendirmeTam(ev: EvHazirlik | undefined): boolean {
+  return evKademe(ev, 'guclendirme') >= EV_KADEME;
 }
 
 /** Evine harcanan toplam (TL). */
 export function evHarcanan(ev: EvHazirlik | undefined): number {
   if (!ev) return 0;
-  return EV_KALEMLER.reduce((n, k) => n + (ev.alinan[k]?.fiyat ?? 0), 0);
+  return EV_KALEMLER.reduce((n, k) => n + (ev.alinan[k] ?? []).reduce((m, a) => m + a.fiyat, 0), 0);
 }
 
 /** Kabul edilen zarfların toplamı: önceki günlerin kayıtları ve (varsa) bugünün kararları. */
@@ -46,17 +69,18 @@ export function zarfToplami(kayitlar: readonly GunKaydi[], bugun: readonly Karar
   return n;
 }
 
-export type AlimDurumu = 'alindi' | 'alinabilir' | 'yetmiyor';
+export type AlimDurumu = 'tamam' | 'alinabilir' | 'yetmiyor';
 
 export function alimDurumu(ev: EvHazirlik, k: EvKalem, para: number): AlimDurumu {
-  if (ev.alinan[k]) return 'alindi';
-  return para >= evFiyat(k) ? 'alinabilir' : 'yetmiyor';
+  const f = siradakiFiyat(ev, k);
+  if (f === null) return 'tamam';
+  return para >= f ? 'alinabilir' : 'yetmiyor';
 }
 
 /**
- * Kalemi al (saf; yeni durum döner). Alınmışsa ya da para yetmiyorsa null: para eksiye inmez, kalem iki kez
- * alınmaz. Temiz para (para − harcanmamış zarf parası) önce harcanır; yetmezse kalan zarf parasından ve kalem
- * "zarfla" işaretlenir (zarf olmadan alınamazdı).
+ * Kalemin sıradaki kademesini al (saf; yeni durum döner). Kalem tamamsa ya da para yetmiyorsa null: para eksiye
+ * inmez, kademe atlanmaz, 3'ten sonra alınmaz. Temiz para (para − harcanmamış zarf parası) önce harcanır; yetmezse
+ * kalan zarf parasından ve kademe "zarfla" işaretlenir (zarf olmadan alınamazdı).
  */
 export function satinAl(
   ev: EvHazirlik,
@@ -64,54 +88,65 @@ export function satinAl(
   para: number,
   zarfToplam: number,
   gun: number,
-): { ev: EvHazirlik; para: number; zarfla: boolean } | null {
-  const fiyat = evFiyat(k);
-  if (ev.alinan[k] || para < fiyat) return null;
+): { ev: EvHazirlik; para: number; zarfla: boolean; kademe: number; fiyat: number } | null {
+  const fiyat = siradakiFiyat(ev, k);
+  if (fiyat === null || para < fiyat) return null;
+  const kademe = evKademe(ev, k) + 1;
   const zarfBakiye = Math.max(0, Math.min(para, zarfToplam - ev.zarfHarcanan));
   const temiz = para - zarfBakiye;
   const zarfdan = Math.max(0, fiyat - temiz);
   const zarfla = zarfdan > 0;
+  const alim: EvAlim = { kademe, gun, fiyat, zarfla };
   return {
-    ev: { alinan: { ...ev.alinan, [k]: { gun, fiyat, zarfla } }, zarfHarcanan: ev.zarfHarcanan + zarfdan },
+    ev: { alinan: { ...ev.alinan, [k]: [...(ev.alinan[k] ?? []), alim] }, zarfHarcanan: ev.zarfHarcanan + zarfdan },
     para: para - fiyat,
     zarfla,
+    kademe,
+    fiyat,
   };
 }
 
-/** Evin depremdeki durumu. coktuBos: kendi apartmanın BOŞALT damgalıydı (içinde kimse yoktu). */
-export type EvDurum = 'saglam' | 'hafif' | 'agir' | 'coktu' | 'coktuBos';
+/**
+ * Evin depremdeki durumu. hasarli (G43): güçlendirme 2/3 (soyut ev). coktuBos: kendi apartmanın BOŞALT damgalıydı
+ * (içinde kimse yoktu).
+ */
+export type EvDurum = 'saglam' | 'hafif' | 'hasarli' | 'agir' | 'coktu' | 'coktuBos';
 
 export interface EvSonucu {
   durum: EvDurum;
-  canta: boolean;
-  sabitleme: boolean;
-  guclendirme: boolean;
-  /** Zarf parasıyla alınan kalemler (rapor sırasıyla). */
+  /** Kademeler (0..EV_KADEME). */
+  canta: number;
+  sabitleme: number;
+  guclendirme: number;
+  /** En az bir kademesi zarf parasıyla alınan kalemler (rapor sırasıyla). */
   zarfla: EvKalem[];
   harcanan: number;
   /** Ev, 5 günlük yolda gün 5'te damgaladığın kendi apartmanın. */
   kendiBina?: DepremBinaSonucu;
 }
 
+/** Soyut evin (kendi apartmanını damgalamadıysan) güçlendirme kademesine göre durumu. */
+export const EV_SOYUT_DURUM: readonly EvDurum[] = ['agir', 'agir', 'hasarli', 'hafif'];
+
 /**
- * "Senin evin" (G42, deterministik). Kendi apartmanını damgaladıysan (5 günlük yol, gün 5) evin durumu onun deprem
- * sonucudur (güçlendirme payı ödendiyse en az GÜÇLENDİR sayılmış olarak; bkz. session.buyukDeprem). Yoksa (kısa yol ya
- * da damgalanmadı) güçlendirme payıyla hafif hasar, payı yoksa ağır hasar. Çanta ve sabitleme yalnızca alınıp
- * alınmadığına bağlı.
+ * "Senin evin" (G42, G43 kademeli; deterministik). Kendi apartmanını damgaladıysan (5 günlük yol, gün 5) evin durumu
+ * onun deprem sonucudur (güçlendirme 3/3 taksitse en az GÜÇLENDİR sayılmış olarak; bkz. session.buyukDeprem). Yoksa
+ * (kısa yol ya da damgalanmadı) güçlendirme kademesine göre: 0 ve 1 ağır hasar, 2 hasarlı, 3 hafif hasar. Çanta ve
+ * sabitleme kademeleri ayrı cümlelere bağlanır (ev-metin.ts).
  */
 export function evSonucu(ev: EvHazirlik | undefined, sonuclar: readonly DepremBinaSonucu[]): EvSonucu {
   const e = ev ?? yeniEv();
   const kendi = sonuclar.find((b) => b.kendiBinan);
-  const guclendirme = !!e.alinan.guclendirme;
+  const guclendirme = evKademe(e, 'guclendirme');
   let durum: EvDurum;
   if (kendi) durum = kendi.coktu ? (kendi.bos ? 'coktuBos' : 'coktu') : kendi.durum === 'agirHasar' ? 'agir' : kendi.durum === 'hasarli' ? 'hafif' : 'saglam';
-  else durum = guclendirme ? 'hafif' : 'agir';
+  else durum = EV_SOYUT_DURUM[guclendirme];
   const out: EvSonucu = {
     durum,
-    canta: !!e.alinan.canta,
-    sabitleme: !!e.alinan.sabitleme,
+    canta: evKademe(e, 'canta'),
+    sabitleme: evKademe(e, 'sabitleme'),
     guclendirme,
-    zarfla: EV_KALEMLER.filter((k) => e.alinan[k]?.zarfla),
+    zarfla: EV_KALEMLER.filter((k) => (e.alinan[k] ?? []).some((a) => a.zarfla)),
     harcanan: evHarcanan(e),
   };
   if (kendi) out.kendiBina = kendi;

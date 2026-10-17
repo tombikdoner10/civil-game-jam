@@ -1,4 +1,4 @@
-// Büyük deprem adalet denetimi (G5, G16, G17, G19, G22, G42 kendi evin): tohum 1-10 ve altı karar biçimi (dev örneği, hepsi doğru, hepsi GÜVENLİ,
+// Büyük deprem adalet denetimi (G5, G16, G17, G19, G22, G42/G43 kendi evin): tohum 1-10 ve altı karar biçimi (dev örneği, hepsi doğru, hepsi GÜVENLİ,
 // hepsi GÜÇLENDİR, hepsi BOŞALT, hepsi İADE) için session.buyukDeprem sonuçlarını kurallara göre denetler. Ayrıca
 // İADE ve eksik belge mantığını (doğru damgalar, bilgi edinme) ve dere/fay + zemin kuralını denetler.
 // İADE edilen kusurlu bina insanlı kalır: oyuncunun bilinçli bıraktığı risktir, adalet ihlali sayılmaz.
@@ -899,136 +899,211 @@ for (let tohum = 1; tohum <= 300 && g19.sahteKarot < 20; tohum++) {
 }
 console.log('G19 (tohum 1-60, gün 1-5; sahte karot ayrı):', JSON.stringify(g19));
 
-// ---- G42: kendi evinin hazırlığı (para, kalemler, "Senin evin") ----
+// ---- G42 + G43: kendi evinin hazırlığı (para, kademeler, "Senin evin") ----
 {
   const EV = await server.ssrLoadModule('/src/game/ev.ts');
   const EM = await server.ssrLoadModule('/src/game/ev-metin.ts');
-  const g42 = { alim: 0, zarfla: 0, yetmedi: 0, ikinci: 0, kendiBina: 0, payliFark: 0, sonuc: 0 };
-  const F = T.ev.fiyat;
-  bak(F.canta === EV.evFiyat('canta') && F.sabitleme === EV.evFiyat('sabitleme') && F.guclendirme === EV.evFiyat('guclendirme'), 'G42 fiyatlar TUNING');
-  // Bütün sıralar (alt kümeler dahil) × para × zarf: para eksiye inmez, kalem iki kez alınmaz, fiyat düşülür,
-  // "zarfla" yalnızca temiz para yetmediğinde.
-  const siralar = [];
-  const perm = (kalan, yol) => {
-    siralar.push(yol);
-    for (const k of kalan) perm(kalan.filter((x) => x !== k), [...yol, k, k]);
-  };
-  perm([...EV.EV_KALEMLER], []);
-  for (let para0 = -40; para0 <= 200; para0 += 10)
-    for (let zarf = 0; zarf <= 180; zarf += 20)
-      for (const sira of siralar) {
+  const g43 = { alim: 0, zarfla: 0, yetmedi: 0, tamamSonrasi: 0, kendiBina: 0, payliFark: 0, sonuc: 0, kendiSonuc: 0 };
+  const F = T.ev.kademe;
+  const N = EV.EV_KADEME;
+  const kalemler = [...EV.EV_KALEMLER];
+  bak(N === 3 && kalemler.every((k) => F[k].length === N), 'G43 her kalem 3 kademe');
+  bak(kalemler.every((k) => F[k].every((f, i) => f === EV.evFiyat(k, i + 1) && f > 0)), 'G43 fiyatlar TUNING');
+  bak(JSON.stringify(F) === JSON.stringify({ canta: [30, 40, 50], sabitleme: [30, 50, 60], guclendirme: [80, 100, 120] }), 'G43 fiyatlar takım kararıyla aynı');
+  // Bütün 6 tuşluk sıralar (3^6; bir kalem 3'ten fazla denenir) × para × zarf: kademe sırayla artar, atlanmaz, 3'ten
+  // sonra alınmaz; para eksiye inmez; sıradaki kademenin fiyatı düşülür; "zarfla" kademe başına, yalnızca temiz
+  // para yetmediğinde.
+  let uzun = [[]];
+  for (let u = 0; u < 6; u++) uzun = uzun.flatMap((s0) => kalemler.map((k) => [...s0, k]));
+  for (let para0 = -40; para0 <= 600; para0 += 40)
+    for (let zarf = 0; zarf <= 300; zarf += 60)
+      for (const sira of uzun) {
         let ev = EV.yeniEv();
         let para = para0;
+        let harcanan = 0;
+        const e0 = `G43 para0=${para0} zarf=${zarf} sıra=${sira.join(',')}`;
         for (const k of sira) {
-          const once = ev.alinan[k];
+          const n = EV.evKademe(ev, k);
           const r = EV.satinAl(ev, k, para, zarf, 1);
-          const e = `G42 para0=${para0} zarf=${zarf} sıra=${sira.join(',')} ${k}`;
-          if (once) {
-            bak(r === null, `${e}: kalem iki kez alındı`);
-            g42.ikinci++;
+          const e = `${e0} ${k}${n + 1}`;
+          sayi++;
+          if (n >= N) {
+            if (r !== null || EV.alimDurumu(ev, k, para) !== 'tamam' || EV.siradakiFiyat(ev, k) !== null) bak(false, `${e}: 3'ten sonra alındı ya da tamam değil`);
+            g43.tamamSonrasi++;
             continue;
           }
-          if (para < F[k]) {
-            bak(r === null, `${e}: para yetmediği halde alındı`);
-            bak(EV.alimDurumu(ev, k, para) === 'yetmiyor', `${e}: durum yetmiyor değil`);
-            g42.yetmedi++;
+          const f = F[k][n];
+          if (para < f) {
+            if (r !== null || EV.alimDurumu(ev, k, para) !== 'yetmiyor') bak(false, `${e}: para yetmediği halde alındı`);
+            g43.yetmedi++;
             continue;
           }
-          bak(EV.alimDurumu(ev, k, para) === 'alinabilir', `${e}: durum alınabilir değil`);
-          bak(r !== null, `${e}: alınamadı`);
-          if (!r) continue;
-          bak(r.para === para - F[k], `${e}: fiyat düşülmedi`);
-          bak(r.para >= 0, `${e}: para eksiye indi`);
-          // Temiz para: başlangıç parasının zarf dışındaki kısmı, eksi temiz harcamalar.
+          if (!r || EV.alimDurumu(ev, k, para) !== 'alinabilir') {
+            bak(false, `${e}: alınamadı`);
+            continue;
+          }
           const temiz = Math.max(0, para - Math.max(0, Math.min(para, zarf - ev.zarfHarcanan)));
-          bak(r.zarfla === F[k] > temiz, `${e}: zarfla=${r.zarfla} temiz=${temiz}`);
-          bak(r.ev.alinan[k]?.zarfla === r.zarfla && r.ev.alinan[k]?.fiyat === F[k], `${e}: kayıt`);
-          bak(r.ev.zarfHarcanan <= zarf, `${e}: harcanan zarf, alınan zarftan fazla`);
-          if (zarf === 0) bak(!r.zarfla, `${e}: zarfsız oyunda zarfla`);
+          const son = r.ev.alinan[k][n];
+          const dogru =
+            r.para === para - f &&
+            r.para >= 0 &&
+            r.kademe === n + 1 &&
+            r.fiyat === f &&
+            EV.evKademe(r.ev, k) === n + 1 &&
+            son.kademe === n + 1 &&
+            son.fiyat === f &&
+            son.zarfla === r.zarfla &&
+            r.zarfla === f > temiz &&
+            r.ev.zarfHarcanan <= zarf &&
+            (zarf > 0 || !r.zarfla) &&
+            kalemler.every((x) => x === k || EV.evKademe(r.ev, x) === EV.evKademe(ev, x)) &&
+            r.ev.alinan[k].slice(0, n).every((a, i) => JSON.stringify(a) === JSON.stringify(ev.alinan[k][i]));
+          if (!dogru) bak(false, `${e}: alım yanlış (zarfla=${r.zarfla} temiz=${temiz})`);
           ev = r.ev;
           para = r.para;
-          bak(EV.alimDurumu(ev, k, para) === 'alindi', `${e}: alındı görünmüyor`);
-          g42.alim++;
-          if (r.zarfla) g42.zarfla++;
+          harcanan += f;
+          g43.alim++;
+          if (r.zarfla) g43.zarfla++;
         }
-        bak(para >= Math.min(0, para0), `G42 para0=${para0}: para eksiye indi`);
-        bak(EV.evHarcanan(ev) === para0 - para, `G42 para0=${para0} sıra=${sira.join(',')}: harcanan ${EV.evHarcanan(ev)} ≠ ${para0 - para}`);
+        bak(para >= Math.min(0, para0) && EV.evHarcanan(ev) === harcanan && harcanan === para0 - para, `${e0}: para/harcanan tutarsız`);
       }
-  // Gün 1 zarfsız ~60 TL: ya çanta + sabitleme ya güçlendirme (ikisi birden değil); zarfla hepsi.
-  bak(F.canta + F.sabitleme <= 60 && F.guclendirme <= 60 && F.canta + F.guclendirme > 60, 'G42 gün 1 fiyat dengesi');
-  // Gün 1'de 2 doğru + 1 zarflı yanlış (30 TL) ve BOŞALT zarfıyla (en az 80 TL) hepsi alınabilir.
-  bak(F.canta + F.sabitleme + F.guclendirme <= 2 * T.para.maas - T.para.ceza + T.kisi.zarfMiktar.bosalt.min, 'G42 zarfla hepsi alınabilir');
-
-  // "Senin evin" (kendi bina yok): 8 bileşim, deterministik ve kalemlere göre.
-  for (let m = 0; m < 8; m++) {
-    const ev = EV.yeniEv();
-    EV.EV_KALEMLER.forEach((k, i) => {
-      if (m & (1 << i)) ev.alinan[k] = { gun: 1, fiyat: F[k], zarfla: k === 'guclendirme' };
-    });
-    const s1 = EV.evSonucu(ev, []);
-    const s2 = EV.evSonucu(JSON.parse(JSON.stringify(ev)), []);
-    const e = `G42 ev m=${m}`;
-    bak(JSON.stringify(s1) === JSON.stringify(s2), `${e}: deterministik değil`);
-    bak(s1.durum === (ev.alinan.guclendirme ? 'hafif' : 'agir'), `${e}: durum ${s1.durum}`);
-    bak(s1.canta === !!ev.alinan.canta && s1.sabitleme === !!ev.alinan.sabitleme && s1.guclendirme === !!ev.alinan.guclendirme, `${e}: kalemler`);
-    const c = EM.evCumleleri(s1);
-    bak(c[0] === EM.EV_DURUM_METIN[s1.durum], `${e}: durum cümlesi`);
-    bak(c[1] === (s1.canta ? EM.EV_CANTA_METIN.var : EM.EV_CANTA_METIN.yok), `${e}: çanta cümlesi`);
-    bak(c[2] === (s1.sabitleme ? EM.EV_SABITLEME_METIN.var : EM.EV_SABITLEME_METIN.yok), `${e}: sabitleme cümlesi`);
-    bak((c.length === 4) === !!ev.alinan.guclendirme, `${e}: zarf yan cümlesi`);
-    if (ev.alinan.guclendirme) bak(c[3] === EM.EV_ZARF_METIN.guclendirme, `${e}: zarf cümlesi`);
-    bak(s1.harcanan === EV.evHarcanan(ev), `${e}: harcanan`);
-    g42.sonuc++;
+  // Taksitler sırayla: 1, 2, 3; dördüncüsü yok.
+  {
+    let ev = EV.yeniEv();
+    for (let i = 0; i < 4; i++) {
+      const r = EV.satinAl(ev, 'guclendirme', 1000, 0, i + 1);
+      if (i < N) {
+        bak(r && r.kademe === i + 1 && r.fiyat === F.guclendirme[i], `G43 taksit ${i + 1}`);
+        ev = r.ev;
+      } else bak(r === null, 'G43 dördüncü taksit alındı');
+    }
+    bak(ev.alinan.guclendirme.map((a) => a.kademe).join() === '1,2,3' && EV.guclendirmeTam(ev), 'G43 taksit sırası');
   }
-  // Ton (GDD T4): ev metinlerinde sayı yok.
-  for (const m of [...Object.values(EM.EV_DURUM_METIN), ...Object.values(EM.EV_CANTA_METIN), ...Object.values(EM.EV_SABITLEME_METIN), ...Object.values(EM.EV_ZARF_METIN), EM.EV_PAYLI])
-    bak(!/\d/.test(m.replace(/Gün 5/g, '')), `G42 ev metninde sayı: ${m}`);
 
-  // Bina sonuçları: ev seçeneği verilmezse ya da pay yoksa aynı; pay varsa yalnızca oyuncunun kendi apartmanı
-  // (GÜVENLİ / İADE damgalıysa) GÜÇLENDİR sonucunu alır. Ev sonucu kendi apartmanınla tutarlı.
+  // "Senin evin" (kendi bina yok): 4×4×4 bileşim (× zarf işareti), deterministik ve kademelere göre.
+  const SOYUT = ['agir', 'agir', 'hasarli', 'hafif'];
+  for (let c = 0; c <= N; c++)
+    for (let sb = 0; sb <= N; sb++)
+      for (let g = 0; g <= N; g++)
+        for (const zk of [null, ...kalemler, 'hepsi']) {
+          const kad = { canta: c, sabitleme: sb, guclendirme: g };
+          const ev = EV.yeniEv();
+          for (const k of kalemler)
+            ev.alinan[k] = F[k].slice(0, kad[k]).map((fiyat, i) => ({ kademe: i + 1, gun: 1, fiyat, zarfla: (zk === k || zk === 'hepsi') && i === kad[k] - 1 }));
+          const s1 = EV.evSonucu(ev, []);
+          const s2 = EV.evSonucu(JSON.parse(JSON.stringify(ev)), []);
+          const e = `G43 ev ç${c} s${sb} g${g} zarf=${zk}`;
+          bak(JSON.stringify(s1) === JSON.stringify(s2), `${e}: deterministik değil`);
+          bak(s1.durum === SOYUT[g] && !s1.kendiBina, `${e}: durum ${s1.durum} ≠ ${SOYUT[g]}`);
+          bak(s1.canta === c && s1.sabitleme === sb && s1.guclendirme === g, `${e}: kademeler`);
+          const zBek = kalemler.filter((k) => kad[k] > 0 && (zk === k || zk === 'hepsi'));
+          bak(JSON.stringify(s1.zarfla) === JSON.stringify(zBek), `${e}: zarfla ${s1.zarfla}`);
+          const cm = EM.evCumleleri(s1);
+          bak(
+            cm[0] === EM.EV_DURUM_METIN[SOYUT[g]] && cm[1] === EM.EV_GUCLENDIRME_METIN[g] && cm[2] === EM.EV_CANTA_METIN[c] && cm[3] === EM.EV_SABITLEME_METIN[sb],
+            `${e}: cümleler`,
+          );
+          bak(cm.length === (zBek.length ? 5 : 4), `${e}: zarf yan cümlesi`);
+          if (zBek.length) bak(cm[4] === (zBek.length === 1 ? EM.EV_ZARF_METIN[zBek[0]] : EM.EV_ZARF_METIN.birden), `${e}: zarf cümlesi`);
+          bak(s1.harcanan === kalemler.reduce((n, k) => n + F[k].slice(0, kad[k]).reduce((a, b) => a + b, 0), 0), `${e}: harcanan`);
+          g43.sonuc++;
+        }
+  // Kademe cümleleri birbirinden farklı (farklı kademe, farklı cümle).
+  for (const dizi of [EM.EV_GUCLENDIRME_METIN, EM.EV_CANTA_METIN, EM.EV_SABITLEME_METIN])
+    bak(dizi.length === N + 1 && new Set(dizi).size === N + 1, 'G43 kademe cümleleri farklı değil');
+  // Ton (GDD T4): ev cümlelerinde sayı yok (kademe sayaçları yalnızca durum etiketlerinde).
+  for (const m of [...Object.values(EM.EV_DURUM_METIN), ...EM.EV_GUCLENDIRME_METIN, ...EM.EV_CANTA_METIN, ...EM.EV_SABITLEME_METIN, ...Object.values(EM.EV_ZARF_METIN), EM.EV_PAYLI])
+    bak(!/\d/.test(m), `G43 ev cümlesinde sayı: ${m}`);
+
+  // Bina sonuçları: ev seçeneği verilmezse ya da güçlendirme 0-2 taksitse aynı; 3/3 taksitte yalnızca oyuncunun kendi
+  // apartmanı (GÜVENLİ / İADE damgalıysa) GÜÇLENDİR sonucunu alır. Ev sonucu kendi apartmanınla tutarlı.
   for (let tohum = 1; tohum <= 10; tohum++)
     for (const bicim of ['ornek', 'dogru', 'guvenli', 'guclendir', 'bosalt', 'iade', 'kisa']) {
       const k = kayitlar(tohum, bicim);
       const zk = bicim === 'kisa' ? [k[0]] : k;
       const a = S.buyukDeprem(tohum, k, zk);
-      const b = S.buyukDeprem(tohum, k, zk, { guclendirmePayi: false });
-      const c = S.buyukDeprem(tohum, k, zk, { guclendirmePayi: true });
-      const e = `G42 t${tohum} ${bicim}`;
-      bak(JSON.stringify(a) === JSON.stringify(b), `${e}: pay yokken sonuç değişti`);
+      const e = `G43 t${tohum} ${bicim}`;
       const sokak = S.sokakKayitlari(tohum, k);
       const kendi = a.filter((r) => r.kendiBinan);
       bak(kendi.length <= 1, `${e}: birden çok kendi apartman`);
       if (bicim === 'kisa') bak(kendi.length === 0, `${e}: kısa yolda örnek bina kendi apartman sayıldı`);
-      a.forEach((r, i) => {
-        const p = c[i];
-        const payli = r.kendiBinan && (r.damga === 'guvenli' || r.damga === 'iade');
-        if (!payli) {
-          bak(JSON.stringify(r) === JSON.stringify(p), `${e} ${r.dosyaId}: pay başka binayı değiştirdi`);
-          return;
-        }
-        const s = sokak[i];
-        const g = R.buyukDepremSonucu(s.bina, 'guclendir', s.gun, { oncuHasar: s.hasar });
-        bak(p.evPayi === true && p.durum === g.durum && p.coktu === g.coker && p.bos === false && p.damga === r.damga, `${e} ${r.dosyaId}: paylı sonuç GÜÇLENDİR değil`);
-        bak(!p.coktu && p.durum !== 'agirHasar', `${e} ${r.dosyaId}: paylı kendi apartman ağır`);
-        if (JSON.stringify(r) !== JSON.stringify(p)) g42.payliFark++;
-      });
-      for (const [sonuc, pay] of [
-        [a, false],
-        [c, true],
-      ]) {
+      if (kendi.length) g43.kendiBina++;
+      for (let g = 0; g <= N; g++) {
+        const c = S.buyukDeprem(tohum, k, zk, { guclendirmeKademe: g });
+        if (g < N) bak(JSON.stringify(a) === JSON.stringify(c), `${e} g=${g}: 3/3'ten az taksitte sonuç değişti`);
+        else
+          a.forEach((r, i) => {
+            const p = c[i];
+            const payli = r.kendiBinan && (r.damga === 'guvenli' || r.damga === 'iade');
+            if (!payli) {
+              bak(JSON.stringify(r) === JSON.stringify(p), `${e} ${r.dosyaId}: pay başka binayı değiştirdi`);
+              return;
+            }
+            const s = sokak[i];
+            const gs = R.buyukDepremSonucu(s.bina, 'guclendir', s.gun, { oncuHasar: s.hasar });
+            bak(p.evPayi === true && p.durum === gs.durum && p.coktu === gs.coker && p.bos === false && p.damga === r.damga, `${e} ${r.dosyaId}: 3/3 sonuç GÜÇLENDİR değil`);
+            bak(!p.coktu && p.durum !== 'agirHasar', `${e} ${r.dosyaId}: 3/3 kendi apartman ağır`);
+            if (JSON.stringify(r) !== JSON.stringify(p)) g43.payliFark++;
+          });
         const ev = EV.yeniEv();
-        if (pay) ev.alinan.guclendirme = { gun: 5, fiyat: F.guclendirme, zarfla: false };
-        const s = EV.evSonucu(ev, sonuc);
-        const kb = sonuc.find((r) => r.kendiBinan);
+        ev.alinan.guclendirme = F.guclendirme.slice(0, g).map((fiyat, i) => ({ kademe: i + 1, gun: 5, fiyat, zarfla: false }));
+        const s = EV.evSonucu(ev, c);
+        const kb = c.find((r) => r.kendiBinan);
         if (kb) {
-          if (!pay) g42.kendiBina++;
           const bek = kb.coktu ? (kb.bos ? 'coktuBos' : 'coktu') : kb.durum === 'agirHasar' ? 'agir' : kb.durum === 'hasarli' ? 'hafif' : 'saglam';
-          bak(s.durum === bek && s.kendiBina === kb, `${e} pay=${pay}: ev durumu kendi apartmanla tutarsız (${s.durum} ≠ ${bek})`);
-        } else bak(s.durum === (pay ? 'hafif' : 'agir') && !s.kendiBina, `${e} pay=${pay}: soyut ev durumu`);
+          bak(s.durum === bek && s.kendiBina === kb && s.guclendirme === g, `${e} g=${g}: ev durumu kendi apartmanla tutarsız (${s.durum} ≠ ${bek})`);
+          bak(!!kb.evPayi === (g === N && (kb.damga === 'guvenli' || kb.damga === 'iade')), `${e} g=${g}: evPayi yanlış`);
+          g43.kendiSonuc++;
+        } else bak(s.durum === SOYUT[g] && !s.kendiBina, `${e} g=${g}: soyut ev durumu`);
       }
     }
-  bak(g42.kendiBina > 0, 'G42 kendi apartman hiç sokakta değil');
-  console.log('G42 (para × zarf × sıra; tohum 1-10):', JSON.stringify(g42));
+  bak(g43.kendiBina > 0, 'G43 kendi apartman hiç sokakta değil');
+  console.log('G43 (para × zarf × 6 tuşluk sıra; 4×4×4 sonuç; tohum 1-10):', JSON.stringify(g43));
+
+  // Ekonomi denetimi: kusursuz dürüst oyuncu (zarf yok, hep doğru) gün sonunda en çok ne kadar alabilir. Gün kazancı
+  // dosyaSayisi × maaş; gerçek oturumla da doğrulanır (tohum 1-20). Alım: her gün sonunda en ucuz sıradaki kademe
+  // (her kalemin fiyatları artan olduğundan bu, alınabilecek kademe sayısının en çoğudur).
+  const kazanc = [1, 2, 3, 4, 5].map((g) => D.gunAyar(g).dosyaSayisi * T.para.maas);
+  for (let tohum = 1; tohum <= 20; tohum++)
+    for (let g = 1; g <= 5; g++) {
+      const o = new S.GunOturumu(g, tohum);
+      while (o.mevcut && !o.bitti) o.damgala(R.dogruDamga(o.mevcut, g));
+      const h = S.gunHesabi(o.kararlar, D.gunAyar(g).dosyaSayisi);
+      bak(h.toplam === kazanc[g - 1] && h.zarf === 0, `G43 ekonomi t${tohum} g${g}: kusursuz kazanç ${h.toplam} ≠ ${kazanc[g - 1]}`);
+    }
+  let ev = EV.yeniEv();
+  let para = T.para.baslangic;
+  const tablo = [];
+  for (let g = 1; g <= 5; g++) {
+    para += kazanc[g - 1];
+    for (;;) {
+      const aday = kalemler
+        .map((k) => [k, EV.siradakiFiyat(ev, k)])
+        .filter(([, f]) => f !== null && f <= para)
+        .sort((x, y) => x[1] - y[1])[0];
+      if (!aday) break;
+      const r = EV.satinAl(ev, aday[0], para, 0, g);
+      bak(r && !r.zarfla, `G43 ekonomi gün ${g}: alım`);
+      ({ ev, para } = r);
+    }
+    const kad = kalemler.map((k) => EV.evKademe(ev, k));
+    tablo.push({ gun: g, kazanc: kazanc[g - 1], kademe: kad.reduce((a, b) => a + b, 0), kad, artan: para, harcanan: EV.evHarcanan(ev) });
+  }
+  const tumu = 3 * N;
+  bak(tablo[0].kad[0] >= 1 && tablo[0].kad[1] >= 1 && tablo[0].kad[2] === 0, 'G43 gün 1: çanta 1 + sabitleme 1 alınabilmeli, güçlendirme alınamamalı');
+  bak(kazanc[0] < F.guclendirme[0], 'G43 gün 1 zarfsız güçlendirme 1. taksit alınabiliyor');
+  bak(kazanc[0] >= F.canta[0] + F.sabitleme[0], 'G43 gün 1 çanta 1 + sabitleme 1 alınamıyor');
+  // Gün 1'de bir dosyada zarf (BOŞALT zarfının en azı) alıp o dosyayı yanlış damgalayan: güçlendirmeye başlayabilir.
+  bak(kazanc[0] - T.para.maas - T.para.ceza + T.kisi.zarfMiktar.bosalt.min >= F.guclendirme[0], 'G43 gün 1 zarfla güçlendirme 1. taksit alınamıyor');
+  bak(tablo[1].kademe < tumu, 'G43 kusursuz oyuncu gün 2 sonunda hepsini bitiriyor');
+  bak(tablo[3].kademe < tumu, 'G43 kusursuz oyuncu gün 4 sonunda hepsini bitiriyor');
+  bak(tablo[4].kademe === tumu, 'G43 kusursuz oyuncu gün 5 sonunda tamamlayamıyor');
+  const toplamFiyat = kalemler.reduce((n, k) => n + F[k].reduce((a, b) => a + b, 0), 0);
+  console.log(`G43 ekonomi (kusursuz dürüst oyuncu; toplam fiyat ${toplamFiyat} TL, 5 günün kazancı ${kazanc.reduce((a, b) => a + b, 0)} TL):`);
+  for (const t of tablo)
+    console.log(
+      `  gün ${t.gun}: +${t.kazanc} TL → ${t.kademe}/${tumu} kademe (çanta ${t.kad[0]}, sabitleme ${t.kad[1]}, güçlendirme ${t.kad[2]}); harcanan ${t.harcanan}, artan ${t.artan} TL`,
+    );
 }
 
 console.log(`${sayi} denetim, ${hata} hata`);

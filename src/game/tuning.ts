@@ -105,12 +105,19 @@ export const TUNING = {
   para: { baslangic: 0, maas: 20, ceza: 10 },
 
   /**
-   * Kendi evinin hazırlığı (G42, takım fikri; GDD "Para ve kendi evin"): gün sonu raporunda birikmiş parayla alınan üç
-   * tek seferlik kalem (TL; yer tutucu fiyatlar). Gün 1'de zarfsız ~60 TL ile ya çanta + sabitleme ya güçlendirme payı
-   * alınır; zarf parasıyla hepsi. Bina kararlarına ve deprem dengesine etkisi yok; yalnızca "Senin evin" sonucu.
-   * Tek istisna: 5 günlük yolda gün 5'teki kendi apartmanın, güçlendirme payı ödendiyse en az GÜÇLENDİR sayılır.
+   * Kendi evinin hazırlığı (G42, takım fikri; G43 kademeli, takım kararı 17 Ekim; GDD "Ekonomi kademeli"): gün sonu
+   * raporunda birikmiş parayla alınan üç kalem, her biri 3 kademe (sırayla; TL, yer tutucu fiyatlar). Güçlendirme payı
+   * 3 taksit. Toplam 560 TL: kusursuz dürüst oyuncu (60/100/120/140/160 TL) ancak 5. günün sonunda tamamlar; gün 1'de
+   * (60 TL) güçlendirmeye zarfsız başlanamaz. Bina kararlarına ve deprem dengesine etkisi yok; yalnızca "Senin evin".
+   * Tek istisna: 5 günlük yolda gün 5'teki kendi apartmanın, güçlendirme 3/3 taksitse en az GÜÇLENDİR sayılır.
    */
-  ev: { fiyat: { canta: 30, sabitleme: 20, guclendirme: 60 } },
+  ev: {
+    kademe: {
+      canta: [30, 40, 50],
+      sabitleme: [30, 50, 60],
+      guclendirme: [80, 100, 120],
+    } as Record<'canta' | 'sabitleme' | 'guclendirme', readonly number[]>,
+  },
 
   /**
    * Gişedeki kişi (G17): kişilik, SOR ve İSTE olasılıkları. Gün başına değerler dizide (gün 1 = ilk eleman).

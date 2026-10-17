@@ -9,7 +9,7 @@ import { Sokak, type SokakGirdi } from '../desk/Street';
 import { SON_GUN } from '../game/days';
 import { DOLGU_BASLIKLAR, FOTO_ALTI, GAZETE_ADI, GAZETE_TARIH, kisaSayiBloklari, manset, oneCikanlar, sayiSatiri, sokakCokenSayisi, zarfSatiri } from '../game/gazete';
 import { evSonucu } from '../game/ev';
-import { EV_GAZETE_BASLIK, evCumleleri } from '../game/ev-metin';
+import { EV_GAZETE_BASLIK, evCumleleri, evHarcananSatiri, evTaksitSatiri } from '../game/ev-metin';
 import { depremOzeti, oyuncuOzeti, sokakKayitlari, type DepremBinaSonucu } from '../game/session';
 import { fadeIn, goTo } from '../systems/transition';
 import { SCENES } from './keys';
@@ -41,8 +41,11 @@ const FOTO_PARSEL = 18;
  */
 const GIRIS_KORUMA_MS = 500;
 
-/** "Senin evin" kutusu (G42): üçüncü sütunun altında; en çok bu yükseklikte (yazı sığana kadar küçülür). */
-const EV_KUTU = { enCokH: 236, ic: 16 };
+/**
+ * "Senin evin" kutusu (G42): alt sütunların altında; en çok bu yükseklikte (yazı sığana kadar küçülür). G43: ilkSutun'dan
+ * sona kadar sütunları kaplar; sütun başlıkları uzunsa daha da kısalır (başlıklarla arasında en az bosluk kalır).
+ */
+const EV_KUTU = { enCokH: 300, ic: 16, bosluk: 24, ilkSutun: 1 };
 
 /** Sonuç ekranına geçişin kararma süresi (ms; ana ve fotoğraf kamerası birlikte). */
 const GECIS_MS = 220;
@@ -149,12 +152,13 @@ export class NewspaperScene extends Phaser.Scene {
     cizgi(altY);
     const sut = 3;
     const sutW = (KAGIT.w - 80 - (sut - 1) * 40) / sut;
-    // G42: üçüncü sütunun altında "Senin evin" kutusu; o sütunun doldurma çizgileri kutunun üstünde biter.
-    const evUst = this.evKutusu(L + 40 + 2 * (sutW + 40), sutW, T + KAGIT.h - 40);
-    for (let i = 0; i < sut; i++) {
+    // G42: "Senin evin" kutusu sütunların altında; G43: ikinci ve üçüncü sütunu birlikte kaplar (kademe cümleleri
+    // uzadı), iki sütunun başlıklarının altına sığacak kadar yüksek. O sütunların doldurma çizgileri ve aradaki
+    // ayırıcı kutunun üstünde biter.
+    const basliklar = Array.from({ length: sut }, (_, i) => {
       const x0 = L + 40 + i * (sutW + 40);
       const baslik = one.satirlar[i] ?? DOLGU_BASLIKLAR[i % DOLGU_BASLIKLAR.length];
-      const b = this.add
+      return this.add
         .text(snap(x0), snap(altY + 20), baslik, {
           fontFamily: FONT,
           fontSize: one.satirlar[i] ? '36px' : '32px',
@@ -163,14 +167,21 @@ export class NewspaperScene extends Phaser.Scene {
           lineSpacing: 2,
         })
         .setOrigin(0, 0);
-      const sonY = i === sut - 1 ? evUst - 24 : T + KAGIT.h - 40;
+    });
+    const altSinir = T + KAGIT.h - 40;
+    const basAlt = Math.max(...basliklar.slice(EV_KUTU.ilkSutun).map((b) => altY + 20 + b.height));
+    const evUst = this.evKutusu(L + 40 + EV_KUTU.ilkSutun * (sutW + 40), (sut - EV_KUTU.ilkSutun) * (sutW + 40) - 40, altSinir, altSinir - basAlt - EV_KUTU.bosluk);
+    basliklar.forEach((b, i) => {
+      const x0 = L + 40 + i * (sutW + 40);
+      const sonY = i >= EV_KUTU.ilkSutun ? evUst - 24 : altSinir;
       for (let yy = snap(altY + 20 + b.height + 20); yy < sonY; yy += 20) {
         const son = yy + 20 >= sonY || rnd() < 0.12;
         const w = son ? sutW * (0.3 + rnd() * 0.5) : sutW - rnd() * 24;
         this.add.rectangle(snap(x0), snap(yy), snap(w), 8, 0x6e675c, 0.55).setOrigin(0);
       }
-      if (i > 0) this.add.rectangle(snap(x0 - 20), altY + 16, PX, T + KAGIT.h - altY - 56, 0x1d1a18, 0.4).setOrigin(0);
-    }
+      const ayiriciAlt = i > EV_KUTU.ilkSutun ? evUst - 16 : altSinir;
+      if (i > 0) this.add.rectangle(snap(x0 - 20), altY + 16, PX, ayiriciAlt - altY - 16, 0x1d1a18, 0.4).setOrigin(0);
+    });
 
     // Devam
     const devam = (): void => this.devam();
@@ -216,18 +227,20 @@ export class NewspaperScene extends Phaser.Scene {
 
   /**
    * "Senin evin" kutusu (G42; kısa yolda da 5 günlük yolda da): çerçeveli küçük haber kutusu, başlık ve evin
-   * durumu, çanta, sabitleme ve (varsa) zarf cümleleri. Alt kenarı alt'ta; yazı enCokH'ye sığana kadar küçülür.
-   * Dönüş: kutunun üst kenarı.
+   * durumu, güçlendirme, çanta, sabitleme ve (varsa) zarf cümleleri; G43: altında taksit durumu ve evine harcanan.
+   * Alt kenarı alt'ta; yazı min(enCokH, sigH)'ye sığana kadar küçülür. Dönüş: kutunun üst kenarı.
    */
-  private evKutusu(x: number, w: number, alt: number): number {
+  private evKutusu(x: number, w: number, alt: number, sigH: number): number {
     const s = evSonucu(this.veri.ev, this.veri.sonuclar);
     const ic = EV_KUTU.ic;
     const baslik = this.add.text(0, 0, EV_GAZETE_BASLIK, { fontFamily: FONT, fontSize: '32px', color: MUREKKEP }).setOrigin(0, 0);
     const govde = this.add
-      .text(0, 0, evCumleleri(s).join(' '), { fontFamily: FONT, fontSize: '28px', color: MUREKKEP, wordWrap: { width: w - ic * 2, useAdvancedWrap: true }, lineSpacing: 2 })
+      .text(0, 0, `${evCumleleri(s).join(' ')}
+${evTaksitSatiri(s.guclendirme)} ${evHarcananSatiri(`${s.harcanan} TL`)}`, { fontFamily: FONT, fontSize: '28px', color: MUREKKEP, wordWrap: { width: w - ic * 2, useAdvancedWrap: true }, lineSpacing: 2 })
       .setOrigin(0, 0);
     const yuk = (): number => ic + baslik.height + 8 + govde.height + ic;
-    for (let boy = 28; yuk() > EV_KUTU.enCokH && boy > 20; ) govde.setFontSize((boy -= 2));
+    const enCok = Math.min(EV_KUTU.enCokH, sigH);
+    for (let boy = 28; yuk() > enCok && boy > 20; ) govde.setFontSize((boy -= 2));
     const h = snap(yuk());
     const ust = snap(alt - h);
     this.add.rectangle(snap(x), ust, snap(w), h, 0x1d1a18).setOrigin(0);
