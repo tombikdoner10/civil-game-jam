@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G48 [teknik] (sürüyor, Opus/high) Yeni araçlar için tek seferlik ipucu: SOR (gün 2), İSTE ve SAHA (gün 3); kullanılınca kalkar.
+- [ ] G48 [teknik] (bitti 680b3f8, test sürüyor, Opus/low) Yeni araçlar için tek seferlik ipucu: SOR (gün 2), İSTE ve SAHA (gün 3); kullanılınca kalkar.
 
 ## Sırada
 
