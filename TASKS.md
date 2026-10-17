@@ -34,7 +34,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Takım işleri
 
-- [ ] T28 [takım] Diyalog taslaklarını oku ve düzelt: src/game/diyalog-metin.ts (393 cümle; 5 mizaç × selam/bekleme/sabırsızlık/giriş/zarf/damga tepkisi; 12 kusur × bahane/itiraf/zarf; İSTE; zarf isteği). Beğenmediğini sil ya da değiştir; köşeli parantezleri onayladıklarından kaldır. Son tarih 18.00.
+- [ ] T28 [takım] Diyalog taslaklarını oku ve düzelt: src/game/diyalog-metin.ts (393 cümle; 5 mizaç × selam/bekleme/sabırsızlık/giriş/zarf/damga tepkisi; 12 kusur × bahane/itiraf/zarf; İSTE; zarf isteği). Beğenmediğini sil ya da değiştir; köşeli parantezleri onayladıklarından kaldır. Son tarih 18.00. Test gözlemi: damga tepkileri mizaç başına 3 cümle, uzun oyunda/oyunlar arası tekrar edebilir; çoğaltmak isterseniz ekleyin.
 - [ ] T6 [takım] (T24 sonrası) Sesleri dinle: 42 Kenney sesi + G32 jingle'ları; değiştirmek istediğini söyle.
 - [ ] T25 [takım] Sunum: anlatıcının ilk cümlesi (ör. "Kurala uymayanı damgala, sonra raporda kırmızı düğme"); jüri bilgisayarında oyun önceden açık olsun ya da ZIP sürümü (canlı sitede ilk yükleme birkaç sn, bu sırada tıklamalar kayboluyor). Gerçekçi jüri yolu 2:00–2:40.
 - [ ] T27 [takım] AI beyanı özetini (docs/AI_BEYAN.md üst bölüm, oyunda Emeği Geçenler) okuyup onayla; teslim formuna bu metin yapıştırılacak. Metinler yeniden yazılınca Metin özetindeki "takım bunları yeniden yazacak" ifadesi güncellenecek.
@@ -64,7 +64,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
-- [x] G33 Diyalog çeşitliliği: mizaç (portre tohumundan), tekrarsız deste, ruhsat değişkenleri, sabırsızlık (sinirli 2., diğerleri 3. soru) ve ~25 sn bekleme; 393 taslak cümle (dde59ff + c0a76cc, Opus/high; test sürüyor)
+- [x] G33 Diyalog çeşitliliği: mizaç (portre tohumundan), tekrarsız deste, ruhsat değişkenleri, sabırsızlık (sinirli 2., diğerleri 3. soru) ve ~25 sn bekleme; 393 taslak cümle (dde59ff + c0a76cc, Opus/high; test geçti)
 - [x] G32 T23 rapor satırı kısaldı; T24 gazete PIZZI03, sonuç PIZZI02/01 (Pizzicato), sahne kapanınca susuyor; gün sonu jinglesı rapor kapanınca kesiliyor (7a53984 + a23cd04, Opus/high; test geçti)
 - [x] G29b Beyan model eşlemesi zamana bağlı (geliştirici 17:02Z, test oyuncusu 22:56Z öncesi Sonnet); beyan dosyaları kaydın yer listesine girmiyor; Ses ve Metin yalnızca Opus (d027c0e, Opus/high; test geçti)
 - [x] G29 AI beyanı oyunda ve formda kategori başına sade özet (docs/ai-ozet.json); AI_BEYAN.md altta ayrıntılı kayıt eksiksiz (eccc1ac, Opus/high; test geçti)
