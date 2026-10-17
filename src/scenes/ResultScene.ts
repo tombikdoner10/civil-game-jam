@@ -8,7 +8,7 @@ import { masaCiz, pikselDugme } from '../desk/props';
 import { gunAyar, SON_GUN } from '../game/days';
 import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
 import { ZARF_ETIKET } from '../game/diyalog';
-import { degerlendirme, KISA_SONUC, seninBinalarin, sonucEtiketi, zarfOzeti } from '../game/gazete';
+import { degerlendirme, juriGordukleri, KISA_SONUC, seninBinalarin, sonucEtiketi, zarfOzeti } from '../game/gazete';
 import { depremOzeti, gunHesabi, oyuncuOzeti, oyunToplami } from '../game/session';
 import { fadeIn, goTo } from '../systems/transition';
 import type { GameData } from './GameScene';
@@ -186,15 +186,20 @@ export class ResultScene extends Phaser.Scene {
     const dy = Math.max(topY + 112 + (kisa ? 176 : 0), T + 600);
     cizgi(dy - 24);
     gorun(yaz(L + 40, dy + 16, kisa ? KISA_SONUC.sokak(oz.toplam, juriSonuc.length) : 'BÜYÜK DEPREM · SOKAK', 34, PAL.etiket), dGec);
+    // Kısa yolda (G28b, takım kararı T22; gazeteyle aynı koşul) jürinin görmediği kalemler gizli: İADE kutusu yalnızca
+    // jüri İADE vurduysa, "içi boş" yalnızca jürinin BOŞALT damgalı binası çöktüyse ya da hasar gördüyse.
+    const gor = kisa ? juriGordukleri(v.sonuclar, juri) : { iade: true, icBos: true };
+    const icBos = kisa ? oz.cokenBos > 0 : oz.coken > 0;
     const kutular: [string, number, string, string?][] = [
       ['AYAKTA', oz.ayakta, PAL.damgaGuvenli],
       ['HASARLI', oz.hasarli, PAL.damgaGuclendir],
       // Gazeteyle aynı tanımlar (G5b): çökenlerin "içi boş" olanları; BOŞALTILMIŞ bütün boşaltılmış binalar.
-      ['ÇÖKEN', oz.coken, PAL.damgaBosalt, oz.coken > 0 ? `içi boş: ${oz.cokenBos}` : undefined],
+      ['ÇÖKEN', oz.coken, PAL.damgaBosalt, gor.icBos && icBos ? `içi boş: ${oz.cokenBos}` : undefined],
       ['BOŞALTILMIŞ', oz.bos, PAL.murekkepSoluk, 'toplam'],
-      // İADE: denetlenmeden kalan binalar (içleri doluydu); kaçının çöktüğü alt satırda.
-      ['İADE', oz.iade, PAL.damgaIade, oz.iade > 0 ? (oz.iadeCoken > 0 ? `${oz.iadeCoken} çöktü` : 'denetlenmedi') : undefined],
     ];
+    // İADE: denetlenmeden kalan binalar (içleri doluydu); kaçının çöktüğü alt satırda.
+    if (gor.iade)
+      kutular.push(['İADE', oz.iade, PAL.damgaIade, oz.iade > 0 ? (oz.iadeCoken > 0 ? `${oz.iadeCoken} çöktü` : 'denetlenmedi') : undefined]);
     const kw = 232;
     const kara = (KAGIT.w - 80 - kutular.length * kw) / (kutular.length - 1);
     kutular.forEach(([ad, n, renk, alt], i) => {

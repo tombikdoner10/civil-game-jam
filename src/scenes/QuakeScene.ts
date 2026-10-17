@@ -59,8 +59,12 @@ const ZAMAN = { saatGel: 400, saatGit: 2600, perde: 3000, perdeSure: 1600, depre
  * tam süre oynar. Kart bittikten sonraki basış hemen hızlandırır.
  */
 const ATLA = { koruma: 250, kat: 10 };
-/** Hızlandırma ipucu (G28): sağ altta, koyu zemin üstünde tam opak; hızlandırılana kadar hafifçe nabız gibi atar. */
-const IPUCU = { x: 1880, y: 1036, boyut: 44, pay: 18, nabiz: 0.06, nabizMs: 520 };
+/**
+ * Hızlandırma ipucu (G28): koyu zemin üstünde tam opak; hızlandırılana kadar hafifçe nabız gibi atar. G28b: sağ üstte,
+ * gökyüzü bandında; dikey ortası köşedeki "[Bir gece]" yazısıyla aynı (y), sağ kenardan payı onun sol payı kadar (x =
+ * kutunun sağ kenarı). Binaların, etiketlerin ve ayın üstünde kalır, hiçbirini örtmez.
+ */
+const IPUCU = { x: 1872, y: 44, boyut: 44, pay: 18, nabiz: 0.06, nabizMs: 520 };
 
 /**
  * Büyük deprem (G5): gece geçişi (kararma, saat), sonra oyuncunun kararlarıyla dolan sokak tam ekran ve gece.
@@ -142,7 +146,7 @@ export class QuakeScene extends Phaser.Scene {
       .setAlpha(0);
     this.tweens.add({ targets: kose, alpha: 0.8, duration: 400, delay: zaman.perde + zaman.perdeSure });
 
-    // Hızlı geçiş (G25): köşede ipucu; deprem bitince normal hız, genel görünüm durur, sonra gazete.
+    // Hızlı geçiş (G25): sağ üst köşede ipucu (G28b); deprem bitince normal hız, genel görünüm durur, sonra gazete.
     let kontrol: QuakeKontrol | undefined;
     let hizli = false;
     let bitti = false;
@@ -158,13 +162,13 @@ export class QuakeScene extends Phaser.Scene {
     // İpucu: koyu zemin üstünde büyük ve tam opak (G28); gece kartı göründüğünde belirir, hızlandırılana kadar atar.
     const ipucuYazi = this.add
       .text(0, 0, DEPREM_GEC, { fontFamily: FONT, fontSize: `${IPUCU.boyut}px`, color: PAL.saat })
-      .setOrigin(1, 1);
+      .setOrigin(1, 0.5);
     const ipucuZemin = this.add
-      .rectangle(IPUCU.pay, IPUCU.pay * 0.5, ipucuYazi.width + IPUCU.pay * 2, ipucuYazi.height + IPUCU.pay, 0x0e0d10, 0.85)
-      .setOrigin(1, 1)
+      .rectangle(IPUCU.pay, 0, ipucuYazi.width + IPUCU.pay * 2, ipucuYazi.height + IPUCU.pay, 0x0e0d10, 0.85)
+      .setOrigin(1, 0.5)
       .setStrokeStyle(4, 0x3a3644);
     const ipucu = this.add
-      .container(IPUCU.x - IPUCU.pay, IPUCU.y - IPUCU.pay * 0.5, [ipucuZemin, ipucuYazi])
+      .container(IPUCU.x - IPUCU.pay, IPUCU.y, [ipucuZemin, ipucuYazi])
       .setDepth(102)
       .setAlpha(0);
     let nabiz: Phaser.Tweens.Tween | undefined;

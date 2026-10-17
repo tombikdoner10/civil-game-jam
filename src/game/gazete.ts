@@ -55,6 +55,18 @@ export function sayiSatiri(o: DepremOzeti): string {
 export const KISA_GAZETE = { senin: '[Senin binaların]', sokak: '[Bütün sokak]' };
 
 /**
+ * Kısa yolda jürinin gördüğü kalemler (T22; gazete G30 ve sonuç ekranı G28b aynı koşulu kullanır): iade, jüri en az
+ * bir İADE vurduysa; icBos, jürinin BOŞALT damgalı binalarından biri çöktüyse ya da hasar gördüyse.
+ */
+export function juriGordukleri(s: readonly DepremBinaSonucu[], juri: ReadonlySet<string>): { iade: boolean; icBos: boolean } {
+  const j = s.filter((b) => juri.has(b.dosyaId));
+  return {
+    iade: j.some((b) => b.damga === 'iade'),
+    icBos: j.some((b) => b.damga === 'bosalt' && (b.coktu || b.durum !== 'ayakta')),
+  };
+}
+
+/**
  * Kısa yol gazetesinin sayıları (G30, takım kararı T22): önce jürinin kendi binaları, sonra bütün sokak. Tanımlar
  * sayiSatiri ile aynı; jürinin özeti sonuç ekranındaki "Senin binaların" ile aynı (oyuncuOzeti). Jürinin görmediği
  * satırlar gizli: "İade edilmiş" yalnızca jüri en az bir İADE vurduysa, "içi boş" yalnızca jürinin BOŞALT damgalı
@@ -62,8 +74,7 @@ export const KISA_GAZETE = { senin: '[Senin binaların]', sokak: '[Bütün sokak
  */
 export function kisaSayiBloklari(s: readonly DepremBinaSonucu[], juri: ReadonlySet<string>): { baslik: string; satir: string }[] {
   const j = s.filter((b) => juri.has(b.dosyaId));
-  const iade = j.some((b) => b.damga === 'iade');
-  const icBos = j.some((b) => b.damga === 'bosalt' && (b.coktu || b.durum !== 'ayakta'));
+  const { iade, icBos } = juriGordukleri(s, juri);
   const satir = (o: DepremOzeti): string => {
     const k: string[] = [];
     if (o.ayakta > 0) k.push(`Ayakta: ${o.ayakta} bina`);
