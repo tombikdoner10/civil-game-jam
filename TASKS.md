@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G24 [teknik] Deprem dili ve son cila (takım kararı 04:26): "öncü sarsıntı / asıl deprem gelecek / 5 gün sonra" ifadeleri ve görselleri "küçük deprem", "bir gece büyük deprem", kısa yol düğmesi soru biçimine (yer tutucu); ilk yanlış karardan sonra fişte "Space ile incele, kusuru kanıtla" ipucu (bir kez); G19 testi: açık klasör saha notunu örtüyor (saha notu çakışmayan yere; klasör açılınca notun üstüne gelmesin), saha testinin zaman maliyeti ekranda gösterilsin ("+30 dk"), çatlak etiketi çekiç görselinin altında kalmasın.
+- [ ] G24 [teknik] Deprem dili ve son cila (takım kararı 04:26): "öncü sarsıntı / asıl deprem gelecek / 5 gün sonra" ifadeleri ve görselleri "küçük deprem", "bir gece büyük deprem", kısa yol düğmesi soru biçimine (yer tutucu); ilk yanlış karardan sonra fişte "Space ile incele, kusuru kanıtla" ipucu (bir kez); G19 testi: açık klasör saha notunu örtüyor (saha notu çakışmayan yere; klasör açılınca notun üstüne gelmesin), saha testinin zaman maliyeti ekranda gösterilsin ("+30 dk"), çatlak etiketi çekiç görselinin altında kalmasın. G23b testi: hepsi doğruyken içi dolu bir sokak binası çökse de değerlendirme "sokak depreme hazırdı" diyor (şablon "senin binaların" diye sınırlansın).
 
 ## Sırada
 
@@ -82,4 +82,4 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 - [x] G23 [teknik] Küçük kalanlar (13 madde: öncü → rapor ~1 sn ve tuşla geçiş, etiketler cama sığıyor, fiş ve zarf konumu, inceleme etiketi, kısa yol sonucunda Enter = Gün 2, zarf ifadeleri, geçiş, deprem görünümü, dekor binalar soluk, MÜHÜR ve Ayarlar, Splash girdileri, gazetede zarf) (91321e7, Opus/high; test geçti)
 - [x] G19 [teknik] Saha testi, yalnızca Schmidt çekici (takım kararı 01.30): karot yoksa ya da geçersizse SAHA ile beton yüzeyine vurma mini oyunu (geri tepme değeri → dayanım), günde sınırlı hak, zaman harcar; sonuç masaya "saha notu" olarak düşer ve kanıt sayılır (bilgiEdin karot, saha). Burgu YOK. (680347d, Opus/high; adalet 29895 denetim 0 hata; test geçti)
 - [x] G20: KESİLDİ (takım kararı 04:26, eleştirmen 3: jüri 3. güne ulaşmıyor, kural yükü)
-- [x] G23b [teknik] Gazete zarf satırı yalnızca oyuncunun zarfları, kısa yol manşeti/değerlendirme jüri binalarına dayalı ve tutarlı, ikinci Enter ~0,5 sn + hazır göstergesi, küçük n, deprem yakın planında odak dışı soluk, 720p etiket payı, fiş ekranda, saha paneli (089c397, Opus/high; adalet 30909 denetim 0 hata; test sürüyor)
+- [x] G23b [teknik] Gazete zarf satırı yalnızca oyuncunun zarfları, kısa yol manşeti/değerlendirme jüri binalarına dayalı ve tutarlı, ikinci Enter ~0,5 sn + hazır göstergesi, küçük n, deprem yakın planında odak dışı soluk, 720p etiket payı, fiş ekranda, saha paneli (089c397, Opus/high; adalet 30909 denetim 0 hata; test geçti)
