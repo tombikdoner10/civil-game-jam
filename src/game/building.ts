@@ -102,7 +102,7 @@ export interface Ruhsat {
   kat: number;
   /** Kâğıtta yazan yapım yılı (elle düzeltilmişse mavi kalemle yazılan). */
   yil: number;
-  /** Mühür yılı. Sahte belgede yapım yılından sonradır. */
+  /** Ruhsat tarihi (yıl; alan adı tarihsel: muhur). Sahte belgede yapım yılından sonradır. */
   muhurYili: number;
   /** Ada / parsel ("112 / 7"). Ruhsattaki her zaman binanın kendisi. */
   ada: string;
@@ -564,7 +564,7 @@ export function gunDosyalari(tohum: number, gun: number, adet: number, secenek: 
     const i = rng.pick(serbest);
     dosyalar[i] = kusurluBinaKur(rng, [], ek(i));
   }
-  // Sahte belge kuralı gelmeden mühür yılı yapım yılıyla aynı: fark, oyuncuya kusur gibi görünmesin.
+  // Sahte belge kuralı gelmeden ruhsat tarihi yapım yılıyla aynı: fark, oyuncuya kusur gibi görünmesin.
   const sahteGunu = KURALLAR.find((k) => k.kusurlar.includes('sahteBelge'))?.ilkGun ?? Infinity;
   // (Geçersiz belge hileleri kuralı gelmeden üretilmez: aktifKusurlar.)
   if (gun < sahteGunu) for (const b of dosyalar) if (!b.gercek.ruhsatSahte) b.belgeler.ruhsat.muhurYili = b.yil;

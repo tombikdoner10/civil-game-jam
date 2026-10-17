@@ -188,6 +188,15 @@ export function kuralMetni(k: Kural, gun: number): string {
   return m.replace('{bugun}', tarih(gun));
 }
 
+/**
+ * Klasördeki satır (G31b): satır zaten numaralı ("7."), "Kural:" öneki tekrar olur; önek kalkar, ilk harf büyür.
+ * Kural notunda (tek kural) kuralMetni olduğu gibi.
+ */
+export function kuralSatiri(k: Kural, gun: number): string {
+  const m = kuralMetni(k, gun).replace(/^Kural:\s*/, '');
+  return m.charAt(0).toLocaleUpperCase('tr-TR') + m.slice(1);
+}
+
 /** Kuralın o gün kapsadığı kusurlar (gelmemişse boş; genişleyen kuralda ek kusurlar dahil). */
 export function kuralKusurlari(k: Kural, gun: number): KusurId[] {
   if (k.ilkGun > gun) return [];

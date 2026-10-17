@@ -584,9 +584,9 @@ for (let tohum = 1; tohum <= 60; tohum++) {
       if (ruhsatHile === 'imzaYok') bak(g >= HB.imzaGun, `${e}: erken imzasız ruhsat`);
       if (ruhsatHile === 'elleDuzeltme') bak(g >= HB.elleBaskaGun, `${e}: erken elle düzeltme`);
       if (baska) bak(g >= HB.elleBaskaGun, `${e}: erken başka binanın belgesi`);
-      // Ruhsatta en çok bir hile ve sahte mühürle birlikte değil; geçersiz ruhsatın kâğıttaki katı fotoğrafla aynı.
+      // Ruhsatta en çok bir hile ve ruhsatsız yapıyla (sahte ruhsat tarihi) birlikte değil; geçersiz ruhsatın kâğıttaki katı fotoğrafla aynı.
       if (ruhsatHile) {
-        bak(!b.gercek.ruhsatSahte, `${e}: geçersiz ruhsat sahte mühürle`);
+        bak(!b.gercek.ruhsatSahte, `${e}: geçersiz ruhsat ruhsatsız yapıyla`);
         bak(B.ruhsat.kat === B.foto.gorunenKat, `${e}: geçersiz ruhsatta kat fotoğraftan farklı`);
       }
       if (B.ruhsat.duzeltme) bak(B.ruhsat[B.ruhsat.duzeltme.alan] !== B.ruhsat.duzeltme.asil, `${e}: düzeltme değeri asılla aynı`);
@@ -754,7 +754,7 @@ for (let tohum = 1; tohum <= 60; tohum++) {
         if (bosaltGor) g36.bosaltIle++;
         const ana = R.dogruDamga(b, g);
         bak(ana === (bosaltGor ? 'bosalt' : 'iade'), `${e}: sahte ruhsatta doğru damga ${ana}`);
-        // İnceleme: mühür yılı + yapım yılı → Sahte belge.
+        // İnceleme: ruhsat tarihi + yapım yılı → Ruhsatsız yapı.
         const r = ikiz.incele(R.kanitOgeleri('sahteBelge'));
         bak(r?.kusur.id === 'sahteBelge' && r.kusur.ciddiyet === 'iade', `${e}: sahte belge incelemede ${r?.kusur.id}/${r?.kusur.ciddiyet}`);
         if (!bosaltGor) {

@@ -4,7 +4,7 @@ import { sfx } from '../audio/sfx';
 import { FONT } from '../config';
 import type { Kural } from '../game/building';
 import { tarih } from '../game/diyalog';
-import { aktifKurallar, kuralMetni, kuralYeni } from '../game/rules';
+import { aktifKurallar, kuralSatiri, kuralYeni } from '../game/rules';
 import { MASA, masayaSikistir, ustKatman } from './DocumentCard';
 import type { SecimNesne, Yuzey } from './Inspect';
 import { num, PAL } from './palette';
@@ -413,7 +413,7 @@ export class Klasor {
         const out = liste.map(({ k, no }) => {
           const yk = kuralYeni(k, this.gun);
           const yazi = s.add
-            .text(sagSol + 64, 0, kuralMetni(k, this.gun), {
+            .text(sagSol + 64, 0, kuralSatiri(k, this.gun), {
               fontFamily: FONT,
               fontSize: `${boy}px`,
               color: PAL.murekkep,

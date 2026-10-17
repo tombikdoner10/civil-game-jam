@@ -379,7 +379,7 @@ export const SOR_METIN: Record<SorulanKusur, Record<SorTuru, string[]>> = {
   },
   sahteBelge: {
     bahane: [
-      'Mühür sonradan basıldı, normal.',
+      'Ruhsat yenilendi, tarih ondan.',
       'Memur yılı yanlış yazmış.',
       'Ruhsat kaybolmuştu, yenisi bu.',
       'Eski ruhsat yıprandı, çoğaltma bu.',
@@ -390,13 +390,13 @@ export const SOR_METIN: Record<SorulanKusur, Record<SorTuru, string[]>> = {
       'Bir tanıdık halletti.',
       'Asıl ruhsat hiç olmadı.',
       'Bir aracıya para verdik, bu geldi.',
-      'Mührü başka belgeden kopyaladık.',
+      'Bina bitince ruhsata başvurduk.',
     ],
     zarf: [
       'Kâğıt işini uzatmayalım, {para}.',
-      'Bu mühür meselesini kapatalım?',
+      'Bu tarih meselesini kapatalım?',
       'Ruhsat gerçek sayılsın, {para}.',
-      'Kimse bu mühre bakmaz, {para}.',
+      'Kimse ruhsatın tarihine bakmaz, {para}.',
       'Bir imzanıza bakar, {para}.',
     ],
   },

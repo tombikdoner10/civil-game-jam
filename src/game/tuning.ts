@@ -37,9 +37,9 @@ export const TUNING = {
   fayIyi: { min: 250, max: 1500 },
   fayKotu: { min: 20, max: 120 },
 
-  /** Sahte ruhsatta mühür yılı, yapım yılından kaç yıl sonra. */
+  /** Sahte ruhsatta ruhsat tarihi, yapım yılından kaç yıl sonra. */
   sahteMuhurFark: { min: 2, max: 8 },
-  /** Gerçek ruhsatta mühür yılı, yapım yılından kaç yıl önce (0 = aynı yıl). */
+  /** Gerçek ruhsatta ruhsat tarihi, yapım yılından kaç yıl önce (0 = aynı yıl). */
   gercekMuhurFark: { min: 0, max: 2 },
 
   /**

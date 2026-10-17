@@ -29,9 +29,9 @@ export const EV_KADEME_METIN: Record<EvKalem, readonly { ad: string; aciklama: s
     { ad: 'Raflar ve camlar', aciklama: 'Raflar, ayna ve camlar (cam filmi)' },
   ],
   guclendirme: [
-    { ad: 'proje', aciklama: 'Mühendis incelemesi ve proje' },
-    { ad: 'kolon sarma', aciklama: 'Kolonların sarılması' },
-    { ad: 'tamamlandı', aciklama: 'Perde duvar ve temel' },
+    { ad: 'Proje', aciklama: 'Mühendis incelemesi ve proje' },
+    { ad: 'Kolon sarma', aciklama: 'Kolonların sarılması' },
+    { ad: 'Tamamlandı', aciklama: 'Perde duvar ve temel' },
   ],
 };
 /** Kalem tamamlanınca kartta kademe satırının yerine. */
@@ -42,7 +42,7 @@ export const EV_TAMAM_METIN: Record<EvKalem, { ad: string; aciklama: string }> =
 };
 /** Güçlendirme kartında sıradaki taksit (n: 1..3). */
 export const evTaksitEtiketi = (n: number): string => `Taksit ${n}/${EV_KADEME}`;
-/** Kartta sıradaki kademenin başlığı: güçlendirmede taksit etiketiyle ("Taksit 1/3: proje"). */
+/** Kartta sıradaki kademenin başlığı: güçlendirmede taksit etiketiyle ("Taksit 1/3: Proje"). */
 export function evKademeBasligi(k: EvKalem, n: number): string {
   const ad = EV_KADEME_METIN[k][n - 1].ad;
   return k === 'guclendirme' ? `${evTaksitEtiketi(n)}: ${ad}` : ad;
