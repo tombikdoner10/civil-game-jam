@@ -14,7 +14,7 @@
     },
     "audio": {
       "kullanildi": true,
-      "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5)",
+      "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)",
       "amac": "Ses efektlerini ve müziği kodla üreten sentezleyiciyi, deprem gürlemesini kodla üreten sesi ve ses ayarlarını yazdı. Hazır paketteki Kenney seslerinin hız, perde ve katman ayarlarını yaptı.",
       "yer": [
         "Arayüz ve oyun ses efektleri, müzik altyapısı",
@@ -34,7 +34,7 @@
     },
     "text": {
       "kullanildi": true,
-      "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5)",
+      "arac": "Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)",
       "amac": "Arayüz metinlerini, README'yi, BENIOKU'yu, ses listesini ve beyan açıklamalarını yazdı. Gişe diyalogları, zarf ve rapor satırları, kural metinleri, gazete ve deprem anlatımı için yer tutucu metinler yazdı; takım bunları yeniden yazacak.",
       "yer": [
         "Menü, ayarlar, oyun içi ipuçları ve göstergeler",

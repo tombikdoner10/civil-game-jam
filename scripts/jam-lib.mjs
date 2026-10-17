@@ -36,7 +36,7 @@ export const tagToCategory = (tag) => TAGS[tag];
 
 // Beyana girmeyen dosyalar: üretilen beyan dosyaları, proje hafızası, jam araç ayarları ve iç belgeler (oyunda yok).
 const IGNORE = [
-  /^docs\/(ai-kayit\.jsonl|ai-elle\.json|AI_BEYAN\.md)$/,
+  /^docs\/(ai-kayit\.jsonl|ai-elle\.json|ai-ozet\.json|AI_BEYAN\.md)$/,
   /^src\/data\/ai-beyan\.json$/,
   /^(GDD|TASKS|JOURNAL|CLAUDE)\.md$/,
   /^docs\/(KURALLAR|TESLIM|TESLIM_FORMU|BULUT|ACIL)\.md$/,
@@ -45,6 +45,9 @@ const IGNORE = [
   /^(node_modules|dist|dist-single|teslim)\//,
   /^package-lock\.json$/,
 ];
+
+/** Beyana girmeyen dosya mı? beyan.mjs eski kayıt satırlarını da bununla eler (kayıt dosyası silinmez). */
+export const isIgnored = (rel) => IGNORE.some((r) => r.test(rel));
 
 /** Mutlak yol → repo içi yol ("src/game/x.ts"); repo dışıysa null. */
 export function repoPath(absPath, cwd = ROOT) {
@@ -69,7 +72,7 @@ function head(absPath) {
  * Dosyanın ilk satırlarındaki "@beyan <görsel|ses|kod|metin|diğer>" etiketi her kuralın önüne geçer.
  */
 export function categorize(rel, absPath) {
-  if (IGNORE.some((r) => r.test(rel))) return null;
+  if (isIgnored(rel)) return null;
   const tag = /@beyan\s+(görsel|ses|kod|metin|diğer)/.exec(head(absPath ?? join(ROOT, rel)));
   if (tag) return TAGS[tag[1]];
   if (/\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(rel) || rel.startsWith('src/art/')) return 'visual';

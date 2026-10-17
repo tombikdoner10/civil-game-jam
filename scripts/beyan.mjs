@@ -12,17 +12,26 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { CATEGORIES, LOG, MANUAL, ROOT, tagToCategory } from './jam-lib.mjs';
+import { CATEGORIES, LOG, MANUAL, ROOT, isIgnored, tagToCategory } from './jam-lib.mjs';
 
 const OZET = join(ROOT, 'docs', 'ai-ozet.json');
 
 const TOOL = 'Claude (Anthropic), Claude Code üzerinden';
-const MODEL_OF = {
-  lider: 'Claude Opus 5.5',
-  gelistirici: 'Claude Sonnet 5.5',
-  'test-oyuncusu': 'Claude Sonnet 5.5',
-  elestirmen: 'Claude Opus 5.5',
+// Ajan → model, kaydın zamanına göre (UTC). Kaynak: alt ajan dökümleri (subagents/*.jsonl).
+//   gelistirici: G1, G2 ve ilk G2b çağrısı (16 Ekim 16.30Z–17.01Z) Sonnet 5.5; 17.02Z'den beri Opus 5.5.
+//   test-oyuncusu: son Sonnet çağrısı 16 Ekim 22.52Z'de bitti; 23.00Z'den beri Opus 5.5.
+//   lider ve elestirmen: her zaman Opus 5.5.
+const OPUS = 'Claude Opus 5.5';
+const SONNET = 'Claude Sonnet 5.5';
+const SONNET_UNTIL = {
+  gelistirici: '2026-10-16T17:02:00Z',
+  'test-oyuncusu': '2026-10-16T22:56:00Z',
 };
+function modelOf({ ajan, zaman }) {
+  if (ajan === 'lider' || ajan === 'elestirmen') return OPUS;
+  if (ajan in SONNET_UNTIL) return zaman && Date.parse(zaman) < Date.parse(SONNET_UNTIL[ajan]) ? SONNET : OPUS;
+  return 'Claude';
+}
 const DEFAULT_PURPOSE = {
   visual: 'Görselleri kodla çizen kodu yazdı',
   audio: 'Sesleri kodla üreten kodu yazdı',
@@ -64,6 +73,8 @@ const log = existsSync(LOG)
         }
       })
       .filter(Boolean)
+      // Beyan dosyalarının kendisi (ör. docs/ai-ozet.json) yer listesine girmez; kayıt satırı dosyada kalır.
+      .filter((e) => !isIgnored(e.dosya ?? ''))
   : [];
 
 const unique = (list) => [...new Set(list.filter(Boolean))];
@@ -84,7 +95,7 @@ const result = {};
 for (const { id } of CATEGORIES) {
   const auto = log.filter((e) => e.kategori === id);
   const hand = manual.filter((e) => e.kategori === id);
-  const models = unique([...hand.map((e) => e.model), ...auto.map((e) => MODEL_OF[e.ajan] ?? 'Claude')]);
+  const models = unique([...hand.map((e) => e.model), ...auto.map(modelOf)]);
   const purposes = unique(hand.map((e) => e.amac));
   if (auto.length && purposes.length === 0) purposes.push(DEFAULT_PURPOSE[id]);
   result[id] = {
