@@ -245,3 +245,5 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 22:52 · G56 bitti (c9ef294, opus/high): Takım bölümü Türkçe, Egemen AYVAZ · Takım Lideri; README aynı; HD/720p taşmasız · G56 testi başladı (opus/low, teslim/test-c9ef294)
 - 22:54 · Test (G56, opus/low, hatasız): üç satır harf harf doğru (HD/720p), Türkçe karakterler doğru, taşma yok, README uyumlu GEÇTİ · Karar: G56 yayına
 - 22:55 · G56 canlıda (e4ef331; JS paketinde hash ve 'Takım Lideri', canlı smoke doğrulandı; son-saglam taşındı) · Açık teknik görev yok
+- 22:58 · Takım bulgusu: yanlış kararın bedeli hissedilmiyor, ekip zarfı seçiyor (yanlış karar −30 TL, zarf +60–100 TL: zarf her durumda kârlı)
+- 22:58 · Karar (takım, lider önerisiyle): müfettiş: zarf alınıp yanlış kaşe vurulan dosya gün sonunda %50 olasılıkla (tohuma bağlı) ortaya çıkar, zarfa el konur ve 40 TL ceza; GERİ VER için gazete ve sonuçta övgü (prim yok) · Neden: zarf kumar olsun, iki sonuç da jürinin 2 dakikasında görünsün; "rüşvet aileni koruyabilir" ikilemi kalsın · Özellik dondurma bu iş için 01.00'e kaydı (takım onayı) · G57 geliştiricide
