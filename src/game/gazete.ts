@@ -303,12 +303,16 @@ function zarfSonucu(kim: string, coken: number, hasarli: number): string {
   return `${kim} ${hasarli} bina depremde hasar gördü`;
 }
 
-/** Sonuç ekranındaki zarf satırı (kabul edilen zarf yoksa null). */
-export function zarfOzeti(adet: number, toplam: number, s: readonly DepremBinaSonucu[]): string | null {
+/**
+ * Sonuç ekranındaki zarf satırı (kabul edilen zarf yoksa null). G57b (lider kararı; metinler aynen): müfettişin el
+ * koyduğu zarf varsa toplamın yanında "(el konuldu)" ya da "({elKonan} zarfa el konuldu)".
+ */
+export function zarfOzeti(adet: number, toplam: number, s: readonly DepremBinaSonucu[], elKonan = 0): string | null {
   if (adet === 0) return null;
   const coken = s.filter((b) => b.zarf && b.coktu).length;
   const hasarli = s.filter((b) => b.zarf && !b.coktu && b.durum !== 'ayakta').length;
-  return `Kabul edilen zarf: ${adet}, toplam ${toplam} TL${coken + hasarli > 0 ? ` · ${zarfSonucu('zarf alınan', coken, hasarli)}` : ''}`;
+  const el = elKonan <= 0 ? '' : elKonan >= adet ? ' (el konuldu)' : ` (${elKonan} zarfa el konuldu)`;
+  return `Kabul edilen zarf: ${adet}, toplam ${toplam} TL${el}${coken + hasarli > 0 ? ` · ${zarfSonucu('zarf alınan', coken, hasarli)}` : ''}`;
 }
 
 // ---- G21 kısa yol ("Büyük deprem bu gece olsaydı?") ----

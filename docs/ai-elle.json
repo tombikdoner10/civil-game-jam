@@ -407,5 +407,19 @@
     "yer": "src/game/session.ts, src/game/ev.ts, src/game/gazete.ts, src/game/tuning.ts, src/scenes/DayEndScene.ts, src/scenes/NewspaperScene.ts, src/scenes/ResultScene.ts, scripts/adalet.mjs",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T20:21:03.406Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G57b: DayEndScene yorum satırını sed ile güncelleme",
+    "yer": "src/scenes/DayEndScene.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T20:23:49.981Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G57b: gazete.ts ve ResultScene.ts zarf özeti betikle düzenlendi; DayEndScene.ts müfettiş/kısa yol sırası betikle düzenlendi",
+    "yer": "src/game/gazete.ts, src/scenes/ResultScene.ts, src/scenes/DayEndScene.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T20:35:20.789Z"
   }
 ]

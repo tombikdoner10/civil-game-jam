@@ -159,7 +159,7 @@ export class ResultScene extends Phaser.Scene {
       mufettis += h.mufettis;
       ret += h.zarfTeklif - h.zarfKabul;
     }
-    const zarfOz = zarfOzeti(zarfAdet, zarfTL, kisa ? juriSonuc : v.sonuclar);
+    const zarfOz = zarfOzeti(zarfAdet, zarfTL, kisa ? juriSonuc : v.sonuclar, mufettis);
     const muf = mufettis > 0 ? MUFETTIS_SONUC(mufettis) : null;
     // G26: satır "Birikmiş para"nın solundaki boşlukta kalır (arada 40 px); uzunsa en çok iki satıra bölünür ve
     // küçülür, alttaki çizgiye ve üstteki TOPLAM satırına değmez. G57: müfettiş notu (kırmızı) ve geri verilen zarf

@@ -95,7 +95,13 @@ export const ZARF_GAZETE = 'Denetçinin masasında zarf bulundu';
 export const MUFETTIS_RAPOR = (bina: string, ceza: number): string => `Müfettiş: ${bina} dosyasındaki zarf ortaya çıktı. Zarfa el konuldu, ${ceza} TL ceza.`;
 export const MUFETTIS_GELMEDI = 'Müfettiş bu akşam gelmedi.';
 export const MUFETTIS_CEZA_SATIR = 'Müfettiş cezası';
-export const MUFETTIS_GAZETE = 'Müfettiş denetçinin zarfına el koymuştu';
+/**
+ * G57b: gün sonu raporundaki zarf özeti, el konan zarf varsa (lider kararı; metinler aynen). k: kabul edilen zarf
+ * sayısı (el konanlar dahil), m: el konan, tutar: el konmayanların toplamı.
+ */
+export const MUFETTIS_ZARF_OZET = (tutar: string, k: number, m: number): string =>
+  m >= k ? (m > 1 ? `Zarf: ${m} zarfa el konuldu` : 'Zarf: el konuldu') : `Zarf: +${tutar} (${k} kabul, ${m} el konuldu)`;
+export const MUFETTIS_GAZETE ='Müfettiş denetçinin zarfına el koymuştu';
 export const RET_GAZETE = 'Denetçi rüşveti geri çevirdi';
 export const MUFETTIS_SONUC = (n: number): string => (n === 1 ? 'Müfettiş zarfına el koydu' : `Müfettiş ${n} zarfına el koydu`);
 export const RET_SONUC = (n: number): string => (n === 1 ? 'Rüşveti geri çevirdin' : `Rüşveti ${n} kez geri çevirdin`);

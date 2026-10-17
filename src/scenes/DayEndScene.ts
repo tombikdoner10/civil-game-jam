@@ -8,7 +8,7 @@ import { hazirGostergesi, masaCiz, pikselDugme, pikselDugmeEni } from '../desk/p
 import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
 import type { Damga } from '../game/building';
 import { SON_GUN } from '../game/days';
-import { MUFETTIS_CEZA_SATIR, MUFETTIS_GELMEDI, MUFETTIS_RAPOR, ZARF_ETIKET } from '../game/diyalog';
+import { MUFETTIS_CEZA_SATIR, MUFETTIS_GELMEDI, MUFETTIS_RAPOR, MUFETTIS_ZARF_OZET, ZARF_ETIKET } from '../game/diyalog';
 import { KISA_YOL_ACIKLAMA, KISA_YOL_DEVAM, KISA_YOL_DUGME, kucukDepremSatiri } from '../game/gazete';
 import { alimDurumu, EV_KADEME, EV_KALEMLER, evHarcanan, evKademe, satinAl, siradakiFiyat, yeniEv, zarfToplami, type EvHazirlik, type EvKalem } from '../game/ev';
 import { EV_ALIM_ETIKET, EV_ALT, EV_BASLIK, EV_IPUCU, EV_KADEME_METIN, EV_KALEM_METIN, EV_PARAN, EV_TAMAM_METIN, evAlindi, evHarcananSatiri, evKademeBasligi } from '../game/ev-metin';
@@ -168,7 +168,8 @@ export class DayEndScene extends Phaser.Scene {
       .map((d) => [MUFETTIS_RAPOR(d.adres, TUNING.mufettis.ceza), PAL.damgaBosalt]);
     if (mufSatirlar.length === 0 && v.kararlar.some((k) => k.zarf?.kabul && !k.dogru)) mufSatirlar.push([MUFETTIS_GELMEDI, PAL.murekkepSoluk]);
     const kisaVarOn = v.gun === 1 && v.gun < SON_GUN;
-    // Müfettiş satırlarının üstündeki satırlar: küçük deprem (56) ve gün 1'de kısa yol açıklaması ile devam satırı (88).
+    // Tablonun altındaki blok (G57b): küçük deprem (56) → müfettiş satırları → gün 1'de kısa yol açıklaması ile devam
+    // satırı (88, düğmelere yakın en altta). mufUst: küçük deprem ile kısa yol satırlarının bloğa kattığı yükseklik.
     const mufUst = (v.oncu ? 56 : 0) + (kisaVarOn ? 88 : 0);
     const m = mufSatirlar.length;
     const n = Math.max(1, v.dosyalar.length);
@@ -239,14 +240,17 @@ export class DayEndScene extends Phaser.Scene {
       oncuH = 56;
     }
 
-    // G57 müfettiş satırları: küçük deprem satırının (gün 1'de kısa yol açıklamasının) altında.
-    const mufY = y + 20 + mufUst;
+    // G57 müfettiş satırları: küçük deprem satırının hemen altında (yoksa tablonun); gün 1'de kısa yol çağrısı
+    // onların altında (G57b).
+    const mufY = y + 20 + oncuH;
+    // Kısa yol açıklamasının yeri: müfettiş satırlarının altında; son satırın merkezi eski yerleşimle aynı kalır.
+    const kisaY = mufY + (m > 0 ? m * MUF.ara + 4 : 0);
     mufSatirlar.forEach(([metin, renk], i) => {
       const satir = this.sigdir(yaz(L + 40, mufY + i * MUF.ara, metin, MUF.boy, renk), KAGIT.w - 80);
       satir.setAlpha(0);
       this.tweens.add({ targets: satir, alpha: 1, duration: 160, delay: 200 + v.dosyalar.length * 90 + 240 + i * 90 });
     });
-    const mufAlt = m > 0 ? mufY + (m - 1) * MUF.ara + 47 : 0;
+    const mufAlt = m > 0 ? (kisaVarOn ? kisaY + 44 : mufY + (m - 1) * MUF.ara) + 47 : 0;
 
     // Hesap
     const P = TUNING.para;
@@ -273,7 +277,13 @@ export class DayEndScene extends Phaser.Scene {
     // Zarf (G17): kabul edilenler günün toplamına eklenir; ayrı satır.
     if (hesap.zarfTeklif > 0) {
       const ret = hesap.zarfTeklif - hesap.zarfKabul;
-      const metin = hesap.zarfKabul > 0 ? `Zarf: +${para(hesap.zarf)} (${hesap.zarfKabul} kabul${ret > 0 ? `, ${ret} ret` : ''})` : `Zarf: ${ret} ret`;
+      // G57b: el konan zarf varsa özet ona göre (hepsine ya da bir kısmına el konuldu).
+      const metin =
+        hesap.mufettis > 0
+          ? MUFETTIS_ZARF_OZET(para(hesap.zarf), hesap.zarfKabul, hesap.mufettis)
+          : hesap.zarfKabul > 0
+            ? `Zarf: +${para(hesap.zarf)} (${hesap.zarfKabul} kabul${ret > 0 ? `, ${ret} ret` : ''})`
+            : `Zarf: ${ret} ret`;
       yaz(sol, sy, metin, 34, hesap.zarfKabul > 0 ? PAL.damgaBosalt : PAL.murekkepSoluk);
     }
     const ad = L + 640;
@@ -374,10 +384,10 @@ export class DayEndScene extends Phaser.Scene {
         .setStrokeStyle(PX, num(PAL.damgaBosalt))
         .setAlpha(0);
       this.tweens.add({ targets: odak, alpha: { from: 1, to: 0.25 }, duration: 600, delay: 600, yoyo: true, repeat: -1, ease: 'Stepped', easeParams: [3] });
-      // Açıklama: küçük deprem satırının altında (yer tutucu); altında oyunun sonra sürdüğünü söyleyen satır (G11).
-      const ac = yaz(L + 40, y + 20 + oncuH, KISA_YOL_ACIKLAMA, 32, PAL.damgaBosalt);
+      // Açıklama: küçük deprem ve müfettiş satırlarının altında (G57b); altında oyunun sonra sürdüğünü söyleyen satır (G11).
+      const ac = yaz(L + 40, kisaY, KISA_YOL_ACIKLAMA, 32, PAL.damgaBosalt);
       this.sigdir(ac, KAGIT.w - 80);
-      const devamSatiri = yaz(L + 40, y + 20 + oncuH + 44, KISA_YOL_DEVAM, 30, PAL.murekkepSoluk);
+      const devamSatiri = yaz(L + 40, kisaY + 44, KISA_YOL_DEVAM, 30, PAL.murekkepSoluk);
       this.sigdir(devamSatiri, KAGIT.w - 80);
       for (const o of [ac, devamSatiri]) {
         o.setAlpha(0);
