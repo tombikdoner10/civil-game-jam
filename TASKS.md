@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G26 [teknik] (sürüyor, Opus/high) Küçük: 5 günlük sonuçta zarf satırı "Birikmiş para" yazısına biniyor (ayrı satır); gün sonu raporu açılırken (karartma) basılan Enter yutulmasın, kararma bitince işlensin; yanlış fiş kural notunun alt kenarına biniyor (gün 1).
 
 ## Sırada
 
@@ -54,6 +53,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G26 Küçük cila: zarf satırı sonuçta çakışmıyor, rapordaki ilk Enter bekletiliyor, gün 1 fişi kural notuna binmiyor; Esc sonrası işaretler kasıtlı (f7dae8b, Opus/high; test sürüyor)
 - [x] G6, G7, G9, G10: KESİLDİ (büyüteç, cetvel, eski baskı/aile, kendi binan ayrı görevi; eleştirmen 2, 17 Ekim 01:26; zarf G9'un yerini aldı, kendi binan hikâye binası olarak var)
 
 - [x] G8 [teknik] Karot presi: KESİLDİ (eleştirmen, 16 Ekim 21.23; kapsam)
