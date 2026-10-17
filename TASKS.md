@@ -8,10 +8,10 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G61b [teknik] (bitti c9a64d7, G61 ile birlikte test sürüyor, Opus/low) Interface Sounds kullanım metni (saha testi sesleri), UI Audio "Menü ve ekran düğmeleri"; vaziyet planında Ada/Parsel satırının tamamı seçilebilir.
-- [ ] G61 [teknik] (bitti a06ebf8; test G61b ile birlikte) Emeği Geçenler beyan düzeltmeleri: UI Audio kullanımı ve "değiştirildi" (konuşma balonu sesi), Interface Sounds ifadesi, AI Diğer araç satırına Fable 5.1 (eleştirmen 9), Takımın kararlarına müfettiş maddesi; README ve AI_BEYAN aynı.
 
 ## Sırada
+
+- [ ] G62 [teknik] (sabah, kod dondurmadan önce) Kartlarda "Beton dayanımı"/"Zemin türü" ve getirilen raporda "Tarih"/"Lab mührü" satırlarının etiket kısmı da seçilebilsin.
 
 Son test (xhigh, 78/100) sonrası (G34, G36, G35, G38, G37 bitti; sırada G31)
 
@@ -75,6 +75,8 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G61b Ses beyan metinleri tamamlandı (saha testi sesleri, ekran düğmeleri); Ada/Parsel satırının tamamı seçilebilir (c9a64d7, Opus/high; test GEÇTİ)
+- [x] G61 Beyan düzeltmeleri: UI Audio, Fable 5.1 (Diğer), Müfettiş kararı; ipucu kusur bulununca çıkmaz (a06ebf8, Opus/high; test GEÇTİ)
 - [x] G60 Başka binanın belgesinde ipucu; sonuçta okunur zarf satırları (ed6414e, Opus/high; test GEÇTİ, 9 koşu)
 - [x] G59 Eleştirmen 10 metin cilası: zarf uyarısında "Müfettiş gelebilir.", gazetede "güçlendirme kararı verilmişti", "geçerlisini İSTE", klasörde satır sonu noktasız (07d91c0, Opus/high; test GEÇTİ)
 - [x] G58 Gün sonu raporu içeriğe göre yerleşir, taşmaz (8be5b23, Opus/high; test GEÇTİ, 7 koşu)
