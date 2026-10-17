@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G31d [teknik] (bitti 4c71006, test sürüyor, Opus/low) G31c testinin kalan cilası: kısa yol gazetesinde satır sonunda asılı "·"; Emeği Geçenler kenar şeridinde yarım satırlar hâlâ okunuyor; çekingen SOR cevabında "bilmem ama." noktası.
 
 ## Sırada
 
@@ -74,6 +73,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G31d G31c testinin kalan cilası: gazete "·" yalnızca kalemler arasında, Emeği Geçenler maskesi satıra oturuyor, "Ben pek bilmem ama..." (4c71006, Opus/high; test GEÇTİ)
 - [x] G31c G31 testinin cila bulguları: gün sonu cümlesi, kaçak kat diyalogları nötr, EVİN "Sıradaki:", "Bunlardan boşaltılmış", İADE "çöken: N", gazetede kalemler arası kırma, ruhsat kat satırı çerçeve içinde, Emeği Geçenler kenar şeridi (ba47f38, Opus/high; test GEÇTİ, 8 koşu hatasız)
 - [x] G31b Ruhsat diyaloglarında mühür → ruhsat tarihi; klasörde "Kural:" öneki yok; ev kademe adları büyük harf (d432259, Opus/high; test GEÇTİ, 5 koşu hatasız)
 - [x] G31 Lider onaylı metinler oyunda: Kâğıt Üstünde, Dereboyu Postası, yer tutucu 553 → 0, Ruhsat tarihi / Ruhsatsız yapı, sadeleştirme satırı, ev metinleri, hikâye binaları, Takımın kararları, dürüst AI beyanı; adalet 567025/0 (766b2d8 + 473cea7, Opus/high; test GEÇTİ, 9 koşu hatasız)

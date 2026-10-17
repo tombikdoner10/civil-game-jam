@@ -103,7 +103,7 @@ Proje yalnızca bu bilgisayarda yürür. Bulut oturumu, bulut rutini (RemoteTrig
 - `npm run check`: tip denetimi; her değişiklikten sonra
 - `npm run build`: tip denetimi + `dist/` (web sürümü)
 - `npm run zip`: tek dosyalık sürümü `dist-single/`e derler, teslim ZIP'ini `teslim/` altına yazar (`OYNA.html` + `docs/BENIOKU.txt`)
-- `npm run smoke [adres-ya-da-dosya] [-- --senaryo dosya.json]`: görünmez tarayıcıda açar, tıklar, ekran görüntüsü alır, sayfa hatalarını yazar
+- `npm run smoke -- [adres-ya-da-dosya] [çıktı-klasörü] [--hd] [--senaryo dosya.json]`: görünmez tarayıcıda açar, tıklar, ekran görüntüsü alır, sayfa hatalarını yazar. Bayraklar `--` işaretinden sonra yazılır; önce yazılan `--hd`yi npm yutar ve koşu 720p olur. Smoke koşuları sırayla çalıştırılır, aynı anda iki koşu birbirini bozar.
 - `npm run beyan`: AI beyanını yeniden üretir
 - `npm run durum`: jam durumu ve sıradaki iş
 - `main`'e push → GitHub Actions → GitHub Pages: https://tombikdoner10.github.io/civil-game-jam/
