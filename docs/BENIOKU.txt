@@ -17,17 +17,36 @@ OYNANIŞ
 - Amaç: (takım yazacak)
 - Her dosyada belgeleri karşılaştır, tutarsızlığı inceleme modunda bul,
   kaşeyle karar ver (GÜVENLİ / GÜÇLENDİR / BOŞALT / İADE).
+- Hızlı deneme (yaklaşık 3 dakika): 1. günü bitir, gün sonu raporunda
+  Enter ya da kırmızı düğme -> büyük deprem, gazete ve sonuç ekranı.
+  Sonuç ekranından 2. günden devam edilebilir.
 
 KONTROLLER
+Masa
 - Fare ile belgeyi sürükle: belgeyi masada taşı
-- Fare ile kaşeye tıkla: kaşe ruhsata vurulur (karar)
-- 1 / 2 / 3 / 4: GÜVENLİ / GÜÇLENDİR / BOŞALT / İADE kaşesi
-- Space: inceleme modunu aç / kapa (inceleme modunda iki alana tıkla)
-- Yönetmelik klasörüne tıkla: kuralları aç (gün 2'den)
-- Esc ya da P: duraklat
-- Enter ya da Space: gün sonu raporunda sonraki gün (gün 1 raporunda kısa yol)
-- N: gün 1 sonu raporunda sonraki gün
-- D: gün 1 sonu raporunda "[Büyük deprem bu gece olsaydı?]" (büyük depreme kısa yol)
+- Kaşeye tıkla (ya da kaşeyi ruhsata sürükle): karar ver
+- 1 / 2 / 3 / 4: GÜVENLİ / GÜÇLENDİR / BOŞALT / İADE kaşesi (İADE 3. günden)
+- Space ya da İNCELE düğmesi: inceleme modunu aç / kapa;
+  inceleme modunda birbiriyle çelişen iki alana tıkla
+- Yönetmelik klasörüne tıkla: kuralları aç (2. günden)
+- Esc ya da P: duraklat (inceleme modu açıksa önce onu kapatır)
+Gişe
+- Kusur etiketindeki SOR: kusuru mal sahibine sor
+- İSTE: eksik ya da geçersiz belgenin aslını iste
+- SAHA: Schmidt çekiciyle saha testi (temiz yüzeye tıkla; Space ya da
+  Enter: notu al; Esc: vazgeç). Mesaiden süre yer, hakkı sınırlıdır.
+- Zarf: AL ya da GERİ VER (zarfı çekmeceye ya da gişeye sürükleyerek de);
+  zarfa karar verene kadar kaşeler kilitlidir
+Gün sonu, deprem, sonuç
+- Enter ya da Space: gün sonu raporunda sonraki gün
+  (1. gün raporunda büyük deprem kısa yolu)
+- N: 1. gün raporunda 2. güne geç; D: 1. gün raporunda büyük deprem
+- Deprem sırasında Enter, Space ya da tıklama: hızlandır
+- Gazete: Enter ya da Space ile devam
+- Sonuç ekranı: Enter (kısa yolda 2. günden devam, 5. gün sonunda yeniden oyna),
+  R: yeniden oyna (kısa yolda), Esc: ana menü
+Menüler
+- Fare, ya da yukarı/aşağı ok ve Enter. Ayarlar: ses, müzik, ekran sarsıntısı.
 
 BİLİNEN SORUNLAR
 - Yok.

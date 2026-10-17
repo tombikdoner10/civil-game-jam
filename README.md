@@ -32,6 +32,10 @@ _Tema açıklandıktan sonra yazılacak._
 | Fare: yönetmelik klasörüne tıkla | Klasörü aç; sekmeler bölümleri, X kapatır (gün 2'den) |
 | Esc / P | Duraklat (inceleme modu açıksa önce onu kapatır) |
 | Enter / Space | Gün sonu raporunda sonraki gün (gün 1 raporunda kısa yol); gazetede devam |
+| SAHA (rapor yok kartında) | Schmidt çekiciyle saha testi: temiz yüzeye tıkla; Space / Enter notu alır, Esc vazgeçer (mesaiden süre yer) |
+| Zarf: AL / GERİ VER | Zarfı al ya da geri ver (çekmeceye ya da gişeye sürüklemek de olur); karar verilene kadar kaşeler kilitli |
+| Enter / Space / tıklama | Deprem sırasında hızlandır |
+| Sonuç ekranında Enter / R / Esc | Kısa yolda 2. günden devam (5. gün sonunda yeniden oyna) / yeniden oyna (kısa yolda) / ana menü |
 | N | Gün 1 sonu raporunda sonraki gün |
 | D | Gün 1 sonu raporunda "[Büyük deprem bu gece olsaydı?]" (büyük depreme kısa yol) |
 | ↑ ↓ (W S), Enter | Menülerde gezinme ve seçim |
