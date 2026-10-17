@@ -51,13 +51,23 @@ const EV_KART = { ust: 152, h: 212, ara: 14, kenar: 24, kutu: 20, kutuAra: 8 };
 const EV_SOLUK = 0.45;
 const SATIR_H = 52;
 /**
- * G57 müfettiş satırları: satır aralığı ve yazı boyu; satırlar hesap bloğunun üstüne sığmazsa tablo satırları en çok
- * SATIR_EN_AZ'a kadar sıkışır (gün 5'te 8 dosya). Müfettiş cezası satırı varsa para tablosu satır aralığı PARA_SIKI.
+ * G57 müfettiş satırları: satır aralığı ve yazı boyu. Müfettiş cezası satırı varsa para tablosu satır aralığı PARA_SIKI.
+ * G58: rapor gövdesi içeriğe göre yerleşir; düğmelerin üstüne sığmazsa sırasıyla bilgi satırlarının aralığı daralır,
+ * dosya tablosunun satır aralığı SATIR_EN_AZ'a iner, para tablosunun satır aralığı PARA_EN_AZ'a iner, en son bilgi
+ * satırlarının yazısı BILGI_EN_AZ'a kadar küçülür.
  */
 const MUF = { ara: 40, boy: 30 };
 const SATIR_EN_AZ = 40;
 const PARA_ARA = 48;
 const PARA_SIKI = 40;
+const PARA_EN_AZ = 36;
+/** Bilgi satırlarının (küçük deprem, müfettiş, kısa yol çağrısı) en küçük yazı boyu; sığmayan satır iki satıra kayar. */
+const BILGI_EN_AZ = 22;
+/**
+ * Hesap bloğunun son satırlarının merkezi düğme merkezinin en az bu kadar üstünde (G58): sağda "Birikmiş" (44 px)
+ * gün 1'deki odak çerçevesinin üstünde, solda zarf satırı (34 px) düğmenin üstünde kalır.
+ */
+const HESAP_ALT = { para: 68, sol: 52 };
 /**
  * Sütunların sol kenarı (kâğıdın solundan). G55: sıra numarası (NO) sütunu kalktı; bina adı sokak boyunca tek
  * numara taşıyor. BİNA ilk sütun, kazanılan yer BULDUĞUN KUSURLAR'a gitti.
@@ -121,6 +131,8 @@ export class DayEndScene extends Phaser.Scene {
   private evParaYazi?: Phaser.GameObjects.Text;
   private evHarcananYazi?: Phaser.GameObjects.Text;
   private evKartlar: EvKarti[] = [];
+  /** Yazı boyuna göre tek satır yüksekliği (G58). */
+  private tekYuk = new Map<number, number>();
 
   constructor() {
     super(SCENES.DayEnd);
@@ -168,16 +180,125 @@ export class DayEndScene extends Phaser.Scene {
       .map((d) => [MUFETTIS_RAPOR(d.adres, TUNING.mufettis.ceza), PAL.damgaBosalt]);
     if (mufSatirlar.length === 0 && v.kararlar.some((k) => k.zarf?.kabul && !k.dogru)) mufSatirlar.push([MUFETTIS_GELMEDI, PAL.murekkepSoluk]);
     const kisaVarOn = v.gun === 1 && v.gun < SON_GUN;
-    // Tablonun altındaki blok (G57b): küçük deprem (56) → müfettiş satırları → gün 1'de kısa yol açıklaması ile devam
-    // satırı (88, düğmelere yakın en altta). mufUst: küçük deprem ile kısa yol satırlarının bloğa kattığı yükseklik.
-    const mufUst = (v.oncu ? 56 : 0) + (kisaVarOn ? 88 : 0);
     const m = mufSatirlar.length;
-    const n = Math.max(1, v.dosyalar.length);
-    // Son müfettiş satırı hesap bloğunun (T + 680) üstünde kalsın; gerekirse tablo satırları sıkışır.
-    const satirH = m > 0 ? Math.max(SATIR_EN_AZ, Math.min(SATIR_H, Math.floor((T + 680 - 319 - mufUst - MUF.ara * (m - 1)) / (n + 0.5)))) : SATIR_H;
+    const n = v.dosyalar.length;
+    const bas = T + 180;
+    const by = T + KAGIT.h - 64;
+
+    // Tablonun altındaki bilgi satırları (G57b sırası): küçük deprem → müfettiş satırları → gün 1'de kısa yol açıklaması
+    // ile devam satırı. ara: tek satırlıkken önceki satırın merkezinden (ilk satırda tablonun bitişinden) uzaklık.
+    const bilgiler: { t: Phaser.GameObjects.Text; boy: number; ara: number }[] = [];
+    const bilgiEkle = (metin: string, renk: string, boy: number, ara: number, gecikme: number): void => {
+      const t = this.add.text(snap(L + 40), 0, metin, { fontFamily: FONT, fontSize: `${boy}px`, color: renk }).setOrigin(0, 0.5).setAlpha(0);
+      this.tweens.add({ targets: t, alpha: 1, duration: 160, delay: gecikme });
+      bilgiler.push({ t, boy, ara });
+    };
+    const ILK_ARA = 20;
+    if (v.oncu) {
+      // Öncü sarsıntı satırı (yer tutucu metin). Tek sayı ve tek liste (G25): çatlayan her bina damgası ve içinde insan
+      // olup olmadığıyla, dosya sırasıyla.
+      const sira = new Map(v.dosyalar.map((d, i) => [d.id, i]));
+      const adres = new Map(v.dosyalar.map((d) => [d.id, d.adres]));
+      const catlayan = v.oncu.sonuclar
+        .filter((s) => s.durum !== 'ayakta')
+        .sort((a, b) => (sira.get(a.dosyaId) ?? 0) - (sira.get(b.dosyaId) ?? 0));
+      const metin = kucukDepremSatiri(
+        catlayan.map((s) => ({ ad: adres.get(s.dosyaId) ?? s.dosyaId, damga: kararSira.get(s.dosyaId)?.damga ?? 'guvenli', bos: s.bos })),
+      );
+      const kotu = catlayan.some((s) => !s.bos);
+      bilgiEkle(metin, kotu ? PAL.damgaBosalt : PAL.damgaGuvenli, 34, ILK_ARA, 200 + n * 90 + 120);
+    }
+    // G57 müfettiş satırları: küçük deprem satırının altında (yoksa tablonun).
+    mufSatirlar.forEach(([metin, renk], i) =>
+      bilgiEkle(metin, renk, MUF.boy, i > 0 ? MUF.ara : v.oncu ? 56 : ILK_ARA, 200 + n * 90 + 240 + i * 90),
+    );
+    if (kisaVarOn) {
+      // Kısa yol açıklaması (G57b: müfettiş satırlarının altında); altında oyunun sonra sürdüğünü söyleyen satır (G11).
+      bilgiEkle(KISA_YOL_ACIKLAMA, PAL.damgaBosalt, 32, m > 0 ? MUF.ara + 4 : v.oncu ? 56 : ILK_ARA, 400);
+      bilgiEkle(KISA_YOL_DEVAM, PAL.murekkepSoluk, 30, 44, 400);
+    }
+
+    // Para tablosunun satırları (yerleşimden önce: satır sayısı hesap bloğunun yüksekliğini belirler).
+    const P = TUNING.para;
+    const satirlar: [string, string, string][] = [
+      [`Maaş (${hesap.dogru} × ${P.maas})`, `+${para(hesap.maas)}`, PAL.murekkep],
+      [`Ceza (${hesap.yanlis} × ${P.ceza})`, hesap.ceza > 0 ? para(-hesap.ceza) : para(0), PAL.damgaBosalt],
+    ];
+    // G57: müfettiş cezası ayrı satır; el konan zarf "zarf dahil" toplamına girmez (hesap.zarf yalnızca yakalanmayanlar).
+    if (hesap.mufettis > 0) satirlar.push([MUFETTIS_CEZA_SATIR, para(-hesap.mufettisCeza), PAL.damgaBosalt]);
+    const toplamI = satirlar.length;
+    const birikmisI = toplamI + 1;
+    satirlar.push([hesap.zarf > 0 ? 'Günün toplamı (zarf dahil)' : 'Günün toplamı', para(hesap.toplam), PAL.murekkep], ['Birikmiş', para(yeniPara), PAL.murekkep]);
+    // Sol sütunun satır aralığı (para tablosu sıkışınca o da sıkışır).
+    const SA = 42;
+    const solAra = (pa: number): number => Math.min(SA, pa + 2);
+
+    // G58 yerleşim: hesap bloğu (para tablosu satır aralığı pa ile) en geç hesapEnGec'te başlarsa düğmelerin üstünde kalır.
+    const hesapEnGec = (pa: number): number => {
+      const sa = solAra(pa);
+      const paraSon = 24 + (satirlar.length - 1) * pa + (pa < PARA_ARA ? 4 : 0);
+      const solSon = 24 + sa * (hesap.islenmeyen > 0 ? 3 : 2) + 12 + (hesap.zarfTeklif > 0 ? sa : 0);
+      return Math.min(by - HESAP_ALT.para - paraSon, by - HESAP_ALT.sol - solSon);
+    };
+    // Bilgi satırlarının merkezleri ve hesap bloğunun en erken başlangıcı (sh: dosya tablosu satır aralığı; f: bilgi
+    // satırlarının aralığı, 1 eski aralıklar, 0 en sıkışık). Çok satırlı (kaymış) yazı fazla yüksekliği kadar yer açar.
+    const bilgiYerles = (sh: number, f: number): { ys: number[]; ust: number } => {
+      const y = bas + 24 + sh / 2 + 8 + n * sh;
+      // Aralıklar piksel ızgarasına yukarı yuvarlanır (satırlar eşit aralıklı kalsın, en az aralığın altına inmesin).
+      const sik = (eski: number, enAz: number): number => Math.ceil((enAz + f * Math.max(0, eski - enAz)) / PX) * PX;
+      const ys: number[] = [];
+      let c = y;
+      let oncekiH = 0;
+      let oncekiEk = 0;
+      bilgiler.forEach((b, i) => {
+        const h = b.t.height;
+        const ek = (h - this.tekSatirYuk(parseInt(String(b.t.style.fontSize), 10))) / 2;
+        c += i === 0 ? sik(b.ara + ek, -sh / 2 + 8 + h / 2) : sik(b.ara + oncekiEk + ek, (oncekiH + h) / 2 + 4);
+        ys.push(c);
+        oncekiH = h;
+        oncekiEk = ek;
+      });
+      return { ys, ust: bilgiler.length > 0 ? c + sik(47 + oncekiEk, oncekiH / 2 + 22) : y + 24 };
+    };
+    const bilgiBoy = (kucult: number): void => {
+      for (const b of bilgiler) this.bilgiBoyKur(b.t, Math.max(BILGI_EN_AZ, b.boy - kucult));
+    };
+    // Sığmazsa sırasıyla: bilgi aralığı, dosya tablosu, para tablosu, bilgi yazı boyu. Sonraki adıma geçildiyse önceki
+    // adımların sıkışması sığdığı kadar geri açılır.
+    let fAdim = 10;
+    let satirH = SATIR_H;
+    const paraVarsayilan = satirlar.length > 4 ? PARA_SIKI : PARA_ARA;
+    let paraAra = paraVarsayilan;
+    let kucult = 0;
+    bilgiBoy(0);
+    const sigar = (): boolean => bilgiYerles(satirH, fAdim / 10).ust <= hesapEnGec(paraAra);
+    const gevset = (): void => {
+      while (satirH < SATIR_H) {
+        satirH += PX;
+        if (!sigar()) {
+          satirH -= PX;
+          break;
+        }
+      }
+      while (fAdim < 10) {
+        fAdim++;
+        if (!sigar()) {
+          fAdim--;
+          break;
+        }
+      }
+    };
+    while (!sigar() && fAdim > 0) fAdim--;
+    while (!sigar() && satirH > SATIR_EN_AZ) satirH -= PX;
+    if (satirH < SATIR_H) gevset();
+    while (!sigar() && paraAra > PARA_EN_AZ) paraAra -= PX;
+    if (paraAra < paraVarsayilan) gevset();
+    while (!sigar() && kucult < 12) bilgiBoy((kucult += 2));
+    if (kucult > 0) gevset();
+    const yer = bilgiYerles(satirH, fAdim / 10);
+    bilgiler.forEach((b, i) => b.t.setY(snap(yer.ys[i])));
 
     // Tablo başlığı
-    const bas = T + 180;
     const basliklar: [number, string, number][] = [
       [SUTUN.bina, 'BİNA', 0],
       [SUTUN.damga, 'DAMGAN', 0],
@@ -220,42 +341,8 @@ export class DayEndScene extends Phaser.Scene {
       y += satirH;
     });
 
-    // Öncü sarsıntı satırı (yer tutucu metin)
-    let oncuH = 0;
-    if (v.oncu) {
-      // Tek sayı ve tek liste (G25): çatlayan her bina damgası ve içinde insan olup olmadığıyla, dosya sırasıyla.
-      const sira = new Map(v.dosyalar.map((d, i) => [d.id, i]));
-      const adres = new Map(v.dosyalar.map((d) => [d.id, d.adres]));
-      const catlayan = v.oncu.sonuclar
-        .filter((s) => s.durum !== 'ayakta')
-        .sort((a, b) => (sira.get(a.dosyaId) ?? 0) - (sira.get(b.dosyaId) ?? 0));
-      const metin = kucukDepremSatiri(
-        catlayan.map((s) => ({ ad: adres.get(s.dosyaId) ?? s.dosyaId, damga: kararlar.get(s.dosyaId)?.damga ?? 'guvenli', bos: s.bos })),
-      );
-      const kotu = catlayan.some((s) => !s.bos);
-      const satir = yaz(L + 40, y + 20, metin, 34, kotu ? PAL.damgaBosalt : PAL.damgaGuvenli);
-      this.sigdir(satir, KAGIT.w - 80);
-      satir.setAlpha(0);
-      this.tweens.add({ targets: satir, alpha: 1, duration: 160, delay: 200 + v.dosyalar.length * 90 + 120 });
-      oncuH = 56;
-    }
-
-    // G57 müfettiş satırları: küçük deprem satırının hemen altında (yoksa tablonun); gün 1'de kısa yol çağrısı
-    // onların altında (G57b).
-    const mufY = y + 20 + oncuH;
-    // Kısa yol açıklamasının yeri: müfettiş satırlarının altında; son satırın merkezi eski yerleşimle aynı kalır.
-    const kisaY = mufY + (m > 0 ? m * MUF.ara + 4 : 0);
-    mufSatirlar.forEach(([metin, renk], i) => {
-      const satir = this.sigdir(yaz(L + 40, mufY + i * MUF.ara, metin, MUF.boy, renk), KAGIT.w - 80);
-      satir.setAlpha(0);
-      this.tweens.add({ targets: satir, alpha: 1, duration: 160, delay: 200 + v.dosyalar.length * 90 + 240 + i * 90 });
-    });
-    const mufAlt = m > 0 ? (kisaVarOn ? kisaY + 44 : mufY + (m - 1) * MUF.ara) + 47 : 0;
-
-    // Hesap
-    const P = TUNING.para;
-    // Hesap bloğu düğmelerin odak çerçevesine değmesin (G11): en geç T + 680'de başlar.
-    const hy = Math.max(y + 24 + oncuH, mufAlt, T + 680);
+    // Hesap: bilgi satırlarının altında, düğmelerin üstüne sığdığı sürece eskisi gibi T + 680'de başlar (G11, G58).
+    const hy = Math.max(yer.ust, Math.min(T + 680, hesapEnGec(paraAra)));
     this.add.rectangle(L + 32, hy - 16, KAGIT.w - 64, PX, num(PAL.murekkepSoluk)).setOrigin(0);
     const sol = L + 40;
     // Sayılar toplanınca dosya sayısını verir (G5b): Doğru + Yanlış + İşlenmedi = dosya. İADE ayrı bir sayı değil;
@@ -263,17 +350,17 @@ export class DayEndScene extends Phaser.Scene {
     const iadeDogru = v.kararlar.filter((k) => k.damga === 'iade' && k.dogru).length;
     const iadeYanlis = v.kararlar.filter((k) => k.damga === 'iade' && !k.dogru).length;
     const icinde = (n: number): string => (n > 0 ? `  (içinde İADE: ${n})` : '');
-    const SA = 42;
+    const sa = solAra(paraAra);
     yaz(sol, hy + 24, `Doğru: ${hesap.dogru}${icinde(iadeDogru)}`, 34, PAL.damgaGuvenli);
-    yaz(sol, hy + 24 + SA, `Yanlış: ${hesap.yanlis}${icinde(iadeYanlis)}`, 34, PAL.damgaBosalt);
-    let sy = hy + 24 + SA * 2;
+    yaz(sol, hy + 24 + sa, `Yanlış: ${hesap.yanlis}${icinde(iadeYanlis)}`, 34, PAL.damgaBosalt);
+    let sy = hy + 24 + sa * 2;
     if (hesap.islenmeyen > 0) {
       yaz(sol, sy, `İşlenmedi: ${hesap.islenmeyen}`, 34, PAL.murekkepSoluk);
-      sy += SA;
+      sy += sa;
     }
     this.add.rectangle(sol, sy - 12, 240, PX, num(PAL.murekkepSoluk)).setOrigin(0);
     yaz(sol, sy + 12, `Toplam: ${v.dosyalar.length} dosya`, 34, PAL.murekkep);
-    sy += SA + 12;
+    sy += sa + 12;
     // Zarf (G17): kabul edilenler günün toplamına eklenir; ayrı satır.
     if (hesap.zarfTeklif > 0) {
       const ret = hesap.zarfTeklif - hesap.zarfKabul;
@@ -288,17 +375,6 @@ export class DayEndScene extends Phaser.Scene {
     }
     const ad = L + 640;
     const deger = L + KAGIT.w - 40;
-    const satirlar: [string, string, string][] = [
-      [`Maaş (${hesap.dogru} × ${P.maas})`, `+${para(hesap.maas)}`, PAL.murekkep],
-      [`Ceza (${hesap.yanlis} × ${P.ceza})`, hesap.ceza > 0 ? para(-hesap.ceza) : para(0), PAL.damgaBosalt],
-    ];
-    // G57: müfettiş cezası ayrı satır; el konan zarf "zarf dahil" toplamına girmez (hesap.zarf yalnızca yakalanmayanlar).
-    if (hesap.mufettis > 0) satirlar.push([MUFETTIS_CEZA_SATIR, para(-hesap.mufettisCeza), PAL.damgaBosalt]);
-    const toplamI = satirlar.length;
-    const birikmisI = toplamI + 1;
-    satirlar.push([hesap.zarf > 0 ? 'Günün toplamı (zarf dahil)' : 'Günün toplamı', para(hesap.toplam), PAL.murekkep], ['Birikmiş', para(yeniPara), PAL.murekkep]);
-    // Beş satırda (müfettiş cezası) satırlar sıkışır: "Birikmiş" düğmelere değmesin.
-    const paraAra = satirlar.length > 4 ? PARA_SIKI : PARA_ARA;
     const etiketler: Phaser.GameObjects.Text[] = [];
     const degerler: Phaser.GameObjects.Text[] = [];
     satirlar.forEach(([a, b, renk], i) => {
@@ -327,7 +403,6 @@ export class DayEndScene extends Phaser.Scene {
     // ikincil (gri, tıklama ya da N). Gün 2-5'te Enter/Space yine "Sonraki gün".
     const son = v.gun >= SON_GUN;
     const kisaVar = v.gun === 1 && !son;
-    const by = T + KAGIT.h - 64;
     const kb = this.input.keyboard;
     const tus = (): void => this.devam();
     const kisaTus = (): void => this.devam(true);
@@ -384,15 +459,7 @@ export class DayEndScene extends Phaser.Scene {
         .setStrokeStyle(PX, num(PAL.damgaBosalt))
         .setAlpha(0);
       this.tweens.add({ targets: odak, alpha: { from: 1, to: 0.25 }, duration: 600, delay: 600, yoyo: true, repeat: -1, ease: 'Stepped', easeParams: [3] });
-      // Açıklama: küçük deprem ve müfettiş satırlarının altında (G57b); altında oyunun sonra sürdüğünü söyleyen satır (G11).
-      const ac = yaz(L + 40, kisaY, KISA_YOL_ACIKLAMA, 32, PAL.damgaBosalt);
-      this.sigdir(ac, KAGIT.w - 80);
-      const devamSatiri = yaz(L + 40, kisaY + 44, KISA_YOL_DEVAM, 30, PAL.murekkepSoluk);
-      this.sigdir(devamSatiri, KAGIT.w - 80);
-      for (const o of [ac, devamSatiri]) {
-        o.setAlpha(0);
-        this.tweens.add({ targets: o, alpha: 1, duration: 160, delay: 400 });
-      }
+      // Açıklama satırları bilgi satırlarıyla birlikte yukarıda yerleşti (G58).
       kb?.on('keydown-ENTER', enterKisa);
       kb?.on('keydown-SPACE', kisaTus);
       kb?.on('keydown-D', kisaTus);
@@ -624,6 +691,35 @@ export class DayEndScene extends Phaser.Scene {
     t.setFontSize(boy);
     t.setText(s);
     this.sigdir(t, w);
+  }
+
+  /**
+   * Bilgi satırı (G58): kâğıdın iç genişliğine sığmazsa önce tek satırda en çok 6 px küçülür (alt sınır BILGI_EN_AZ);
+   * yine sığmazsa verilen boyda kâğıt içinde alt satıra kayar.
+   */
+  private bilgiBoyKur(t: Phaser.GameObjects.Text, boy: number): void {
+    const w = KAGIT.w - 80;
+    t.setWordWrapWidth(null);
+    let s = boy;
+    t.setFontSize(s);
+    const taban = Math.max(BILGI_EN_AZ, boy - 6);
+    while (t.width > w && s > taban) {
+      s -= 2;
+      t.setFontSize(s);
+    }
+    if (t.width > w) t.setFontSize(boy).setWordWrapWidth(w, true);
+  }
+
+  /** Verilen boyda tek satırlık yazının yüksekliği (G58; çok satırlı yazının fazla yüksekliğini bulmak için). */
+  private tekSatirYuk(boy: number): number {
+    let h = this.tekYuk.get(boy);
+    if (h === undefined) {
+      const t = this.add.text(0, 0, 'ÇĞİÖŞÜ gjy', { fontFamily: FONT, fontSize: `${boy}px` });
+      h = t.height;
+      t.destroy();
+      this.tekYuk.set(boy, h);
+    }
+    return h;
   }
 
   /** Metin genişliği aşarsa küçült. */
