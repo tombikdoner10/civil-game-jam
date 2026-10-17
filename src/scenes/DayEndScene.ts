@@ -50,8 +50,11 @@ const EV_KART = { ust: 152, h: 212, ara: 14, kenar: 24, kutu: 20, kutuAra: 8 };
 /** Para yetmeyen kalem kartının saydamlığı. */
 const EV_SOLUK = 0.45;
 const SATIR_H = 52;
-/** Sütunların sol kenarı (kâğıdın solundan). */
-const SUTUN = { no: 40, bina: 104, damga: 400, dogru: 640, kusur: 880, sonuc: KAGIT.w - 40 };
+/**
+ * Sütunların sol kenarı (kâğıdın solundan). G55: sıra numarası (NO) sütunu kalktı; bina adı sokak boyunca tek
+ * numara taşıyor. BİNA ilk sütun, kazanılan yer BULDUĞUN KUSURLAR'a gitti.
+ */
+const SUTUN = { bina: 40, damga: 336, dogru: 576, kusur: 816, sonuc: KAGIT.w - 40 };
 
 const para = (n: number): string => `${n < 0 ? '−' : ''}${Math.abs(n)} TL`;
 
@@ -152,7 +155,6 @@ export class DayEndScene extends Phaser.Scene {
     // Tablo başlığı
     const bas = T + 180;
     const basliklar: [number, string, number][] = [
-      [SUTUN.no, 'NO', 0],
       [SUTUN.bina, 'BİNA', 0],
       [SUTUN.damga, 'DAMGAN', 0],
       [SUTUN.dogru, 'DOĞRUSU', 0],
@@ -168,7 +170,6 @@ export class DayEndScene extends Phaser.Scene {
     v.dosyalar.forEach((d, i) => {
       const k = kararlar.get(d.id);
       const ogeler: Phaser.GameObjects.GameObject[] = [];
-      ogeler.push(yaz(L + SUTUN.no, y, String(i + 1).padStart(2, '0'), 32, PAL.murekkepSoluk));
       ogeler.push(this.sigdir(yaz(L + SUTUN.bina, y, d.adres, 32), SUTUN.damga - SUTUN.bina - 16));
       if (k) {
         ogeler.push(...this.damgaCip(L + SUTUN.damga, y, k.damga));
