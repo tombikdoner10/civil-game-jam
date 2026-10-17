@@ -7,7 +7,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
 - Kontrol 2 (ara oyun testi): TAMAM (16 Ekim 23.53, geri bildirim işlendi)
 - Kontrol 3 (son teslim): BEKLİYOR
-- Son eleştirmen: 2026-10-17T01:26+03:00
+- Son eleştirmen: 2026-10-17T04:19+03:00
 - Kullanım düzeyi: normal
 
 ## Günlük
@@ -84,3 +84,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 03:47 · Test (G23, opus/low, sabit kopya): hata yok; öncü → rapor 1–2 sn ve Enter ile geçiş, etiketler camda, fiş/zarf/inceleme etiketi örtmüyor, kısa yolda Enter = gün 2, zarf ifadeleri, geçiş, deprem görünümü, Ayarlar fontu, açılış 0,5 sn GEÇTİ. Bulgular → G23b: (yüksek) gazete zarf satırı oyuncu zarf almadan da çıkıyor (kısa yol örnek binalarından), ikinci Enter tepkisiz, deprem yakın planında dekor parlak, 720'de etiket üst kenar, fiş alt taşma · Karar: G23 yayına · Sıradaki: G19, sonra G23b
 - 03:49 · ce476f7 canlıda (G23; JS paketinde hash doğrulandı), smoke hatasız, son-saglam taşındı · Sıradaki: G19 geliştiricide; eleştirmen ~04.26; sonra G23b
 - 04:10 · G19 bitti (680347d, Opus/high): SAHA düğmesi (eksik/geçersiz karot), günde 2 hak, Schmidt çekici mini oyunu (6 geçerli okuma, sıva/çatlak geçersiz), saha notu, saha kuralı (eşik altı BOŞALT, üstü GÜÇLENDİR), adalet 29895 denetim 0 hata · Karar: G19 testi (opus/low) ve eleştirmen 3 sabit kopyada (teslim/test-680347d), paralelde G23b · Sıradaki: G23b
+- 04:19 · Eleştirmen 3 (680347d): ~73 → ~81/100 (oyn 20, tema 21, yarat 14, görsel 12, teknik 14); metinler gelirse ~84, yer tutucuyla ~76. Jüri yolu akıyor (~2 dk); kişi/SOR/zarf/İSTE/saha ilk 2 dk'yı ağırlaştırmıyor; PP ayrışması bütünde yeterli. Öneriler: artık yeni özellik yok, cila; P1 kısa yolda manşet/değerlendirme jüri binalarına dayansın (G23b'ye iletildi); P1 menü (başlık ruhsat kâğıdında, arkada sokak); P2 incelemeyi ödüllendir (takım); G20 kes (takım onayı); mühendis soruları: Schmidt tek başına BOŞALT, "öncü / 5 gün sonra deprem" ifadeleri depremin önceden bilinemeyeceği mesajına ters, 20 MPa ve dere/fay kaynakları · Sıradaki: takım kararları
