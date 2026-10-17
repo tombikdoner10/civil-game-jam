@@ -7,6 +7,7 @@ import type { SahaSonucu } from '../game/saha';
 import { TUNING } from '../game/tuning';
 import type { GetirilenRapor } from '../game/kisi';
 import { DocumentCard } from './DocumentCard';
+import { ETIKET_ENGEL } from './Inspect';
 import { KONTUR, PAL } from './palette';
 import { dizgiTohum, PX, rastgele, snap, Tuval } from './pixel';
 import { cepheCiz, cepheH, cepheSecimi, CEPHE_W, ZEMIN_H } from './tiles';
@@ -90,6 +91,11 @@ function deger(k: Ctx, ax: number, ay: number, t: string, size = BOY_DEGER, renk
 function bolge(k: Ctx, alan: string, ax: number, ay: number, aw: number, ah: number): void {
   const r = k.s.add.rectangle(X(k.c, ax), Y(k.c, ay), aw * PX, ah * PX, 0xffffff, 0.001).setOrigin(0);
   k.c.alanEkle(alan, r);
+}
+
+/** Kusur etiketinin örtmemesi gereken çizim (G49: mühür) için görünmez, seçilemeyen dikdörtgen (sanat pikseli). */
+function etiketEngeli(k: Ctx, ax: number, ay: number, aw: number, ah: number): void {
+  k.c.add(k.s.add.rectangle(X(k.c, ax), Y(k.c, ay), aw * PX, ah * PX, 0xffffff, 0).setOrigin(0).setData(ETIKET_ENGEL, true));
 }
 
 /** Kâğıt: zemin, benek, kenar gölgesi, sağ üstte kıvrık köşe. */
@@ -197,6 +203,7 @@ function ruhsat(k: Ctx): void {
     bolge(k, 'imza', 4, 58, 64, 14);
   }
   muhur(t, 80, 67, rnd);
+  etiketEngeli(k, 71, 58, 19, 19);
 }
 
 /** Kodla piksel imza: soldan sağa kıvrımlı tek çizgi ve altında kısa bir kuyruk (mavi kalem). */

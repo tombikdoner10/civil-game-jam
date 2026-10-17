@@ -6,7 +6,7 @@ import type { Kural } from '../game/building';
 import { tarih } from '../game/diyalog';
 import { aktifKurallar, kuralSatiri, kuralYeni } from '../game/rules';
 import { MASA, masayaSikistir, ustKatman } from './DocumentCard';
-import type { SecimNesne, Yuzey } from './Inspect';
+import { yaziSinirlari, type SecimNesne, type Yuzey } from './Inspect';
 import { num, PAL } from './palette';
 import { PX, rastgele, snap, Tuval } from './pixel';
 
@@ -215,7 +215,8 @@ export class Klasor {
   /** İnceleme modu için: açıkken klasör ve görünen bölüm sayfasındaki kural satırları. */
   yuzey(): Yuzey | null {
     if (!this.acik) return null;
-    return { derinlik: this.sayfa.depth, sinir: this.sinir, alanlar: this.satirlar };
+    // Sekmeler ve kural yazıları: kusur etiketi bunları örtmesin (G49).
+    return { derinlik: this.sayfa.depth, sinir: this.sinir, alanlar: this.satirlar, yazilar: () => yaziSinirlari(this.sayfa) };
   }
 
   private bolumGoster(b: number, s: number): void {

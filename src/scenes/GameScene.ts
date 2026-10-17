@@ -5,7 +5,7 @@ import { DocumentCard, MASA, ustKatman } from '../desk/DocumentCard';
 import { belgeKur, BOY, ISTE_DUGME_AD, isteDugmesi, raporKur, SAHA_DUGME_AD, sahaDugmesi, sahaNotuKur } from '../desk/documents';
 import { SahaTesti } from '../desk/Saha';
 import { PX, snap } from '../desk/pixel';
-import { DUGME, Inspect, type Yuzey } from '../desk/Inspect';
+import { DUGME, Inspect, yaziSinirlari, type Yuzey } from '../desk/Inspect';
 import { num, PAL } from '../desk/palette';
 import { fisDusur, fisKaldir, fisKur, masaCiz } from '../desk/props';
 import { Klasor } from '../desk/Klasor';
@@ -305,6 +305,24 @@ export class GameScene extends Phaser.Scene {
       // Geçersiz karot (G19): etikette SAHA.
       sahaGoster: (id) => this.oturum.sahaKusurda(id),
       sahaAcik: (id) => this.oturum.sahaKusurda(id) && this.oturum.sahaYapilabilir(),
+      // Kusur etiketi belge düğmelerini (İSTE, SAHA), zarfı, açık çekmeceyi ve fişi neredeyse hiç örtmesin; kapalı klasörü
+      // az örtsün (G49; açık klasör yüzeylerde).
+      etiketEngelleri: () => {
+        const out: [Phaser.Geom.Rectangle, number][] = [];
+        for (const k of this.masadakiKartlar())
+          for (const ad of [ISTE_DUGME_AD, SAHA_DUGME_AD]) {
+            const d = k.getByName(ad) as Phaser.GameObjects.Rectangle | null;
+            if (d) out.push([d.getBounds(), 20]);
+          }
+        if (this.zarf?.active) out.push([this.zarf.getBounds(), 20]);
+        if (this.cekmece.acik) {
+          const A = Cekmece.ALAN;
+          out.push([new Phaser.Geom.Rectangle(A.x, A.y, A.w, A.h), 20]);
+        }
+        if (this.fis?.active) out.push([this.fis.getBounds(), 20]);
+        if (this.kitap && !this.kitap.acik) out.push([this.kitap.sinir, 1]);
+        return out;
+      },
     });
     this.inceleme.on('sor', (id: KusurId) => this.sor(id));
     this.inceleme.on('saha', () => this.sahaAc());
@@ -353,8 +371,10 @@ export class GameScene extends Phaser.Scene {
       derinlik: k.depth,
       sinir: k.sinir(),
       alanlar: k.alanlar(),
+      yazilar: () => yaziSinirlari(k),
     }));
-    if (this.not?.active) out.push(this.not.yuzey());
+    const not = this.not;
+    if (not?.active) out.push({ ...not.yuzey(), yazilar: () => yaziSinirlari(not) });
     const kitap = this.kitap?.yuzey();
     if (kitap) out.push(kitap);
     return out;

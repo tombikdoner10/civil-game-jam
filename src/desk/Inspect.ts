@@ -21,6 +21,28 @@ export interface Yuzey {
   derinlik: number;
   sinir: Phaser.Geom.Rectangle;
   alanlar: readonly SecimNesne[];
+  /**
+   * Kâğıttaki yazıların (başlık, açıklama, değer; seçilebilir alanın dışında kalanlar da: ör. proje özetinde
+   * "7 kolon") ekran sınırları (G49): kusur etiketi bunları da örtmesin.
+   */
+  yazilar?: () => Phaser.Geom.Rectangle[];
+}
+
+/** Kâğıda çizilmiş ama yazı olmayan, kusur etiketinin örtmemesi gereken nesnelerin verisi (ör. ruhsat mührü; G49). */
+export const ETIKET_ENGEL = 'etiketEngel';
+
+/**
+ * Kapsayıcıdaki (iç içe görünen kapsayıcılar dahil) görünen yazıların ve ETIKET_ENGEL işaretli nesnelerin ekran
+ * sınırları (Yuzey.yazilar için).
+ */
+export function yaziSinirlari(kap: Phaser.GameObjects.Container, out: Phaser.Geom.Rectangle[] = []): Phaser.Geom.Rectangle[] {
+  for (const o of kap.list) {
+    if (o instanceof Phaser.GameObjects.Container) {
+      if (o.visible) yaziSinirlari(o, out);
+    } else if (o instanceof Phaser.GameObjects.Text && o.visible && o.text.trim() !== '') out.push(o.getBounds());
+    else if (o.getData(ETIKET_ENGEL) && (o as Phaser.GameObjects.Rectangle).visible) out.push((o as Phaser.GameObjects.Rectangle).getBounds());
+  }
+  return out;
 }
 
 export interface InspectAyar {
@@ -43,6 +65,11 @@ export interface InspectAyar {
    */
   sahaGoster?: (id: KusurId) => boolean;
   sahaAcik?: (id: KusurId) => boolean;
+  /**
+   * Kusur etiketinin örtmemesi gereken öbür masa nesneleri ve ağırlıkları (G49: belge düğmeleri, zarf, çekmece, fiş,
+   * kapalı klasör). Ağırlık 1: belge yazısı kadar; büyük ağırlık neredeyse hiç örtülmesin.
+   */
+  etiketEngelleri?: () => [Phaser.Geom.Rectangle, number][];
 }
 
 export type DugmeTur = 'sor' | 'iste' | 'saha';
@@ -74,6 +101,8 @@ const CERCEVE_PAY = 8;
 const ETIKET_ARA = 8;
 /** Etiketin koyu kenarı (etiketKur: w + 8, h + 8). */
 const ETIKET_KENAR = 4;
+/** Yer seçiminde öbür kusur etiketiyle örtüşmenin ağırlığı (belge yazısı 1; G49). */
+const ETIKET_AGIRLIK = 20;
 
 const D = { ortuMasa: 7, ortuBant: 3010, dugme: 3020, serit: 8000, cizim: 9000, etiket: 9001 };
 const SARI = num(PAL.saat);
@@ -436,7 +465,15 @@ export class Inspect extends Phaser.Events.EventEmitter {
     const engeller = cizgiVar ? this.alanSinirlari(yuzeyler) : [];
     // Bağlantı çizgisi belge yazılarının (alanların) üstünden geçmez, kâğıtların üstünde soluk çizilir (G5b).
     this.cizgiEngel = { alanlar: engeller, kagitlar: yuzeyler.map((y) => y.sinir) };
-    const etiketler: Phaser.Geom.Rectangle[] = [];
+    // Etiketin kaçınacakları (G49): alanlar ve başlık bantlarına ek olarak kâğıtlardaki bütün yazılar (alan dışı
+    // açıklama ve değerler) ve masadaki öbür nesneler. Çizgi ve çerçeve payı yalnızca alanlara bakar (değişmez).
+    // Öbür etiketler de neredeyse hiç örtülmesin (ETIKET_AGIRLIK).
+    const etiketEngel: [Phaser.Geom.Rectangle, number][] = [];
+    if (this.bulunanlar.length > 0) {
+      for (const r of engeller) etiketEngel.push([r, 1]);
+      for (const y of yuzeyler) for (const r of y.yazilar?.() ?? []) etiketEngel.push([r, 1]);
+      etiketEngel.push(...(this.ayar.etiketEngelleri?.() ?? []));
+    }
     for (const b of this.bulunanlar) {
       // Kanıt belgesi masadan kalktıysa (ör. gişeden düzgünü gelip yerine geçti, G17b) işaret de kalkar.
       if (b.ogeler.some((o) => o.belge !== 'kural' && !o.nesne.active)) {
@@ -449,9 +486,9 @@ export class Inspect extends Phaser.Events.EventEmitter {
       if (gor.length === 2) this.kesikli(gor[0], gor[1], KIRMIZI);
       b.etiket.setVisible(gor.length > 0);
       if (gor.length > 0) {
-        const r = this.etiketYeri(b, gor, engeller.concat(etiketler), yuzeyler);
+        const r = this.etiketYeri(b, gor, etiketEngel, yuzeyler);
         b.etiket.setPosition(r.centerX, r.centerY);
-        etiketler.push(r);
+        etiketEngel.push([r, ETIKET_AGIRLIK]);
       }
     }
     // Seçim: sarı çerçeve, iki seçimde sarı kesikli çizgi.
@@ -498,11 +535,16 @@ export class Inspect extends Phaser.Events.EventEmitter {
   }
 
   /**
-   * Etiketin yeri: kanıt alanlarının üstü, altı, sağı, solu ve en son ikisinin ortası adaylar; alanlarla
-   * (belge değerleri) en az örtüşen seçilir. Masa dışına taşan aday masaya çekilir. Eşitlikte önceki aday
-   * korunur (etiket zıplamasın), yoksa sıradaki ilk.
+   * Etiketin yeri: kanıt alanlarının üstü, altı, sağı, solu (G49: biraz kaydırılmışları da) ve ikisinin ortası adaylar;
+   * alanlarla (belge değerleri), kâğıt yazılarıyla, öbür etiketlerle ve masa nesneleriyle (G49) en az örtüşen seçilir.
+   * Masa dışına taşan aday masaya çekilir. Eşitlikte önceki aday korunur (etiket zıplamasın), yoksa sıradaki ilk.
    */
-  private etiketYeri(b: Bulunan, gor: Phaser.Geom.Rectangle[], engeller: Phaser.Geom.Rectangle[], yuzeyler: Yuzey[]): Phaser.Geom.Rectangle {
+  private etiketYeri(
+    b: Bulunan,
+    gor: Phaser.Geom.Rectangle[],
+    engeller: readonly [Phaser.Geom.Rectangle, number][],
+    yuzeyler: Yuzey[],
+  ): Phaser.Geom.Rectangle {
     const { w, h } = b;
     const bosluk = 16;
     /** [x, y, ek puan]: kâğıdın dışına taşan adaylar (G23) kanıttan uzaklığına göre biraz geride. */
@@ -527,6 +569,20 @@ export class Inspect extends Phaser.Events.EventEmitter {
       ])
         adaylar.push([x, y, uzak(x, y)]);
     }
+    // G49: kalabalık masada kaydırılmış adaylar (alanın yanında biraz yukarı / aşağı, üstünde ve altında biraz sola /
+    // sağa): ortadaki yer bir değeri örtüyorsa etiket boş bir yere kayabilsin. Kayma kadar biraz geride.
+    for (const r of gor) {
+      for (const dy of [h / 2 + bosluk / 2, h + bosluk])
+        for (const s of [-1, 1]) {
+          adaylar.push([r.right + bosluk + w / 2, r.centerY + s * dy, dy * 0.5]);
+          adaylar.push([r.left - bosluk - w / 2, r.centerY + s * dy, dy * 0.5]);
+        }
+      for (const dx of [w / 4, w / 2])
+        for (const s of [-1, 1]) {
+          adaylar.push([r.centerX + s * dx, r.top - bosluk - h / 2, dx * 0.5]);
+          adaylar.push([r.centerX + s * dx, r.bottom + bosluk + h / 2, dx * 0.5]);
+        }
+    }
     const kesisim = (a: Phaser.Geom.Rectangle, c: Phaser.Geom.Rectangle): number => {
       const x = Math.min(a.right, c.right) - Math.max(a.left, c.left);
       const y = Math.min(a.bottom, c.bottom) - Math.max(a.top, c.top);
@@ -545,7 +601,7 @@ export class Inspect extends Phaser.Events.EventEmitter {
       const pay = ETIKET_KENAR + ETIKET_ARA;
       const gorunen = new Phaser.Geom.Rectangle(r.x - pay, r.y - pay, r.width + pay * 2, r.height + pay * 2);
       let puan = 0;
-      for (const e of engeller) puan += kesisim(gorunen, e);
+      for (const [e, agirlik] of engeller) puan += kesisim(gorunen, e) * agirlik;
       // Kanıt alanından uzaklaşan (masaya çekilen) adaylar biraz geride kalsın.
       puan += (Math.abs(x - cx) + Math.abs(y - cy)) * 2 + ek;
       const daha = puan < enPuan || (puan === enPuan && i === b.aday);
