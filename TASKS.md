@@ -8,8 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G57b [teknik] (sürüyor, Opus/high) Raporda müfettiş satırı küçük deprem satırının hemen altında; "Zarf: +0 TL (1 kabul)" yerine el konulanı söyleyen metin.
-- [ ] G57 [teknik] (bitti 96064cd + 62e74eb, test sürüyor, Opus/low) Müfettiş: zarflı yanlış karar gün sonunda %50 yakalanır, zarfa el konur ve 40 TL ceza; dürüstlük övgüsü (GERİ VER gazete ve sonuçta). Özellik dondurma bu iş için 01.00.
+- [ ] G57b [teknik] (sürüyor, Opus/high) Raporda müfettiş satırı küçük deprem satırının hemen altında; "Zarf: +0 TL (1 kabul)" yerine el konulanı söyleyen metin; sonuç ekranı zarf toplamında "(el konuldu)".
 
 ## Sırada
 
@@ -75,6 +74,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G57 Müfettiş (zarflı yanlış karar %50 yakalanır, zarfa el konur, 40 TL ceza) ve dürüstlük övgüsü (96064cd + 62e74eb, Opus/high; test GEÇTİ, 8 koşu)
 - [x] G56 Takım bölümü Türkçe: Egemen AYVAZ · Takım Lideri, Deniz Demir · Oyun Testçisi ve Fikir Geliştirici, Ahmet Ata Tuncer · Ses Tasarımcısı ve Fikir Geliştirici (c9ef294, Opus/high; test GEÇTİ)
 - [x] G55 Gün sonu raporunda NO sütunu yok, BİNA ilk sütun (4097393, Opus/high; test GEÇTİ)
 - [x] G54 Sokak boyunca tek bina numarası; iade satırı durumla; klasör numaraları sekme sırasıyla, iki haneli numara yapışmıyor; karot/zemin etüdü metni (e14cf70, Opus/high; test GEÇTİ)
