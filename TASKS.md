@@ -8,8 +8,13 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G34 [teknik] (sürüyor, Opus/high) İSTE/saha sonrası fiş, gerekçe ve rapor aynı ve bilgiye göre doğru "Doğrusu"yu göstersin; "Karot raporu yok" rapor gelince düşsün; inceleme ipucu yeni oyunda sıfırlansın.
 
 ## Sırada
+
+Son test (xhigh, 78/100) sonrası (sıra: G34 → G35 → G31)
+
+- [ ] G35 [teknik] Cila: raporda bulunan kusurda kaçak kat farkı (+n); 5 günlük yol gazetesinde bina adları raporla eşleşsin ("Gün N · Bina 0X"); gazete/değerlendirmede tekil/çoğul ("bina çöktü" / "binalar çöktü") seçimi; gün 5 inceleme çerçevesi ve etiketin belge değerlerini örtmesi; saha "[+30 dk]" etiketinin beton yüzeyine taşması.
 
 Eleştirmen 4 sonrası (sıra: G31 (metinler gelince))
 
