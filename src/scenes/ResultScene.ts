@@ -9,7 +9,7 @@ import { gunAyar, SON_GUN } from '../game/days';
 import { DAMGA_ADI, DAMGA_RENK } from '../desk/Kaselik';
 import { ZARF_ETIKET } from '../game/diyalog';
 import { degerlendirme, juriGordukleri, KISA_SONUC, seninBinalarin, sonucEtiketi, zarfOzeti } from '../game/gazete';
-import { depremOzeti, gunHesabi, oyuncuOzeti, oyunToplami } from '../game/session';
+import { bulunanSayisi, depremOzeti, gunHesabi, oyuncuOzeti, oyunToplami } from '../game/session';
 import { fadeIn, goTo } from '../systems/transition';
 import type { GameData } from './GameScene';
 import { SCENES } from './keys';
@@ -98,7 +98,7 @@ export class ResultScene extends Phaser.Scene {
     gercek.forEach((k, i) => {
       const dosya = gunAyar(k.gun).dosyaSayisi;
       const h = gunHesabi(k.kararlar, dosya);
-      const bulunan = k.kararlar.reduce((n, c) => n + c.bulunan.length, 0);
+      const bulunan = k.kararlar.reduce((n, c) => n + bulunanSayisi(c), 0);
       const kusur = k.kararlar.reduce((n, c) => n + c.kusurlar.length, 0);
       kazanc += h.toplam;
       const ogeler = [

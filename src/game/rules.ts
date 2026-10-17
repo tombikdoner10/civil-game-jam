@@ -57,9 +57,11 @@ export const KUSUR_BILGI: Record<KusurId, Omit<Kusur, 'id'>> = {
     ciddiyet: 'bosalt',
     kanit: [{ belge: 'foto', alan: 'catlak' }],
   },
+  // G36 (takım kararı T29): sahte ruhsat da geçersiz belge ailesinde → İADE. Ruhsatsız yapı olduğu için depremde
+  // fiziksel kusur sayılmaya devam eder (bkz. fiziksel()).
   sahteBelge: {
     etiket: 'Sahte belge',
-    ciddiyet: 'guclendir',
+    ciddiyet: 'iade',
     kanit: [{ belge: 'ruhsat', alan: 'yil' }, { belge: 'ruhsat', alan: 'muhur' }],
   },
   // Kanıtı rapordaki ipucuna göre değişir (getirilen rapor kartındaki alan + rapor kuralı); oturum denetler.
@@ -177,7 +179,7 @@ export const KURALLAR: Kural[] = [
       metin: '[Kural: belge elle düzeltilmişse, başka binaya aitse (ada/parsel) ya da imzasızsa geçersizdir; düzgününü iste, getiremezse → İADE]',
     },
   },
-  { id: 'belge', ilkGun: 5, kusurlar: ['sahteBelge'], metin: '[Kural: mühür yılı yapım yılından sonraysa belge sahte → GÜÇLENDİR]' },
+  { id: 'belge', ilkGun: 5, kusurlar: ['sahteBelge'], metin: '[Kural: mühür yılı yapım yılından sonraysa belge sahte → İADE]' },
 ];
 
 /** Kural kitabında gösterilecek metin: {bugun} o günün tarihi olur; genişleyen kuralda o günün metni. */
@@ -286,6 +288,14 @@ function kusurListesi(b: Bina, mod: 'belge' | 'gercek'): Kusur[] {
   return out;
 }
 
+/**
+ * Kusur depremde fiziksel mi: eksik ve geçersiz belge (ciddiyet 'iade') değildir. Sahte ruhsat (G36) masada İADE
+ * ister ama bina ruhsatsız yapıdır: depremde GÜÇLENDİR ağırlığında kusur sayılır (T29 öncesindeki gibi).
+ */
+function fiziksel(k: Kusur): boolean {
+  return k.ciddiyet !== 'iade' || k.id === 'sahteBelge';
+}
+
 /** Kurallardan bağımsız: binadaki bütün gerçek kusurlar (eksik belgenin arkasında saklananlar dahil). */
 export function gercekKusurlar(b: Bina): Kusur[] {
   return kusurListesi(b, 'gercek');
@@ -316,7 +326,7 @@ export function gorunenKusurlar(b: Bina, gun: number): Kusur[] {
  */
 export function fizikselKusurlar(b: Bina, gun: number): Kusur[] {
   const k = kapsam(gun);
-  return gercekKusurlar(b).filter((x) => k.has(x.id) && x.ciddiyet !== 'iade');
+  return gercekKusurlar(b).filter((x) => k.has(x.id) && fiziksel(x));
 }
 
 /** Dosyada (o günün kurallarıyla) eksik belge var mı. */
@@ -399,7 +409,7 @@ export function dogruDamgalar(b: Bina, gun: number, bilgi?: EdinilenBilgi): Damg
 export function riskHesapla(b: Bina, gizli = true): number {
   const R = TUNING.risk;
   let r = R.taban;
-  for (const k of gercekKusurlar(b)) if (k.ciddiyet !== 'iade') r += k.ciddiyet === 'bosalt' ? R.bosalt : R.guclendir;
+  for (const k of gercekKusurlar(b)) if (fiziksel(k)) r += k.ciddiyet === 'bosalt' ? R.bosalt : R.guclendir;
   if (!gizli) return Math.min(1, r);
   if (b.gercek.demir === 'duz') r += R.duzDemir;
   if (b.gercek.denizKumu) r += R.denizKumu;
@@ -443,8 +453,8 @@ export interface BuyukDepremSonucu {
 
 /** Belgelerde görünmeyen zayıflık: düz demir, deniz kumu ya da o günün kurallarıyla kapsanmayan gerçek kusur. */
 export function gizliZayiflik(b: Bina, gun: number): boolean {
-  const fiziksel = gercekKusurlar(b).filter((k) => k.ciddiyet !== 'iade').length;
-  return b.gercek.demir === 'duz' || b.gercek.denizKumu || fiziksel > fizikselKusurlar(b, gun).length;
+  const n = gercekKusurlar(b).filter(fiziksel).length;
+  return b.gercek.demir === 'duz' || b.gercek.denizKumu || n > fizikselKusurlar(b, gun).length;
 }
 
 /**

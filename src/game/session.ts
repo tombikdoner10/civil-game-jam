@@ -253,6 +253,15 @@ export interface OyunToplami {
   kusur: number;
 }
 
+/**
+ * Kararda bulunan kusur sayısı, dosyanın son kusur listesiyle kesişen (G36): İSTE ya da saha ile bilgi edinilince
+ * eksik belge kusuru listeden düşer; incelemeyle bulunmuş olsa da sayılmaz (bulunan hiçbir zaman kusurdan fazla
+ * görünmesin).
+ */
+export function bulunanSayisi(c: Pick<Karar, 'bulunan' | 'kusurlar'>): number {
+  return c.bulunan.filter((id) => c.kusurlar.includes(id)).length;
+}
+
 export function oyunToplami(kayitlar: readonly GunKaydi[]): OyunToplami {
   const t: OyunToplami = { dosya: 0, dogru: 0, yanlis: 0, islenmeyen: 0, bulunan: 0, kusur: 0 };
   for (const k of kayitlar) {
@@ -262,7 +271,7 @@ export function oyunToplami(kayitlar: readonly GunKaydi[]): OyunToplami {
     t.yanlis += h.yanlis;
     t.islenmeyen += h.islenmeyen;
     for (const c of k.kararlar) {
-      t.bulunan += c.bulunan.length;
+      t.bulunan += bulunanSayisi(c);
       t.kusur += c.kusurlar.length;
     }
   }

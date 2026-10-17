@@ -56,6 +56,8 @@ export interface GameData {
   para?: number;
   /** Önceki günlerin kararları (sokak ve deprem günü için; G4b/G5). */
   kayitlar?: GunKaydi[];
+  /** İnceleme ipucunu yeniden aç (G36: duraklatmadan Yeniden Başla; jüri bilgisayarında kişi değişebilir). */
+  ipucuSifirla?: boolean;
 }
 
 /** Etiket metnini iki satıra bölmek için. */
@@ -151,8 +153,9 @@ export class GameScene extends Phaser.Scene {
 
   init(data: GameData): void {
     // Yeni oyun (menüden Oyna: veri yok; sonuçtan Yeniden oyna: gün 1, kayıt yok) inceleme ipucunu yeniden açar
-    // (G34: oyun açık kalınca sonraki jüri üyesi de görsün). Gün geçişi ve duraklatmadan Yeniden Başla kayıt taşır.
-    if (data?.gun === undefined || (data.gun === 1 && data.kayitlar === undefined)) incelemeIpucuGosterildi = false;
+    // (G34: oyun açık kalınca sonraki jüri üyesi de görsün). Gün geçişi kayıt taşır; duraklatmadan Yeniden Başla
+    // kayıt taşısa da ipucunu yeniden açar (G36).
+    if (data?.gun === undefined || (data.gun === 1 && data.kayitlar === undefined) || data.ipucuSifirla) incelemeIpucuGosterildi = false;
     this.gun = data?.gun ?? 1;
     this.tohum = data?.tohum ?? Math.floor(Math.random() * 1_000_000_000);
     this.para = data?.para ?? TUNING.para.baslangic;
@@ -1179,7 +1182,7 @@ export class GameScene extends Phaser.Scene {
 
   pauseGame(): void {
     // "Yeniden Başla" bu günü aynı tohum, para ve önceki günlerin kayıtlarıyla baştan kurar.
-    const yeniden: GameData = { gun: this.gun, tohum: this.tohum, para: this.para, kayitlar: this.kayitlar };
+    const yeniden: GameData = { gun: this.gun, tohum: this.tohum, para: this.para, kayitlar: this.kayitlar, ipucuSifirla: true };
     this.scene.launch(SCENES.Pause, { from: SCENES.Game, yeniden });
     this.scene.pause();
   }

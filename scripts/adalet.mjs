@@ -17,6 +17,7 @@ const G = await server.ssrLoadModule('/src/game/gazete.ts');
 let hata = 0;
 let sayi = 0;
 const dagilim = {};
+const sahteDagilim = {};
 const bak = (kosul, mesaj) => {
   sayi++;
   if (!kosul) {
@@ -73,6 +74,12 @@ for (let tohum = 1; tohum <= 10; tohum++) {
       }
       // Doğru kararda içinde insan varken ağır hasar ya da çökme yok. İADE hariç: bilinçli bırakılan risk.
       if (r.dogru && !r.bos && r.damga !== 'iade') bak(!r.coktu && r.durum !== 'agirHasar', 'doğru karar ağır sonuç: ' + e);
+      // G36: sahte ruhsatlı binalar ayrı dağılımda (doğru damga İADE; ruhsatsız yapı depremde fiziksel kusur).
+      if (s.bina.gercek.ruhsatSahte && s.gun >= 5) {
+        const sa = `${bicim}: ${r.damga} → ${r.coktu ? 'çöktü' : r.durum}`;
+        sahteDagilim[sa] = (sahteDagilim[sa] ?? 0) + 1;
+        bak(kusurlu, 'sahte ruhsatlı bina fiziksel kusursuz: ' + e);
+      }
     });
     const oz = S.depremOzeti(sonuc);
     bak(oz.ayakta + oz.hasarli + oz.coken === oz.toplam, `t${tohum} ${bicim}: özet toplamı`);
@@ -109,8 +116,14 @@ for (let tohum = 1; tohum <= 40; tohum++) {
       // Eksiksiz dosyada İADE yanlış; eksik belgeli dosyada (BOŞALT görünmüyorsa) doğru damga İADE.
       if (!eksik) bak(ana !== 'iade', 'eksiksiz dosyada doğru İADE: ' + e);
       else bak(ana === (bosaltGor ? 'bosalt' : 'iade'), 'eksik belgeli dosyada doğru damga: ' + ana + ' ' + e);
-      // Bilgi edinilince gerçek damga da doğru, İADE de doğru kalır.
-      if (ana === 'iade') {
+      // Bilgi edinilince gerçek damga da doğru, İADE de doğru kalır. G36: sahte ruhsatın bilgisi edinilemez (İSTE
+      // yok): sahte ruhsatlı dosyada (BOŞALT görünmüyorsa) İADE doğru kalır; öbür eksik belgenin bilgisi saklı BOŞALT
+      // gösterirse BOŞALT da doğru (en ağır damga), GÜÇLENDİR ya da GÜVENLİ asla.
+      if (ana === 'iade' && gor.includes('sahteBelge')) {
+        const bilgi = { karot: b.gercek.betonMpa, zemin: b.gercek.zemin, ruhsat: true, vaziyet: true };
+        const kabul = R.dogruDamgalar(b, g, bilgi).join();
+        bak(kabul === 'iade' || kabul === 'iade,bosalt', 'sahte ruhsatta bilgiyle kabul: ' + kabul + ' ' + e);
+      } else if (ana === 'iade') {
         const bilgi = { karot: b.gercek.betonMpa, zemin: b.gercek.zemin, ruhsat: true, vaziyet: true };
         const kabul = R.dogruDamgalar(b, g, bilgi);
         bak(kabul[0] === 'iade' && kabul.length === 2 && kabul[1] !== 'iade', 'bilgiyle kabul: ' + kabul.join(',') + ' ' + e);
@@ -515,7 +528,8 @@ for (let tohum = 1; tohum <= 60; tohum++) {
           bak(!c.rapor, `${e}: getiremediği halde belge`);
         }
       }
-      const eksikDiger = gor.some((k) => R.EKSIK_BELGE.includes(k.id));
+      // G36: sahte ruhsat da İADE'yi tutar (bilgisi edinilemez).
+      const eksikDiger = gor.some((k) => R.EKSIK_BELGE.includes(k.id) || k.id === 'sahteBelge');
       const kabul = Object.keys(bilgi).length > 0 ? R.dogruDamgalar(b, g, bilgi) : [ana];
       bak(kabul[0] === ana, `${e}: kabulün ilki asıl damga değil`);
       if (tamam && !eksikDiger && ana === 'iade') {
@@ -575,6 +589,79 @@ for (let tohum = 1; tohum <= 60; tohum++) {
   bak(R.kuralYeni(kural, 4) && R.kuralYeni(kural, 5) && !R.kuralYeni(kural, 3), 'geçersiz belge kuralı YENİ günleri');
 }
 console.log('G17b (tohum 1-60, gün 1-5):', JSON.stringify(g17b));
+
+// ---- G36: sahte ruhsat → İADE (takım kararı T29); bulunan / kusur sayımı ----
+// Sahte ruhsatın doğru damgası İADE (BOŞALT görünmüyorsa), GÜÇLENDİR yanlış; fiş "Doğrusu: İADE" ve gerekçede
+// "Sahte belge"; kural kitabı İADE diyor; İADE kaşesi sahte ruhsatın çıktığı her günde var. Depremde İADE edilen
+// sahte ruhsatlı bina GÜVENLİ gibi sonuç alır (ruhsatsız yapı: fiziksel kusur, ağır hasar ya da çöker).
+// Bulunan kusur sayısı (sonuç ekranı) hiçbir kararda dosyanın kusur sayısını aşmaz (İSTE / saha sonrası dahil).
+const g36 = { sahteRuhsat: 0, bosaltIle: 0, guclendirYanlis: 0, depremAgir: 0, bulunanDustu: 0, eskiSayimAsardi: 0, karar: 0 };
+{
+  const kural = R.KURALLAR.find((k) => k.kusurlar.includes('sahteBelge'));
+  bak(R.KUSUR_BILGI.sahteBelge.ciddiyet === 'iade', 'G36: sahte belge ciddiyeti İADE değil');
+  bak(kural && R.kuralMetni(kural, 5).includes('İADE') && !R.kuralMetni(kural, 5).includes('GÜÇLENDİR'), 'G36: sahte belge kural metni İADE demiyor');
+  for (let g = 1; g <= 5; g++) if (kural && kural.ilkGun <= g) bak(D.gunAyar(g).kaseler.includes('iade'), `G36: gün ${g} sahte ruhsat var ama İADE kaşesi yok`);
+  const Rng = (await server.ssrLoadModule('/src/game/rng.ts')).Rng;
+  const rng = new Rng(36);
+  for (let i = 0; i < 40; i++) {
+    const b = BLD.kusurluBinaKur(rng, ['sahteBelge']);
+    const e = `G36 kurulu sahte #${i}`;
+    bak(R.dogruDamga(b, 5) === 'iade' && R.dogruDamgalar(b, 5).join() === 'iade', `${e}: gün 5 doğru damga ${R.dogruDamga(b, 5)}`);
+    bak(!R.dogruDamgalar(b, 5, { ruhsat: true }).includes('guclendir'), `${e}: GÜÇLENDİR doğru sayıldı`);
+    bak(R.fizikselKusurlar(b, 5).some((k) => k.id === 'sahteBelge'), `${e}: depremde fiziksel kusur değil`);
+    const iade = R.buyukDepremSonucu(b, 'iade', 5);
+    const guv = R.buyukDepremSonucu(b, 'guvenli', 5);
+    bak(iade.kademe === guv.kademe && !iade.bos, `${e}: İADE ≠ GÜVENLİ depremde`);
+  }
+}
+for (let tohum = 1; tohum <= 60; tohum++) {
+  for (let g = 1; g <= 5; g++) {
+    const o = new S.GunOturumu(g, tohum);
+    const ikiz = new S.GunOturumu(g, tohum);
+    while (o.mevcut && !o.bitti) {
+      const b = o.mevcut;
+      const e = `t${tohum} g${g} ${b.id}`;
+      const gor = R.gorunenKusurlar(b, g);
+      if (gor.some((k) => k.id === 'sahteBelge')) {
+        g36.sahteRuhsat++;
+        const bosaltGor = gor.some((k) => k.ciddiyet === 'bosalt');
+        if (bosaltGor) g36.bosaltIle++;
+        const ana = R.dogruDamga(b, g);
+        bak(ana === (bosaltGor ? 'bosalt' : 'iade'), `${e}: sahte ruhsatta doğru damga ${ana}`);
+        // İnceleme: mühür yılı + yapım yılı → Sahte belge.
+        const r = ikiz.incele(R.kanitOgeleri('sahteBelge'));
+        bak(r?.kusur.id === 'sahteBelge' && r.kusur.ciddiyet === 'iade', `${e}: sahte belge incelemede ${r?.kusur.id}/${r?.kusur.ciddiyet}`);
+        if (!bosaltGor) {
+          const s = ikiz.damgala('guclendir');
+          bak(s && !s.dogru && s.dogruDamga === 'iade' && s.etiketler.includes('Sahte belge'), `${e}: GÜÇLENDİR fişi ${JSON.stringify(s)}`);
+          if (s && !s.dogru) g36.guclendirYanlis++;
+        } else ikiz.damgala(ana);
+        const d = R.buyukDepremSonucu(b, ana, g);
+        if (ana === 'iade' && (d.coker || d.durum === 'agirHasar')) g36.depremAgir++;
+      } else ikiz.damgala(R.dogruDamga(b, g));
+      // Bulunan / kusur: her görünen kusur bulunur; eksik belgede gerçek belge (ya da saha) gelince gerçek damga.
+      for (const k of gor) o.incele(R.kanitOgeleri(k));
+      for (const alan of ['karot', 'zemin']) if (o.istenebilir(alan)) o.iste(alan);
+      if (o.sahaYapilabilir()) o.sahaTamamla();
+      // Edinilen bilgiye göre (İSTE gerçek belge, saha) tercih edilen damga: eksik belge kusuru listeden düşer.
+      const { bilgi, kaynak } = o.edinilenBilgi;
+      const dis = {};
+      if (kaynak.karot === 'iste') dis.karot = bilgi.karot;
+      if (kaynak.karot === 'saha') dis.karotSaha = bilgi.karot;
+      if (kaynak.zemin === 'iste') dis.zemin = bilgi.zemin;
+      const kabul = R.dogruDamgalar(b, g, Object.keys(dis).length > 0 ? dis : undefined);
+      const s = o.damgala(kabul[kabul.length - 1]);
+      const kr = o.kararlar[o.kararlar.length - 1];
+      g36.karar++;
+      if (kr.bulunan.length > S.bulunanSayisi(kr)) g36.bulunanDustu++;
+      if (kr.bulunan.length > kr.kusurlar.length) g36.eskiSayimAsardi++;
+      bak(s && s.dogru && S.bulunanSayisi(kr) <= kr.kusurlar.length, `${e}: bulunan ${S.bulunanSayisi(kr)} > kusur ${kr.kusurlar.length}`);
+    }
+    const t = S.oyunToplami([{ gun: g, kararlar: o.kararlar }]);
+    bak(t.bulunan <= t.kusur, `t${tohum} g${g}: toplam bulunan ${t.bulunan} > kusur ${t.kusur}`);
+  }
+}
+console.log('G36 (tohum 1-60, gün 1-5):', JSON.stringify(g36));
 
 // ---- G19: saha testi (Schmidt çekici) ----
 // Karot yok ya da geçersizse saha testi yapılabilir (günde TUNING.saha.gunlukHak); tahmin gerçek dayanıma yakın ve
@@ -737,5 +824,7 @@ console.log(`Kural: fay yakını = ${T.fayKurali === 'bosalt' ? 'her zaman BOŞA
 console.log('Eksik belge ve dere/fay görülme sayıları (tohum 1-40, gün 1-5):', JSON.stringify(sayac));
 console.log('Dağılım (damga / fiziksel kusur → sonuç):');
 for (const [k, v] of Object.entries(dagilim).sort()) console.log(`  ${k}: ${v}`);
+console.log('G36 sahte ruhsatlı binalar (gün 5, tohum 1-10; biçim: damga → sonuç):');
+for (const [k, v] of Object.entries(sahteDagilim).sort()) console.log(`  ${k}: ${v}`);
 await server.close();
 process.exit(hata ? 1 : 0);
