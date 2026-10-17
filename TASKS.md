@@ -74,7 +74,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
-- [x] G42 Kendi evin hazırlığı: ev.ts (30/20/60 TL, temiz para önce, zarfla işareti), gün sonunda EVİN kâğıdı, gazetede [Senin evin], sonuçta SENİN EVİN; 5 günlükte kendi apartmanla tutarlı; adalet 104634/0, bina dağılımı aynı (12af66b + e0c3505 + efba07f, Opus/high; test sürüyor)
+- [x] G42 Kendi evin hazırlığı: ev.ts (30/20/60 TL, temiz para önce, zarfla işareti), gün sonunda EVİN kâğıdı, gazetede [Senin evin], sonuçta SENİN EVİN; 5 günlükte kendi apartmanla tutarlı; adalet 104634/0, bina dağılımı aynı (12af66b + e0c3505 + efba07f, Opus/high; test geçti)
 - [x] G41 Rapordan depreme geçişte basış tamponu (girisTamponu.ts), menüde erken tık saklanıyor, genel planda etiket tam opak ya da gizli, belgeler kural notunun altından kayıyor (0e6a5f8, Opus/high; test geçti)
 - [x] G40 Portreler: yaş, burun/göz/kaş/çene tipleri, kulak, yeni saç ve sakallar, 3 tonlu ışık; mizaç × ifade tablosu (IFADE_TABLO); sabit kısım bir kez çiziliyor; galeri 24 portre + 5 mizaç satırı (92f0b90 + ek dfb4353: dişsiz gergin yüz, 3,5 sn sonra taban ifade, kibar kaş, kurnaz/çekingen belirgin; + ek 2 be264b1: taban yüzde ağız kapalı, sakal/bıyıkta kapalı ağız okunur; Opus/high; test geçti)
 - [x] G39 Deprem hızlandırma yumuşak 3 kat (kısa yolda sallantı ~8,7 sn, 5 günde ~10,6 sn) + ikinci basış sona atlar ("[Enter: geç]"); müşteri 4 adımda yürüyerek gelir, 3 adımda gider, 1 sn boş gişe, saat durur; adalet 35263/0 (710bbef, Opus/high; test geçti)
