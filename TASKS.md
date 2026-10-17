@@ -8,8 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G53 [teknik] (bitti 88decf8, test sürüyor, Opus/low) Kural metinleri kısa ve öz (takım isteği); klasörde SAHA sekmesi KONUM (dere, fay), saha testi kuralı BETON'a; her sekme tek sayfa.
-- [ ] G54 [teknik] (sürüyor, Opus/high) Sokak boyunca tek bina numarası (gün 1: 01–03 … gün 5: 22–29; kısa yol dahil), gazetede iade satırı durumla başlar; klasörde iki haneli kural numarası yazıya yapışmasın.
+- [ ] G54 [teknik] (sürüyor, Opus/high) Sokak boyunca tek bina numarası (gün 1: 01–03 … gün 5: 22–29; kısa yol dahil), gazetede iade satırı durumla başlar; klasörde iki haneli kural numarası yazıya yapışmasın; numaralar sekme sırasıyla (GENEL 1'den); karot ve zemin etüdü kural metni düzeltmesi.
 
 ## Sırada
 
@@ -75,6 +74,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G53 Kısa kural metinleri; klasörde KONUM sekmesi (dere, fay), saha testi BETON'da; gün 2–5 her sekme tek sayfa (88decf8, Opus/high; test GEÇTİ)
 - [x] G52 Takım üyeleri Emeği Geçenler ve README'de (f1ed17c, Opus/high; test GEÇTİ)
 - [x] G51 Eleştirmen 9 düzeltmeleri: Esc sırası, kısa yolda GÜÇLENDİR ödülü, zarflı fiş, para en az 0 ("Ceza maaşı aştı"), damga sonrası sönük düğmeler (494526b, Opus/high; test GEÇTİ, 7 koşu)
 - [x] G50 İnceleme modunda kapalı klasöre tık yalnızca açıyor, kural satırı seçmiyor (e6bbad4, Opus/high; test GEÇTİ, 7 koşu)
