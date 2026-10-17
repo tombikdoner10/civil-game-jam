@@ -293,6 +293,8 @@ export class DayEndScene extends Phaser.Scene {
       kb?.off('keydown-ENTER', enterTus);
       kb?.off('keydown-ENTER', enterKisa);
       kb?.off('keydown', nTus);
+      // Gün sonu jingle'ı depreme ya da sonraki günün masasına taşmasın (G32).
+      sfx.jingleSustur();
     });
     // Rapor açılırken yanlışlıkla geçilmesin (giriş koruması); birincil düğmede "hazır" göstergesi.
     hazirGostergesi(this, birincil, GIRIS_KORUMA_MS);
