@@ -8,11 +8,13 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G39 [teknik] (sürüyor, Opus/high) Deprem hızlandırma yumuşak 3 kat + ikinci basış atlar; müşteri yürüyerek gelir/gider + ayak sesi + ~1 sn boş gişe; geçişte saat durur.
 
 ## Sırada
 
 Son test (xhigh, 78/100) sonrası (G34, G36, G35, G38, G37 bitti; sırada G31)
 
+- [ ] G40 [teknik] Portreler: kodla daha ayrıntılı yüz (burun, kaş, çene, kırışıklık/yaş, göz tipleri, daha çok saç/sakal/başlık, üç tonlu ışık-gölge) ve mizaç ifadeleri (sinirli çatık kaş, telaşlı kalkık kaş+ter, kurnaz yan gülüş, çekingen aşağı bakış, kibar gülümseme); T33 kişi tipleri gelirse onlara göre.
 
 Eleştirmen 4 sonrası (sıra: G31 (metinler gelince))
 
@@ -37,6 +39,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Takım işleri
 
+- [ ] T33 [takım] (isteğe bağlı, G40 için) 5–8 kişi tipi: ör. emekli öğretmen, esnaf, müteahhit, genç çift, yaşlı teyze, memur… her biri için yaş, giyim, bir ayırt edici özellik. Takımın yaratıcı katkısı olarak beyanda görünür.
 - [ ] T32 [takım] Takım üyelerinin adları ve rolleri (src/data/credits.ts MEMBERS, README Takım bölümü; şu an [Takım üyesi 2] · [rol]); BENIOKU Amaç satırı (docs/BENIOKU.txt).
 - [ ] T31 [takım] ÖNCELİKLİ METİNLER (18.00; madde 4.3): oyun adı (config.ts TITLE), gazete adı ve şehir adı, çerçeve cümlesi (diyalog.ts CERCEVE), gün 1 kural notu (rules.ts), manşetler ve değerlendirmeler (gazete.ts; tekil/çoğul T30; kısa yol "senin binaların + sokak" G37), gün 1de görünen selam, damga tepkisi ve zarf cümleleri (diyalog-metin.ts). Diyalog taslaklarını okuyup seç/düzelt (T28). Bitince beyan "AI taslağı, takım düzenledi" olur (G31). G37 yeni yer tutucuları (yer-tutucu betiği görmüyor, elle bak): gazete.ts KISA_SENIN, KISA_SOKAK_COKEN, DEGERLENDIRME_ZARFLI; manşet ve değerlendirme kısa olursa büyük kalır.
 - [ ] T30 [takım] Manşet ve değerlendirme metinlerinin tekil ve çoğul biçimleri (src/game/gazete.ts, {tekil, cogul} çiftleri; G35 yer tutucu yazdı).
