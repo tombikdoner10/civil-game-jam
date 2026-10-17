@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G23b [teknik] G23 testi: (YÜKSEK) gazete "[Denetçinin masasında zarf bulundu]" satırı oyuncu zarf almadığında da çıkıyor (kısa yolun örnek binalarındaki zarflardan); satır ve değerlendirme yalnızca oyuncunun kendi zarflarına baksın, kısa yol örnek binalarında zarf olmasın ya da "[başka denetçi]" diye ayrılsın; raporu açan Enter'dan sonra ikinci Enter ~1,5 sn tepkisiz (kısalsın ya da düğmede "hazır" vurgusu); büyük/kısa deprem yakın planında dekor bina parlak (soluklaştırma orada da); 1280×720'de en yüksek binanın etiketi pencere üst kenarına dayanıyor; fişin alt kenarı ekrandan taşıyor; küçük n tuşu da Sonraki gün olsun. G19: saha panelinde "Ortalama R" kutusu alt başlığı örtüyor; panel "Kalan hak" ile tezgâh sayacı tutarsız (2 / 1).
+- [ ] G24 [teknik] Deprem dili ve son cila (takım kararı 04:26): "öncü sarsıntı / asıl deprem gelecek / 5 gün sonra" ifadeleri ve görselleri "küçük deprem", "bir gece büyük deprem", kısa yol düğmesi soru biçimine (yer tutucu); ilk yanlış karardan sonra fişte "Space ile incele, kusuru kanıtla" ipucu (bir kez); G19 testi: açık klasör saha notunu örtüyor (saha notu çakışmayan yere; klasör açılınca notun üstüne gelmesin), saha testinin zaman maliyeti ekranda gösterilsin ("+30 dk"), çatlak etiketi çekiç görselinin altında kalmasın.
 
 ## Sırada
 
@@ -26,7 +26,6 @@ Araçlar ve derinlik (ara test sonrası saha testi bunların yerini alıyor; dü
 
 Görsel, ses, cila (takım paketleri onaylayınca)
 
-- [ ] G24 [teknik] Deprem dili ve son cila (takım kararı 04:26): "öncü sarsıntı / asıl deprem gelecek / 5 gün sonra" ifadeleri ve görselleri "küçük deprem", "bir gece büyük deprem", kısa yol düğmesi soru biçimine (yer tutucu); ilk yanlış karardan sonra fişte "Space ile incele, kusuru kanıtla" ipucu (bir kez); G19 testi: açık klasör saha notunu örtüyor (saha notu çakışmayan yere; klasör açılınca notun üstüne gelmesin), saha testinin zaman maliyeti ekranda gösterilsin ("+30 dk"), çatlak etiketi çekiç görselinin altında kalmasın.
 - [ ] G11 [teknik] Menü cilası (eleştirmen 3, P1): oyun adı başlığı ruhsat kâğıdında, arkada pencere ve akşamüstü sokak (düz şablon görünümü kalksın); belge ayrıntıları kesildi.
 
 
@@ -83,3 +82,4 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 - [x] G23 [teknik] Küçük kalanlar (13 madde: öncü → rapor ~1 sn ve tuşla geçiş, etiketler cama sığıyor, fiş ve zarf konumu, inceleme etiketi, kısa yol sonucunda Enter = Gün 2, zarf ifadeleri, geçiş, deprem görünümü, dekor binalar soluk, MÜHÜR ve Ayarlar, Splash girdileri, gazetede zarf) (91321e7, Opus/high; test geçti)
 - [x] G19 [teknik] Saha testi, yalnızca Schmidt çekici (takım kararı 01.30): karot yoksa ya da geçersizse SAHA ile beton yüzeyine vurma mini oyunu (geri tepme değeri → dayanım), günde sınırlı hak, zaman harcar; sonuç masaya "saha notu" olarak düşer ve kanıt sayılır (bilgiEdin karot, saha). Burgu YOK. (680347d, Opus/high; adalet 29895 denetim 0 hata; test geçti)
 - [x] G20: KESİLDİ (takım kararı 04:26, eleştirmen 3: jüri 3. güne ulaşmıyor, kural yükü)
+- [x] G23b [teknik] Gazete zarf satırı yalnızca oyuncunun zarfları, kısa yol manşeti/değerlendirme jüri binalarına dayalı ve tutarlı, ikinci Enter ~0,5 sn + hazır göstergesi, küçük n, deprem yakın planında odak dışı soluk, 720p etiket payı, fiş ekranda, saha paneli (089c397, Opus/high; adalet 30909 denetim 0 hata; test sürüyor)
