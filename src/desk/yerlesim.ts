@@ -51,7 +51,8 @@ const GUN23: Yerlesim = {
 const GUN1: Yerlesim = {
   belge: { ...TAM.belge, foto: [272, 744], ruhsat: [672, 688] },
   kitap: TAM.kitap,
-  not: [1136, 696],
+  // G31: kural notu "yönerge" satırıyla uzadı; üst kenarı tezgâh bandının altında kalsın (y 498-974).
+  not: [1136, 736],
 };
 
 export function yerlesim(gun: number): Yerlesim {

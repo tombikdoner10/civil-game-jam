@@ -236,7 +236,7 @@ export class NewspaperScene extends Phaser.Scene {
     const baslik = this.add.text(0, 0, EV_GAZETE_BASLIK, { fontFamily: FONT, fontSize: '32px', color: MUREKKEP }).setOrigin(0, 0);
     const govde = this.add
       .text(0, 0, `${evCumleleri(s).join(' ')}
-${evTaksitSatiri(s.guclendirme)} ${evHarcananSatiri(`${s.harcanan} TL`)}`, { fontFamily: FONT, fontSize: '28px', color: MUREKKEP, wordWrap: { width: w - ic * 2, useAdvancedWrap: true }, lineSpacing: 2 })
+${evTaksitSatiri(s.guclendirme)} · ${evHarcananSatiri(`${s.harcanan} TL`)}`, { fontFamily: FONT, fontSize: '28px', color: MUREKKEP, wordWrap: { width: w - ic * 2, useAdvancedWrap: true }, lineSpacing: 2 })
       .setOrigin(0, 0);
     const yuk = (): number => ic + baslik.height + 8 + govde.height + ic;
     const enCok = Math.min(EV_KUTU.enCokH, sigH);

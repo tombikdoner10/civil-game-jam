@@ -3,7 +3,7 @@ import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
 import { FONT } from '../config';
 import type { Kural } from '../game/building';
-import { kuralMetni } from '../game/rules';
+import { kuralMetni, YONERGE_NOTU } from '../game/rules';
 import { masayaSikistir, ustKatman } from './DocumentCard';
 import type { SecimNesne, Yuzey } from './Inspect';
 import { PAL } from './palette';
@@ -15,7 +15,7 @@ const ICERIK = W - 48;
 /**
  * Kural notu (gün 1): masada küçük, sürüklenebilir sarımsı kâğıt. İlk satır hedef (görev), altında o
  * günün kuralı. Kural satırı inceleme modunda kural kitabındaki satır gibi seçilebilir. Dosyalar gelip
- * giderken masada kalır. Metinler yer tutucu (rules.ts).
+ * giderken masada kalır. Metinler rules.ts'de.
  */
 export class RuleNote extends Phaser.GameObjects.Container {
   readonly genislik = W;
@@ -39,11 +39,13 @@ export class RuleNote extends Phaser.GameObjects.Container {
     const cerceveYazi = cerceve ? yazi(cerceve, 32, PAL.damgaBosalt) : undefined;
     const cerceveH = cerceveYazi ? cerceveYazi.height + 16 : 0;
     const baslik = yazi(`KURAL NOTU · GÜN ${gun}`, 40, PAL.murekkep);
+    // G31: başlığın altında küçük satır: kurallar oyun için sadeleştirilmiş bir yönerge.
+    const yonergeYazi = yazi(YONERGE_NOTU, 24, PAL.murekkepSoluk);
     const gorevYazi = yazi(gorev, 30, PAL.basikSerit);
     const kuralYazilari = kurallar.map((k) => yazi(kuralMetni(k, gun), 30, PAL.murekkep));
 
     // Yükseklik içerikten: çerçeve, başlık, görev, ayraç, kurallar.
-    let h = 20 + cerceveH + 44 + 8 + gorevYazi.height + 20;
+    let h = 20 + cerceveH + 44 + yonergeYazi.height + 8 + 8 + gorevYazi.height + 20;
     for (const k of kuralYazilari) h += k.height + 12;
     h = snap(h + 12, PX * 2);
     this.yukseklik = h;
@@ -73,7 +75,10 @@ export class RuleNote extends Phaser.GameObjects.Container {
     }
     baslik.setPosition(sol, yy);
     this.add(baslik);
-    yy += 44 + 8;
+    yy += 44;
+    yonergeYazi.setPosition(sol, yy);
+    this.add(yonergeYazi);
+    yy += yonergeYazi.height + 8 + 8;
     gorevYazi.setPosition(sol, yy);
     this.add(gorevYazi);
     yy += gorevYazi.height + 8;
