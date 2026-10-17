@@ -19,7 +19,7 @@ const BOLUMLER = [
   { id: 'kat', ad: 'KAT', renk: PAL.damgaGuclendir },
   { id: 'kolon', ad: 'KOLON', renk: PAL.damgaBosalt },
   { id: 'beton', ad: 'BETON', renk: '#8a8d94' },
-  { id: 'saha', ad: 'SAHA', renk: '#5b8a9a' },
+  { id: 'konum', ad: 'KONUM', renk: '#5b8a9a' },
   { id: 'zemin', ad: 'ZEMİN', renk: '#9a7a52' },
   { id: 'belge', ad: 'BELGE', renk: PAL.damgaIade },
 ] as const;
@@ -31,10 +31,10 @@ const KURAL_BOLUMU: Record<string, BolumId> = {
   beton: 'beton',
   karot: 'beton',
   rapor: 'beton',
-  // G19: saha testi (Schmidt çekici) kuralı SAHA bölümünde.
-  saha: 'saha',
-  dere: 'saha',
-  fay: 'saha',
+  // G19: saha testi (Schmidt çekici); G53: BETON bölümünde (SAHA sekmesi KONUM oldu, yalnızca dere ve fay).
+  saha: 'beton',
+  dere: 'konum',
+  fay: 'konum',
   zeminEtudu: 'zemin',
   sivilasma: 'zemin',
   gecersiz: 'belge',
@@ -376,6 +376,11 @@ export class Klasor {
     // Kurallar bölümlere; her bölüm sağ sayfaya sığmazsa birden çok sayfa.
     const kurallar = aktifKurallar(this.gun);
     const genislik = SAG_W - 48 - 24;
+    const yeniRozet = (x: number, y: number) =>
+      s.add.text(x, y, 'YENİ', { fontFamily: FONT, fontSize: '26px', color: '#f0e6cc', backgroundColor: PAL.damgaBosalt, padding: { x: 6, y: 0 } });
+    const olcRozet = yeniRozet(0, 0);
+    const rozetW = olcRozet.width;
+    olcRozet.destroy();
     let sekmeY = ust + 140;
     for (const B of BOLUMLER) {
       const liste = kurallar.map((k, i) => ({ k, no: i + 1 })).filter(({ k }) => bolumu(k) === B.id);
@@ -412,19 +417,38 @@ export class Klasor {
       // Önce bütün satırlar ölçülür: bölüm tek sayfaya (sayfa çevirme satırı olmadan, alta kadar) sığıyorsa
       // bölünmez ve "1/2" göstergesi çıkmaz (G5b). 30 px sığmazsa 28 ve 26 px denenir; hiçbiri sığmazsa 30 px ve
       // ICERIK_ALT'ta sayfa bölünür.
+      // G53: yeni kuralın "YENİ" rozeti son satırın sonuna sığıyorsa oraya konur ve yazı tam genişlikte kırılır
+      // (rozet için sağda boşluk bırakmak satır sayısını artırıp bölümü ikinci sayfaya taşıyordu); sığmazsa eskisi
+      // gibi sağ üstte, yazı rozet kadar dar.
       const olc = (boy: number) => {
         const out = liste.map(({ k, no }) => {
           const yk = kuralYeni(k, this.gun);
-          const yazi = s.add
-            .text(sagSol + 64, 0, kuralSatiri(k, this.gun), {
-              fontFamily: FONT,
-              fontSize: `${boy}px`,
-              color: PAL.murekkep,
-              lineSpacing: 2,
-              wordWrap: { width: yk ? genislik - 56 : genislik, useAdvancedWrap: true },
-            })
-            .setOrigin(0);
-          return { k, no, yk, yazi, boy, h: snap(Math.max(yazi.height, 32) + 12) };
+          const yaz = (w: number) =>
+            s.add
+              .text(sagSol + 64, 0, kuralSatiri(k, this.gun), {
+                fontFamily: FONT,
+                fontSize: `${boy}px`,
+                color: PAL.murekkep,
+                lineSpacing: 2,
+                wordWrap: { width: w, useAdvancedWrap: true },
+              })
+              .setOrigin(0);
+          let yazi = yaz(genislik);
+          let rozet: { x: number; dy: number } | null = null;
+          if (yk) {
+            const satir = yazi.getWrappedText();
+            const n = Math.max(1, satir.length);
+            const son = s.add.text(0, 0, satir[n - 1] ?? '', { fontFamily: FONT, fontSize: `${boy}px` });
+            const sonW = son.width;
+            son.destroy();
+            if (sonW + 12 + rozetW <= genislik) {
+              rozet = { x: snap(sagSol + 64 + sonW + 12), dy: Math.round(((yazi.height + 2) / n) * (n - 1)) + 2 };
+            } else {
+              yazi.destroy();
+              yazi = yaz(genislik - 56);
+            }
+          }
+          return { k, no, yk, yazi, boy, rozet, h: snap(Math.max(yazi.height, 32) + 12) };
         });
         return { out, toplam: out.reduce((n, x) => n + x.h + 8, 0) };
       };
@@ -446,7 +470,7 @@ export class Klasor {
       let sayfa = s.add.container(0, 0);
       sayfalar.push(sayfa);
       let y = ust + ICERIK_UST;
-      for (const { k, no, yk, yazi, h, boy } of satirlar) {
+      for (const { k, no, yk, yazi, h, boy, rozet } of satirlar) {
         if (y + h > ust + alt && y > ust + ICERIK_UST) {
           sayfa = s.add.container(0, 0);
           sayfalar.push(sayfa);
@@ -459,11 +483,7 @@ export class Klasor {
         sayfa.add([r, noYazi, yazi]);
         if (yk) {
           if (this.yeniBolum < 0) this.yeniBolum = bi;
-          sayfa.add(
-            s.add
-              .text(ACIK.w / 2 - 20, y + 6, 'YENİ', { fontFamily: FONT, fontSize: '26px', color: '#f0e6cc', backgroundColor: PAL.damgaBosalt, padding: { x: 6, y: 0 } })
-              .setOrigin(1, 0),
-          );
+          sayfa.add(rozet ? yeniRozet(rozet.x, y + 4 + rozet.dy).setOrigin(0, 0) : yeniRozet(ACIK.w / 2 - 20, y + 6).setOrigin(1, 0));
         }
         this.satirlar.push({ belge: 'kural', alan: k.id, nesne: r });
         y += h;

@@ -105,8 +105,8 @@ export const GECERSIZ_BELGE: readonly KusurId[] = ['elleDuzeltme', 'baskaBina', 
 
 const fayMetni = (): string =>
   TUNING.fayKurali === 'bosalt'
-    ? `Kural: fay hattına yönerge mesafesinden (${TUNING.fayMinM} m) yakınsa → BOŞALT`
-    : `Kural: fay hattına yönerge mesafesinden (${TUNING.fayMinM} m) yakınsa zemin etüdüne bak: sağlam ya da orta → GÜÇLENDİR, sıvılaşma → BOŞALT, etüt yok → İADE`;
+    ? `Kural: faya ${TUNING.fayMinM} m'den yakınsa → BOŞALT`
+    : `Kural: faya ${TUNING.fayMinM} m'den yakınsa zemin etüdüne bak: sağlam/orta → GÜÇLENDİR, sıvılaşma → BOŞALT, etüt yok → İADE`;
 
 /**
  * Kural kitabı (gün planı, GDD). Metinler lider onaylı (G31). Her satır sonunda vurulacak damgayı yazar
@@ -123,63 +123,63 @@ export const KURALLAR: Kural[] = [
     id: 'kolon',
     ilkGun: 2,
     kusurlar: ['kesikKolon', 'caprazCatlak'],
-    metin: 'Kural: zemin katta kesik kolon ya da gövdede çapraz çatlak varsa → BOŞALT',
+    metin: 'Kural: zemin katta kesik kolon ya da çapraz çatlak → BOŞALT',
   },
   {
     id: 'oncelik',
     ilkGun: 2,
     kusurlar: [],
-    metin: 'Kural: birden çok kusurda en ağır damga: BOŞALT, sonra İADE, sonra GÜÇLENDİR. Kusur yoksa → GÜVENLİ',
+    metin: 'Kural: birden çok kusurda en ağırını vur: BOŞALT > İADE > GÜÇLENDİR. Kusur yoksa → GÜVENLİ',
   },
-  { id: 'beton', ilkGun: 3, kusurlar: ['dusukBeton'], metin: `Kural: beton dayanımı yönerge eşiğinin (${TUNING.betonEsikMpa} MPa) altındaysa → BOŞALT` },
+  { id: 'beton', ilkGun: 3, kusurlar: ['dusukBeton'], metin: `Kural: beton dayanımı ${TUNING.betonEsikMpa} MPa'nın altındaysa → BOŞALT` },
   {
     id: 'karot',
     ilkGun: 3,
     kusurlar: ['karotYok'],
-    metin: 'Kural: karot raporu yoksa sahibinden iste; getiremezse saha testi yap ya da → İADE',
+    metin: 'Kural: karot raporu yoksa İSTE; gelmezse SAHA testi yap ya da → İADE',
   },
   {
     id: RAPOR_KURALI,
     ilkGun: 3,
     // Sahte rapor binanın kusuru değil (üretici seçmesin): kanıtı oturum denetler (session.incele).
     kusurlar: [],
-    metin: 'Kural: getirilen raporda lab mührü olmalı, tarihi bugünü ({bugun}) geçmemeli, değeri elle düzeltilmemeli; değilse sahte → İADE',
+    metin: 'Kural: getirilen rapor mühürsüz, ileri tarihli (bugün {bugun}) ya da elle düzeltilmişse sahtedir → İADE',
+  },
+  {
+    // G19: saha notu ön değerlendirme; G53: BETON bölümünde rapordan sonra (klasörde numara sırası). Saha kusuru
+    // binanın değil oturumun (üretici seçmesin): kapsam() ekler.
+    id: SAHA_KURALI,
+    ilkGun: TUNING.saha.ilkGun,
+    kusurlar: [],
+    metin: `Kural: saha testi ön değerlendirmedir: tahmin ${TUNING.betonEsikMpa} MPa'nın altındaysa → BOŞALT, değilse → GÜÇLENDİR`,
   },
   {
     id: 'dere',
     ilkGun: 4,
     kusurlar: ['dereyeYakin'],
-    metin: `Kural: dere yatağına yönerge mesafesinden (${TUNING.dereMinM} m) yakınsa zemin etüdüne bak: sağlam ya da orta → GÜÇLENDİR, sıvılaşma → BOŞALT, etüt yok → İADE`,
+    metin: `Kural: dereye ${TUNING.dereMinM} m'den yakınsa zemin etüdüne bak: sağlam/orta → GÜÇLENDİR, sıvılaşma → BOŞALT, etüt yok → İADE`,
   },
   { id: 'fay', ilkGun: 4, kusurlar: ['fayaYakin'], metin: fayMetni() },
-  {
-    // G19: saha notu ön değerlendirme (SAHA bölümünde dere ve fayın ardından: gün 4'te yeni kurallar önce). Saha
-    // kusuru binanın değil oturumun (üretici seçmesin): kapsam() ekler.
-    id: SAHA_KURALI,
-    ilkGun: TUNING.saha.ilkGun,
-    kusurlar: [],
-    metin: `Kural: saha notu (Schmidt çekici) ön değerlendirmedir, kesin karar karot ister: tahmini dayanım ${TUNING.betonEsikMpa} MPa'nın altındaysa → BOŞALT, değilse → GÜÇLENDİR`,
-  },
   {
     id: 'zeminEtudu',
     ilkGun: 4,
     kusurlar: ['zeminEtuduYok'],
-    metin: 'Kural: zemin etüdü yoksa sahibinden iste; getiremezse saha testi yap ya da → İADE',
+    metin: 'Kural: zemin etüdü yoksa İSTE; gelmezse SAHA testi yap ya da → İADE',
   },
-  { id: 'sivilasma', ilkGun: 4, kusurlar: ['sivilasma'], metin: 'Kural: zeminde sıvılaşma riski varsa → BOŞALT' },
+  { id: 'sivilasma', ilkGun: 4, kusurlar: ['sivilasma'], metin: 'Kural: sıvılaşma riski varsa → BOŞALT' },
   {
     // G17b: gün 4 imzasız ruhsat; gün 5'te elle düzeltme ve başka binanın belgesi aynı satıra eklenir.
     id: GECERSIZ_KURALI,
     ilkGun: TUNING.belgeHile.imzaGun,
     kusurlar: ['imzaYok'],
-    metin: 'Kural: ruhsat imzasızsa geçersizdir; düzgününü iste, getiremezse → İADE',
+    metin: 'Kural: imzasız ruhsat geçersizdir: düzgününü İSTE, gelmezse → İADE',
     ek: {
       gun: TUNING.belgeHile.elleBaskaGun,
       kusurlar: ['elleDuzeltme', 'baskaBina'],
-      metin: 'Kural: belge elle düzeltilmişse, başka binaya aitse (ada/parsel) ya da imzasızsa geçersizdir; düzgününü iste, getiremezse → İADE',
+      metin: 'Kural: elle düzeltilmiş, başka binaya ait (ada/parsel) ya da imzasız belge geçersizdir: düzgününü İSTE, gelmezse → İADE',
     },
   },
-  { id: 'belge', ilkGun: 5, kusurlar: ['sahteBelge'], metin: 'Kural: ruhsat tarihi yapım yılından sonraysa bina ruhsatsız yapılmış demektir → İADE' },
+  { id: 'belge', ilkGun: 5, kusurlar: ['sahteBelge'], metin: 'Kural: ruhsat tarihi yapım yılından sonraysa bina ruhsatsızdır → İADE' },
 ];
 
 /** Kural kitabında gösterilecek metin: {bugun} o günün tarihi olur; genişleyen kuralda o günün metni. */

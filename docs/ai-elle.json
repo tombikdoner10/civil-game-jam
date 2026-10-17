@@ -358,5 +358,19 @@
     "yer": "docs/BENIOKU.txt, README.md",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T18:26:12.694Z"
+  },
+  {
+    "kategori": "text",
+    "amac": "Kural metinlerini kısaltma (G53, Node betiğiyle dize değişimi)",
+    "yer": "src/game/rules.ts (yönetmelik klasörü kuralları)",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T19:07:54.521Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "Klasörde SAHA sekmesini KONUM yapma, YENİ rozetini satır sonuna alma (G53, Node betiğiyle düzenleme)",
+    "yer": "src/desk/Klasor.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T19:07:54.583Z"
   }
 ]
