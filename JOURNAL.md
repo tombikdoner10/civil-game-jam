@@ -7,7 +7,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
 - Kontrol 2 (ara oyun testi): TAMAM (16 Ekim 23.53, geri bildirim işlendi)
 - Kontrol 3 (son teslim): BEKLİYOR
-- Son eleştirmen: 2026-10-18T00:38+03:00 (eleştirmen 10 sürüyor)
+- Son eleştirmen: 2026-10-18T00:38+03:00
 - Kullanım düzeyi: normal
 
 ## Günlük
@@ -257,3 +257,5 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 00:27 · G58 bitti (8be5b23, opus/high): rapor yerleşimi içeriğe göre (bilgi satırları → dosya tablosu → para tablosu → yazı boyu sıkışır), uzun satır en çok 6 px küçülüp alt satıra kayar; 7 uydurma durum ve tohum 1/2 HD/720p taşmasız, normal raporlar eskisiyle aynı; adalet 591939/0 · G58 testi başladı (opus/low, teslim/test-8be5b23)
 - 00:37 · Test (G58, opus/low, 7 koşu hatasız): kısa yol tohum 1/2 HD/720p rapor sırası ve taşma yok; gün 3 ve 5 raporları eskisi gibi; gerileme yok GEÇTİ · Kozmetik (kabul): 3 müfettişli uç durumda damga rozetleri birbirine değiyor; Enter vurgu çerçevesi 'Birikmiş'e değiyor (örtmüyor) · Karar: G58 yayına; ardından eleştirmen 10
 - 00:38 · G58 canlıda (595eab1; JS paketinde hash ve canlı smoke doğrulandı; son-saglam taşındı) · Özellik dondurma kapandı (takımın 01.00 ertelemesiyle): bundan sonra yalnızca hata ve metin düzeltmesi · Eleştirmen 10 başladı (opus/high, teslim/test-8be5b23 = canlı kod)
+- 00:51 · Eleştirmen 10 (opus/high, 6 koşu hatasız): ~87/100 (oyn. 21, tema 24, yarat. 16, görsel 12, teknik 14; E9 ~85) · Zarf ikilemi iki yönlü kuruluyor (yakalanan: para 0, ev hazırlıksız; yakalanmayan: 110 TL ama bina çöktü; geri veren: yeşil övgü); "zarf hep kârlı" sorunu çözüldü; TUNING 0,5/40 değişmesin · Eksik: oyuncu karar anında müfettişi bilmiyor · Öneriler: son ZIP temiz ağaçtan (test kopyasında 'sürüm 8be5b23*' vardı: stat farkı, giderildi), zarf anında risk ima eden metin, "güçlendirilmişti" yerine "güçlendirme kararı verilmişti" (bu gece olsaydı ile tutarlı), "düzgününü" yerine "geçerlisini", klasörde nokta tutarlılığı
+- 00:51 · Karar (lider): G59 metin cilası: zarf uyarısı "Önce zarfa karar ver. Müfettiş gelebilir." (sığmazsa iki satır), gazete "… : güçlendirme kararı verilmişti", BELGE "geçerlisini İSTE", klasörde satır sonundaki nokta kalkar (KAT) · Sonuç ekranındaki tekrar kalır · Neden: risk karar anında bilinsin; mühendis jüri için doğru ifade · Not (dondur/teslim): ZIP temiz ağaçtan, adında 'degisiklikli' yok, menüde yıldızsız hash

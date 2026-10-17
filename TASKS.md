@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G59 [teknik] (sürüyor, Opus/high) Eleştirmen 10 metin cilası: zarf uyarısında müfettiş riski, gazetede "güçlendirme kararı verilmişti", BELGE kurallarında "geçerlisini", klasörde satır sonu noktası tutarlı.
 
 ## Sırada
 
