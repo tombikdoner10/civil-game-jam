@@ -102,7 +102,8 @@ export const ASSETS: Record<Category, AssetCredit[]> = {
       author: 'Kenney (www.kenney.nl)',
       url: 'https://kenney.nl/assets/music-jingles',
       license: 'Creative Commons CC0 1.0',
-      usage: 'Gün sonu raporu: iyi gün ve kötü gün jingle\'ı (Pizzicato); değiştirilmedi (src/sounds/kenney/music-jingles/)',
+      usage:
+        'Pizzicato jingle\'ları: gün sonu raporu (iyi gün PIZZI10, kötü gün PIZZI07), gazete açılışı (PIZZI03), sonuç ekranı (iyi PIZZI02, kötü PIZZI01); değiştirilmedi (src/sounds/kenney/music-jingles/)',
     },
   ],
   code: [

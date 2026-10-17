@@ -97,6 +97,26 @@ const sayac: Record<string, { dosya: number; sentez: number; sessiz: number }> =
 let gurultu: AudioBuffer | null = null;
 const cache = new Map<string, AudioBuffer[]>();
 const warned = new Set<string>();
+/**
+ * Çalan jingle'lar (müzik kanalındaki katmanlar). Yeni bir jingle başlarken ya da `sfx.jingleSustur()` çağrılınca
+ * (gazete ve sonuç ekranı kapanırken) kısa bir sönmeyle kesilir; jingle'lar üst üste binmez, sonraki sahneye taşmaz.
+ */
+const jingleler = new Set<{ src: AudioBufferSourceNode; gain: GainNode }>();
+
+function jingleKes(ctx: AudioContext, sure: number): void {
+  const t = ctx.currentTime;
+  for (const j of jingleler) {
+    j.gain.gain.cancelScheduledValues(t);
+    j.gain.gain.setValueAtTime(j.gain.gain.value, t);
+    j.gain.gain.linearRampToValueAtTime(0, t + sure);
+    try {
+      j.src.stop(t + sure + 0.02);
+    } catch {
+      // zaten durmuş
+    }
+  }
+  jingleler.clear();
+}
 
 function render(ctx: BaseAudioContext, p: SfxParams): AudioBuffer {
   const sr = ctx.sampleRate;
@@ -271,6 +291,11 @@ export const sfx = {
     };
   },
 
+  /** Çalan jingle'ları `sure` saniyede söndürüp durdur (sahne kapanırken). Çalan yoksa bir şey yapmaz. */
+  jingleSustur(sure = 0.25): void {
+    if (audio.ctx && jingleler.size > 0) jingleKes(audio.ctx, sure);
+  },
+
   /** Tanımlı efekt adları (oyun alanı sahnesi için). */
   names(): string[] {
     return [...new Set([...dosyalar.keys(), ...presets.keys()])];
@@ -285,6 +310,8 @@ export const sfx = {
 /** Katmanları çalar; hiçbir dosya yüklü değilse false (sentez yedeğine düşülür). */
 function dosyaCal(ctx: AudioContext, katmanlar: Katman[], opts: PlayOptions): boolean {
   let caldi = false;
+  // Yeni jingle öncekini keser (üst üste binmesin).
+  if (katmanlar.some((k) => k.kanal === 'muzik') && jingleler.size > 0) jingleKes(ctx, 0.12);
   for (const k of katmanlar) {
     const adaylar = k.dosya.map((d) => audio.buffer(d)).filter((b): b is AudioBuffer => b !== null);
     const bus = k.kanal === 'muzik' ? audio.musicBus : audio.sfxBus;
@@ -296,10 +323,15 @@ function dosyaCal(ctx: AudioContext, katmanlar: Katman[], opts: PlayOptions): bo
     src.playbackRate.value = (k.rate ?? 1) * (opts.rate ?? 1) * r(1 - oyna, 1 + oyna);
     let node: AudioNode = src;
     const v = (k.volume ?? 1) * (opts.volume ?? 1);
-    if (v !== 1) {
+    if (v !== 1 || k.kanal === 'muzik') {
       const gain = ctx.createGain();
       gain.gain.value = v;
       node = node.connect(gain);
+      if (k.kanal === 'muzik') {
+        const j = { src, gain };
+        jingleler.add(j);
+        src.onended = () => jingleler.delete(j);
+      }
     }
     if (opts.pan) {
       const panner = ctx.createStereoPanner();

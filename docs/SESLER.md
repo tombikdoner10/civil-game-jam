@@ -46,15 +46,20 @@ Kısaltmalar: **I** impact-sounds, **R** rpg-audio, **IF** interface-sounds, **U
 | Öncü sarsıntı: cam titremesi (`camTitreme`) | tik başına olasılıkla | I `impactGlass_light_000/002` (sessiz) | I `impactGlass_light_001/003/004` |
 | Bina çatlar / ağır hasar (`hasar`) | `Quake`, binanın tepkisi | I `impactPlank_medium_001/002` (rate 0.6) + I `impactMining_*` | I `impactPlate_heavy_*` |
 | Bina çöker (`cokus`, G5) | `Quake`, `cokme` açıksa | I `impactSoft_heavy_003` + I `impactMining_*` ×2 + I `impactGlass_heavy_000` | I `impactGlass_heavy_001/004` |
-| Gün sonu, iyi gün (`gunIyi`) | `DayEndScene` (yanlış ve işlenmeyen dosya yoksa); `ResultScene` (değerlendirme iyiyse); müzik düzeyine bağlı | J `jingles_PIZZI10` (yükselen 4 nota) | J `jingles_SAX10`, J `jingles_PIZZI02`, J `jingles_STEEL10` |
-| Gün sonu, kötü gün (`gunKotu`) | `DayEndScene` (diğer durumlar); `ResultScene` (değerlendirme orta ya da kötüyse) | J `jingles_PIZZI07` (yarım tonla inen 4 nota) | J `jingles_SAX07`, J `jingles_PIZZI11`, J `jingles_PIZZI01` |
+| Gün sonu, iyi gün (`gunIyi`) | `DayEndScene` (yanlış ve işlenmeyen dosya yoksa); müzik düzeyine bağlı | J `jingles_PIZZI10` (yükselen 4 nota) | J `jingles_SAX10`, J `jingles_PIZZI02`, J `jingles_STEEL10` |
+| Gün sonu, kötü gün (`gunKotu`) | `DayEndScene` (diğer durumlar) | J `jingles_PIZZI07` (yarım tonla inen 4 nota) | J `jingles_SAX07`, J `jingles_PIZZI11`, J `jingles_PIZZI01` |
+| Gazete açılır (`gazete`, G32) | `NewspaperScene`, gazete masaya inince (0,45 sn) bir kez, sonuçtan bağımsız; müzik düzeyine bağlı | J `jingles_PIZZI03` (1,15 sn; Do♯ ile Do arasında gidip gelir, Do'da kalır: çözülmeyen, bekleten, nötr) | J `jingles_PIZZI13` (Mi→Fa, 0,9 sn), J `jingles_PIZZI15` (Do→Fa, 0,8 sn), J `jingles_STEEL03` (aynı ezgi, 1,4 sn) |
+| Sonuç, iyi (`sonucIyi`, G32) | `ResultScene`, değerlendirme şeridi belirince, değerlendirme `iyi` ise; müzik düzeyine bağlı | J `jingles_PIZZI02` (0,96 sn; Do'dan La♯'a tam tonlarla yükselen 6 nota; zafer değil, ölçülü) | J `jingles_STEEL02` (aynı ezgi, 1,4 sn), J `jingles_PIZZI10` (gün sonuyla aynı) |
+| Sonuç, kötü (`sonucKotu`, G32) | `ResultScene`, değerlendirme `orta` ya da `kotu` ise (önceki `gunKotu` kuralı aynen) | J `jingles_PIZZI01` (1,0 sn; La♯'tan Do'ya tam tonlarla inen 6 nota; `sonucIyi`'nin aynası) | J `jingles_PIZZI14` (inen 5 nota, 0,9 sn), J `jingles_STEEL01` (yarım tonlarla inen, 1,4 sn) |
 | Menü düğmesi (`confirm`) | bütün `Button`'lar, Gate tıklaması, gün sonu "Sonraki gün" | U `click1` | U `click3`, ui-pack `click-a` |
 | Düğme üzerine gelme (`hover`) | `Button` | U `rollover2` (sessiz) | U `rollover5` |
 | Geri (`back`) | "Ana Menü" düğmesi | IF `back_003` | IF `back_001` |
 | Duraklatma açılır, ayar önizlemesi (`click`) | `PauseScene`, `SettingsScene` | U `click2` | IF `click_001` |
 
+**Jingle'lar (G32):** Havuzdaki 85 jingle'ın hepsi 0,4–1,7 sn; 2 sn'yi aşan yok. Gün sonuyla aynı aile (Pizzicato) seçildi: Steel (çelik davul) ve Sax daha neşeli ya da komik, 8-Bit ve Hit oyunbaz. Seçim ad, süre ve 30 ms'lik perde izine (otokorelasyon) göre yapıldı, **dinlenmedi**. Müzik kanalındaki jingle'lar üst üste binmez: yenisi başlayınca eskisi 0,12 sn'de söner; gazete ve sonuç ekranı kapanınca `sfx.jingleSustur()` çalanı keser (masa ve deprem sessiz kalır). Ayarlarda müzik düzeyi 0 ise çalmaz.
+
 Kodla üretilen (değişmeyen) sesler: açılış ekranındaki yazı tıkırtısı (`type`), ayarlardaki kaydırıcı sesi, deprem gürlemesinin tabanı.
 
 **Ses gücü:** `Quake.oynat(..., { sesGucu })` verilmezse `siddet / 2.5` kullanılır (öncü = 1). Daha büyük değer gürlemeyi yükseltir, moloz ve çatırtıyı sıklaştırır, vuruşları güçlendirir. Büyük deprem (G5, `QuakeScene`) `TUNING.buyukDeprem.sesGucu` = 2 ile çalar; aynı efektler (`depremVurus`, `moloz`, `catirti`, `camTitreme`, `hasar`, `cokus`) kullanılır, yeni dosya eklenmedi. Gazete kâğıdı `kagitKay` + `kagitBirak`.
 
-Toplam boyut: 42 dosya, yaklaşık 390 KB (ZIP'te HTML'e gömülü). Saha testi (G19) yeni dosya eklemedi; var olanları kullanır.
+Toplam boyut: 45 dosya, yaklaşık 440 KB (ZIP'te HTML'e gömülü). Saha testi (G19) yeni dosya eklemedi; var olanları kullanır.

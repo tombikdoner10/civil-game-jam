@@ -190,4 +190,11 @@ export function seslerKur(): void {
   // Gün sonu raporu (müzik düzeyine bağlı).
   t('gunIyi', { dosya: ['jingles_PIZZI10'], volume: 0.8, oynama: 0, kanal: 'muzik' }, 'win');
   t('gunKotu', { dosya: ['jingles_PIZZI07'], volume: 0.8, oynama: 0, kanal: 'muzik' }, 'hurt');
+
+  // Oyunun kapanışı (G32, T24; müzik düzeyine bağlı). Gazete açılınca sonuçtan bağımsız, çözülmeyen bir jingle;
+  // sonuç ekranında değerlendirmeye göre ikisinden biri (iyi: yükselen, kötü: aynı dizinin inen aynası).
+  // Sahneden çıkınca sfx.jingleSustur() keser; masa ve deprem sessiz kalır.
+  t('gazete', { dosya: ['jingles_PIZZI03'], volume: 0.7, oynama: 0, kanal: 'muzik' }, 'confirm');
+  t('sonucIyi', { dosya: ['jingles_PIZZI02'], volume: 0.8, oynama: 0, kanal: 'muzik' }, 'win');
+  t('sonucKotu', { dosya: ['jingles_PIZZI01'], volume: 0.8, oynama: 0, kanal: 'muzik' }, 'hurt');
 }

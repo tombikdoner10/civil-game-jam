@@ -218,5 +218,26 @@
     "yer": "Tasarım ve cila süreci; oyunda doğrudan yer almaz",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T03:58:58.749Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "G32: gazete ve sonuç ekranı jingle'ları, jingle kesme (Bash içinden Python ile düzenlendi)",
+    "yer": "src/audio/sfx.ts, src/audio/sesler.ts, src/scenes/NewspaperScene.ts, src/scenes/ResultScene.ts",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T04:34:43.189Z"
+  },
+  {
+    "kategori": "text",
+    "amac": "G32 (T23): kısa yol açıklama satırı takımın verdiği metne göre değiştirildi (Bash içinden Python ile)",
+    "yer": "src/game/gazete.ts (KISA_YOL_ACIKLAMA)",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T04:34:43.242Z"
+  },
+  {
+    "kategori": "audio",
+    "amac": "G32: Kenney Music Jingles havuzundaki jingle'ların süre ve perde ölçümü, seçim (Bash betiği, headless tarayıcı)",
+    "yer": "src/sounds/kenney/music-jingles/ (PIZZI01, PIZZI02, PIZZI03), docs/SESLER.md",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T04:34:43.301Z"
   }
 ]

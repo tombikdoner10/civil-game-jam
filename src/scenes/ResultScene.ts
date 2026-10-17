@@ -295,9 +295,11 @@ export class ResultScene extends Phaser.Scene {
       kb?.off('keydown-ESC', esc);
       kb?.off('keydown-D', dTus);
       kb?.off('keydown-R', rTus);
+      sfx.jingleSustur();
     });
     sfx.play('kagitKay');
-    this.time.delayedCall(dGec + 700, () => sfx.play(deg.ton === 'iyi' ? 'gunIyi' : 'gunKotu'));
+    // G32 (T24): değerlendirme şeridi belirince sonucun jingle'ı (iyi: değerlendirme iyi; orta ve kötü: kötü).
+    this.time.delayedCall(dGec + 700, () => sfx.play(deg.ton === 'iyi' ? 'sonucIyi' : 'sonucKotu'));
   }
 
   private git(key: string, data?: object): void {

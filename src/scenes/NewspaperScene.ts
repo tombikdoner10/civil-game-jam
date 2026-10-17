@@ -163,10 +163,13 @@ export class NewspaperScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       kb?.off('keydown-ENTER', devam);
       kb?.off('keydown-SPACE', devam);
+      sfx.jingleSustur();
     });
     this.time.delayedCall(GIRIS_KORUMA_MS, () => (this.hazir = true));
     sfx.play('kagitKay');
     this.time.delayedCall(250, () => sfx.play('kagitBirak'));
+    // G32 (T24): gazete masaya inince bir kez, sonuçtan bağımsız jingle. Sahne kapanınca kesilir.
+    this.time.delayedCall(450, () => sfx.play('gazete'));
   }
 
   private devam(): void {

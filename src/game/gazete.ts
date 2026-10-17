@@ -183,8 +183,8 @@ export function zarfOzeti(adet: number, toplam: number, s: readonly DepremBinaSo
  * soru, kehanet değil.
  */
 export const KISA_YOL_DUGME = '[BÜYÜK DEPREM BU GECE OLSAYDI?]';
-/** G11: varsayım çerçevesi ("bu gece olsaydı?" düğmesiyle çelişmesin) ve oyunun sonra sürdüğü bilgisi; yer tutucu. */
-export const KISA_YOL_ACIKLAMA = '[Varsayalım: büyük deprem bu gece oldu. Kararlarının sonucunu şimdi gör.]';
+/** G11: düğmenin altındaki açıklama ve oyunun sonra sürdüğü bilgisi; yer tutucu. T23: soru düğmede, satır kısa. */
+export const KISA_YOL_ACIKLAMA = '[Kararlarının sonucunu şimdi gör.]';
 export const KISA_YOL_DEVAM = '[Sonra 2. günden devam edebilirsin.]';
 
 /** Gün 1 sonundaki küçük deprem (kodda "öncü"): gişe camındaki şerit. G24: "asıl deprem gelecek" yok. */
