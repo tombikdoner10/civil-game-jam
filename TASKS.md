@@ -20,13 +20,13 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 Ara test sonrası (sıra 01.30: G18 → G21 → G5b → G22 → G19 → G20; özellik dondurma Cumartesi 24.00)
 
 
-- [ ] G20 [teknik] Takip denetimi (küçük): gün 3'ten itibaren önceki GÜÇLENDİR binalarından biri geri gelir; fotoğrafta iskele var ya da yok (bırakılmış), güçlendirme raporu; kural ve damga.
 
 Araçlar ve derinlik (ara test sonrası saha testi bunların yerini alıyor; düşük öncelik)
 
 
 Görsel, ses, cila (takım paketleri onaylayınca)
 
+- [ ] G24 [teknik] Deprem dili ve son cila (takım kararı 04:26): "öncü sarsıntı / asıl deprem gelecek / 5 gün sonra" ifadeleri ve görselleri "küçük deprem", "bir gece büyük deprem", kısa yol düğmesi soru biçimine (yer tutucu); ilk yanlış karardan sonra fişte "Space ile incele, kusuru kanıtla" ipucu (bir kez); G19 testi: açık klasör saha notunu örtüyor (saha notu çakışmayan yere; klasör açılınca notun üstüne gelmesin), saha testinin zaman maliyeti ekranda gösterilsin ("+30 dk"), çatlak etiketi çekiç görselinin altında kalmasın.
 - [ ] G11 [teknik] Menü cilası (eleştirmen 3, P1): oyun adı başlığı ruhsat kâğıdında, arkada pencere ve akşamüstü sokak (düz şablon görünümü kalksın); belge ayrıntıları kesildi.
 
 
@@ -81,4 +81,5 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 - [x] G21b [teknik] G21 test bulguları: "Gün 2'den devam" sonrası gün 2 sokağına kısa yolun örnek binaları sızıyor olabilir (doğrula, yalnızca jürinin binaları kalsın); sonuç ekranı düğmeleri hemen görünsün (şu an ~2,5–6 sn boş); uzak plandaki deprem etiketleri büyüsün ya da sabit lejant olsun; gün 1 raporunda Enter = Depremi şimdi yaşa, Sonraki gün ikincil (N ya da tık); saat dosyalar arasında geri gidiyor gibi (09:18 → 09:13), doğrula ve düzelt; sonuç ekranındaki değerlendirme satırının kontrastı. Ek: dev yolunda sonuç ekranı "Birikmiş para: 0 TL" gösteriyor (tablo toplamı farklı). (1fbc253, Opus/high; test geçti 02.54: Enter/Space/D kısa yol, saat ileri, etiketler 720'de okunur, içinde İADE, SORULDU)
 - [x] G22 [teknik] Zarfın bedeli (takım kararı 01.30): zarfı kabul eden oyuncu kişinin istediği damgayı vurmak zorunda (diğer kaşeler kilitli, "zarf aldın" ipucu); bina sokakta küçük bir iz taşır; doğru/yanlış ve deprem gerçek damgaya göre; gazete ve sonuçta görünür. (c9bdc35, Opus/high; adalet 23743 denetim 0 hata; test geçti)
 - [x] G23 [teknik] Küçük kalanlar (13 madde: öncü → rapor ~1 sn ve tuşla geçiş, etiketler cama sığıyor, fiş ve zarf konumu, inceleme etiketi, kısa yol sonucunda Enter = Gün 2, zarf ifadeleri, geçiş, deprem görünümü, dekor binalar soluk, MÜHÜR ve Ayarlar, Splash girdileri, gazetede zarf) (91321e7, Opus/high; test geçti)
-- [x] G19 [teknik] Saha testi, yalnızca Schmidt çekici (takım kararı 01.30): karot yoksa ya da geçersizse SAHA ile beton yüzeyine vurma mini oyunu (geri tepme değeri → dayanım), günde sınırlı hak, zaman harcar; sonuç masaya "saha notu" olarak düşer ve kanıt sayılır (bilgiEdin karot, saha). Burgu YOK. (680347d, Opus/high; adalet 29895 denetim 0 hata; test sürüyor)
+- [x] G19 [teknik] Saha testi, yalnızca Schmidt çekici (takım kararı 01.30): karot yoksa ya da geçersizse SAHA ile beton yüzeyine vurma mini oyunu (geri tepme değeri → dayanım), günde sınırlı hak, zaman harcar; sonuç masaya "saha notu" olarak düşer ve kanıt sayılır (bilgiEdin karot, saha). Burgu YOK. (680347d, Opus/high; adalet 29895 denetim 0 hata; test geçti)
+- [x] G20: KESİLDİ (takım kararı 04:26, eleştirmen 3: jüri 3. güne ulaşmıyor, kural yükü)
