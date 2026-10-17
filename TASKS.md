@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G27 [teknik] Küçük: yanlış karar fişinde dosyada kusur yoksa ("Kusur yok") "[Space ile incele, kusuru kanıtla]" ipucu çıkmasın; ipucu yalnızca bulunacak kusur varken.
+- [ ] G27 [teknik] (sürüyor, Opus/high) Küçük: yanlış karar fişinde dosyada kusur yoksa ("Kusur yok") "[Space ile incele, kusuru kanıtla]" ipucu çıkmasın; ipucu yalnızca bulunacak kusur varken.
 
 ## Sırada
 
