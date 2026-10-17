@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G43 [teknik] (sürüyor, Opus/high) Ekonomi kademeli: çanta/sabitleme 3 kademe, güçlendirme 3 taksit (30/40/50, 30/50/60, 80/100/120); EVİN kâğıdında sıradaki kademe; Senin evin kademeye göre.
 
 ## Sırada
 
@@ -75,6 +74,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G43 Ekonomi kademeli: 3 kademe × 3 kalem (toplam 560 TL), güçlendirme 3 taksit, kart ilerlemesi, Senin evin kademeye göre, kendi apartman yalnız 3/3te GÜÇLENDİR; adalet 561060/0, bina dağılımı aynı; kusursuz dürüst oyuncu gün gün 2/4/6/7/9 kademe (759a6aa + 421e7f4, Opus/high; test sürüyor)
 - [x] G42 Kendi evin hazırlığı: ev.ts (30/20/60 TL, temiz para önce, zarfla işareti), gün sonunda EVİN kâğıdı, gazetede [Senin evin], sonuçta SENİN EVİN; 5 günlükte kendi apartmanla tutarlı; adalet 104634/0, bina dağılımı aynı (12af66b + e0c3505 + efba07f, Opus/high; test geçti)
 - [x] G41 Rapordan depreme geçişte basış tamponu (girisTamponu.ts), menüde erken tık saklanıyor, genel planda etiket tam opak ya da gizli, belgeler kural notunun altından kayıyor (0e6a5f8, Opus/high; test geçti)
 - [x] G40 Portreler: yaş, burun/göz/kaş/çene tipleri, kulak, yeni saç ve sakallar, 3 tonlu ışık; mizaç × ifade tablosu (IFADE_TABLO); sabit kısım bir kez çiziliyor; galeri 24 portre + 5 mizaç satırı (92f0b90 + ek dfb4353: dişsiz gergin yüz, 3,5 sn sonra taban ifade, kibar kaş, kurnaz/çekingen belirgin; + ek 2 be264b1: taban yüzde ağız kapalı, sakal/bıyıkta kapalı ağız okunur; Opus/high; test geçti)
