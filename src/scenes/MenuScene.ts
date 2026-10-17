@@ -122,7 +122,7 @@ export class MenuScene extends Phaser.Scene {
     this.sokakKur();
     kenarKarart(this, -20, 1.4);
 
-    // Ruhsat kâğıdı: başlık şeridinde oyun adı (yer tutucu, config TITLE), altında düğmeler, sağ altta mühür.
+    // Ruhsat kâğıdı: başlık şeridinde oyun adı (config TITLE), altında düğmeler, sağ altta mühür.
     const n = DEV ? 4 : 3;
     const sonDugme = KAGIT.dugmeY + (n - 1) * KAGIT.dugmeAra;
     const kagitH = sonDugme + KAGIT.dugmeH / 2 + KAGIT.alt - KAGIT.ust;

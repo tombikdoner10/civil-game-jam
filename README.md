@@ -1,8 +1,6 @@
-# OYUN ADI
+# Kâğıt Üstünde
 
 **Prompt Engineers** takımının [CIVIL GAME JAM 2026](https://game.ktimo.com.tr/) için geliştirdiği oyun.
-
-> Bu repo şu anda jam öncesinde hazırlanan **genel şablonu** içeriyor. Oyunun kendisi tema açıklandıktan sonra (16 Ekim 2026, 18.00) geliştirilecek.
 
 ## Oyna
 
@@ -11,13 +9,13 @@
 
 ## Oyun hakkında
 
-_Tema açıklandıktan sonra yazılacak._
+Belediyenin yapı denetçisisin. Binaların belgelerini inceleyip kurala göre damgala; büyük deprem gelince kararlarının sonucunu gör.
 
 ## Çalıştırma talimatları
 
 - **Platform ve gereksinimler:** Windows bilgisayarda Chrome, Edge ya da Firefox'un güncel sürümü. Ek yazılım gerekmez.
 - **Başlatma:** Web bağlantısını aç ya da ZIP'i çıkarıp `OYNA.html`'e çift tıkla. Ardından ekrana bir kez tıkla; tarayıcılar ilk tıklamaya kadar sesi açmaz.
-- **Oynanış:** Her dosyada belgeleri karşılaştır, tutarsızlığı inceleme modunda bul ve kaşeyle karar ver (GÜVENLİ / GÜÇLENDİR / BOŞALT / İADE). Gün 1 kısa sürer ve küçük bir depremle biter; gün sonu raporundaki "[Büyük deprem bu gece olsaydı?]" düğmesi (Enter ya da D) kararlarının sonucunu hemen gösterir.
+- **Oynanış:** Her dosyada belgeleri karşılaştır, tutarsızlığı inceleme modunda bul ve kaşeyle karar ver (GÜVENLİ / GÜÇLENDİR / BOŞALT / İADE). Gün 1 kısa sürer ve küçük bir depremle biter; gün sonu raporundaki "Büyük deprem bu gece olsaydı?" düğmesi (Enter ya da D) kararlarının sonucunu hemen gösterir.
 - **Bilinen sorunlar:** Yok.
 
 ### Kontroller
@@ -37,7 +35,7 @@ _Tema açıklandıktan sonra yazılacak._
 | Enter / Space / tıklama | Deprem sırasında hızlandır |
 | Sonuç ekranında Enter / R / Esc | Kısa yolda 2. günden devam (5. gün sonunda yeniden oyna) / yeniden oyna (kısa yolda) / ana menü |
 | N | Gün 1 sonu raporunda sonraki gün |
-| D | Gün 1 sonu raporunda "[Büyük deprem bu gece olsaydı?]" (büyük depreme kısa yol) |
+| D | Gün 1 sonu raporunda "Büyük deprem bu gece olsaydı?" (büyük depreme kısa yol) |
 | ↑ ↓ (W S), Enter | Menülerde gezinme ve seçim |
 
 ### Kaynak koddan çalıştırma
@@ -57,13 +55,22 @@ Menünün sağ alt köşesindeki "sürüm" yazısı, oyunun derlendiği Git comm
 
 Kural 3.1 kapsamında, tema açıklanmadan önce yalnızca genel altyapı hazırlandı: menü ve ayar ekranları, sahne geçişleri, kodla üretilen ses efekti ve müzik sistemi, görsel efekt yardımcıları, klavye kontrolleri, otomatik yayın ve teslim ZIP'ini hazırlayan araç. Bu altyapıda oyuna özgü mekanik, içerik ya da görsel yoktur.
 
-Tema açıklanmadan önceki son commit: _tema açıklanınca eklenecek_
+Tema açıklanmadan önceki son commit: `cc37c87` (`jam-oncesi-sablon` etiketi, 16 Ekim 2026 14.52)
 
 ## Takım
 
-Prompt Engineers: _üye adları eklenecek_
+Prompt Engineers: Egemen (takım temsilcisi). Diğer iki üyenin adları eklenecek.
 
-<!-- TODO(takım) T26: "## Takımın kararları" bölümü buraya (4–5 madde; oyundaki Emeği Geçenler ile aynı sıra: Takım → Takımın kararları → Hazır kaynaklar → Yapay zekâ). -->
+## Takımın kararları
+
+Oyundaki Emeği Geçenler ekranıyla aynı maddeler (`src/data/credits.ts`, `TAKIM_KARARLARI`). Taslağı Claude, GDD'deki takım kararlarından yazdı (Yapay zekâ beyanı, Metin).
+
+- **Tema yorumu:** afet anında değil, öncesinde. Oyuncu denetim masasında karar verir; deprem bu kararları sınar.
+- **Gişede insan:** her dosyanın arkasında mizacı olan bir mal sahibi var. Zarf kabul edilirse istenen damga zorunlu olur, bedeli depremde görülür.
+- **Kurallar:** kaçak katta +1 GÜÇLENDİR, +2 BOŞALT; geçersiz belgeler İADE; saha testi tek başına GÜVENLİ verdirmez.
+- **Deprem dili:** kehanet yok, "deprem her an olabilir". Kısa yol bir soru: "Büyük deprem bu gece olsaydı?"
+- **Kendi evin:** paranın karşılığı ailenin hazırlığı (çanta, sabitleme, güçlendirme). Rüşvet aileni koruyabilir ama onayladığın bina çöker.
+- **Seçimler:** görsel yön (Papers, Please ilhamı, Tiny Town), Kenney sesleri, metinlerin seçimi ve düzenlenmesi takımın.
 
 ## Hazır kaynak beyanı
 
@@ -92,8 +99,8 @@ Prompt Engineers: _üye adları eklenecek_
 | Görsel | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5) | Oyundaki görselleri kodla, piksel piksel çizen kodu yazdı: arayüz ve menü, masa ve belgeler, gişedeki kişilerin portreleri, kaşeler, bina cephesi ayrıntıları, sokak, deprem hasarı ve efektler. Bina ve sokak karoları hazır paketten gelir (Hazır kaynaklar bölümü). | Menü sokağı ve bütün arayüz: düğmeler, kâğıt paneller, arka plan, parçacık ve ekran efektleri; Masa: belgeler (yazılar, ada/parsel satırları, imzalar, elle düzeltme izleri), kaşeler ve kaşelik, yönetmelik klasörü, kural notları, inceleme modu, masa eşyaları; Gişe: gişe portreleri (yüz ayrıntıları ve mizaç ifadeleri), konuşma balonu, zarf ve çekmece, SOR/İSTE düğmeleri, getirilen raporlar; Sokak: bina cephesi ayrıntıları (kat bandı, vitrin), bina etiketleri, deprem çatlakları ve sıva dökülmesi; Saha testi (kolon yakın planı), deprem, gün sonu, gazete ve sonuç ekranları |
 | Ses | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5) | Ses efektlerini ve müziği kodla üreten sentezleyiciyi, deprem gürlemesini kodla üreten sesi ve ses ayarlarını yazdı. Hazır paketteki Kenney seslerinin hız, perde ve katman ayarlarını yaptı. | Arayüz ve oyun ses efektleri, müzik altyapısı; Deprem gürlemesi; Kenney seslerinin çalınışı (hız, perde, katman); Ses düzeyi ayarları |
 | Kod | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5) | Oyunun bütün kodunu yazdı (jam öncesi hazırlanan şablon dahil): oynanış ve kurallar, belgeler ve gişe diyaloğu, deprem, gün sonu, kendi evin hazırlığı (deprem çantası, eşya sabitleme, güçlendirme payı), gazete ve sonuç ekranları, menüler, ses bağlantıları. Ayrıca oyunun dengesini ve kararların adil sonuçlanmasını denetleyen bir araç ile otomatik ekran testi aracını yazdı. | Oyunun tamamı: menü, masa, gişe, sokak, saha testi, deprem, gün sonu ve kendi evin hazırlığı, gazete, sonuç, ayarlar, duraklatma; Geliştirme araçları: denge denetimi ve otomatik test (oyunda görünmez) |
-| Metin | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5) | Arayüz metinlerini, README'yi, BENIOKU'yu, ses listesini ve beyan açıklamalarını yazdı. Gişe diyalogları, zarf ve rapor satırları, kural metinleri, gazete ve deprem anlatımı, kendi evin hazırlığı için yer tutucu metinler yazdı; gişedeki kişiler için beş mizaçta (kibar, sinirli, telaşlı, kurnaz, çekingen) taslak cümleler yazdı (selam, bekleme, sabırsızlık, SOR / İSTE cevapları, zarf ve damga tepkileri); takım bunları düzeltecek ve yeniden yazacak. | Menü, ayarlar, oyun içi ipuçları ve göstergeler; Gişe diyalogları: beş mizaçlı taslak cümleler (selam, bekleme, sabırsızlık, SOR, İSTE, zarf ve damga tepkileri; taslak, takım düzeltecek), zarf ve rapor satırları, yönetmelik kuralları (yer tutucu); Gazete, küçük deprem şeridi, kısa yol sorusu ve çerçeve cümlesi (yer tutucu); Kendi evin hazırlığı: kalem adları ve açıklamaları, "Senin evin" sonuç cümleleri (yer tutucu); Emeği Geçenler, README, BENIOKU |
-| Diğer | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5) | Tema yorumu için konsept seçenekleri önerdi, Kenney seslerinden ölçüme dayalı adaylar seçti, hazır kaynak beyanını ve ses listesini yazdı; konsept seçimi, son ses seçimi ve kararlar takımın. Geliştirme sürecini görevlere bölüp yönetti, oyunu otomatik oynayarak test etti ve jam ölçütlerine göre değerlendirip öneriler sundu. | Oyun fikri aşaması; Ses seçimi ve hazır kaynak beyanı (Emeği Geçenler, README); Geliştirme, test ve değerlendirme süreci (oyunda doğrudan yer almaz) |
+| Metin | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5) | Oyundaki metinlerin taslaklarını yazdı: arayüz, kurallar, gişe diyalogları (beş mizaçta: kibar, sinirli, telaşlı, kurnaz, çekingen), gazete ve deprem anlatımı, kendi evin hazırlığı, hikâye binaları, Emeği Geçenler'deki "Takımın kararları" maddeleri (GDD'deki takım kararlarından), README ve BENIOKU. Takım konsepti, tonu ve deprem dilini (kehanet yok, kurban ve sayı yok) belirledi; metinlerin son seçimini ve onayını Claude'un lider oturumuna bıraktı. Ayrıca ses listesini ve beyan açıklamalarını yazdı. | Menü, ayarlar, oyun içi ipuçları ve göstergeler; Masa: kural notu ve yönetmelik kuralları, belge etiketleri, saha notu, fiş ve kusur etiketleri; Gişe diyalogları: selam, bekleme, sabırsızlık, SOR ve İSTE cevapları, zarf ve damga tepkileri; hikâye binalarının sahipleri ve sözleri; Gün sonu raporu, küçük deprem şeridi, kısa yol sorusu, deprem, gazete (manşetler, haber satırları) ve sonuç ekranı; Kendi evin hazırlığı: kalem ve kademe adları, açıklamalar, "Senin evin" cümleleri; Emeği Geçenler ("Takımın kararları" taslağı dahil), README, BENIOKU |
+| Diğer | Kullanıldı | Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5, Claude Sonnet 5.5) | Tema yorumu için konsept seçenekleri önerdi; oyun adı (Kâğıt Üstünde), kurgusal şehir (Dereboyu) ve gazete adı (Dereboyu Postası) için öneriler sundu, takım bu seçimi Claude'un lider oturumuna bıraktı. Kenney seslerinden ölçüme dayalı adaylar seçti, hazır kaynak beyanını ve ses listesini yazdı; konsept seçimi ve son ses seçimi takımın. Geliştirme sürecini görevlere bölüp yönetti, oyunu otomatik oynayarak test etti ve jam ölçütlerine göre değerlendirip öneriler sundu. | Oyun fikri aşaması; oyun, şehir ve gazete adı; Ses seçimi ve hazır kaynak beyanı (Emeği Geçenler, README); Geliştirme, test ve değerlendirme süreci (oyunda doğrudan yer almaz) |
 <!-- AI-BEYAN:BITIR -->
 
 Bu tablo `npm run beyan` ile otomatik üretilir: Claude Code'un yazdığı her dosya bir kancayla kategorisine göre `docs/ai-kayit.jsonl`'a kaydedilir, elle eklenenler `docs/ai-elle.json`'da durur. Teslim formu için hazır metin: `docs/AI_BEYAN.md`. Commit'lerdeki `Co-Authored-By: Claude` satırları da bu kullanımı gösterir.

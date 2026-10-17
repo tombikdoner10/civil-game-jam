@@ -288,5 +288,12 @@
     "yer": "src/game/kisi.ts, src/game/tuning.ts, src/game/session.ts, src/game/ev.ts",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-17T13:33:00.947Z"
+  },
+  {
+    "kategori": "text",
+    "amac": "Oyun metinlerindeki köşeli parantezli yer tutucuları kaldırıp lider onaylı metinleri yerleştiren düzenleme betikleri (G31)",
+    "yer": "Gişe diyalogları, gazete ve sonuç, kurallar, kendi evin, hikâye binaları, README, BENIOKU",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-17T14:04:00.233Z"
   }
 ]

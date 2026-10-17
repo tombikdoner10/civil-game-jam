@@ -53,7 +53,9 @@ export class CreditsScene extends Phaser.Scene {
     add(TEAM, { size: 60 }, 4);
     add(`${SUBTITLE} için 48 saatte geliştirildi.`, { color: num(PAL.murekkepSoluk) });
     header('Takım');
-    MEMBERS.forEach((m) => add(`${m.name}  ·  ${m.role}`));
+    // G31: köşeli parantezli (yer tutucu) üye satırları gizlenir; takım adlarını yazınca görünür.
+    const yerTutucu = (s: string): boolean => /\[[^\]]*\]/.test(s);
+    MEMBERS.filter((m) => !yerTutucu(m.name) && !yerTutucu(m.role)).forEach((m) => add(`${m.name}  ·  ${m.role}`));
     // Sıra (madde 4.3 izlenimi, G38): önce takımın emeği, sonra hazır kaynaklar, en son yapay zekâ.
     if (TAKIM_KARARLARI.length > 0) {
       header('Takımın kararları');

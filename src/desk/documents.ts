@@ -172,14 +172,14 @@ function ruhsat(k: Ctx): void {
   const satirlar: [string, string, string, number, string?][] = [
     ['kat', 'Kat sayısı', String(r.kat), 20, '(zemin dahil)'],
     ['yil', 'Yapım yılı', String(r.yil), 32],
-    ['muhur', 'Mühür yılı', String(r.muhurYili), 42],
+    ['muhur', 'Ruhsat tarihi', String(r.muhurYili), 42],
   ];
   if (adaGorunur(k)) satirlar.push(['ada', 'Ada/Parsel', r.ada, 52]);
   for (const [alan, ad, v, y, alt] of satirlar) {
     if (alt) {
       etiket(k, 6, y - 2, ad);
       etiket(k, 6, y + 3, alt, 24);
-    } else etiket(k, 6, y, ad);
+    } else etiket(k, 6, y, ad, ad.length > 11 ? 28 : BOY_ETIKET); // "Ruhsat tarihi" değere değmesin (G31)
     const d = deger(k, 46, y, v);
     // Elle düzeltilmiş alan: daksil üstüne mavi kalem (G17b).
     if (r.duzeltme?.alan === alan) elleDuzelt(t, d, 46, y);
@@ -556,17 +556,19 @@ export function sahaNotuKur(scene: Phaser.Scene, bina: Bina, sonuc: SahaSonucu, 
   etiket(k, 12, 8, SAHA_METIN.notBaslik, BOY_BASLIK, KURSUN);
   t.rect(12, 13, 46, 1, KURSUN);
   etiket(k, 12, 18, SAHA_METIN.notAlt.replace('{n}', String(sonuc.okumalar.length)), 26, KURSUN);
-  etiket(k, 12, 26, `R: ${sonuc.okumalar.join(' ')}`, 26, KURSUN);
-  etiket(k, 12, 34, SAHA_METIN.ortalama, 26, KURSUN);
-  deger(k, 50, 34, sonuc.ortR.toFixed(1).replace('.', ','), 30, KURSUN);
-  etiket(k, 12, 43, SAHA_METIN.tahmin, 26, KURSUN);
-  const d = deger(k, 12, 51, `≈ ${sonuc.mpa} MPa (± ${sonuc.pay})`, 36, KALEM);
+  etiket(k, 12, 25, `R: ${sonuc.okumalar.join(' ')}`, 26, KURSUN);
+  etiket(k, 12, 32, SAHA_METIN.ortalama, 26, KURSUN);
+  deger(k, 50, 32, sonuc.ortR.toFixed(1).replace('.', ','), 30, KURSUN);
+  etiket(k, 12, 39, SAHA_METIN.tahmin, 26, KURSUN);
+  // Tarih aynı satırın sağında (G31: alttaki iki satır "ön değerlendirme" uyarısına ayrıldı).
+  deger(k, 79, 39, tarih(gun), 24, KURSUN, 1);
+  const d = deger(k, 12, 47, `≈ ${sonuc.mpa} MPa (± ${sonuc.pay})`, 36, KALEM);
   k.c.remove(d);
   k.c.alanEkle('mpa', d);
   // Değerin altı iki kez çizilmiş (kurşun).
-  t.rect(12, 55, Math.ceil(d.width / PX), 1, KALEM);
-  etiket(k, 12, 61, SAHA_METIN.tarih, 26, KURSUN);
-  deger(k, 32, 61, tarih(gun), 30, KURSUN);
+  t.rect(12, 51, Math.ceil(d.width / PX), 1, KALEM);
+  // G31 (mühendislik doğruluğu): Schmidt çekici yüzey sertliği ölçer; dayanım için karotla doğrulanmalı.
+  SAHA_METIN.onDegerlendirme.forEach((s, i) => etiket(k, 12, 56 + i * 5, s, 24, KALEM));
   c.zeminEkle(t);
   return c;
 }

@@ -3,7 +3,7 @@
  * başlık, palet ve gerekirse çözünürlük.
  */
 
-export const TITLE = 'OYUN ADI';
+export const TITLE = 'Kâğıt Üstünde';
 export const SUBTITLE = 'CIVIL GAME JAM 2026';
 export const TEAM = 'Prompt Engineers';
 

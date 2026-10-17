@@ -27,19 +27,20 @@
     ]
   },
   "text": {
-    "amac": "Arayüz metinlerini, README'yi, BENIOKU'yu, ses listesini ve beyan açıklamalarını yazdı. Gişe diyalogları, zarf ve rapor satırları, kural metinleri, gazete ve deprem anlatımı, kendi evin hazırlığı için yer tutucu metinler yazdı; gişedeki kişiler için beş mizaçta (kibar, sinirli, telaşlı, kurnaz, çekingen) taslak cümleler yazdı (selam, bekleme, sabırsızlık, SOR / İSTE cevapları, zarf ve damga tepkileri); takım bunları düzeltecek ve yeniden yazacak.",
+    "amac": "Oyundaki metinlerin taslaklarını yazdı: arayüz, kurallar, gişe diyalogları (beş mizaçta: kibar, sinirli, telaşlı, kurnaz, çekingen), gazete ve deprem anlatımı, kendi evin hazırlığı, hikâye binaları, Emeği Geçenler'deki \"Takımın kararları\" maddeleri (GDD'deki takım kararlarından), README ve BENIOKU. Takım konsepti, tonu ve deprem dilini (kehanet yok, kurban ve sayı yok) belirledi; metinlerin son seçimini ve onayını Claude'un lider oturumuna bıraktı. Ayrıca ses listesini ve beyan açıklamalarını yazdı.",
     "yer": [
       "Menü, ayarlar, oyun içi ipuçları ve göstergeler",
-      "Gişe diyalogları: beş mizaçlı taslak cümleler (selam, bekleme, sabırsızlık, SOR, İSTE, zarf ve damga tepkileri; taslak, takım düzeltecek), zarf ve rapor satırları, yönetmelik kuralları (yer tutucu)",
-      "Gazete, küçük deprem şeridi, kısa yol sorusu ve çerçeve cümlesi (yer tutucu)",
-      "Kendi evin hazırlığı: kalem adları ve açıklamaları, \"Senin evin\" sonuç cümleleri (yer tutucu)",
-      "Emeği Geçenler, README, BENIOKU"
+      "Masa: kural notu ve yönetmelik kuralları, belge etiketleri, saha notu, fiş ve kusur etiketleri",
+      "Gişe diyalogları: selam, bekleme, sabırsızlık, SOR ve İSTE cevapları, zarf ve damga tepkileri; hikâye binalarının sahipleri ve sözleri",
+      "Gün sonu raporu, küçük deprem şeridi, kısa yol sorusu, deprem, gazete (manşetler, haber satırları) ve sonuç ekranı",
+      "Kendi evin hazırlığı: kalem ve kademe adları, açıklamalar, \"Senin evin\" cümleleri",
+      "Emeği Geçenler (\"Takımın kararları\" taslağı dahil), README, BENIOKU"
     ]
   },
   "other": {
-    "amac": "Tema yorumu için konsept seçenekleri önerdi, Kenney seslerinden ölçüme dayalı adaylar seçti, hazır kaynak beyanını ve ses listesini yazdı; konsept seçimi, son ses seçimi ve kararlar takımın. Geliştirme sürecini görevlere bölüp yönetti, oyunu otomatik oynayarak test etti ve jam ölçütlerine göre değerlendirip öneriler sundu.",
+    "amac": "Tema yorumu için konsept seçenekleri önerdi; oyun adı (Kâğıt Üstünde), kurgusal şehir (Dereboyu) ve gazete adı (Dereboyu Postası) için öneriler sundu, takım bu seçimi Claude'un lider oturumuna bıraktı. Kenney seslerinden ölçüme dayalı adaylar seçti, hazır kaynak beyanını ve ses listesini yazdı; konsept seçimi ve son ses seçimi takımın. Geliştirme sürecini görevlere bölüp yönetti, oyunu otomatik oynayarak test etti ve jam ölçütlerine göre değerlendirip öneriler sundu.",
     "yer": [
-      "Oyun fikri aşaması",
+      "Oyun fikri aşaması; oyun, şehir ve gazete adı",
       "Ses seçimi ve hazır kaynak beyanı (Emeği Geçenler, README)",
       "Geliştirme, test ve değerlendirme süreci (oyunda doğrudan yer almaz)"
     ]

@@ -18,21 +18,21 @@ export interface HikayeSablonu {
   ruhsatKat?: number;
 }
 
-// TODO(takım): gerçek hikâye metinleri, sahip adları ve binaları.
+// G31: lider onaylı (docs/TAKIM_CEVAPLARI.md 8).
 export const HIKAYELER: HikayeSablonu[] = [
   {
     id: 'hikaye-1',
     gun: 2,
     adres: 'Bina H1',
     kusurlar: ['kesikKolon'],
-    hikaye: { sahip: '[Mal sahibinin adı]', soz: '[Mal sahibinin sözü]' },
+    hikaye: { sahip: 'Kasap Rıza Usta', soz: 'Kolonu kestirince dükkân iki katına çıktı, işler açıldı.' },
   },
   {
     id: 'hikaye-2',
     gun: 5,
-    adres: '[Kendi apartmanın]',
+    adres: 'Senin apartmanın',
     kusurlar: ['dusukBeton', 'caprazCatlak'],
-    hikaye: { sahip: '[Komşu]', soz: '[Komşunun sözü]' },
+    hikaye: { sahip: 'Komşun Nermin Hanım', soz: 'Siz de bu binada oturuyorsunuz, bilirsiniz ne halde olduğunu.' },
     kendiBinan: true,
   },
 ];

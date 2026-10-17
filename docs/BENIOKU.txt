@@ -1,4 +1,4 @@
-OYUN ADI
+KÂĞIT ÜSTÜNDE
 Prompt Engineers · CIVIL GAME JAM 2026
 
 NASIL ÇALIŞTIRILIR
@@ -14,7 +14,8 @@ PLATFORM VE GEREKSİNİMLER
 - Klavye ve fare; ses için hoparlör ya da kulaklık
 
 OYNANIŞ
-- Amaç: (takım yazacak)
+- Amaç: Belediyenin yapı denetçisisin. Binaların belgelerini inceleyip kurala göre damgala;
+  büyük deprem gelince kararlarının sonucunu gör.
 - Her dosyada belgeleri karşılaştır, tutarsızlığı inceleme modunda bul,
   kaşeyle karar ver (GÜVENLİ / GÜÇLENDİR / BOŞALT / İADE).
 - Hızlı deneme (yaklaşık 3 dakika): 1. günü bitir, gün sonu raporunda

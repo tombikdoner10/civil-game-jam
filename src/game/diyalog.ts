@@ -2,25 +2,23 @@
 import type { Bina, KusurId } from './building';
 
 /**
- * Masadaki kısa yazılar (G17) ve gişe diyaloğunun seçimi (G33). HEPSİ YER TUTUCU: TODO(takım) gerçek metinleri
- * yazacak (TASKS T17). Gişedeki kişilerin cümleleri src/game/diyalog-metin.ts'de (mizaçlı taslaklar); burada yalnızca
+ * Masadaki kısa yazılar (G17) ve gişe diyaloğunun seçimi (G33). Metinler lider onaylı (G31, docs/TAKIM_CEVAPLARI.md).
+ * Gişedeki kişilerin cümleleri src/game/diyalog-metin.ts'de (mizaçlı taslaklar); burada yalnızca
  * cümlenin seçimi (tekrarsız deste) ve değişkenlerin doldurulması var. Seçim oyun RNG'sini tüketmez.
  */
 
 /**
- * Oyunu çerçeveleyen tek cümle (G5b): gün 1 kural notunun en üstünde. TODO(takım): asıl cümle; 3 sn'de
- * okunacak kadar kısa kalsın.
+ * Oyunu çerçeveleyen tek cümle (G5b): gün 1 kural notunun en üstünde; 3 sn'de okunacak kadar kısa kalsın.
  */
-export const CERCEVE = '[Belediyenin yapı denetçisisin. Deprem her an olabilir.]';
+export const CERCEVE = 'Belediyenin yapı denetçisisin. Deprem her an olabilir.';
 
 /**
- * İlk yanlış karardan sonra fişte bir kez (G24, takım kararı): inceleme isteğe bağlı, ceza yok. TODO(takım): asıl
- * cümle.
+ * İlk yanlış karardan sonra fişte bir kez (G24, takım kararı): inceleme isteğe bağlı, ceza yok.
  */
-export const INCELE_IPUCU = '[Space ile incele, kusuru kanıtla]';
+export const INCELE_IPUCU = 'Space ile incele, kusuru kanıtla';
 
 /** Saha testi bitince tezgâhtaki saatin yanında kısa süre (G24): testin zaman bedeli. {dk}: dakika. */
-export const SAHA_SURE = '[+{dk} dk]';
+export const SAHA_SURE = '+{dk} dk';
 
 /** SOR cevabının türü: bahane (bilgi yok), itiraf (kusuru doğrular), zarf (rüşvet teklifi). */
 export type SorTuru = 'bahane' | 'itiraf' | 'zarf';
@@ -33,18 +31,18 @@ export type IsteTuru = 'gercek' | 'sahte' | 'yok';
 
 /**
  * Zarfın bedeli (G22): kişinin istediği damga zarfın üstünde küçük not. {damga}: istenen damganın adı (GameScene
- * doldurur). HEPSİ YER TUTUCU: TODO(takım).
+ * doldurur).
  */
-export const ZARF_NOT = '[{damga} lütfen]';
+export const ZARF_NOT = '{damga} lütfen';
 /** Zarfın altındaki düğmeler (sürükleme de çalışır: çekmeceye = al, gişeye = geri ver). */
 export const ZARF_DUGME = { al: 'AL', geri: 'GERİ VER' };
 /** Kaşelikteki ipucu: zarf karar beklerken ve zarf alındıktan sonra. */
-export const ZARF_IPUCU = { bekliyor: '[Önce zarfa karar ver]', alindi: '[Zarf aldın: {damga}]' };
+export const ZARF_IPUCU = { bekliyor: 'Önce zarfa karar ver', alindi: 'Zarf aldın: {damga}' };
 /** Zarf alınan binanın etiket eki (öncü sarsıntı, kısa yol depremi) ve gün sonu raporundaki işaret. */
-export const ZARF_ETIKET = '[ZARF]';
+export const ZARF_ETIKET = 'ZARF';
 
 /**
- * Saha testi (G19, Schmidt çekici): mini oyunun ve saha notunun yazıları. HEPSİ YER TUTUCU: TODO(takım).
+ * Saha testi (G19, Schmidt çekici): mini oyunun ve saha notunun yazıları.
  * {adres}: binanın adresi, {n}: okuma sayısı, {hak}: kalan hak.
  */
 export const SAHA_METIN = {
@@ -53,7 +51,7 @@ export const SAHA_METIN = {
   sayac: 'SAHA {hak}',
   baslik: 'SAHA TESTİ',
   alt: 'Schmidt çekici · {adres}',
-  ipucu: '[Temiz yüzeye vur, sıva ve çatlaktan kaçın]',
+  ipucu: 'Temiz yüzeye vur, sıva ve çatlaktan kaçın',
   ibre: 'GERİ TEPME (R)',
   okumalar: 'Geçerli okumalar',
   gecersiz: 'Geçersiz: {n} (sayılmadı)',
@@ -67,14 +65,16 @@ export const SAHA_METIN = {
   notBaslik: 'SAHA NOTU',
   notAlt: 'Schmidt çekici, {n} okuma',
   tarih: 'Tarih',
+  /** Saha notunun altındaki uyarı (G31, mühendislik doğruluğu: Schmidt çekici yüzey sertliği ölçer, TS EN 13791). */
+  onDegerlendirme: ['Ön değerlendirme;', 'karotla doğrulanmalı.'],
 } as const;
 
 /** Gazete ve sonuç ekranındaki zarf izi (yalnızca kabul edilen zarfın binası depremde hasar gördüyse). */
-export const ZARF_GAZETE = '[Denetçinin masasında zarf bulundu]';
+export const ZARF_GAZETE = 'Denetçinin masasında zarf bulundu';
 
 /**
- * Oyunun takvimi (yer tutucu): gün 1'in tarihi. Getirilen raporun tarihi bununla karşılaştırılır; kural
- * kitabında "bugün" olarak yazar. TODO(takım): kurgudaki tarih.
+ * Oyunun takvimi: gün 1'in tarihi. Getirilen raporun tarihi bununla karşılaştırılır; kural kitabında "bugün"
+ * olarak yazar.
  */
 export const TAKVIM = { yil: 2026, ay: 10, gun: 19 };
 
@@ -104,7 +104,8 @@ export function degiskenler(bina: Bina | undefined, para?: number): Degiskenler 
     if (r.ada) d.ada = r.ada;
   }
   if (bina?.adres) d.bina = bina.adres;
-  if (para !== undefined) d.para = `${para} TL`;
+  // Bölünmez boşluk (G31): balonda "80" ile "TL" ayrı satırlara düşmesin.
+  if (para !== undefined) d.para = `${para}\u00A0TL`;
   return d;
 }
 

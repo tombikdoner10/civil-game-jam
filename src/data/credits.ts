@@ -38,19 +38,24 @@ export interface AiCredit {
   where: string[];
 }
 
-// TODO(takım): Üç üyenin adlarını ve rollerini yaz (köşeli parantezli metinler yer tutucu). Temsilci: Egemen.
-export const MEMBERS: Member[] = [
-  { name: '[Takım üyesi 1: Egemen]', role: 'Takım temsilcisi · [rol]' },
-  { name: '[Takım üyesi 2]', role: '[rol]' },
-  { name: '[Takım üyesi 3]', role: '[rol]' },
-];
+// TODO(takım): Diğer iki üyenin adlarını ve rollerini ekle (T32). Köşeli parantezli (yer tutucu) satırlar Emeği
+// Geçenler'de gizlenir (CreditsScene). Temsilci: Egemen.
+export const MEMBERS: Member[] = [{ name: 'Egemen', role: 'Takım temsilcisi' }];
 
 /**
  * Takımın kararları (Emeği Geçenler'de Takım'dan hemen sonra, hazır kaynaklardan ve yapay zekâdan önce): takımın
- * kendi verdiği yaratıcı kararlar, her biri kısa bir madde. Boşken başlık da görünmez.
- * TODO(takım) T26: 4–5 madde yaz (ör. tema yorumu, oyun fikri, görsel ve ses seçimleri, bölüm/gün tasarımı, metinler).
+ * kendi verdiği yaratıcı kararlar, her biri kısa bir madde. Boşken başlık da görünmez. README "Takımın kararları" ile
+ * aynı. G31: GDD'deki takım kararlarından Claude'un taslağı (docs/TAKIM_CEVAPLARI.md 10); takım kendi cümleleriyle
+ * yeniden yazabilir.
  */
-export const TAKIM_KARARLARI: string[] = [];
+export const TAKIM_KARARLARI: string[] = [
+  'Tema yorumu: afet anında değil, öncesinde. Oyuncu denetim masasında karar verir; deprem bu kararları sınar.',
+  'Gişede insan: her dosyanın arkasında mizacı olan bir mal sahibi var. Zarf kabul edilirse istenen damga zorunlu olur, bedeli depremde görülür.',
+  'Kurallar: kaçak katta +1 GÜÇLENDİR, +2 BOŞALT; geçersiz belgeler İADE; saha testi tek başına GÜVENLİ verdirmez.',
+  'Deprem dili: kehanet yok, "deprem her an olabilir". Kısa yol bir soru: "Büyük deprem bu gece olsaydı?"',
+  'Kendi evin: paranın karşılığı ailenin hazırlığı (çanta, sabitleme, güçlendirme). Rüşvet aileni koruyabilir ama onayladığın bina çöker.',
+  'Seçimler: görsel yön (Papers, Please ilhamı, Tiny Town), Kenney sesleri, metinlerin seçimi ve düzenlenmesi takımın.',
+];
 
 /**
  * Yapay zekâ kullanımı: burada elle yazılmaz. `scripts/beyan.mjs`, kategori başına okunur özetten (docs/ai-ozet.json)
