@@ -73,7 +73,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
-- [x] G39 Deprem hızlandırma yumuşak 3 kat (kısa yolda sallantı ~8,7 sn, 5 günde ~10,6 sn) + ikinci basış sona atlar ("[Enter: geç]"); müşteri 4 adımda yürüyerek gelir, 3 adımda gider, 1 sn boş gişe, saat durur; adalet 35263/0 (710bbef, Opus/high; test sürüyor)
+- [x] G39 Deprem hızlandırma yumuşak 3 kat (kısa yolda sallantı ~8,7 sn, 5 günde ~10,6 sn) + ikinci basış sona atlar ("[Enter: geç]"); müşteri 4 adımda yürüyerek gelir, 3 adımda gider, 1 sn boş gişe, saat durur; adalet 35263/0 (710bbef, Opus/high; test geçti)
 - [x] G37 Kısa yol manşeti ve değerlendirmesi "senin binaların + sokak" (kusursuzda yeşil + iyi jingle); zarf+onay tek ifade (5 günlük yolda da); uzun manşet iki satır; adalet 35263/0 (163f58c + 79561a0, Opus/high; test geçti)
 - [x] G38 Emeği Geçenler sırası (Takım → Takımın kararları (boşsa gizli) → Hazır kaynaklar → AI); deprem genel planı ölçek ≥2/3, etiketler ekran içinde; npm run yer-tutucu (476 dize) (62f4707, Opus/high; test geçti)
 - [x] G35 Son test cilası: raporda kaçak kat farkı, 5 günlük gazetede Gün N · Bina, tekil/çoğul manşet ve değerlendirme (5 metin), inceleme çerçeve/etiket çakışmaları, [+30 dk] saat altında, gazetede erken Enter bekletme (c5a4d56, Opus/high; test geçti)
