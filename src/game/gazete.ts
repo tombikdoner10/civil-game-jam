@@ -12,6 +12,8 @@ import { depremOzeti, oyuncuOzeti, type DepremBinaSonucu, type DepremOzeti } fro
 export const GECE_SAATI = '[Bir gece]';
 /** Büyük deprem sahnesinin köşesindeki ipucu (G25, G28): Enter/Space/tık depremi hızlandırır (gece kartında da). */
 export const DEPREM_GEC = '[Enter ya da tıkla: hızlandır]';
+/** Hızlandırıldıktan sonra ipucu (G39): ikinci basış depremin sonuna atlar (deprem bitince gazeteye geçer). */
+export const DEPREM_ATLA = '[Enter: geç]';
 
 export const GAZETE_ADI = '[GAZETE ADI]';
 /** Gazete künyesi. G11: tarih yok (deprem dili: tarih ve kehanet verilmez). */

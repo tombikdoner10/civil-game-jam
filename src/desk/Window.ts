@@ -1,13 +1,15 @@
 // @beyan görsel
 import * as Phaser from 'phaser';
+import { sfx } from '../audio/sfx';
 import { MONO } from '../config';
 import type { Bina, Damga } from '../game/building';
 import { tarih } from '../game/diyalog';
 import type { Ifade, Kisi } from '../game/kisi';
 import type { SokakKaydi } from '../game/session';
+import { TUNING } from '../game/tuning';
 import { Konusma, type SoyleSecenek } from './Konusma';
 import { PAL } from './palette';
-import { dizgiTohum, PX, rastgele, Tuval } from './pixel';
+import { dizgiTohum, PX, rastgele, snap, Tuval } from './pixel';
 import { Portre, PORTRE_EKRAN } from './Portre';
 import { Sokak } from './Street';
 import { cepheSecimi } from './tiles';
@@ -37,6 +39,8 @@ export const GOZ = { x: 1568, y: BANT_H + 8 };
 const D = { sokak: 2990, arka: 3000, siluet: 3001, on: 3002, duvar: 3003, yazi: 3004, balon: 3015 };
 /** Gişedeki kişi camın sağ yarısında; konuşma balonu solda, cama iliştirilmiş fiş gibi. */
 const KISI = { x: GISE.x + GISE.w - PORTRE_EKRAN.w - 40, y: GISE.y + GISE.h - PORTRE_EKRAN.h };
+/** Kişinin gişeye girip çıktığı yer (G39): camın sağ kenarının dışı; ötesini duvar örter. */
+const KISI_DIS = GISE.x + GISE.w;
 /** hMax (G33): balon en çok gişe camının alt kenarına kadar iner; daha uzun cevap kısaltılır (GameScene). */
 const BALON = { x: GISE.x + 8, y: GISE.y + 32, w: 320, hMax: GISE.h - 32 };
 /** Sokaktaki tozun derinliği (Quake). */
@@ -51,6 +55,7 @@ export function binaSecimi(bina: Bina): ReturnType<typeof cepheSecimi> {
 export class Pencere {
   readonly sokak: Sokak;
   private portre?: Portre;
+  private yuruyus?: Phaser.Tweens.Tween;
   private readonly balon: Konusma;
   private readonly saatYazi: Phaser.GameObjects.Text;
   private readonly dosyaYazi: Phaser.GameObjects.Text;
@@ -180,23 +185,85 @@ export class Pencere {
     this.sokak.damgala(damga, zarf);
   }
 
-  /** Gişeye yeni mal sahibi gelir (portre tohumdan; aynı dosya, aynı kişi). */
-  kisiGelsin(kisi: Kisi): void {
+  /**
+   * Gişeye yeni mal sahibi gelir (portre tohumdan; aynı dosya, aynı kişi). G39: camın sağından adım adım yürüyerek
+   * gelir, yerine oturur; oturdu, oturma bitince çağrılır (selam, bekleme sayacı).
+   */
+  kisiGelsin(kisi: Kisi, oturdu?: () => void): void {
     this.portre?.destroy();
     this.balon.temizle();
-    const p = new Portre(this.scene, kisi.portre, KISI.x + 64, KISI.y);
-    p.img.setDepth(D.siluet).setAlpha(0);
+    const G = TUNING.gise;
+    const p = new Portre(this.scene, kisi.portre, KISI_DIS, KISI.y);
+    p.img.setDepth(D.siluet);
     this.portre = p;
-    this.scene.tweens.add({ targets: p.img, x: KISI.x, alpha: 1, duration: 500, ease: 'Sine.easeOut' });
+    this.yuru(p, KISI_DIS, KISI.x, G.gelisMs, G.gelisAdim, Phaser.Math.Easing.Sine.Out, false, () => {
+      // Durma: bir sanat pikseli çöküp doğrulur.
+      p.img.setY(KISI.y + PX);
+      this.scene.time.delayedCall(G.oturmaMs, () => {
+        if (!p.img.active) return;
+        p.img.setY(KISI.y);
+        oturdu?.();
+      });
+    });
   }
 
+  /** Kişi gişeden ayrılır (G39): sırtını dönmeden, geldiği yoldan adım adım çıkar ve söner. */
   kisiGitsin(): void {
     const p = this.portre;
     this.balon.kapat();
     if (!p) return;
     this.portre = undefined;
     p.konus(false);
-    this.scene.tweens.add({ targets: p.img, x: p.img.x - 96, alpha: 0, duration: 450, ease: 'Sine.easeIn', onComplete: () => p.destroy() });
+    const G = TUNING.gise;
+    this.yuru(p, p.img.x, KISI_DIS, G.gidisMs, G.gidisAdim, Phaser.Math.Easing.Sine.In, true, () => p.destroy());
+  }
+
+  /**
+   * Yürüyüş (G39): x0'dan x1'e yatay kayma; her adımda TUNING.gise.sekme px yukarı sekme (piksel ızgarasında) ve
+   * adım inişinde ayak sesi. son: giderken son kısımda söner.
+   */
+  private yuru(
+    p: Portre,
+    x0: number,
+    x1: number,
+    sure: number,
+    adim: number,
+    ease: (v: number) => number,
+    son: boolean,
+    bitince: () => void,
+  ): void {
+    const G = TUNING.gise;
+    const img = p.img;
+    // Yarım kalan yürüyüş (geliş bitmeden gidiş) durur.
+    this.yuruyus?.stop();
+    img.setPosition(x0, KISI.y).setAlpha(1);
+    let inen = 0;
+    const ilerle = { u: 0 };
+    this.yuruyus = this.scene.tweens.add({
+      targets: ilerle,
+      u: 1,
+      duration: sure,
+      onUpdate: () => {
+        if (!img.active) return;
+        const u = ilerle.u;
+        const faz = u * adim;
+        // Adım ortasında havada, iniş ve kalkışta yerde.
+        const havada = u < 1 && Math.sin(Math.PI * (faz % 1)) > 0.35;
+        img.setPosition(snap(x0 + (x1 - x0) * ease(u)), KISI.y - (havada ? snap(G.sekme) : 0));
+        if (son) img.setAlpha(u < 0.5 ? 1 : 1 - (u - 0.5) / 0.5);
+        const n = Math.min(adim, Math.floor(faz + 1e-6));
+        if (n > inen) {
+          inen = n;
+          sfx.play('adim', { volume: son ? 0.75 : 1, pan: 0.45 });
+        }
+      },
+      onComplete: () => {
+        if (!img.active) return;
+        img.setPosition(x1, KISI.y);
+        if (inen < adim) sfx.play('adim', { volume: son ? 0.75 : 1, pan: 0.45 });
+        bitince();
+      },
+    });
   }
 
   /** Gişedeki kişinin balonu ekranda mı (G33: bekleme cümlesi konuşmanın üstüne binmesin). */

@@ -113,15 +113,8 @@ export function seslerKur(): void {
   t('dogru', { dosya: ['confirmation_001'], volume: 0.35, rate: 0.9, oynama: 0 }, 'confirm');
   t('uyari', { dosya: ['error_005'], volume: 0.45 }, 'error');
 
-  // Gişe: mal sahibinin ayak sesleri.
-  t(
-    'siluet',
-    [
-      { dosya: ['footstep00'], volume: 0.3, rate: 0.9 },
-      { dosya: ['footstep03'], volume: 0.25, rate: 0.9, gecikme: 0.32 },
-    ],
-    'thud',
-  );
+  // Gişe (G39): mal sahibi yürüyerek gelip giderken her adımda bir ayak sesi (kısık, gişe sağda).
+  t('adim', { dosya: ['footstep00', 'footstep03'], volume: 0.26, rate: 0.9, oynama: 0.08 }, 'thud');
 
   // Gişe konuşması (G17): balonda harf yazılırken kısa tık; zarf masaya kayar, çekmeceye girer, geri verilir.
   t('konus', { dosya: ['click2'], volume: 0.14, rate: 1.9, oynama: 0.18 }, 'click');

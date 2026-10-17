@@ -86,6 +86,12 @@ export interface QuakeKontrol {
    * çatırtı, cam, ara vuruşlar) aynı oranda seyrelir; saniyedeki ses sayısı artmaz. Sonuçlar değişmez.
    */
   hizlandir: (kat: number) => void;
+  /**
+   * Sona atla (G39, büyük deprem; hızlandırmadan sonraki ikinci basış): henüz tepki vermemiş binalar son hâllerini
+   * hemen alır (çöküş ve çatlaklar canlandırmasız), grup sonları (sonuç etiketleri) çağrılır, genel plan son karesiyle
+   * (sokağın başı) açılır ve sekans bitir() gibi biter. Sonuçlar değişmez. İkinci çağrı bir şey yapmaz.
+   */
+  sonaAtla: () => void;
 }
 
 /** Öncü sarsıntı zarfı (0..1): yükselir, tepede kalır, söner; son kısım durulma (toz çöker). */
@@ -117,7 +123,7 @@ const BUYUK = { taramaBas: 0.1, taramaSon: 0.74, genis: 0.78 };
  * ve orada durur (kısa yolda oyuncunun etiketli binaları; hızlandırılınca da son kare onlar). hiz: ekran px/sn; süre
  * enAz..enCok ms. pay: iki uçta parsel payı.
  */
-const GENEL = { olcek: 2 / 3, pay: 0.3, hiz: 700, enAz: 1200, enCok: 6000, acilis: 1600 };
+const GENEL = { olcek: 2 / 3, pay: 0.3, hiz: 700, enAz: 1200, enCok: 6000, acilis: 1600, ani: 300 };
 
 /**
  * Sokakta deprem sekansı (öncü sarsıntı ve G5 büyük deprem aynı sınıf). Masa ve pencere sarsılır (kamera),
@@ -160,13 +166,18 @@ export class Quake {
    * Genel plan (G38): [ilk, son] binaları en az GENEL.olcek ölçeğinde. Sığıyorsa ortalanır; sığmıyorsa sokağın sonu
    * görünür ve dönen işlev başa kayışı başlatıp süresini verir (sığıyorsa 0).
    */
-  private genelPlan(ilk: number, son: number): () => number {
+  private genelPlan(ilk: number, son: number, ani = false): () => number {
     const s = GENEL.olcek;
     const i0 = ilk - GENEL.pay;
     const i1 = son + GENEL.pay;
     const v = this.sokak.sigan(s);
     if (i1 - i0 + 1 <= v) {
-      this.sokak.odakla(i0, i1, GENEL.acilis, undefined, 0.5, s);
+      this.sokak.odakla(i0, i1, ani ? GENEL.ani : GENEL.acilis, undefined, 0.5, s);
+      return () => 0;
+    }
+    if (ani) {
+      // Sona atlama (G39): kayış yok, doğrudan son kare (sokağın başı).
+      this.sokak.odakla(i0, i0 + v - 1, GENEL.ani, undefined, 0.5, s, s);
       return () => 0;
     }
     this.sokak.odakla(i1 - v + 1, i1, GENEL.acilis, undefined, 0.5, s, s);
@@ -317,8 +328,16 @@ export class Quake {
 
     const guc = secenek.sesGucu ?? siddet / 2.5;
 
+    /** Sona atlamada (G39) silinecek zamanlayıcılar ve tepki vermiş binalar. */
+    const zamanlar: Phaser.Time.TimerEvent[] = [];
+    const zamanla = (ms: number, f: () => void): void => {
+      zamanlar.push(scene.time.delayedCall(ms, f));
+    };
+    const tepkiVerdi = new Set<QuakeSonucu>();
     /** Bir binanın tepkisi: hasar, toz, dökülme ve ses. */
     const tepki = (s: QuakeSonucu): void => {
+      if (tepkiVerdi.has(s)) return;
+      tepkiVerdi.add(s);
       this.sokak.hasarVer(s.yer, s.gorunen, true);
       const yikik = s.gorunen === 'yikik';
       const n = yikik ? (buyuk ? 90 : 60) : s.gorunen === 'agirHasar' ? (buyuk ? 45 : 30) : buyuk ? 20 : 16;
@@ -329,7 +348,7 @@ export class Quake {
       }
       if (bulut && yikik) {
         // Bina yere inerken alttan kalkan toz bulutu.
-        scene.time.delayedCall(700, () => {
+        zamanla(700, () => {
           const k = this.sokak.yerelKutu(s.yer);
           for (let j = 0; j < 26; j++) bulut.emitParticleAt(k.x + Math.random() * k.width, k.bottom - Math.random() * 40 * (O / 3), 1);
         });
@@ -342,6 +361,9 @@ export class Quake {
     const tepkiler = sonuclar.filter((s) => s.gorunen !== 'ayakta');
     /** Genel plan açıldıysa: sokağın başına kayışı başlatır, süresini (ms) verir (G38). */
     let genelKaydir: (() => number) | undefined;
+    /** Büyük depremde grup sonu çağrıldı mı (sona atlamada eksikler çağrılır). */
+    const grupSonuCagrildi = new Set<number>();
+    const grupListesi: { hepsi: QuakeSonucu[] }[] = [];
     if (buyuk) {
       // Gruplar sırayla: görünüm gruba kayar, gruptaki binalar sırayla tepki verir; sonunda bütün sokak.
       const ozel = !!secenek.gruplar;
@@ -355,17 +377,22 @@ export class Quake {
         const adim = birim * agir[gi];
         const kayma = Math.min(600, adim * 0.3);
         const bu = t0;
-        if (gi > 0) scene.time.delayedCall(bu, () => this.grupOdakla(g, kayma, ozel));
+        if (gi > 0) zamanla(bu, () => this.grupOdakla(g, kayma, ozel));
         const hepsi = g.map((b) => sonucu.get(b.yer)).filter((s): s is QuakeSonucu => !!s);
+        grupListesi.push({ hepsi });
         const etkin = hepsi.filter((s) => s.gorunen !== 'ayakta');
         const aralik = etkin.length > 0 ? ((adim - kayma) * 0.6) / etkin.length : 0;
-        etkin.forEach((s, j) => scene.time.delayedCall(bu + kayma + 200 + j * aralik, () => tepki(s)));
+        etkin.forEach((s, j) => zamanla(bu + kayma + 200 + j * aralik, () => tepki(s)));
         const grupSonu = secenek.grupSonu;
-        if (grupSonu) scene.time.delayedCall(bu + kayma + 200 + (adim - kayma) * 0.62, () => grupSonu(gi, hepsi));
+        if (grupSonu)
+          zamanla(bu + kayma + 200 + (adim - kayma) * 0.62, () => {
+            grupSonuCagrildi.add(gi);
+            grupSonu(gi, hepsi);
+          });
         t0 += adim;
       });
       if (binalar.length > 0)
-        scene.time.delayedCall(BUYUK.genis * T, () => {
+        zamanla(BUYUK.genis * T, () => {
           genelKaydir = this.genelPlan(ilkYer, sonYer);
           // Sokak uzaklaşınca arkadaki şehir binaları gölgede kalsın: göz sokağa gitsin.
           this.sokak.uzakSoldur(0.2, GENEL.acilis);
@@ -375,7 +402,7 @@ export class Quake {
       // Hasarlı binalar tepe anında sırayla tepki verir.
       const tepkiBas = 0.32 * T;
       const tepkiAralik = tepkiler.length > 0 ? ((ONCU_TEPKI_SONU - 0.32) * T) / tepkiler.length : 0;
-      tepkiler.forEach((s, j) => scene.time.delayedCall(tepkiBas + j * tepkiAralik, () => tepki(s)));
+      tepkiler.forEach((s, j) => zamanla(tepkiBas + j * tepkiAralik, () => tepki(s)));
     }
 
     // Ses: sürekli gürleme (kodla) zarfı izler; üstüne derin vuruşlar, moloz, çatırtı ve cam titremesi (Kenney).
@@ -404,7 +431,7 @@ export class Quake {
     sfx.play('depremVurus', { volume: 0.4 * guc });
     const vurus = buyuk ? [0.1, 0.14, 0.3, 0.5] : [0.22, 0.38];
     vurus.forEach((u, i) =>
-      scene.time.delayedCall(u * T, () => sfx.play('depremVurus', { volume: Math.min(1.4, (0.85 - i * 0.05) * guc), rate: i % 2 ? 0.9 : 1 })),
+      zamanla(u * T, () => sfx.play('depremVurus', { volume: Math.min(1.4, (0.85 - i * 0.05) * guc), rate: i % 2 ? 0.9 : 1 })),
     );
 
     const cam = scene.cameras.main;
@@ -429,11 +456,11 @@ export class Quake {
         if (e > 0 && settings.get().shake) cam.shake(TIK + 30, genlik * (0.25 + 0.75 * e), true);
         this.sokak.sallan(e > 0.05 ? (buyuk ? 0.8 + 1.4 * e : 0.6 + e) : 0);
         // Toz yoğunluğu sarsıntıyla artar; tepede sıva parçaları.
-        const adet = Math.floor(e * 8 + Math.random() * e * 4);
+        const adet = Math.floor((e * 8 + Math.random() * e * 4) / seyrek);
         if (adet > 0) tavan?.emitParticle(adet);
-        if (e > 0.5 && Math.random() < 0.6 * e) parca?.emitParticle(1 + Math.floor(Math.random() * 2));
+        if (e > 0.5 && Math.random() < (0.6 * e) / seyrek) parca?.emitParticle(1 + Math.floor(Math.random() * 2));
         // Büyük depremde görünen binalardan sürekli ince toz.
-        if (buyuk && e > 0.3 && binalar.length > 0 && Math.random() < 0.7 * e) {
+        if (buyuk && e > 0.3 && binalar.length > 0 && Math.random() < (0.7 * e) / seyrek) {
           const b = binalar[Math.floor(Math.random() * binalar.length)];
           toz.emitParticleAt(...nokta(b.yer, 1), 1);
         }
@@ -463,6 +490,28 @@ export class Quake {
       bitir: () => son(true),
       hizlandir: (kat) => {
         seyrek = Math.max(1, kat);
+      },
+      sonaAtla: () => {
+        if (bitti) return;
+        for (const z of zamanlar) z.remove();
+        zamanlar.length = 0;
+        // Kalan binalar son hâllerini hemen alır; tek bir vuruş sesi (sıra sıra ses patlaması yok).
+        const kalan = tepkiler.filter((s) => !tepkiVerdi.has(s));
+        for (const s of kalan) {
+          tepkiVerdi.add(s);
+          this.sokak.hasarVer(s.yer, s.gorunen, false);
+          secenek.binaTepki?.(s);
+        }
+        if (kalan.some((s) => s.gorunen === 'yikik')) sfx.play('cokus', { volume: Math.min(1.3, 0.8 * guc) });
+        else if (kalan.length > 0) sfx.play('hasar', { volume: Math.min(1.2, 0.8 * guc) });
+        const grupSonu = secenek.grupSonu;
+        if (grupSonu) grupListesi.forEach((g, gi) => grupSonuCagrildi.has(gi) || grupSonu(gi, g.hepsi));
+        if (buyuk && binalar.length > 0) {
+          genelKaydir = this.genelPlan(ilkYer, sonYer, true);
+          this.sokak.uzakSoldur(0.2, GENEL.ani);
+          this.sokak.odakDisiSoldur(null, GENEL.ani);
+        }
+        son(true);
       },
     };
   }

@@ -8,7 +8,7 @@ import { Sokak, type SokakYeri } from '../desk/Street';
 import { SON_GUN } from '../game/days';
 import { buyukDeprem, sokakKayitlari, type DepremBinaSonucu, type GunKaydi } from '../game/session';
 import { TUNING } from '../game/tuning';
-import { DEPREM_GEC, GECE_SAATI, SENIN_DAMGAN, sonucEtiketi } from '../game/gazete';
+import { DEPREM_ATLA, DEPREM_GEC, GECE_SAATI, SENIN_DAMGAN, sonucEtiketi } from '../game/gazete';
 import { ZARF_ETIKET } from '../game/diyalog';
 import { Controls } from '../systems/controls';
 import { goTo } from '../systems/transition';
@@ -57,14 +57,16 @@ export function sonucRengi(s: DepremBinaSonucu): string {
 /** Sahne zamanlaması (ms): saat yazısı, perdenin açılması, depremin başlaması, gazeteye geçiş. */
 const ZAMAN = { saatGel: 400, saatGit: 2600, perde: 3000, perdeSure: 1600, deprem: 5200, sonra: 2400 };
 /**
- * Hızlı geçiş (G25, G28; jüri için): Enter/Space/tık depremi kat kat hızlandırır (sahnenin zamanlayıcıları ve
- * tween'leri); deprem bitince normal hıza döner, genel görünüm sonra ms durur ve gazeteye geçilir. Sonuçlar baştan
- * hesaplı olduğu için değişmez. Deprem bittikten sonra Enter/Space/tık hemen gazeteye geçer.
+ * Hızlı geçiş (G25, G28, G39; jüri için): ilk Enter/Space/tık sahnenin zamanını (zamanlayıcılar ve tween'ler) rampa
+ * ms içinde yumuşakça 1'den kat'a çıkarır (G39: 3 kat, çöküşler görünür kalsın); ilk basıştan en az ikinci ms sonraki
+ * ikinci YENİ basış depremin sonuna atlar (Quake sonaAtla: binalar son hâlinde, etiketler ve genel plan görünür).
+ * Deprem bitince normal hıza döner, genel görünüm sonra ms durur ve gazeteye geçilir; o sırada basış hemen gazeteye
+ * geçer. Sonuçlar baştan hesaplı olduğu için değişmez.
  * Gece kartı ("[Bir gece]") göründükten koruma ms sonra gelen YENİ basış (tuş tekrarı değil) saklanır ve kart bitince
- * uygulanır (G28): rapordan kısa yolu başlatan Enter ya da basılı tutulan tuş depremi atlatmaz. Hiç basılmazsa deprem
- * tam süre oynar. Kart bittikten sonraki basış hemen hızlandırır.
+ * uygulanır (G28; birinci basış sayılır): rapordan kısa yolu başlatan Enter ya da basılı tutulan tuş depremi
+ * atlatmaz. Hiç basılmazsa deprem tam süre oynar. Kart bittikten sonraki basış hemen uygulanır.
  */
-const ATLA = { koruma: 250, kat: 10 };
+const ATLA = { koruma: 250, kat: 3, rampa: 500, ikinci: 300 };
 /**
  * Hızlandırma ipucu (G28): koyu zemin üstünde tam opak; hızlandırılana kadar hafifçe nabız gibi atar. G28b: sağ üstte,
  * gökyüzü bandında; dikey ortası köşedeki "[Bir gece]" yazısıyla aynı (y), sağ kenardan payı onun sol payı kadar (x =
@@ -81,6 +83,8 @@ const IPUCU = { x: 1872, y: 44, boyut: 44, pay: 18, nabiz: 0.06, nabizMs: 520 };
 export class QuakeScene extends Phaser.Scene {
   private veri!: DepremData;
   private controls!: Controls;
+  /** Hızlandırma rampası (G39): her karede gerçek süreyle (delta) ilerler. */
+  private hizAdim?: (delta: number) => void;
 
   constructor() {
     super(SCENES.Quake);
@@ -92,6 +96,7 @@ export class QuakeScene extends Phaser.Scene {
     this.etiketler = [];
     this.sokak = undefined;
     this.bagCizgi = undefined;
+    this.hizAdim = undefined;
   }
 
   create(): void {
@@ -152,20 +157,42 @@ export class QuakeScene extends Phaser.Scene {
       .setAlpha(0);
     this.tweens.add({ targets: kose, alpha: 0.8, duration: 400, delay: zaman.perde + zaman.perdeSure });
 
-    // Hızlı geçiş (G25): sağ üst köşede ipucu (G28b); deprem bitince normal hız, genel görünüm durur, sonra gazete.
+    // Hızlı geçiş (G25, G39): sağ üst köşede ipucu (G28b); deprem bitince normal hız, genel görünüm durur, sonra gazete.
     let kontrol: QuakeKontrol | undefined;
     let hizli = false;
+    let atlandi = false;
     let bitti = false;
     let gidildi = false;
+    /** Hız rampası (G39): ilk basışta zaman katı rampa ms içinde 1'den ATLA.kat'a yumuşakça çıkar. */
+    let rampada = false;
+    let rampaU = 0;
+    let kat = 1;
+    const katUygula = (k: number): void => {
+      kat = k;
+      this.time.timeScale = k;
+      this.tweens.timeScale = k;
+      kontrol?.hizlandir(k);
+    };
+    const normalHiz = (): void => {
+      rampada = false;
+      kat = 1;
+      this.time.timeScale = 1;
+      this.tweens.timeScale = 1;
+    };
+    this.hizAdim = (delta) => {
+      if (!rampada) return;
+      rampaU = Math.min(1, rampaU + Math.min(delta, 100) / ATLA.rampa);
+      katUygula(1 + (ATLA.kat - 1) * Phaser.Math.Easing.Sine.InOut(rampaU));
+      if (rampaU >= 1) rampada = false;
+    };
     const gazeteyeGec = (): void => {
       if (gidildi) return;
       gidildi = true;
-      this.time.timeScale = 1;
-      this.tweens.timeScale = 1;
+      normalHiz();
       const data: NewspaperData = { ...v, sonuclar };
       goTo(this, SCENES.Newspaper, data, 600);
     };
-    // İpucu: koyu zemin üstünde büyük ve tam opak (G28); gece kartı göründüğünde belirir, hızlandırılana kadar atar.
+    // İpucu: koyu zemin üstünde büyük ve tam opak (G28); gece kartı göründüğünde belirir, basılana kadar atar.
     const ipucuYazi = this.add
       .text(0, 0, DEPREM_GEC, { fontFamily: FONT, fontSize: `${IPUCU.boyut}px`, color: PAL.saat })
       .setOrigin(1, 0.5);
@@ -178,16 +205,8 @@ export class QuakeScene extends Phaser.Scene {
       .setDepth(102)
       .setAlpha(0);
     let nabiz: Phaser.Tweens.Tween | undefined;
-    // Kart bitince hızlandırma serbest (saklanan basış varsa hemen uygulanır).
-    const kartSonu = zaman.saatGit + (v.kisa ? 300 : 400);
-    const girisAcik = zaman.saatGel + ATLA.koruma;
-    let saklanabilir = false;
-    let atlanabilir = false;
-    let saklandi = false;
-    this.time.delayedCall(girisAcik, () => {
-      saklanabilir = true;
-      if (gidildi) return;
-      this.tweens.add({ targets: ipucu, alpha: 1, duration: 240, ease: 'Stepped', easeParams: [3] });
+    const nabizBaslat = (): void => {
+      nabiz?.stop();
       nabiz = this.tweens.add({
         targets: ipucu,
         scale: 1 + IPUCU.nabiz,
@@ -196,8 +215,36 @@ export class QuakeScene extends Phaser.Scene {
         repeat: -1,
         ease: 'Sine.easeInOut',
       });
+    };
+    /** İpucu metni değişir (G39: hızlanınca "geç"); zemin yazıya göre yeniden boyutlanır. */
+    const ipucuMetin = (t: string): void => {
+      if (ipucuYazi.text === t) return;
+      ipucuYazi.setText(t);
+      ipucuZemin.setSize(ipucuYazi.width + IPUCU.pay * 2, ipucuYazi.height + IPUCU.pay);
+    };
+    // Kart bitince basışlar serbest (saklanan basışlar varsa hemen uygulanır).
+    const kartSonu = zaman.saatGit + (v.kisa ? 300 : 400);
+    const girisAcik = zaman.saatGel + ATLA.koruma;
+    let saklanabilir = false;
+    let atlanabilir = false;
+    /** Gece kartında saklanan basış sayısı (1: hızlandır, 2: sona atla). */
+    let saklanan = 0;
+    /** Son kabul edilen basışın gerçek zamanı (ms): sonraki basış en az ATLA.ikinci ms sonra sayılır. */
+    let sonBasis = -Infinity;
+    this.time.delayedCall(girisAcik, () => {
+      saklanabilir = true;
+      if (gidildi || saklanan > 0) return;
+      this.tweens.add({ targets: ipucu, alpha: 1, duration: 240, ease: 'Stepped', easeParams: [3] });
+      nabizBaslat();
     });
-    // Basış alındı: ipucu durur ve söner (kartta saklanan basışın da görünür karşılığı).
+    // İlk basış alındı: ipucu "geç"e döner ve atmayı sürdürür (ikinci basış sona atlar).
+    const ipucuGec = (): void => {
+      ipucuMetin(DEPREM_ATLA);
+      this.tweens.killTweensOf(ipucu);
+      ipucu.setScale(1).setAlpha(1);
+      nabizBaslat();
+    };
+    // İkinci basış alındı: ipucu durur ve söner.
     const ipucuSondur = (): void => {
       nabiz?.stop();
       nabiz = undefined;
@@ -205,32 +252,55 @@ export class QuakeScene extends Phaser.Scene {
       ipucu.setScale(1).setAlpha(0.55);
     };
     const hizlandir = (): void => {
-      if (hizli || gidildi) return;
+      if (hizli || gidildi || bitti) return;
       hizli = true;
+      ipucuGec();
+      rampaU = 0;
+      rampada = true;
+    };
+    // Gece geçişini hemen bitir (deprem başlamadan sona atlanırsa).
+    const perdeBitir = (): void => {
+      this.tweens.killTweensOf([perde, saat, kose]);
+      perde.setAlpha(0);
+      saat.setAlpha(0);
+      kose.setAlpha(0.8);
+    };
+    let baslat: () => void = () => undefined;
+    let baslaSaat: Phaser.Time.TimerEvent | undefined;
+    const sonaAtla = (): void => {
+      if (atlandi || gidildi || bitti) return;
+      atlandi = true;
       ipucuSondur();
-      this.time.timeScale = ATLA.kat;
-      this.tweens.timeScale = ATLA.kat;
-      kontrol?.hizlandir(ATLA.kat);
+      if (!kontrol) {
+        baslaSaat?.remove();
+        perdeBitir();
+        baslat();
+      }
+      kontrol?.sonaAtla();
     };
     this.time.delayedCall(kartSonu, () => {
       atlanabilir = true;
-      if (saklandi) hizlandir();
+      if (saklanan >= 1) hizlandir();
+      if (saklanan >= 2) sonaAtla();
     });
     const atla = (e?: { repeat?: boolean }): void => {
       if (gidildi || e?.repeat) return;
+      const simdi = performance.now();
+      if (simdi - sonBasis < ATLA.ikinci) return;
       if (!atlanabilir) {
-        // Gece kartında: koruma süresinden sonraki yeni basış saklanır, kart bitince uygulanır.
-        if (saklanabilir && !saklandi) {
-          saklandi = true;
-          ipucuSondur();
+        // Gece kartında: koruma süresinden sonraki yeni basışlar saklanır, kart bitince uygulanır.
+        if (saklanabilir && saklanan < 2) {
+          saklanan++;
+          sonBasis = simdi;
+          if (saklanan === 1) ipucuGec();
+          else ipucuSondur();
         }
         return;
       }
-      if (bitti) {
-        gazeteyeGec();
-        return;
-      }
-      hizlandir();
+      sonBasis = simdi;
+      if (bitti) gazeteyeGec();
+      else if (!hizli) hizlandir();
+      else sonaAtla();
     };
     const tus = (e: KeyboardEvent): void => atla(e);
     const tik = (): void => atla();
@@ -244,14 +314,17 @@ export class QuakeScene extends Phaser.Scene {
       this.input.off(Phaser.Input.Events.POINTER_DOWN, tik);
     });
 
-    this.time.delayedCall(zaman.deprem, () => {
+    baslat = (): void => {
+      if (kontrol) return;
+      baslaSaat = undefined;
       kontrol = quake.oynat(
         1,
         binalar,
         (_s, kayma) => {
           bitti = true;
-          this.time.timeScale = 1;
-          this.tweens.timeScale = 1;
+          normalHiz();
+          // Hiç basılmadıysa da ipucu artık "geç" der (basış gazeteye geçer).
+          if (!hizli && !atlandi) ipucuMetin(DEPREM_ATLA);
           // Genel plan sokağın başına kayıyorsa (G38) kayış bitince de genel görünüm sonra ms durur.
           this.time.delayedCall(zaman.sonra + kayma, gazeteyeGec);
         },
@@ -276,8 +349,9 @@ export class QuakeScene extends Phaser.Scene {
         },
       );
       // Deprem başlamadan hızlandırıldıysa (gece geçişinde) ortam sesleri de seyrelsin.
-      if (hizli) kontrol.hizlandir(ATLA.kat);
-    });
+      if (hizli) kontrol.hizlandir(kat);
+    };
+    baslaSaat = this.time.delayedCall(zaman.deprem, () => baslat());
 
     // Pencere odağı kaçarsa duraklat.
     const onBlur = (): void => {
@@ -369,7 +443,8 @@ export class QuakeScene extends Phaser.Scene {
     }
   }
 
-  update(): void {
+  update(_time: number, delta: number): void {
+    this.hizAdim?.(delta);
     this.etiketYerlestir();
     if (this.controls.justDown('pause')) this.duraklat();
   }

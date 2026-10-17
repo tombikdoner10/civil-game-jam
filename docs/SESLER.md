@@ -31,7 +31,7 @@ Kısaltmalar: **I** impact-sounds, **R** rpg-audio, **IF** interface-sounds, **U
 | Seçim bırak (`secBirak`) | `Inspect.tikla` (aynı alana ya da boşluğa) | IF `back_002` | IF `back_004` |
 | Kusur bulundu (`kusur`) | `Inspect.degerlendir` | IF `bong_001` (rate 0.8) + I `impactPlate_heavy_001` | IF `switch_003`, J `jingles_HIT03`, I `impactPlate_heavy_003` |
 | Tutarsızlık yok (`tutarsizlikYok`) | `Inspect.degerlendir` | IF `error_004` | IF `error_008`, IF `back_002` |
-| Mal sahibi (portre) gelir/gider (`siluet`) | `GameScene.dosyaGetir`, dosya bitince | R `footstep00` + R `footstep03` (iki adım) | R `footstep01-09`, I `footstep_concrete_*` |
+| Mal sahibi (portre) yürüyerek gelir/gider, her adımda bir ses (`adim`, G39) | `Pencere.kisiGelsin` (4 adım) ve `kisiGitsin` (3 adım, daha kısık) | R `footstep00` / R `footstep03` (biri rastgele; rate 0.9, kısık, sağa yakın) | R `footstep01-09`, I `footstep_concrete_*` |
 | Konuşma balonunda harf (`konus`, G17) | `Konusma` (gişedeki kişi konuşurken, iki harfte bir) | U `click2` (çok sessiz, rate 1.9, perde oynar) | U `click1`, IF `tick_001/002` |
 | Zarf masaya kayar (`zarfKay`, G17) | `GameScene.zarfGetir` (SOR cevabı zarf olunca) | R `bookFlip2` (rate 0.85) | R `cloth2`, R `bookFlip1` |
 | Zarf çekmeceye / çekmece kapanır (`zarfCekmece`, G17) | `Cekmece.kapa` (zarf kabul ya da ret) | R `bookPlace2` + I `impactWood_light_001` | R `handleCoins` (para sesi), R `doorClose_1` |

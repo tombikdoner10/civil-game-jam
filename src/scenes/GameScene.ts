@@ -455,18 +455,21 @@ export class GameScene extends Phaser.Scene {
     this.beklemeSoylendi = false;
     this.beklemeIptal();
     if (kisi) {
-      this.pencere.kisiGelsin(kisi);
       const id = bina.id;
-      // Mizaçlı selam (G33): cümle tekrarsız desteden, yüz mizaçtan.
-      this.time.delayedCall(TUNING.diyalog.selamGecikme, () => {
+      // G39: kişi yürüyerek gelir; yerine oturunca bekleme sayacı (G33) başlar ve selam verir.
+      this.pencere.kisiGelsin(kisi, () => {
         if (this.oturum.mevcut?.id !== id || this.bitirildi) return;
-        const m = kisi.mizac;
-        this.pencere.soyle(this.deste.cek(`selam:${m}`, MIZAC_METIN[m].selam, degiskenler(bina)), MIZAC_IFADE[m].selam);
+        this.beklemeKur();
+        // Mizaçlı selam (G33): cümle tekrarsız desteden, yüz mizaçtan.
+        this.time.delayedCall(TUNING.diyalog.selamGecikme, () => {
+          if (this.oturum.mevcut?.id !== id || this.bitirildi) return;
+          const m = kisi.mizac;
+          this.pencere.soyle(this.deste.cek(`selam:${m}`, MIZAC_METIN[m].selam, degiskenler(bina)), MIZAC_IFADE[m].selam);
+        });
       });
-      this.beklemeKur();
     }
-    sfx.play('siluet');
-    const gecikme = 350;
+    // Belgeler kişi gişeye varınca kayar (G39); kişi yoksa hemen.
+    const gecikme = kisi ? TUNING.gise.gelisMs : 350;
     const belgeler = this.oturum.ayar.belgeler;
     this.kartlar = belgeler.map((tur, i) => {
       const [hx, hy] = this.yer.belge[tur];
@@ -958,7 +961,7 @@ export class GameScene extends Phaser.Scene {
       sfx.play(sonuc.dogru ? 'dogru' : 'uyari');
     });
 
-    // Belgeler toplanıp gişeden geri verilir, mal sahibi ayrılır.
+    // Belgeler toplanıp gişeden geri verilir, mal sahibi yürüyerek ayrılır; gişe bir an boş kalır (G39).
     const eski = this.kartlar;
     this.kartlar = [];
     this.giden = eski;
@@ -966,7 +969,6 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(topla, () => {
       this.inceleme.dosyaBitti();
       this.pencere.kisiGitsin();
-      sfx.play('siluet', { volume: 0.7 });
       eski.forEach((k, i) => {
         this.input.setDraggable(k, false);
         k.disableInteractive();
@@ -982,10 +984,11 @@ export class GameScene extends Phaser.Scene {
       });
       sfx.play('kagitTopla');
     });
-    this.time.delayedCall(topla + 380 + eski.length * 50 + 120, () => {
-      if (this.oturum.bitti) this.bitir();
-      else this.dosyaGetir();
-    });
+    // Mesai saati bu geçişte durur (mesgul): yeni dosyanın belgeleri masaya inince yeniden işler.
+    const belgeSonu = topla + 380 + eski.length * 50 + 120;
+    const cikis = topla + (kisi ? TUNING.gise.gidisMs : 0);
+    if (this.oturum.bitti) this.time.delayedCall(Math.max(belgeSonu, cikis), () => this.bitir());
+    else this.time.delayedCall(Math.max(belgeSonu, cikis + (kisi ? TUNING.gise.bosMs : 0)), () => this.dosyaGetir());
     return true;
   }
 

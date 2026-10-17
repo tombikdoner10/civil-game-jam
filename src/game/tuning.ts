@@ -92,6 +92,15 @@ export const TUNING = {
     ipucuHiz: 0.5,
   },
 
+  /**
+   * Gişe geçişi (G39; yalnızca görünüm, oyun kararlarına etkisi yok): kişi gişe camının sağından gelisAdim adımda
+   * gelisMs içinde yürüyerek gelir (her adımda sekme px yukarı sekme, ayak sesi), yerine oturur (oturmaMs süren
+   * hafif çöküş), belgeler ondan sonra gişe gözünden kayar. Giderken aynı yoldan gidisAdim adımda gidisMs içinde
+   * çıkar ve söner; eski kişi çıktıktan sonra gişe bosMs boş kalır. Damgadan yeni dosyanın belgeleri masaya inene
+   * kadar mesai saati durur (GameScene mesgul).
+   */
+  gise: { gelisMs: 900, gelisAdim: 4, gidisMs: 800, gidisAdim: 3, sekme: 4, oturmaMs: 140, bosMs: 1000 },
+
   /** Gün sonu parası (yer tutucu değerler; aile bütçesi yok). */
   para: { baslangic: 0, maas: 20, ceza: 10 },
 
@@ -179,7 +188,8 @@ export const TUNING = {
     harfMs: 26,
     kalisMs: 2600,
     kalisHarfMs: 40,
-    selamGecikme: 700,
+    /** G39: kişi gişede yerine oturduktan (TUNING.gise) bu kadar sonra selam verir. */
+    selamGecikme: 150,
     raporGecikme: 1000,
     beklemeMs: 25000,
     beklemeTekrarMs: 2000,
