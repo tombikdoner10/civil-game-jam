@@ -12,7 +12,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Sırada
 
-- [ ] G67 [teknik] (G66'dan sonra) Rapor kuralı GENEL sekmesine, metin "Gişeden getirilen rapor (karot ya da zemin etüdü) mühürsüz…"; 6. kural + dosyanın kendi karot ya da zemin etüdü kartı seçilince "Bu kural gişeden getirilen raporlar için" ipucu.
+- [ ] G67 [teknik] (G66'dan sonra) Rapor kuralı GENEL sekmesine, metin "Gişeden getirilen rapor (karot ya da zemin etüdü) mühürsüz…"; 6. kural + dosyanın kendi karot ya da zemin etüdü kartı seçilince "Bu kural gişeden getirilen raporlar için" ipucu. Ayrıca oyun içinde (UI) sahte karot ve sahte zemin raporu inceleme modunda bulunabiliyor mu, İSTE inceleme modundayken basılırsa da, SOR çalışıyor mu doğrulanır; tutmazsa düzeltilir.
 
 
 Son test (xhigh, 78/100) sonrası (G34, G36, G35, G38, G37 bitti; sırada G31)
