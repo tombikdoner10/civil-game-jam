@@ -1520,6 +1520,56 @@ const HIK = await server.ssrLoadModule('/src/game/stories.ts');
   console.log('G60 başka binanın belgesi ipucu (tohum 1-60, gün 1-5):', JSON.stringify(g60));
 }
 
+// G67: rapor kuralı + dosyanın kendi karot / zemin kartındaki alan → kusur yok, "gişe raporu" ipucu (kaydedilmez).
+// Gişeden gelen kartta davranış aynı: sahtede ipucu alanı → Sahte rapor, öbür alanlar ve gerçek rapor → null.
+// Oyunun geçmişsiz başlangıcıyla (?dev&gun=N) sahte zemin raporunun geldiği tohumlar UI testi için yazılır.
+{
+  const g67 = { ipucu: 0, sahteKarot: 0, sahteZemin: 0, gercek: 0 };
+  const DEGER = { karot: 'mpa', zemin: 'tur' };
+  const zeminTohum = [];
+  for (let tohum = 1; tohum <= 80; tohum++) {
+    for (let g = 3; g <= 5; g++) {
+      const o = new S.GunOturumu(g, tohum, S.isteGecmisi([]));
+      let i = 0;
+      while (o.mevcut && !o.bitti) {
+        const b = o.mevcut;
+        const e = `G67 t${tohum} g${g} ${b.id}`;
+        const baska = BLD.baskaBinaBelgesi(b.belgeler);
+        for (const alan of ['karot', 'zemin']) {
+          if (!b.belgeler[alan] || baska === alan) continue;
+          const r = o.incele([{ belge: alan, alan: DEGER[alan] }, { belge: 'kural', alan: R.RAPOR_KURALI }]);
+          bak(r?.ipucu === 'giseRaporu' && o.bulunanKusurlar.length === 0, `${e}: kendi ${alan} + rapor kuralı → ${JSON.stringify(r)}`);
+          if (r?.ipucu) g67.ipucu++;
+        }
+        for (const alan of ['karot', 'zemin']) {
+          if (!o.istenebilir(alan)) continue;
+          const c = o.iste(alan);
+          if (!c?.rapor) continue;
+          const diger = ['tarih', 'lab', DEGER[alan]].filter((x) => c.tur !== 'sahte' || x !== K.ipucuAlani(c.rapor));
+          for (const x of diger) {
+            const r = o.incele([{ belge: alan, alan: x }, { belge: 'kural', alan: R.RAPOR_KURALI }]);
+            bak(r === null, `${e}: gişeden gelen ${alan}.${x} + rapor kuralı → ${JSON.stringify(r)}`);
+          }
+          if (c.tur === 'sahte') {
+            const r = o.incele([{ belge: alan, alan: K.ipucuAlani(c.rapor) }, { belge: 'kural', alan: R.RAPOR_KURALI }]);
+            bak(r?.kusur?.id === 'sahteRapor', `${e}: gişeden gelen sahte ${alan} bulunmadı (${JSON.stringify(r)})`);
+            if (alan === 'karot') g67.sahteKarot++;
+            else {
+              g67.sahteZemin++;
+              if (zeminTohum.length < 6) zeminTohum.push(`t${tohum} g${g} dosya ${i + 1} (${c.rapor.ipucu})`);
+            }
+          } else g67.gercek++;
+        }
+        o.damgala(R.dogruDamga(b, g));
+        i++;
+      }
+    }
+  }
+  bak(g67.ipucu > 10 && g67.sahteKarot > 0 && g67.sahteZemin > 0, `G67 sayılar ${JSON.stringify(g67)}`);
+  console.log('G67 gişe raporu ipucu (tohum 1-80, gün 3-5):', JSON.stringify(g67));
+  console.log('G67 sahte zemin raporu (geçmişsiz başlangıç, her eksikte İSTE):', zeminTohum.join(' · '));
+}
+
 console.log(`${sayi} denetim, ${hata} hata`);
 console.log(`Kural: fay yakını = ${T.fayKurali === 'bosalt' ? 'her zaman BOŞALT' : 'zemine bağlı (dere gibi)'}`);
 console.log('Eksik belge ve dere/fay görülme sayıları (tohum 1-40, gün 1-5):', JSON.stringify(sayac));

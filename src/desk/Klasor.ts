@@ -30,7 +30,8 @@ const KURAL_BOLUMU: Record<string, BolumId> = {
   kolon: 'kolon',
   beton: 'beton',
   karot: 'beton',
-  rapor: 'beton',
+  // G67: gişeden getirilen raporun kuralı hem karotu hem zemin etüdünü kapsar: GENEL bölümünde.
+  rapor: 'genel',
   // G19: saha testi (Schmidt çekici); G53: BETON bölümünde (SAHA sekmesi KONUM oldu, yalnızca dere ve fay).
   saha: 'beton',
   dere: 'konum',

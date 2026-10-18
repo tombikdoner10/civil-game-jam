@@ -423,7 +423,8 @@ export interface IncelemeSonucu {
  * sayılır; "Tutarsızlık yok" yerine ada / parsel ipucu gösterilir. Kusur kaydedilmez.
  */
 export interface IncelemeIpucu {
-  ipucu: 'baskaBelge';
+  /** baskaBelge: G60 ada / parsel ipucu; giseRaporu: G67 rapor kuralı dosyanın kendi karot / zemin kartında. */
+  ipucu: 'baskaBelge' | 'giseRaporu';
 }
 
 export function gunDosyaSayisi(gun: number): number {
@@ -842,6 +843,13 @@ export class GunOturumu {
       // G61: kusur bu dosyada zaten bulunduysa ipucu yok (eskisi gibi "Tutarsızlık yok").
       const baska = baskaBinaBelgesi(etkin.belgeler);
       if (baska && !this.bulunan.includes('baskaBina') && !degisen.has(baska) && secim.some((s) => s.belge === baska && s.alan !== 'ada')) return { ipucu: 'baskaBelge' };
+      // G67: rapor kuralı dosyanın kendi karot ya da zemin etüdü kartıyla (gişeden rapor gelmemiş, saha notu değil)
+      // seçildiyse ipucu. Gişeden gelen kartta (gerçek ya da sahte) davranış aynı.
+      const kendiKarti = (belge: string): boolean => {
+        if (belge !== 'karot' && belge !== 'zemin') return false;
+        return !this.istenen[belge]?.rapor && !(belge === 'karot' && this.bilgi.kaynak.karot === 'saha');
+      };
+      if (secim.some((s) => s.belge === 'kural' && s.alan === RAPOR_KURALI) && secim.some((s) => kendiKarti(s.belge))) return { ipucu: 'giseRaporu' };
       return null;
     }
     const yeni = !this.bulunan.includes(kusur.id);

@@ -143,7 +143,7 @@ export const KURALLAR: Kural[] = [
     ilkGun: 3,
     // Sahte rapor binanın kusuru değil (üretici seçmesin): kanıtı oturum denetler (session.incele).
     kusurlar: [],
-    metin: 'Kural: getirilen rapor mühürsüz, ileri tarihli (bugün {bugun}) ya da elle düzeltilmişse sahtedir → İADE',
+    metin: 'Kural: gişeden getirilen rapor (karot ya da zemin etüdü) mühürsüz, ileri tarihli (bugün {bugun}) ya da elle düzeltilmişse sahtedir → İADE',
   },
   {
     // G19: saha notu ön değerlendirme; G53: BETON bölümünde rapordan sonra (klasörde numara sırası). Saha kusuru

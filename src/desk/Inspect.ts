@@ -3,7 +3,7 @@ import * as Phaser from 'phaser';
 import { sfx } from '../audio/sfx';
 import { FONT } from '../config';
 import type { Kusur, KusurId } from '../game/building';
-import { BASKA_BELGE_IPUCU, TUTARSIZLIK_YOK } from '../game/diyalog';
+import { BASKA_BELGE_IPUCU, GISE_RAPORU_IPUCU, TUTARSIZLIK_YOK } from '../game/diyalog';
 import type { SecimRef } from '../game/rules';
 import type { IncelemeIpucu, IncelemeSonucu } from '../game/session';
 import { punch } from '../systems/fx';
@@ -364,10 +364,11 @@ export class Inspect extends Phaser.Events.EventEmitter {
     }
     // Tutarsızlık yok: kısa yazı, seçim temizlenir. G60: başka binanın belgesindeki değer seçildiyse yerine ada /
     // parsel ipucu (daha uzun kalır; kusur kaydedilmez).
-    const ipucu = sonuc?.ipucu === 'baskaBelge';
+    // G67: rapor kuralı dosyanın kendi karot / zemin kartıyla seçildiyse gişe raporu ipucu.
+    const ipucu = !!sonuc?.ipucu;
     this.beklemede = true;
     const [a, b] = ogeler.map((o) => sinir(o.nesne));
-    const metin = ipucu ? BASKA_BELGE_IPUCU : TUTARSIZLIK_YOK;
+    const metin = sonuc?.ipucu === 'baskaBelge' ? BASKA_BELGE_IPUCU : sonuc?.ipucu === 'giseRaporu' ? GISE_RAPORU_IPUCU : TUTARSIZLIK_YOK;
     const yazi = this.scene.add
       .text(0, 0, metin, {
         fontFamily: FONT,

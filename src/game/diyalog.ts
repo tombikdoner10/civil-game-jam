@@ -41,6 +41,12 @@ export const TUTARSIZLIK_YOK = 'Tutarsızlık yok';
  */
 export const BASKA_BELGE_IPUCU = 'Bu belge başka binaya ait: ada/parseli ruhsatla karşılaştır';
 
+/**
+ * G67 (lider metni): rapor kuralı dosyanın kendi karot ya da zemin etüdü kartıyla (gişeden gelmemiş) eşleştirildiğinde
+ * "Tutarsızlık yok" yerine.
+ */
+export const GISE_RAPORU_IPUCU = 'Bu kural gişeden getirilen raporlar için';
+
 /** Saha testi bitince tezgâhtaki saatin yanında kısa süre (G24): testin zaman bedeli. {dk}: dakika. */
 export const SAHA_SURE = '+{dk} dk';
 
