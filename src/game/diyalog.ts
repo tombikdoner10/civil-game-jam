@@ -112,7 +112,9 @@ export const MUFETTIS_ZARF_OZET = (tutar: string, k: number, m: number): string 
   m >= k ? (m > 1 ? `Zarf: ${m} zarfa el konuldu` : 'Zarf: el konuldu') : `Zarf: +${tutar} (${k} kabul, ${m} el konuldu)`;
 export const MUFETTIS_GAZETE ='Müfettiş denetçinin zarfına el koymuştu';
 export const RET_GAZETE = 'Denetçi rüşveti geri çevirdi';
-export const RET_SONUC = (n: number): string => (n === 1 ? 'Rüşveti geri çevirdin' : `Rüşveti ${n} kez geri çevirdin`);
+/** G64: kabul edilen zarf da varsa (kabul > 0) ret satırı kaç zarfın geri çevrildiğini söyler (lider kararı; metinler aynen). */
+export const RET_SONUC = (n: number, kabul = 0): string =>
+  kabul > 0 ? `${n} zarfı geri çevirdin` : n === 1 ? 'Rüşveti geri çevirdin' : `Rüşveti ${n} kez geri çevirdin`;
 
 /**
  * Oyunun takvimi: gün 1'in tarihi. Getirilen raporun tarihi bununla karşılaştırılır; kural kitabında "bugün"

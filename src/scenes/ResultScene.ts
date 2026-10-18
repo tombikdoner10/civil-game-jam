@@ -168,7 +168,7 @@ export class ResultScene extends Phaser.Scene {
     // satırlar uzarsa aşağı kayar.
     const zarfW = birikmis.x - birikmis.width - 40 - (L + SUTUN.gun);
     const zarfSatirlari: [string, string][] = (zarfOz ?? []).map((m) => [m, PAL.damgaBosalt]);
-    if (ret > 0) zarfSatirlari.push([RET_SONUC(ret), PAL.damgaGuvenli]);
+    if (ret > 0) zarfSatirlari.push([RET_SONUC(ret, zarfAdet), PAL.damgaGuvenli]);
     let zarfAlt = topY;
     zarfSatirlari.forEach(([m, r], i) => {
       const o = this.sigdir(yaz(L + SUTUN.gun, topY + ZARF_SATIR.ilk + i * ZARF_SATIR.ara, m, ZARF_SATIR.boy, r), zarfW);

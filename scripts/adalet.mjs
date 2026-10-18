@@ -1456,6 +1456,7 @@ const HIK = await server.ssrLoadModule('/src/game/stories.ts');
   bak(zs(2, 120, [bina({})], 0) === JSON.stringify(['Kabul edilen zarf: 2 (120 TL)', 'Zarf alınan 1 bina depremde hasar gördü']), `G60 el konulansız zarf satırı: ${zs(2, 120, [bina({})], 0)}`);
   bak(G.zarfOzeti(0, 0, [], 0) === null, 'G60 zarfsız oyunda zarf satırı');
   bak(MG.RET_SONUC(1) === 'Rüşveti geri çevirdin' && MG.RET_SONUC(3) === 'Rüşveti 3 kez geri çevirdin', 'G57 sonuç ret metni');
+  bak(MG.RET_SONUC(1, 3) === '1 zarfı geri çevirdin' && MG.RET_SONUC(2, 1) === '2 zarfı geri çevirdin' && MG.RET_SONUC(1, 0) === 'Rüşveti geri çevirdin', 'G64 sonuç ret metni (kabul edilen zarf varken)');
   bak(MG.MUFETTIS_RAPOR('Bina 03', T.mufettis.ceza) === 'Müfettiş: Bina 03 dosyasındaki zarf ortaya çıktı. Zarfa el konuldu, 40 TL ceza.', 'G57 rapor metni');
   // buyukDeprem işaretleri kayıtlardan (kısa yolda yalnızca oyuncunun kayıtları; örnek binalarda yok).
   const EV = await server.ssrLoadModule('/src/game/ev.ts');
