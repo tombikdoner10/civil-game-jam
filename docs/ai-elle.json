@@ -512,5 +512,12 @@
     "yer": "teslim/video/kagit-ustunde-trailer.mp4",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-18T07:51:59.226Z"
+  },
+  {
+    "kategori": "audio",
+    "amac": "Takımın güncellediği ana menü müziğini (newmaintheme.mp3) ffmpeg ile ilk 15 saniyesini kırparak OGG Vorbis'e dönüştürdü; teslim videosunun sesini bu müzikle değiştirdi (ses düzeyi, başta ve sonda kısa geçiş)",
+    "yer": "src/sounds/takim/ana-menu.ogg, teslim/video/kagit-ustunde-trailer.mp4",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-18T11:57:57.931Z"
   }
 ]
