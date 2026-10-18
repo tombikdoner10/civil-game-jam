@@ -13,7 +13,7 @@ import { RuleNote } from '../desk/RuleNote';
 import { DAMGA_ADI, damgaIzi, Kaselik, RAF_SOL } from '../desk/Kaselik';
 import { binaEtiketi, ETIKET_KUCUK, ETIKET_KUCUK_YUKSEKLIK, type BinaEtiketi } from '../desk/BinaEtiketi';
 import { ONCU_SARSINTI_SONU, ONCU_TEPKI_SONU, Quake } from '../desk/Quake';
-import { BANT_H, GISE_ALAN, GOZ, MASA_Y, PENCERE_CAMLARI, Pencere, SOKAK_DERINLIK } from '../desk/Window';
+import { BANT_H, GISE_ALAN, GOZ, MASA_Y, MUFETTIS_PORTRE, PENCERE_CAMLARI, Pencere, SOKAK_DERINLIK } from '../desk/Window';
 import { yerlesim, type Yerlesim } from '../desk/yerlesim';
 import { Cekmece, Zarf, ZARF_ALAN } from '../desk/Zarf';
 import { Portre, PORTRE_EKRAN } from '../desk/Portre';
@@ -24,6 +24,8 @@ import {
   degiskenler,
   desteler,
   INCELE_IPUCU,
+  MUFETTIS_BASLIK,
+  MUFETTIS_GISE,
   SAHA_METIN,
   SAHA_SURE,
   sabitOran,
@@ -41,7 +43,7 @@ import { KUCUK_DEPREM_SERIT, oncuEtiketi } from '../game/gazete';
 import { KUSUR_BILGI } from '../game/rules';
 import { ornekKayitlar } from '../game/ornek';
 import { gunAyar } from '../game/days';
-import { aracGecmisi, GunOturumu, gunHesabi, isteGecmisi, sokakKayitlari, type AracGecmisi, type GunKaydi, type SarsintiKaydi } from '../game/session';
+import { aracGecmisi, GunOturumu, gunHesabi, isteGecmisi, sokakKayitlari, type AracGecmisi, type GunKaydi, type SarsintiKaydi, type ZarfKaydi } from '../game/session';
 import type { SahaSonucu } from '../game/saha';
 import { TUNING } from '../game/tuning';
 import type { DayEndData } from './DayEndScene';
@@ -67,6 +69,12 @@ export interface GameData {
 
 /** Etiket metnini iki satıra bölmek için. */
 const SATIR_SONU = String.fromCharCode(10);
+/**
+ * G65 müfettiş sahnesinin süreleri (ms). bekle: son dosyadan sonra gişe boşken kısa ara; zarf: müfettiş oturduktan
+ * sonra zarfın çekmeceden çıkması; zarfKalis: zarf masada görünür kalır; okuma: cümle bitince müfettiş bu kadar
+ * bekleyip gider; korumaMs: sahne başında atlama basışı sayılmaz (aynı karedeki eski basış); zarfAra: birden çok zarf.
+ */
+const MUFETTIS_SAHNE = { bekle: 400, zarf: 500, zarfCikis: 380, zarfKalis: 700, zarfGeri: 380, zarfAra: 160, okuma: 1500, korumaMs: 250 };
 
 /**
  * Masada boş yer yoksa uyarı fişi gişe camının sol alt köşesine düşer (belgeleri örtmez). x: sol kenar;
@@ -1219,7 +1227,161 @@ export class GameScene extends Phaser.Scene {
     // Mesai saha testinde biterse test kapanır (sonuç yok).
     this.saha?.kapat(null);
     if (this.inceleme.acik) this.inceleme.kapa();
-    this.gunSonuOncesi(() => this.gunSonu());
+    this.mufettisSahnesi(() => this.gunSonuOncesi(() => this.gunSonu()));
+  }
+
+  /**
+   * G65 (takım kararı): o gün en az bir zarf müfettişe yakalandıysa gün sonu sekansından önce müfettiş gişeye
+   * yürüyerek gelir, zarf(lar)ı ve cezayı söyler; zarflar çekmeceden çıkıp gişeye kayar (GERİ VER animasyonu),
+   * müfettiş gider. Para, rapor ve gazete değişmez (yakalanma damgada belirlenmişti). Masa kilitli; Esc duraklatır;
+   * Enter, Space ya da tıklama sahneyi sonuna atlar (müfettiş gitmiş, zarf gişede). Yakalanan yoksa doğrudan devam.
+   */
+  private mufettisSahnesi(devam: () => void): void {
+    const yakalanan: { dosyaId: string; zarf: ZarfKaydi }[] = this.oturum.kararlar.flatMap((k) =>
+      k.zarf?.kabul && k.zarf.yakalandi ? [{ dosyaId: k.dosyaId, zarf: k.zarf }] : [],
+    );
+    // Yalnızca dev (?dev&mufettis=N): sahne günün ilk N dosyasıyla görünür (yalnızca görüntü; para ve rapor gerçek
+    // kararlardan). Gün Enter ile (dev) gişede kişi varken bitirilirse önce o gider.
+    const dev = DEV ? Number(new URLSearchParams(location.search).get('mufettis')) : 0;
+    if (yakalanan.length === 0 && dev > 0)
+      for (const b of this.oturum.dosyalar.slice(0, dev)) yakalanan.push({ dosyaId: b.id, zarf: { miktar: 60, kabul: true, istenen: 'guvenli' } });
+    if (yakalanan.length === 0) {
+      devam();
+      return;
+    }
+    this.masaKilitle();
+    const M = MUFETTIS_SAHNE;
+    const adres = new Map(this.oturum.dosyalar.map((b) => [b.id, b.adres]));
+    const metin = MUFETTIS_GISE(
+      yakalanan.map((k) => adres.get(k.dosyaId) ?? k.dosyaId),
+      TUNING.mufettis.ceza * yakalanan.length,
+    );
+    const zamanlar: Phaser.Time.TimerEvent[] = [];
+    const sonra = (ms: number, f: () => void): void => {
+      zamanlar.push(this.time.delayedCall(ms, f));
+    };
+    const zarflar: Zarf[] = [];
+    let bitti = false;
+    let atlanabilir = false;
+    let surdu = 0;
+    const kb = this.input.keyboard;
+    const canvas = this.game.canvas;
+    const birak = (): void => {
+      kb?.off('keydown-ENTER', atla);
+      kb?.off('keydown-SPACE', atla);
+      canvas.removeEventListener('pointerdown', tik);
+      this.events.off(Phaser.Scenes.Events.RESUME, surduruldu);
+    };
+    const bitir = (): void => {
+      if (bitti) return;
+      bitti = true;
+      birak();
+      devam();
+    };
+    // Atlama: bekleyen adımlar iptal, müfettiş ve zarflar hemen kalkar, çekmece kapanır; akış devam eder.
+    const atla = (): void => {
+      if (bitti || !atlanabilir) return;
+      for (const t of zamanlar) t.remove();
+      for (const z of zarflar) {
+        this.tweens.killTweensOf(z);
+        z.destroy();
+      }
+      this.cekmece.kapa();
+      this.pencere.kisiKaldir();
+      bitir();
+    };
+    // Tıklama tuvalde (konuşma balonu kendi tıklamasını yutar). Duraklatma menüsündeki tık sayılmaz.
+    const tik = (): void => {
+      if (this.scene.isActive() && performance.now() - surdu > 150) atla();
+    };
+    const surduruldu = (): void => {
+      surdu = performance.now();
+    };
+    kb?.on('keydown-ENTER', atla);
+    kb?.on('keydown-SPACE', atla);
+    canvas.addEventListener('pointerdown', tik);
+    this.events.on(Phaser.Scenes.Events.RESUME, surduruldu);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, birak);
+    sonra(M.korumaMs, () => (atlanabilir = true));
+
+    const gel = (): void => {
+      this.pencere.kisiGelsin({ portre: MUFETTIS_PORTRE }, () => {
+        let konustu = false;
+        let zarfBitti = false;
+        const git = (): void => {
+          if (!konustu || !zarfBitti) return;
+          sonra(M.okuma, () => {
+            this.pencere.kisiGitsin();
+            sonra(TUNING.gise.gidisMs + 100, bitir);
+          });
+        };
+        this.pencere.soyle(metin, 'notr', {
+          baslik: MUFETTIS_BASLIK,
+          bitince: () => {
+            konustu = true;
+            git();
+          },
+        });
+        sonra(M.zarf, () => {
+          this.zarfEl(yakalanan.map((k) => k.zarf), zarflar, sonra, () => {
+            zarfBitti = true;
+            git();
+          });
+        });
+      });
+    };
+    // Mesai gişede biri varken bittiyse önce o gider; gişe bir an boş kalır.
+    if (this.pencere.kisiVar) {
+      this.pencere.kisiGitsin();
+      sonra(TUNING.gise.gidisMs + TUNING.gise.bosMs, gel);
+    } else sonra(M.bekle, gel);
+  }
+
+  /**
+   * G65: el konan zarflar çekmeceden masaya çıkar, bir an görünür, sonra GERİ VER animasyonuyla gişeye kayar.
+   * Zarfların düğmeleri baştan sönük (kilitli); üstteki not kişinin istediği damgayı gösterir.
+   */
+  private zarfEl(
+    kayitlar: readonly ZarfKaydi[],
+    zarflar: Zarf[],
+    sonra: (ms: number, f: () => void) => void,
+    bitince: () => void,
+  ): void {
+    const M = MUFETTIS_SAHNE;
+    this.cekmece.ac(ustKatman());
+    const [ax, ay] = this.cekmece.agiz;
+    kayitlar.forEach((kayit, i) => {
+      const z = new Zarf(this, kayit.miktar, ax, ay, {
+        not: ZARF_NOT.replace('{damga}', DAMGA_ADI[kayit.istenen]),
+        al: ZARF_DUGME.al,
+        geri: ZARF_DUGME.geri,
+      });
+      z.kilitle();
+      z.setDepth(ustKatman()).setAlpha(0).setScale(0.7);
+      zarflar.push(z);
+      const x = snap(ax + i * (ZARF_ALAN.w - 24));
+      const y = snap(ay - 140);
+      sonra(i * M.zarfAra, () => {
+        this.tweens.add({ targets: z, x, y, scale: 1, alpha: 1, duration: M.zarfCikis, ease: 'Cubic.easeOut' });
+        sfx.play('zarfKay');
+      });
+      sonra(i * M.zarfAra + M.zarfCikis + M.zarfKalis, () => {
+        // GERİ VER ile aynı: zarf gişe gözüne kayar ve söner.
+        this.tweens.add({
+          targets: z,
+          x: GOZ.x,
+          y: GOZ.y - 60,
+          alpha: 0,
+          duration: M.zarfGeri,
+          ease: 'Cubic.easeIn',
+          onComplete: () => z.destroy(),
+        });
+        sfx.play('zarfRet');
+      });
+    });
+    const son = (kayitlar.length - 1) * M.zarfAra + M.zarfCikis + M.zarfKalis;
+    sonra(son, () => this.cekmece.kapa(200));
+    sonra(son + M.zarfGeri, bitince);
   }
 
   /**

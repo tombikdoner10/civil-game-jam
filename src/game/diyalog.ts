@@ -111,6 +111,18 @@ export const MUFETTIS_CEZA_SATIR = 'Müfettiş cezası';
 export const MUFETTIS_ZARF_OZET = (tutar: string, k: number, m: number): string =>
   m >= k ? (m > 1 ? `Zarf: ${m} zarfa el konuldu` : 'Zarf: el konuldu') : `Zarf: +${tutar} (${k} kabul, ${m} el konuldu)`;
 export const MUFETTIS_GAZETE ='Müfettiş denetçinin zarfına el koymuştu';
+/**
+ * G65: müfettiş gün sonunda gişeye gelir (takım kararı; metinler aynen). Balon başlığı ve cümlesi; binalar dosya
+ * sırasıyla ("Bina 03", "Bina 03 ve Bina 05", "Bina 05, Bina 07 ve Bina 09"), ceza toplamı (TL).
+ */
+export const MUFETTIS_BASLIK = 'MÜFETTİŞ';
+export const MUFETTIS_GISE = (binalar: readonly string[], ceza: number): string => {
+  const son = binalar[binalar.length - 1];
+  const liste = binalar.length > 1 ? `${binalar.slice(0, -1).join(', ')} ve ${son}` : son;
+  return binalar.length > 1
+    ? `${liste} dosyalarındaki zarfları gördüm. El koyuyorum; ${ceza} TL ceza.`
+    : `${liste} dosyasındaki zarfı gördüm. El koyuyorum; ${ceza} TL ceza.`;
+};
 export const RET_GAZETE = 'Denetçi rüşveti geri çevirdi';
 /** G64: kabul edilen zarf da varsa (kabul > 0) ret satırı kaç zarfın geri çevrildiğini söyler (lider kararı; metinler aynen). */
 export const RET_SONUC = (n: number, kabul = 0): string =>

@@ -4,6 +4,7 @@ import { sfx } from '../audio/sfx';
 import { MONO } from '../config';
 import type { Bina, Damga } from '../game/building';
 import { tarih } from '../game/diyalog';
+import type { Mizac } from '../game/diyalog-metin';
 import type { Ifade, Kisi } from '../game/kisi';
 import type { SokakKaydi } from '../game/session';
 import { TUNING } from '../game/tuning';
@@ -43,6 +44,11 @@ const KISI = { x: GISE.x + GISE.w - PORTRE_EKRAN.w - 40, y: GISE.y + GISE.h - PO
 const KISI_DIS = GISE.x + GISE.w;
 /** hMax (G33): balon en çok gişe camının alt kenarına kadar iner; daha uzun cevap kısaltılır (GameScene). */
 const BALON = { x: GISE.x + 8, y: GISE.y + 32, w: 320, hMax: GISE.h - 32 };
+/**
+ * G65: müfettişin portre tohumu (her oyunda aynı kişi: orta yaşlı, koyu saçlı, gözlüklü, ceketli ve kravatlı; mizaçsız,
+ * nötr ve ciddi yüz). Müşterilerden balon başlığıyla ayrılır.
+ */
+export const MUFETTIS_PORTRE = 96797;
 /** Sokaktaki tozun derinliği (Quake). */
 export const SOKAK_DERINLIK = D.sokak;
 
@@ -56,6 +62,8 @@ export class Pencere {
   readonly sokak: Sokak;
   private portre?: Portre;
   private yuruyus?: Phaser.Tweens.Tween;
+  /** Gişeden çıkmakta olan kişi (G65: sahne atlanınca hemen kalkar). */
+  private giden?: Portre;
   private readonly balon: Konusma;
   private readonly saatYazi: Phaser.GameObjects.Text;
   private readonly dosyaYazi: Phaser.GameObjects.Text;
@@ -189,7 +197,7 @@ export class Pencere {
    * Gişeye yeni mal sahibi gelir (portre tohumdan; aynı dosya, aynı kişi). G39: camın sağından adım adım yürüyerek
    * gelir, yerine oturur; oturdu, oturma bitince çağrılır (selam, bekleme sayacı).
    */
-  kisiGelsin(kisi: Kisi, oturdu?: () => void): void {
+  kisiGelsin(kisi: Pick<Kisi, 'portre'> & { mizac?: Mizac }, oturdu?: () => void): void {
     this.portre?.destroy();
     this.balon.temizle();
     const G = TUNING.gise;
@@ -213,9 +221,29 @@ export class Pencere {
     this.balon.kapat();
     if (!p) return;
     this.portre = undefined;
+    this.giden = p;
     p.konus(false);
     const G = TUNING.gise;
-    this.yuru(p, p.img.x, KISI_DIS, G.gidisMs, G.gidisAdim, Phaser.Math.Easing.Sine.In, true, () => p.destroy());
+    this.yuru(p, p.img.x, KISI_DIS, G.gidisMs, G.gidisAdim, Phaser.Math.Easing.Sine.In, true, () => {
+      if (this.giden === p) this.giden = undefined;
+      p.destroy();
+    });
+  }
+
+  /** Gişede (ya da yürüyüşte) kimse var mı (G65). */
+  get kisiVar(): boolean {
+    return !!this.portre || !!this.giden;
+  }
+
+  /** G65: gişedeki ve çıkmakta olan kişi ile balon hemen kalkar (sahne atlandı). */
+  kisiKaldir(): void {
+    this.yuruyus?.stop();
+    this.yuruyus = undefined;
+    this.balon.temizle();
+    this.portre?.destroy();
+    this.portre = undefined;
+    this.giden?.destroy();
+    this.giden = undefined;
   }
 
   /**
