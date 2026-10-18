@@ -335,3 +335,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 13:05 · Yayın: b1c7d47 (G73 elle düzeltme hep kat) canlıda, smoke hatasız, menüde 'sürüm b1c7d47'; son-saglam taşındı · Açık teknik iş yok · Sıradaki: kullanıcı /dondur (15.00)
 - 13:17 · Takım dondurmadan önce bir tur daha oynuyor (canlı b1c7d47); bulgular gelince küçük düzeltme, son bulgu saati ~14.15 · Sıradaki: bulgular, sonra /dondur
 - 13:31 · Döngü adımı: takımın son tur testi sürüyor, açık teknik iş yok; dondurmaya 1,5 sa · Sıradaki: bulgular (~14.15), /dondur
+- 13:52 · Karar (takım, Egemen): dondurmadan önce tek seferlik Fable 5.1 (high) test oyuncusu + eleştirmen, baştan sona en küçük ayrıntıya kadar; .claude/settings.json availableModels'a fable geçici eklendi (commit'lenmez), ikisi bitince kaldırılacak; hedef teslim/test-1d24d96 (oyun kodu = canlı b1c7d47); rapor sınırı 14.20 · Neden: son tur öncesi farklı model gözüyle tam tarama
