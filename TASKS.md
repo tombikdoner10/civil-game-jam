@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G70 [teknik] (bitti 8dc28f2, test sürüyor, Opus/low) Yazı tiplerinin kullanımına "tanıtım videosundaki ara kartlar"; trailer kurgusu elle beyan kaydı; sahte rapor SOR bahanesi ipucuyla uyumlu (yalnız mevcut cümleler).
 
 ## Sırada
 
@@ -77,6 +76,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G70 Yazı tiplerine 'tanıtım videosundaki ara kartlarda da kullanıldı', trailer elle beyan kaydı, sahte rapor SOR bahanesi ipucuyla uyumlu (8dc28f2, Opus/high; test GEÇTİ, Opus/low)
 - [x] G68 Ana menü müziği: takımın bestesi (ana-menu.ogg, 249 KB) menüde döngüyle çalar, Ayarlar/Emeği Geçenler'de sürer, Oyna'da kısılıp durur (4292360, Opus/high; test GEÇTİ: lider JS kontrolüyle çalma, düzey 0,49, kısılma 0,179 ve durma doğrulandı)
 - [x] G67 Rapor kuralı GENEL'de, metin 'Gişeden getirilen rapor (karot ya da zemin etüdü)…', kendi kart + kural → ipucu; UI'da sahte karot ve zemin raporu bulunuyor, SOR çalışıyor (a7c7bbe, Opus/high; test GEÇTİ, Opus/low)
 - [x] G69 Trailer: teslim/video/kagit-ustunde-trailer.mp4 (57,85 sn, 1920×1080, AAC, takımın müziği, 27,1 MB); kartlar oyunun cümleleri ve fontlarıyla (Opus/high; lider kareleri kontrol etti, takıma gönderildi)
