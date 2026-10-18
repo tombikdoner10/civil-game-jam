@@ -343,3 +343,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 14:09 · Test (G74, opus/low, teslim/test-6b7bd6d, 3 koşu hatasız) GEÇTİ: 'GERİ SIÇRAMA (R)' HD/720p tam, R değeri ve ibreyle çakışmıyor; itiraf ve eski etiket derlemede yok; gün 1 → deprem → gazete → sonuç hatasız · Sıradaki: yayın
 - 14:10 · Yayın: f550d38 (G74) canlıda, smoke hatasız, menüde 'sürüm f550d38'; son-saglam taşındı · Bekleyen: ORTA-1 (fişte 'Karot raporu yok' + 'Sahte rapor') için takım kararı, /dondur
 - 14:12 · Döngü adımı: canlı f550d38 = son-saglam, ağaç temiz, açık teknik iş yok; dondurmaya 48 dk · Bekleyen: ORTA-1 kararı (düzeltme ~30 dk sürer, en geç ~14.20'de başlamalı), /dondur
+- 14:12 · Karar (takım): G75 = sahte rapor masadayken fişte 'Geçerli karot raporu yok' / 'Geçerli zemin etüdü yok' · Neden: masada karot raporu dururken 'Karot raporu yok' çelişkili okunuyor · Sıradaki: G75 geliştirici (opus/high), 14.35'e kadar
