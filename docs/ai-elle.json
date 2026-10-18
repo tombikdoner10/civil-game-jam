@@ -491,5 +491,19 @@
     "yer": "src/scenes/GameScene.ts, src/desk/Window.ts",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-18T01:24:01.825Z"
+  },
+  {
+    "kategori": "audio",
+    "amac": "Ana menü müziğini (takımın bestesi, FL Studio WAV) ffmpeg ile OGG Vorbis'e dönüştürdü (biçim değişikliği, kırpma yok)",
+    "yer": "src/sounds/takim/ana-menu.ogg",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-18T07:35:06.048Z"
+  },
+  {
+    "kategori": "code",
+    "amac": "Menü müziği bağlantısı ve beyan belgelerini node betiğiyle düzenledi",
+    "yer": "src/scenes/MenuScene.ts, README.md, src/data/credits.ts, docs/SESLER.md, docs/ai-ozet.json",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-18T07:35:06.110Z"
   }
 ]

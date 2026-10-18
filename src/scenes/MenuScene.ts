@@ -1,5 +1,7 @@
 // @beyan görsel
 import * as Phaser from 'phaser';
+import { ANA_MENU_MUZIK } from '../assets';
+import { audio } from '../audio/audio';
 import { DEV, HEIGHT, SUBTITLE, TEAM, TITLE, VERSION, WIDTH } from '../config';
 import { CAM, KONTUR, num, PAL } from '../desk/palette';
 import { dizgiTohum, PX, rastgele } from '../desk/pixel';
@@ -98,6 +100,8 @@ const SOKAK = { alan: { x: 0, y: -36, w: WIDTH, h: HEIGHT }, olcek: 3, derinlik:
 const KAYMA: { uclar: readonly [number, number][]; sure: number } = { uclar: [[2, 2], [2, 3]], sure: 20000 };
 /** Pencere ışıkları: başta yanan oran, bir ışığın yanıp sönme aralığı (ms) ve yanan oranın sınırları. */
 const ISIK = { bas: 0.2, aralik: 900, enAz: 0.12, enCok: 0.32, alfa: 0.85 };
+/** Ana menü müziği (G68, takımın bestesi): düzey (ayarlardaki MÜZİK ile çarpılır) ve oyuna geçerken kısılma süresi (ms). */
+const MUZIK = { duzey: 0.7, kisma: 600 };
 /** Ruhsat kâğıdı: genişlik, üst kenar, başlık şeridi; "Oyna" y≈528 (smoke senaryoları 960,530'a tıklıyor). */
 const KAGIT = { w: 720, ust: 192, serit: 152, dugmeY: 528, dugmeAra: 96, dugmeH: 80, alt: 56 };
 
@@ -145,6 +149,8 @@ export class MenuScene extends Phaser.Scene {
       [
         'Oyna',
         () => {
+          // G68: menü müziği oyuna (ya da dev kısayollarıyla depreme, gün sonuna) geçerken kısılıp durur.
+          audio.fadeOutMusicFile(MUZIK.kisma);
           const deprem = devDeprem();
           const kisa = devKisaYol();
           if (deprem) goTo(this, SCENES.Quake, deprem);
@@ -155,7 +161,14 @@ export class MenuScene extends Phaser.Scene {
       ['Ayarlar', () => goTo(this, SCENES.Settings, { from: SCENES.Menu })],
       ['Emeği Geçenler', () => goTo(this, SCENES.Credits)],
     ];
-    if (DEV) items.push(['Oyun Alanı (dev)', () => goTo(this, SCENES.Playground)]);
+    if (DEV)
+      items.push([
+        'Oyun Alanı (dev)',
+        () => {
+          audio.fadeOutMusicFile(MUZIK.kisma);
+          goTo(this, SCENES.Playground);
+        },
+      ]);
 
     const buttons = items.map(
       ([text, action], i) =>
@@ -170,7 +183,9 @@ export class MenuScene extends Phaser.Scene {
     label(this, 48, HEIGHT - 30, TEAM, { size: 32, color: num(PAL.panelYazi), align: 'left' });
     label(this, WIDTH - 48, HEIGHT - 30, `sürüm ${VERSION}`, { size: 28, color: num(PAL.panelYazi), align: 'right' });
 
-    // Menü müziği jam sırasında eklenecek: music.play(SONGS.menu)
+    // G68: ana menü müziği (takımın bestesi) döngüyle. Ayarlar ve Emeği Geçenler'den dönünce çalıyorsa sürer (yeniden
+    // başlamaz); sonuçtan ya da duraklatmadan menüye dönünce yeniden başlar. Menü Gate'ten (ilk tıklama) sonra gelir.
+    audio.playMusicFile(ANA_MENU_MUZIK, MUZIK.duzey);
   }
 
   /**

@@ -16,6 +16,11 @@ import tinyTown from './art/tiny-town/tilemap_packed.png';
 // Kenney ses paketleri (CC0 1.0): src/sounds/kenney/<paket>/*.ogg. Hepsi derlemede import edilir (eager glob,
 // dinamik import değil); ZIP sürümünde HTML'e gömülür. Anahtar: uzantısız dosya adı (src/audio/sesler.ts kullanır).
 const kenneySesleri = import.meta.glob<string>('./sounds/kenney/**/*.ogg', { eager: true, import: 'default' });
+// Ana menü müziği (G68): takımın bestesi (FL Studio; hazır döngü, örnek paketi ve yapay zekâ yok). Claude WAV'ı OGG'ye
+// dönüştürdü. MenuScene döngüyle çalar.
+import anaMenuMuzik from './sounds/takim/ana-menu.ogg';
+/** Ana menü müziğinin ses önbelleği anahtarı. */
+export const ANA_MENU_MUZIK = 'ana-menu-muzik';
 // import oyuncu from './art/oyuncu.png';
 // import patlama from './art/patlama.png';
 // import muzik from './sounds/muzik.mp3';
@@ -26,6 +31,7 @@ export function loadAssets(_load: Phaser.Loader.LoaderPlugin): void {
     const ad = yol.slice(yol.lastIndexOf('/') + 1).replace(/\.ogg$/, '');
     _load.audio(ad, url);
   }
+  _load.audio(ANA_MENU_MUZIK, anaMenuMuzik);
   // _load.image('oyuncu', oyuncu);
   // _load.spritesheet('patlama', patlama, { frameWidth: 64, frameHeight: 64 });
   // _load.audio('muzik', muzik);

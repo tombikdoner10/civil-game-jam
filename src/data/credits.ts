@@ -59,7 +59,7 @@ export const TAKIM_KARARLARI: string[] = [
   'Müfettiş: testte zarf hep kârlıydı; artık zarf yakalanabilir, rüşveti geri çevirmek övülür.',
   'Deprem dili: kehanet yok, "deprem her an olabilir". Kısa yol bir soru: "Büyük deprem bu gece olsaydı?"',
   'Kendi evin: paranın karşılığı ailenin hazırlığı (çanta, sabitleme, güçlendirme). Rüşvet aileni koruyabilir ama onayladığın bina çöker.',
-  "Seçimler: görsel yön (Papers, Please ilhamı, boyanmış Tiny Town) ve ses ortamı (masa sessiz, gazete ve sonuçta kısa müzik) takımın. Metinleri Claude yazdı; takım tonu belirledi, son seçimi Claude'a bıraktı.",
+  "Seçimler: görsel yön (Papers, Please ilhamı, boyanmış Tiny Town) ve ses ortamı (menüde takımın bestesi, masa sessiz, gazete ve sonuçta kısa müzik) takımın. Metinleri Claude yazdı; takım tonu belirledi, son seçimi Claude'a bıraktı.",
 ];
 
 /**

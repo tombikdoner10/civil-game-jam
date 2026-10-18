@@ -62,16 +62,41 @@ class AudioSystem {
   /** Yüklenmiş bir müzik dosyasını döngüde çal; başka bir müzik dosyası çalıyorsa onu durdurur. */
   playMusicFile(key: string, volume = 1): void {
     if (!this.manager) return;
-    if (this.fileMusic?.key === key && this.fileMusic.isPlaying) return;
+    if (this.fileMusic?.key === key && (this.fileMusic.isPlaying || this.fileMusic.isPaused)) return;
+    if (!this.manager.game.cache.audio.exists(key)) return;
     this.stopMusicFile();
     this.fileMusicVolume = volume;
     this.fileMusic = this.manager.add(key, { loop: true, volume: volume * settings.get().music });
     this.fileMusic.play();
+    if (settings.get().music <= 0) this.fileMusic.pause();
   }
 
   stopMusicFile(): void {
     this.fileMusic?.destroy();
     this.fileMusic = null;
+  }
+
+  /** Çalan müzik dosyasını `ms` içinde kısıp durdur (G68: menüden oyuna geçerken). Sahneden bağımsız (Web Audio rampası). */
+  fadeOutMusicFile(ms = 600): void {
+    const m = this.fileMusic;
+    if (!m) return;
+    this.fileMusic = null;
+    const ctx = this.ctx;
+    const gain = (m as Phaser.Sound.WebAudioSound & { volumeNode?: GainNode }).volumeNode;
+    if (!ctx || !gain || !m.isPlaying) {
+      m.destroy();
+      return;
+    }
+    const now = ctx.currentTime;
+    gain.gain.cancelScheduledValues(now);
+    gain.gain.setValueAtTime(gain.gain.value, now);
+    gain.gain.linearRampToValueAtTime(0, now + ms / 1000);
+    window.setTimeout(() => m.destroy(), ms + 50);
+  }
+
+  /** Müzik dosyası çalıyor mu (test ve hata ayıklama için). */
+  get musicFilePlaying(): string | null {
+    return this.fileMusic?.isPlaying ? this.fileMusic.key : null;
   }
 
   private apply(s: Readonly<Settings>): void {
@@ -81,6 +106,9 @@ class AudioSystem {
     this.musicBus?.gain.setTargetAtTime(s.music, now, 0.02);
     this.sfxBus?.gain.setTargetAtTime(s.sfx, now, 0.02);
     this.fileMusic?.setVolume(this.fileMusicVolume * s.music);
+    // Müzik kapalıyken (düzey 0) müzik dosyası beklesin; açılınca kaldığı yerden sürsün.
+    if (this.fileMusic && s.music <= 0 && this.fileMusic.isPlaying) this.fileMusic.pause();
+    else if (this.fileMusic && s.music > 0 && this.fileMusic.isPaused) this.fileMusic.resume();
   }
 }
 
