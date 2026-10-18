@@ -434,7 +434,6 @@ export const SOR_METIN: Record<SorulanKusur, Record<SorTuru, string[]>> = {
     itiraf: [
       'Kat sayısını ben düzelttim.',
       'Eski rakam işimize gelmiyordu.',
-      'Yılı biraz yeni gösterdik.',
       'Kalemle düzeltmek kolaydı.',
       'Kimse fark etmez sandım.',
     ],

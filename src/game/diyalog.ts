@@ -108,7 +108,7 @@ export const SAHA_METIN = {
   baslik: 'SAHA TESTİ',
   alt: 'Schmidt çekici · {adres}',
   ipucu: 'Temiz yüzeye vur, sıva ve çatlaktan kaçın',
-  ibre: 'GERİ TEPME (R)',
+  ibre: 'GERİ SIÇRAMA (R)',
   okumalar: 'Geçerli okumalar',
   gecersiz: 'Geçersiz: {n} (sayılmadı)',
   siva: 'GEÇERSİZ · SIVA',
