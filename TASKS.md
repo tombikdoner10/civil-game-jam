@@ -12,6 +12,8 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Sırada
 
+- [ ] G67 [teknik] (G66'dan sonra) Rapor kuralı metni "Gişeden getirilen rapor…"; 6. kural + dosyanın kendi karot kartı seçilince "Bu kural gişeden getirilen raporlar için" ipucu.
+
 
 Son test (xhigh, 78/100) sonrası (G34, G36, G35, G38, G37 bitti; sırada G31)
 
