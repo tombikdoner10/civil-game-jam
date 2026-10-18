@@ -38,12 +38,13 @@
     ]
   },
   "other": {
-    "amac": "Tema yorumu için konsept seçenekleri önerdi; oyun adı (Kâğıt Üstünde), kurgusal şehir (Dereboyu) ve gazete adı (Dereboyu Postası) için öneriler sundu, takım bu seçimi Claude'un lider oturumuna bıraktı. Oynanış için seçenekler önerdi (ör. kendi evin hazırlığı, müfettiş); seçimi takım yaptı. Kenney seslerinden ölçüme dayalı adaylar seçti, hazır kaynak beyanını ve ses listesini yazdı; konsept seçimi ve ses ortamı kararı takımın; tek tek seslerin seçimini takım Claude'a bıraktı. Geliştirme sürecini görevlere bölüp yönetti, oyunu otomatik oynayarak test etti ve jam ölçütlerine göre değerlendirip öneriler sundu.",
+    "amac": "Tema yorumu için konsept seçenekleri önerdi; oyun adı (Kâğıt Üstünde), kurgusal şehir (Dereboyu) ve gazete adı (Dereboyu Postası) için öneriler sundu, takım bu seçimi Claude'un lider oturumuna bıraktı. Oynanış için seçenekler önerdi (ör. kendi evin hazırlığı, müfettiş); seçimi takım yaptı. Kenney seslerinden ölçüme dayalı adaylar seçti, hazır kaynak beyanını ve ses listesini yazdı; konsept seçimi ve ses ortamı kararı takımın; tek tek seslerin seçimini takım Claude'a bıraktı. Geliştirme sürecini görevlere bölüp yönetti, oyunu otomatik oynayarak test etti ve jam ölçütlerine göre değerlendirip öneriler sundu. Teslim videosunu oyunun otomatik oynanışından kaydedip kesen betiği yazdı ve videoyu üretti; görüntülerin hepsi oyunun kendisi, ses yok.",
     "yer": [
       "Oyun fikri aşaması; oyun, şehir ve gazete adı",
       "Oynanış önerileri: kendi evin hazırlığı, müfettiş",
       "Ses seçimi ve hazır kaynak beyanı (Emeği Geçenler, README)",
-      "Geliştirme, test ve değerlendirme süreci (oyunda doğrudan yer almaz)"
+      "Geliştirme, test ve değerlendirme süreci (oyunda doğrudan yer almaz)",
+      "Teslim videosu (otomatik oynanış kaydı ve kesme)"
     ]
   }
 }
