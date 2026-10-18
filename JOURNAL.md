@@ -7,7 +7,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
 - Kontrol 2 (ara oyun testi): TAMAM (16 Ekim 23.53, geri bildirim işlendi)
 - Kontrol 3 (son teslim): BEKLİYOR
-- Son eleştirmen: 2026-10-18T06:48+03:00 (eleştirmen 12 sürüyor)
+- Son eleştirmen: 2026-10-18T06:49+03:00
 - Kullanım düzeyi: normal
 
 ## Günlük
@@ -296,3 +296,5 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 04:46 · G65 canlıda (3a863e8; JS paketinde hash ve 'MÜFETTİŞ', canlı smoke doğrulandı; son-saglam taşındı) · Açık teknik görev yok · Sırada: video (müfettiş sahnesiyle), sunum provası, 15.00 öncesi /dondur, sonra /teslim-kontrol
 - 05:47 · Döngü adımı: ZIP provası temiz ağaçtan: prompt-engineers-kagit-ustunde-7bc7612.zip (0,9 MB; OYNA.html 2,2 MB + BENIOKU.txt), adında 'degisiklikli' yok, OYNA.html'de sürüm 7bc7612 yıldızsız, açılıp smoke edildi: hata yok · Açık teknik görev yok · Sırada: takım videosu ve sunum, 15.00 öncesi /dondur, sonra /teslim-kontrol
 - 06:48 · Döngü adımı: durum 'Eleştirmen zamanı'; eleştirmen 12 (opus/high) başladı: G64 ve müfettiş sahnesi (G65) sonrası kısa son değerlendirme
+- 07:00 · Eleştirmen 12 (opus/high, 7 koşu hatasız): gerileme yok; müfettiş sahnesi kısa yolda anlaşılır (son kaşeden ~2 sn sonra, balon ~4 sn, deprem ~10. sn), Enter atlaması rapora/kısa yola sızmıyor; yakalanmayan günde sahne yok; G64 doğru; ~88/100 (tema 23, yaratıcılık 17) · İsteğe bağlı öneriler: sonuçta "250 TL" el konulanı içeriyor mu belirsiz; el konulan binanın tabelası "GÜVENLİ · ZARF" kalıyor (çelişki değil)
+- 07:00 · Karar (lider): iki öneri de uygulanmaz · Neden: birikmiş para doğruyu gösteriyor, tabela gerçeği söylüyor; kod dondurmaya 8 saat kala değişiklik riski gereksiz · Video: ?dev&gun=1&tohum=2, 3. dosyada AL + kaşe, ~8 sn tuşa basma, sonra rapordaki ceza satırı; sunumda "müfettiş her zaman gelmez"
