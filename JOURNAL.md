@@ -289,3 +289,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 03:59 · Karar (lider): G64 = kabul edilen zarf varken ret satırı "1 zarfı geri çevirdin" / "N zarfı geri çevirdin"; klasör örtmesine dokunulmaz (X ile kapanıyor, jüri yolunda yok) · G64 geliştiricide
 - 04:03 · G64 bitti (fa90484, opus/high): RET_SONUC kabul varsa '1 zarfı geri çevirdin' (tohum 21), yoksa 'Rüşveti geri çevirdin' (kısa yol); adalet 593808/0 · G64 testi başladı (opus/low, teslim/test-fa90484)
 - 04:07 · Test (G64, opus/low, 4 koşu hatasız): 5 günlük '1 zarfı geri çevirdin', kısa yol GERİ VER 'Rüşveti geri çevirdin', zarf AL'da ret satırı yok, gerileme yok GEÇTİ · Karar: G64 yayına
+- 04:08 · G64 canlıda (98b1a10; JS paketinde hash ve canlı smoke doğrulandı; son-saglam taşındı) · Açık teknik görev yok · Sırada (sabah): video, sunum provası, 15.00 öncesi /dondur, sonra /teslim-kontrol
