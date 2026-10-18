@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G73 [teknik] (sürüyor, Opus/high) Elle düzeltme her zaman kat sayısında (tuning elleKatOrani 0.7 → 1): sahte ruhsat hep kaçak katı saklar, İSTE ile gelen doğru ruhsat kaçak katı ortaya çıkarır; yıl düzeltmesi dosyada üretilmez.
 
 ## Sırada
 
