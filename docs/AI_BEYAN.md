@@ -17,7 +17,7 @@ Teslim formunda her kategori için aşağıdakini seç ve açıklamayı yapışt
 
 - **Araç:** Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)
 - **Amaç:** Ses efektlerini kodla üreten sentezleyiciyi (jam öncesi şablondaki müzik altyapısı dahil; oyunda kodla üretilmiş müzik çalmaz), deprem gürlemesini kodla üreten sesi ve ses ayarlarını yazdı. Hazır paketteki Kenney seslerinin hız, perde ve katman ayarlarını yaptı.
-- **Kullanıldığı yer:** Arayüz ve oyun ses efektleri (yedek sentez sesleri), jam öncesi şablondaki müzik altyapısı (oyunda çalmaz); Deprem gürlemesi; Kenney seslerinin çalınışı (hız, perde, katman); Ses düzeyi ayarları; Ana menü müziğinin (takımın bestesi) ilk 15 saniyesi kırpılıp OGG'ye dönüştürülmesi ve menüde döngüyle çalınması
+- **Kullanıldığı yer:** Arayüz ve oyun ses efektleri (yedek sentez sesleri), jam öncesi şablondaki müzik altyapısı (oyunda çalmaz); Deprem gürlemesi; Kenney seslerinin çalınışı (hız, perde, katman); Ses düzeyi ayarları; Ana menü müziğinin (takımın bestesi) ilk 15 saniyesi ve sondaki sessizlik kırpılıp başa kısa yumuşak giriş eklenerek OGG'ye dönüştürülmesi ve menüde döngüyle çalınması
 
 ### Kod: Kullanıldı
 
@@ -50,7 +50,7 @@ Kancanın ve elle eklenen kayıtların tam dökümü; özet bunların hepsini ka
 ### Ses: Kullanıldı
 
 - **Araç:** Claude (Anthropic), Claude Code üzerinden (Claude Opus 5.5)
-- **Amaç:** Ses efektlerini ve müziği kodla üreten sentezleyiciyi ve ses ayarlarını yazdı; Deprem gürlemesinin tabanını kodla üreten döngü (kahverengi gürültü, filtre, dalgalanma) ve Kenney ses dosyalarının hız/perde/katman ayarları; G32: Kenney Music Jingles havuzundaki jingle'ların süre ve perde ölçümü, seçim (Bash betiği, headless tarayıcı); Ana menü müziğini (takımın bestesi, FL Studio WAV) ffmpeg ile OGG Vorbis'e dönüştürdü (biçim değişikliği, kırpma yok); Takımın güncellediği ana menü müziğini (newmaintheme.mp3) ffmpeg ile ilk 15 saniyesini kırparak OGG Vorbis'e dönüştürdü; teslim videosunun sesini bu müzikle değiştirdi (ses düzeyi, başta ve sonda kısa geçiş)
+- **Amaç:** Ses efektlerini ve müziği kodla üreten sentezleyiciyi ve ses ayarlarını yazdı; Deprem gürlemesinin tabanını kodla üreten döngü (kahverengi gürültü, filtre, dalgalanma) ve Kenney ses dosyalarının hız/perde/katman ayarları; G32: Kenney Music Jingles havuzundaki jingle'ların süre ve perde ölçümü, seçim (Bash betiği, headless tarayıcı); Ana menü müziğini (takımın bestesi, FL Studio WAV) ffmpeg ile OGG Vorbis'e dönüştürdü (biçim değişikliği, kırpma yok); Takımın güncellediği ana menü müziğini (newmaintheme.mp3) ffmpeg ile ilk 15 saniyesini kırparak OGG Vorbis'e dönüştürdü; teslim videosunun sesini bu müzikle değiştirdi (ses düzeyi, başta ve sonda kısa geçiş); Menü müziği döngüsünü düzenledi: sondaki 1,2 sn sessizliği kırptı, başa 0,5 sn yumuşak giriş (fade-in) ekledi (takım onayıyla)
 - **Kullanıldığı yer:** Ses efektleri ve müzik altyapısı (jam öncesi şablon), Küçük deprem sesi (src/audio/sfx.ts, src/audio/sesler.ts), src/sounds/kenney/music-jingles/ (PIZZI01, PIZZI02, PIZZI03), docs/SESLER.md, src/sounds/takim/ana-menu.ogg, src/sounds/takim/ana-menu.ogg, teslim/video/kagit-ustunde-trailer.mp4, src/audio/ (2 dosya)
 
 ### Kod: Kullanıldı

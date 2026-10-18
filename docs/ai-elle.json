@@ -519,5 +519,12 @@
     "yer": "src/sounds/takim/ana-menu.ogg, teslim/video/kagit-ustunde-trailer.mp4",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-18T11:57:57.931Z"
+  },
+  {
+    "kategori": "audio",
+    "amac": "Menü müziği döngüsünü düzenledi: sondaki 1,2 sn sessizliği kırptı, başa 0,5 sn yumuşak giriş (fade-in) ekledi (takım onayıyla)",
+    "yer": "src/sounds/takim/ana-menu.ogg",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-18T12:20:48.510Z"
   }
 ]
