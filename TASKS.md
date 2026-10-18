@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G70 [teknik] (sürüyor, Opus/high) Yazı tiplerinin kullanımına "tanıtım videosundaki ara kartlar"; trailer kurgusu elle beyan kaydı; sahte rapor SOR bahanesi ipucuyla uyumlu (yalnız mevcut cümleler).
+- [ ] G70 [teknik] (bitti 8dc28f2, test sürüyor, Opus/low) Yazı tiplerinin kullanımına "tanıtım videosundaki ara kartlar"; trailer kurgusu elle beyan kaydı; sahte rapor SOR bahanesi ipucuyla uyumlu (yalnız mevcut cümleler).
 
 ## Sırada
 
