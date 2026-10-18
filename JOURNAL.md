@@ -344,3 +344,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 14:10 · Yayın: f550d38 (G74) canlıda, smoke hatasız, menüde 'sürüm f550d38'; son-saglam taşındı · Bekleyen: ORTA-1 (fişte 'Karot raporu yok' + 'Sahte rapor') için takım kararı, /dondur
 - 14:12 · Döngü adımı: canlı f550d38 = son-saglam, ağaç temiz, açık teknik iş yok; dondurmaya 48 dk · Bekleyen: ORTA-1 kararı (düzeltme ~30 dk sürer, en geç ~14.20'de başlamalı), /dondur
 - 14:12 · Karar (takım): G75 = sahte rapor masadayken fişte 'Geçerli karot raporu yok' / 'Geçerli zemin etüdü yok' · Neden: masada karot raporu dururken 'Karot raporu yok' çelişkili okunuyor · Sıradaki: G75 geliştirici (opus/high), 14.35'e kadar
+- 14:16 · Takım sorusu: BOŞALT yerine TAHLİYE? · Lider: 15 kod dosyasında 63 yer + README/BENİOKU + trailer, çekimli metinler yeniden yazılmalı; dondurmaya 45 dk kala riskli · Karar (takım): BOŞALT kalsın, sunumda gerekirse 'tahliye' diye anlatılır
