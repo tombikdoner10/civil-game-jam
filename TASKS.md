@@ -8,13 +8,12 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G66 [teknik] (sürüyor, Opus/high) Tanıtım videosu (≤60 sn, MP4): otomatik oynanış kaydı ve kesme (ffmpeg, takım izniyle indirildi); AI beyanına "video" eklenir. T9'un video kısmı takım kararıyla Claude'a geçti.
+- [ ] G67 [teknik] (sürüyor, Opus/high) Rapor kuralı GENEL sekmesine, metin "Gişeden getirilen rapor (karot ya da zemin etüdü) mühürsüz…"; 6. kural + dosyanın kendi karot ya da zemin etüdü kartı seçilince "Bu kural gişeden getirilen raporlar için" ipucu. Ayrıca oyun içinde (UI) sahte karot ve sahte zemin raporu inceleme modunda bulunabiliyor mu, İSTE inceleme modundayken basılırsa da, SOR çalışıyor mu doğrulanır; tutmazsa düzeltilir.
+- [ ] G68 [teknik] (sürüyor, Opus/high, G67 ile aynı çağrı) Ana menü müziği: takımın bestesi Maintheme.wav (FL Studio, hazır döngü/örnek ve AI yok, "takım" adıyla) menüde döngüyle çalar; OGG'ye çevrilir; beyan ve Emeği Geçenler güncellenir.
 
 ## Sırada
 
-- [ ] G68 [teknik] (G67 ile birlikte) Ana menü müziği: takımın bestesi Maintheme.wav (FL Studio, hazır döngü/örnek ve AI yok, "takım" adıyla) menüde döngüyle çalar; OGG'ye çevrilir; beyan ve Emeği Geçenler güncellenir.
 
-- [ ] G67 [teknik] (G66'dan sonra) Rapor kuralı GENEL sekmesine, metin "Gişeden getirilen rapor (karot ya da zemin etüdü) mühürsüz…"; 6. kural + dosyanın kendi karot ya da zemin etüdü kartı seçilince "Bu kural gişeden getirilen raporlar için" ipucu. Ayrıca oyun içinde (UI) sahte karot ve sahte zemin raporu inceleme modunda bulunabiliyor mu, İSTE inceleme modundayken basılırsa da, SOR çalışıyor mu doğrulanır; tutmazsa düzeltilir.
 
 
 Son test (xhigh, 78/100) sonrası (G34, G36, G35, G38, G37 bitti; sırada G31)
@@ -79,6 +78,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G66 Tanıtım videosu: teslim/video/kagit-ustunde-video.mp4 (57,8 sn, 1920×1080, H.264, sessiz, 8,9 MB); beyan 9a4d0d4 (Opus/high; lider kareleri kontrol etti)
 - [x] G65 Müfettiş gişede: zarf yakalanan günün sonunda gelir, MÜFETTİŞ balonu, zarfa el koyar, geçilebilir (4a5044c, Opus/high; test GEÇTİ, 10 koşu)
 - [x] G64 Sonuçta zarf da kabul edildiyse ret satırı "N zarfı geri çevirdin" (fa90484, Opus/high; test GEÇTİ)
 - [x] G63b Hazır kaynak satırları ekran ve README'de birebir; Impact Sounds kilitli kaşe ve ev kalemi (f927c21, Opus/high; test GEÇTİ)
