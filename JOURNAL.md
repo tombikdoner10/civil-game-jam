@@ -7,7 +7,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
 - Kontrol 2 (ara oyun testi): TAMAM (16 Ekim 23.53, geri bildirim işlendi)
 - Kontrol 3 (son teslim): BEKLİYOR
-- Son eleştirmen: 2026-10-18T00:38+03:00
+- Son eleştirmen: 2026-10-18T03:47+03:00 (eleştirmen 11 sürüyor)
 - Kullanım düzeyi: normal
 
 ## Günlük
@@ -284,3 +284,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 02:42 · G63b bitti (f927c21, opus/high): Impact Sounds'a kilitli kaşe ve alınamayan ev kalemi (kaseKilit doğrulandı), Tiny Town yolu, Fontsource notu, Phaser README; ekran–README hazır kaynak karşılaştırması 10 satır 0 fark · Not: geliştirici bir denemede npx tsx çalıştırdı (npm önbelleğine indi, repoya girmedi) · G63+G63b testi başladı (opus/low, teslim/test-f927c21)
 - 02:45 · Test (G63+G63b, opus/low, 4 koşu hatasız): Emeği Geçenler HD/720p baştan sona temiz, bütün yeni metinler ekranda, beş kategorinin araç satırları doğru (Metin'de Sonnet, Diğer'de Fable), ekran = README = AI_BEYAN üst bölümü; gerileme yok; teslim formu için kritik sorun kalmadı GEÇTİ · Karar: yayına
 - 02:46 · G63+G63b canlıda (60ca8b2; JS paketinde hash ve 'Oynanış için seçenekler', canlı smoke doğrulandı; son-saglam taşındı) · Emeği Geçenler ikinci denetim kapandı; teslim formu metni docs/AI_BEYAN.md üst bölümünde hazır · Açık teknik görev yok
+- 03:47 · Döngü adımı: durum 'Eleştirmen zamanı'; eleştirmen 11 (opus/high) başladı: dondurma sonrası gerileme taraması (G59–G63) · Kullanım %11 (5 sa), %46 (hafta)
