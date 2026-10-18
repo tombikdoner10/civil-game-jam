@@ -406,9 +406,9 @@ for (let tohum = 1; tohum <= 40; tohum++) {
 }
 // G45: gün 1'de kusurlu dosya olan her oyunda kendiliğinden zarf teklif edildi; gün 2-5'in SOR zarfları G45 öncesiyle
 // aynı (tohum 1-40, bu döngüde G45 öncesi ölçüm: gün 1-5 = 15, 28, 56, 54, 110; gün 1'de yalnızca kendiliğinden zarfın
-// dosyasındaki SOR zarfları düşer). G47 gün 2-5 dosyalarını değiştirdi (tanıtım garantisi): yeni ölçüm 32, 59, 56, 117.
+// dosyasındaki SOR zarfları düşer). G47 gün 2-5 dosyalarını değiştirdi (tanıtım garantisi): yeni ölçüm 32, 59, 56, 117. G76 (zarf gün 3-5 düşük): 32, 47, 41, 85.
 bak(g45.teklif === 40 - g45.kusursuzGun1, `G45 kendiliğinden zarf ${g45.teklif} ≠ ${40 - g45.kusursuzGun1}`);
-bak(JSON.stringify(g45.sorZarfGun.slice(1)) === JSON.stringify([32, 59, 56, 117]), `G45 gün 2-5 SOR zarfları değişti: ${g45.sorZarfGun}`);
+bak(JSON.stringify(g45.sorZarfGun.slice(1)) === JSON.stringify([32, 47, 41, 85]), `G45 gün 2-5 SOR zarfları değişti: ${g45.sorZarfGun}`);
 console.log('G45 kendiliğinden zarf (tohum 1-40):', JSON.stringify(g45));
 // Deprem sonucu yalnızca vurulan damgaya bağlı (zarf alanı yalnızca işaret); zarflı kararda damga istenen damga,
 // sokakta zarf izi kabul edilen zarflarla aynı (G22).

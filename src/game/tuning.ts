@@ -143,8 +143,8 @@ export const TUNING = {
   kisi: {
     /** Kişilik ağırlıkları; pazarlıkçı payı güne göre (gün 5'te zarf daha sık). */
     kisilik: { durust: 0.4, kacamak: 0.4, pazarlikci: [0.25, 0.25, 0.3, 0.3, 0.6] },
-    /** SOR'da gün başına taban zarf olasılığı; kişilik çarpanı ve BOŞALT çarpanıyla (en çok 0.9). */
-    zarf: [0.3, 0.3, 0.35, 0.35, 0.6],
+    /** SOR'da gün başına taban zarf olasılığı; kişilik çarpanı ve BOŞALT çarpanıyla (en çok 0.9). G76: takım testi, çok zarf; gün 3-5 düşürüldü. */
+    zarf: [0.3, 0.3, 0.25, 0.25, 0.3],
     bosaltZarf: 1.3,
     /** Kişiliğe göre: zarf çarpanı ve (zarf değilse) itiraf olasılığı; kalanı bahane. */
     sor: {
