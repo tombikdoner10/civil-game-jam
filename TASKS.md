@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G74 [teknik] (sürüyor, Opus/high) Elle düzeltme itirafı 'Yılı biraz yeni gösterdik.' silinir (G73'ten beri yanlış); saha ibre etiketi 'GERİ TEPME (R)' → 'GERİ SIÇRAMA (R)' (takım kararı, E14).
 
 ## Sırada
 
