@@ -923,7 +923,15 @@ export class GunOturumu {
     // Sahte rapor getirildiyse dosyanın kusuru sayılır (doğru damga zaten İADE ya da BOŞALT).
     if (this.sahteRaporlar.length > 0) gorunen.push({ id: 'sahteRapor', ...KUSUR_BILGI.sahteRapor });
     const kusurlar = gorunen.map((k) => k.id);
-    const etiketler = gorunen.map((k) => k.etiket);
+    // G75: o belge için sahte rapor masadaysa eksik belge etiketi "Geçerli … yok" (masada bir rapor duruyor).
+    const sahteAlan = new Set(this.sahteRaporlar.map((r) => r.alan as string));
+    const etiketler = gorunen.map((k) =>
+      k.id === 'karotYok' && sahteAlan.has('karot')
+        ? 'Geçerli karot raporu yok'
+        : k.id === 'zeminEtuduYok' && sahteAlan.has('zemin')
+          ? 'Geçerli zemin etüdü yok'
+          : k.etiket,
+    );
     const sonuc: DamgaSonucu = { dogru, dogruDamga: dogru ? damga : tercih, kabul, kusurlar, etiketler };
     const karar: Karar = {
       dosyaId: b.id,

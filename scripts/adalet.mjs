@@ -223,6 +223,7 @@ for (let tohum = 1; tohum <= 40; tohum++) {
 // kurallar. Kabul edilen zarf parayı artırır.
 const K = await server.ssrLoadModule('/src/game/kisi.ts');
 const TUM_DAMGA = ['guvenli', 'guclendir', 'bosalt', 'iade'];
+const g75 = { karot: 0, zemin: 0, eski: 0 };
 const g17 = { gercek: 0, sahte: 0, yok: 0, bahane: 0, itiraf: 0, zarf: 0, sahteBulundu: 0, zarfKabul: 0, zarfKabulYanlis: 0, zarfRet: 0, istenenGuclendir: 0 };
 // G45: kendiliğinden zarf sayısı ve SOR zarflarının güne göre sayısı (gün 2-5 G45 öncesiyle aynı olmalı).
 const g45 = { teklif: 0, kusursuzGun1: 0, sorZarfGun: [0, 0, 0, 0, 0] };
@@ -380,6 +381,21 @@ for (let tohum = 1; tohum <= 40; tohum++) {
       const kr = o.kararlar[o.kararlar.length - 1];
       if (zarf) bak(kr.zarf && kr.zarf.miktar === zarf.miktar && kr.zarf.kabul === false && kr.zarf.istenen === zarf.istenen, `${e}: zarf kaydı`);
       else bak(!kr.zarf, `${e}: zarfsız dosyada zarf kaydı`);
+    }
+    // G75: sahte rapor masadaysa eksik belge etiketi "Geçerli … yok"; sahte rapor yoksa eski etiket.
+    for (const kr of o.kararlar) {
+      for (const [id, alan, eski, yeni] of [
+        ['karotYok', 'karot', 'Karot raporu yok', 'Geçerli karot raporu yok'],
+        ['zeminEtuduYok', 'zemin', 'Zemin etüdü yok', 'Geçerli zemin etüdü yok'],
+      ]) {
+        const i = kr.kusurlar.indexOf(id);
+        if (i < 0) continue;
+        const sahte = kr.iste?.[alan] === 'sahte';
+        if (sahte) g75[alan]++;
+        else g75.eski++;
+        bak(kr.etiketler?.[i] === (sahte ? yeni : eski), `t${tohum} g${g} ${kr.dosyaId}: G75 etiket ${kr.etiketler?.[i]}`);
+        bak(!sahte || !kr.etiketler?.includes(eski), `t${tohum} g${g} ${kr.dosyaId}: G75 sahte raporda eski etiket`);
+      }
     }
     // Gün hesabı: zarf toplama eklenir (G57: müfettişin el koyduğu zarf eklenmez, müfettiş cezası düşer).
     const h = S.gunHesabi(o.kararlar, o.toplam);
@@ -565,6 +581,8 @@ for (let tohum = 1; tohum <= 200; tohum++) {
 }
 console.log('G37 kısa yol iki parça ve zarf+onay tek ifade:', JSON.stringify(g37));
 console.log('G17 + G22 (tohum 1-40, gün 1-5):', JSON.stringify(g17));
+bak(g75.karot > 0 && g75.eski > 0, 'G75 denetimi sahte karotlu ya da eski etiketli dosya bulamadı: ' + JSON.stringify(g75));
+console.log('G75 eksik belge etiketi (sahte karot / sahte zemin / eski):', JSON.stringify(g75));
 
 // ---- G17b: belge hileleri (elle düzeltme, başka binanın belgesi, imza yok) ----
 // Geçersiz belge eksik belge gibi: İADE doğru; kusur incelemede bulunur, SOR ve İSTE çalışır; düzgün belge gelince
