@@ -7,7 +7,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
 - Kontrol 2 (ara oyun testi): TAMAM (16 Ekim 23.53, geri bildirim işlendi)
 - Kontrol 3 (son teslim): BEKLİYOR
-- Son eleştirmen: 2026-10-18T03:48+03:00
+- Son eleştirmen: 2026-10-18T06:48+03:00 (eleştirmen 12 sürüyor)
 - Kullanım düzeyi: normal
 
 ## Günlük
@@ -295,3 +295,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 04:45 · Test (G65, opus/low, 10 koşu hatasız): kısa yol tohum 2 HD/720p sıra doğru (son dosya → müfettiş → küçük deprem → rapor), balon okunur, portre düzgün, rapor/para aynı; Enter ve tık atlıyor, kısa yol düğmesi istemeden tetiklenmiyor; tohum 1 ve GERİ VER'de sahne yok; Esc çalışıyor; 2. gün yalnız dev yoluyla görüldü; gerileme yok GEÇTİ · Not: zarfın gişeye kayışı ekran görüntüsünde yakalanmadı (görüntü gecikmesi; geliştiricinin m4 görüntüsünde zarf masada), atlama ipucu yok (kabul) · Karar: G65 yayına
 - 04:46 · G65 canlıda (3a863e8; JS paketinde hash ve 'MÜFETTİŞ', canlı smoke doğrulandı; son-saglam taşındı) · Açık teknik görev yok · Sırada: video (müfettiş sahnesiyle), sunum provası, 15.00 öncesi /dondur, sonra /teslim-kontrol
 - 05:47 · Döngü adımı: ZIP provası temiz ağaçtan: prompt-engineers-kagit-ustunde-7bc7612.zip (0,9 MB; OYNA.html 2,2 MB + BENIOKU.txt), adında 'degisiklikli' yok, OYNA.html'de sürüm 7bc7612 yıldızsız, açılıp smoke edildi: hata yok · Açık teknik görev yok · Sırada: takım videosu ve sunum, 15.00 öncesi /dondur, sonra /teslim-kontrol
+- 06:48 · Döngü adımı: durum 'Eleştirmen zamanı'; eleştirmen 12 (opus/high) başladı: G64 ve müfettiş sahnesi (G65) sonrası kısa son değerlendirme
