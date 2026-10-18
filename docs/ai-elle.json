@@ -505,5 +505,12 @@
     "yer": "src/scenes/MenuScene.ts, README.md, src/data/credits.ts, docs/SESLER.md, docs/ai-ozet.json",
     "model": "Claude Opus 5.5",
     "zaman": "2026-10-18T07:35:06.110Z"
+  },
+  {
+    "kategori": "other",
+    "amac": "Teslim videosu (trailer): oyunun otomatik oynanış kayıtlarından kurgu, oyunun cümleleri ve yazı tipleriyle ara kartlar, geçişler ve yakınlaştırmalar; müzik takımın bestesi (FL Studio), döngü ve ses düzeyi ayarı",
+    "yer": "teslim/video/kagit-ustunde-trailer.mp4",
+    "model": "Claude Opus 5.5",
+    "zaman": "2026-10-18T07:51:59.226Z"
   }
 ]

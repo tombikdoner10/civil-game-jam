@@ -85,8 +85,8 @@ Oyundaki Emeği Geçenler ekranıyla aynı maddeler (`src/data/credits.ts`, `TAK
 | Ses | Kullanıldı | Music Jingles, Kenney (www.kenney.nl) | https://kenney.nl/assets/music-jingles | Creative Commons CC0 1.0 | Pizzicato jingle'ları: gün sonu raporu (iyi gün PIZZI10, kötü gün PIZZI07), gazete açılışı (PIZZI03), sonuç ekranı (iyi PIZZI02, kötü PIZZI01); değiştirilmedi (`src/sounds/kenney/music-jingles/`) |
 | Kod | Kullanıldı | Phaser 3.90, Richard Davey, Phaser Studio Inc. | https://phaser.io | MIT | Oyun motoru (kod kütüphanesi), değiştirilmedi |
 | Metin | Kullanılmadı | | | | |
-| Diğer | Kullanıldı | Pixelify Sans (yazı tipi), The Pixelify Sans Project Authors (Fontsource paketi) | https://fonts.google.com/specimen/Pixelify+Sans | SIL Open Font License 1.1 | Arayüz ve belge başlıkları yazı tipi, değiştirilmedi |
-| Diğer | Kullanıldı | VT323 (yazı tipi), The VT323 Project Authors (Fontsource paketi) | https://fonts.google.com/specimen/VT323 | SIL Open Font License 1.1 | Belge değerleri, saat ve paneller yazı tipi, değiştirilmedi |
+| Diğer | Kullanıldı | Pixelify Sans (yazı tipi), The Pixelify Sans Project Authors (Fontsource paketi) | https://fonts.google.com/specimen/Pixelify+Sans | SIL Open Font License 1.1 | Arayüz ve belge başlıkları yazı tipi, değiştirilmedi; tanıtım videosundaki ara kartlarda da kullanıldı |
+| Diğer | Kullanıldı | VT323 (yazı tipi), The VT323 Project Authors (Fontsource paketi) | https://fonts.google.com/specimen/VT323 | SIL Open Font License 1.1 | Belge değerleri, saat ve paneller yazı tipi, değiştirilmedi; tanıtım videosundaki ara kartlarda da kullanıldı |
 
 - Repoda bulunmayan dosyalar: Phaser ve yazı tipleri `npm install` ile kurulur. Lisansları yeniden dağıtıma izin verir; ZIP sürümünün içine gömülüdürler.
 - Yalnızca derlemede kullanılan, oyuna dahil olmayan araçlar: Vite (MIT), TypeScript (Apache-2.0), fflate (MIT, ZIP oluşturma).

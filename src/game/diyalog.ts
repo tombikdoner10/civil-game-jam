@@ -1,5 +1,6 @@
 // @beyan metin
 import type { Bina, KusurId } from './building';
+import type { SahteIpucu } from './kisi';
 
 /**
  * Masadaki kısa yazılar (G17) ve gişe diyaloğunun seçimi (G33). Metinler lider onaylı (G31, docs/TAKIM_CEVAPLARI.md).
@@ -58,6 +59,31 @@ export type SorulanKusur = Exclude<KusurId, 'karotYok' | 'zeminEtuduYok' | 'saha
 
 /** İSTE cevabının türü: gerçek raporu getirir, sahte rapor getirir ya da getiremez. */
 export type IsteTuru = 'gercek' | 'sahte' | 'yok';
+
+/**
+ * Sahte rapor SOR bahanesi kartın ipucuyla uyuşsun (G70): SOR_METIN.sahteRapor.bahane'nin sırası (0 Laboratuvar
+ * öyle verdi, 1 Mühür unutulmuş, 2 Tarih yanlış, 3 Laboratuvar kapandı, 4 Fotokopi) değişirse buradaki sıralar da
+ * değişmeli. Mühür ipucunda tarih, tarih ipucunda mühür cümlesi çıkmaz; elle düzeltme ve öbürlerinde ikisi de çıkmaz.
+ */
+const SAHTE_BAHANE_SIRA: Record<'muhur' | 'tarih' | 'diger', readonly number[]> = {
+  muhur: [0, 1, 4],
+  tarih: [0, 2, 4],
+  diger: [0, 4, 3],
+};
+
+/**
+ * Masadaki sahte raporların ipuçlarına göre bahane listesi ve deste anahtarı (her ipucu grubunun kendi tekrarsız
+ * destesi; G33). Birden çok sahte rapor farklı ipucu taşıyorsa yalnızca hepsine uyan cümleler kalır.
+ */
+export function sahteRaporBahane(
+  ipuclari: readonly (SahteIpucu | undefined)[],
+  liste: readonly string[],
+): { anahtar: string; liste: string[] } {
+  const gruplar = [...new Set(ipuclari.map((i) => (i === 'muhur' || i === 'tarih' ? i : 'diger')))].sort();
+  if (gruplar.length === 0) gruplar.push('diger');
+  const sira = SAHTE_BAHANE_SIRA[gruplar[0]].filter((n) => gruplar.every((g) => SAHTE_BAHANE_SIRA[g].includes(n)));
+  return { anahtar: `sor:sahteRapor:bahane:${gruplar.join('+')}`, liste: sira.map((n) => liste[n]).filter((s) => !!s) };
+}
 
 /**
  * Zarfın bedeli (G22): kişinin istediği damga zarfın üstünde küçük not. {damga}: istenen damganın adı (GameScene

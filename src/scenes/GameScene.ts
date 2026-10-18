@@ -29,6 +29,7 @@ import {
   SAHA_METIN,
   SAHA_SURE,
   sabitOran,
+  sahteRaporBahane,
   ZARF_DUGME,
   ZARF_ETIKET,
   ZARF_FIS,
@@ -924,7 +925,12 @@ export class GameScene extends Phaser.Scene {
     const D = this.deste;
     const m = kisi.mizac;
     const d = degiskenler(this.oturum.mevcut, c.zarf);
-    let govde = D.cek(`sor:${c.kusur}:${c.tur}`, SOR_METIN[c.kusur][c.tur], d);
+    // G70: sahte rapor bahanesi masadaki kartın ipucuyla uyuşur (mühür / tarih / öbürleri).
+    const sb =
+      c.kusur === 'sahteRapor' && c.tur === 'bahane'
+        ? sahteRaporBahane(this.oturum.sahteRaporlar.map((r) => r.ipucu), SOR_METIN.sahteRapor.bahane)
+        : null;
+    let govde = sb ? D.cek(sb.anahtar, sb.liste, d) : D.cek(`sor:${c.kusur}:${c.tur}`, SOR_METIN[c.kusur][c.tur], d);
     // Zarf (G22): kişi zarfı uzatırken hangi damgayı istediğini söyler; karar verilene kadar kaşeler kilitli.
     if (c.zarf !== undefined && c.istenen) govde += `\n${D.cek(`istek:${c.istenen}`, ZARF_ISTEK[c.istenen], d)}`;
     const binaId = this.oturum.mevcut?.id ?? '';

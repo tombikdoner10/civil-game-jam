@@ -139,14 +139,14 @@ export const ASSETS: Record<Category, AssetCredit[]> = {
       author: 'The Pixelify Sans Project Authors (Fontsource paketi)',
       url: 'https://fonts.google.com/specimen/Pixelify+Sans',
       license: 'SIL Open Font License 1.1',
-      usage: 'Arayüz ve belge başlıkları yazı tipi, değiştirilmedi',
+      usage: 'Arayüz ve belge başlıkları yazı tipi, değiştirilmedi; tanıtım videosundaki ara kartlarda da kullanıldı',
     },
     {
       name: 'VT323 (yazı tipi)',
       author: 'The VT323 Project Authors (Fontsource paketi)',
       url: 'https://fonts.google.com/specimen/VT323',
       license: 'SIL Open Font License 1.1',
-      usage: 'Belge değerleri, saat ve paneller yazı tipi, değiştirilmedi',
+      usage: 'Belge değerleri, saat ve paneller yazı tipi, değiştirilmedi; tanıtım videosundaki ara kartlarda da kullanıldı',
     },
   ],
 };

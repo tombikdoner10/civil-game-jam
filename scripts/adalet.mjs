@@ -13,6 +13,9 @@ const BLD = await server.ssrLoadModule('/src/game/building.ts');
 const T = (await server.ssrLoadModule('/src/game/tuning.ts')).TUNING;
 const D = await server.ssrLoadModule('/src/game/days.ts');
 const G = await server.ssrLoadModule('/src/game/gazete.ts');
+const DY = await server.ssrLoadModule('/src/game/diyalog.ts');
+const DM = await server.ssrLoadModule('/src/game/diyalog-metin.ts');
+const g70 = {};
 
 let hata = 0;
 let sayi = 0;
@@ -259,6 +262,13 @@ for (let tohum = 1; tohum <= 40; tohum++) {
           const r = o.incele([{ belge: alan, alan: K.ipucuAlani(c.rapor) }, { belge: 'kural', alan: R.RAPOR_KURALI }]);
           bak(r?.kusur.id === 'sahteRapor', `${e}: sahte rapor incelemede bulunmadı`);
           if (r?.kusur.id === 'sahteRapor') g17.sahteBulundu++;
+          // G70: SOR bahanesi ipucuyla uyuşur (tarih ipucunda "Mühür", mühür ipucunda "Tarih" geçen cümle yok).
+          const sb = DY.sahteRaporBahane(o.sahteRaporlar.map((x) => x.ipucu), DM.SOR_METIN.sahteRapor.bahane);
+          const ip = new Set(o.sahteRaporlar.map((x) => x.ipucu));
+          bak(sb.liste.length >= 2, `${e}: sahte rapor bahane listesi kısa`);
+          if (!ip.has('muhur')) bak(!sb.liste.some((s) => s.includes('Mühür')), `${e}: ${[...ip]} ipucunda mühür bahanesi`);
+          if (!ip.has('tarih')) bak(!sb.liste.some((s) => s.includes('Tarih')), `${e}: ${[...ip]} ipucunda tarih bahanesi`);
+          g70[[...ip].sort().join('+')] = (g70[[...ip].sort().join('+')] ?? 0) + 1;
         } else if (c.tur === 'gercek') {
           bak(c.rapor && c.rapor.deger === (alan === 'karot' ? b.gercek.betonMpa : b.gercek.zemin), `${e}: gerçek rapor değeri`);
           bak(c.rapor && c.rapor.tarihFark < 0 && !c.rapor.ipucu, `${e}: gerçek raporda ipucu`);
@@ -1570,6 +1580,7 @@ const HIK = await server.ssrLoadModule('/src/game/stories.ts');
   console.log('G67 sahte zemin raporu (geçmişsiz başlangıç, her eksikte İSTE):', zeminTohum.join(' · '));
 }
 
+console.log('G70 sahte rapor bahanesi denetlenen ipucu grupları:', JSON.stringify(g70));
 console.log(`${sayi} denetim, ${hata} hata`);
 console.log(`Kural: fay yakını = ${T.fayKurali === 'bosalt' ? 'her zaman BOŞALT' : 'zemine bağlı (dere gibi)'}`);
 console.log('Eksik belge ve dere/fay görülme sayıları (tohum 1-40, gün 1-5):', JSON.stringify(sayac));
