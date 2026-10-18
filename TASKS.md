@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G75 [teknik] (sürüyor, Opus/high) Sahte rapor masadayken fişte 'Karot raporu yok' yerine 'Geçerli karot raporu yok' (zemin: 'Geçerli zemin etüdü yok'); Fable testi ORTA-1, takım kararı.
+- [ ] G75 [teknik] (bitti 110a6a8, test sürüyor, Opus/low) Sahte rapor masadayken fişte 'Karot raporu yok' yerine 'Geçerli karot raporu yok' (zemin: 'Geçerli zemin etüdü yok'); Fable testi ORTA-1, takım kararı.
 
 ## Sırada
 
