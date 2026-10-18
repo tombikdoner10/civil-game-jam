@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G65 [teknik] (sürüyor, Opus/high) Müfettiş gişede: zarf yakalanan günlerin sonunda müfettiş gişeye gelir, tek cümle söyler, zarfı alır ve gider (5–6 sn, geçilebilir); yakalanmayan günde yok. Takım kararı, özellik dondurmasına istisna.
 
 ## Sırada
 
