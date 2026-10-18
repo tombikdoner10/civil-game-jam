@@ -9,8 +9,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 ## Şimdi
 
 - [ ] G70 [teknik] (sürüyor, Opus/high) Yazı tiplerinin kullanımına "tanıtım videosundaki ara kartlar"; trailer kurgusu elle beyan kaydı; sahte rapor SOR bahanesi ipucuyla uyumlu (yalnız mevcut cümleler).
-- [ ] G67 [teknik] (bitti a7c7bbe, test sürüyor, Opus/low) Rapor kuralı GENEL sekmesine, metin "Gişeden getirilen rapor (karot ya da zemin etüdü) mühürsüz…"; 6. kural + dosyanın kendi karot ya da zemin etüdü kartı seçilince "Bu kural gişeden getirilen raporlar için" ipucu. Ayrıca oyun içinde (UI) sahte karot ve sahte zemin raporu inceleme modunda bulunabiliyor mu, İSTE inceleme modundayken basılırsa da, SOR çalışıyor mu doğrulanır; tutmazsa düzeltilir.
-- [ ] G68 [teknik] (bitti 4292360, test sürüyor, Opus/low) Ana menü müziği: takımın bestesi Maintheme.wav (FL Studio, hazır döngü/örnek ve AI yok, "takım" adıyla) menüde döngüyle çalar; OGG'ye çevrilir; beyan ve Emeği Geçenler güncellenir.
 
 ## Sırada
 
@@ -79,6 +77,8 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G68 Ana menü müziği: takımın bestesi (ana-menu.ogg, 249 KB) menüde döngüyle çalar, Ayarlar/Emeği Geçenler'de sürer, Oyna'da kısılıp durur (4292360, Opus/high; test GEÇTİ: lider JS kontrolüyle çalma, düzey 0,49, kısılma 0,179 ve durma doğrulandı)
+- [x] G67 Rapor kuralı GENEL'de, metin 'Gişeden getirilen rapor (karot ya da zemin etüdü)…', kendi kart + kural → ipucu; UI'da sahte karot ve zemin raporu bulunuyor, SOR çalışıyor (a7c7bbe, Opus/high; test GEÇTİ, Opus/low)
 - [x] G69 Trailer: teslim/video/kagit-ustunde-trailer.mp4 (57,85 sn, 1920×1080, AAC, takımın müziği, 27,1 MB); kartlar oyunun cümleleri ve fontlarıyla (Opus/high; lider kareleri kontrol etti, takıma gönderildi)
 - [x] G66 Tanıtım videosu: teslim/video/kagit-ustunde-video.mp4 (57,8 sn, 1920×1080, H.264, sessiz, 8,9 MB); beyan 9a4d0d4 (Opus/high; lider kareleri kontrol etti)
 - [x] G65 Müfettiş gişede: zarf yakalanan günün sonunda gelir, MÜFETTİŞ balonu, zarfa el koyar, geçilebilir (4a5044c, Opus/high; test GEÇTİ, 10 koşu)
