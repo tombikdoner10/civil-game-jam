@@ -12,7 +12,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Sırada
 
-- [ ] G72 [teknik] (G71'den sonra) Geçersiz belge kuralının gün 5 metni (rules.ts ek.metin, takımın seçtiği metin): "Ruhsat elle düzeltilmiş ya da imzasızsa, ya da bir belgenin ada/parseli ruhsatla uyuşmuyorsa geçersizdir: geçerlisini İSTE, gelmezse → İADE". Mantık değişmez; klasörde taşma yok.
+- [ ] G72 [teknik] (G71'den sonra) Geçersiz belge kuralının gün 5 metni (rules.ts ek.metin, takımın seçtiği metin): "Ruhsat elle düzeltilmiş ya da imzasızsa, ya da bir belgenin ada/parseli ruhsatla uyuşmuyorsa geçersizdir: geçerlisini İSTE, gelmezse → İADE". Klasörde taşma yok. Ek (takım kararı 11.4x): dosyanın kendi ruhsatındaki elle düzeltme (düzeltilen kat ya da yıl alanı) 2. kuralla (rapor kuralı) da kabul edilir, gişeden gelen elle düzeltmedeki gibi; sonuç aynı elleDuzeltme kusuru.
 
 
 
