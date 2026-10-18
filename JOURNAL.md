@@ -7,7 +7,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
 - Kontrol 2 (ara oyun testi): TAMAM (16 Ekim 23.53, geri bildirim işlendi)
 - Kontrol 3 (son teslim): BEKLİYOR
-- Son eleştirmen: 2026-10-18T06:49+03:00
+- Son eleştirmen: 2026-10-18T11:16+03:00
 - Kullanım düzeyi: normal
 
 ## Günlük
@@ -315,3 +315,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 11:05 · Yayın: 245d3af (G70) canlıda, smoke hatasız, menüde 'sürüm 245d3af'; son-saglam taşındı · Açık teknik iş yok · Sıradaki: kullanıcı /dondur (15.00 kod dondurma), trailer/sade video kararı
 - 11:06 · Döngü adımı: durum 'Eleştirmen zamanı'; eleştirmen 13 (opus/high) başladı: dondurma öncesi son değerlendirme (G67/G68/G70 gerileme, kısa yol, Emeği Geçenler, 15.00'e kadar risksiz küçük düzeltmeler) · Kullanım %17 (5 sa), %51 (hafta)
 - 11:09 · Karar (takım): teslim videosu trailer, teslim/video/kagit-ustunde-trailer.mp4 (57,85 sn, takımın bestesiyle); sade video yedek · Neden: video sunumda arkada oynayacak, trailer kurgusu ve müzik daha güçlü · docs/TESLIM.md ve T9 güncellendi; beyan zaten trailer'ı kapsıyor (G70) · Sıradaki: eleştirmen 13 raporu, /dondur
+- 11:18 · Eleştirmen 13 (opus/high, 6 koşu hatasız, 11.16): GERİLEME YOK; ilk 30 sn anlaşılır (1,5. sn masa, kural notu, Space ipucu), zarf AL/GERİ VER/müfettiş, gün sonu → deprem → gazete kopuksuz; g3 t12 sahte karot GENEL 2. kural + SOR 'Fotokopi…' doğru (İADE'nin 'doğrusu BOŞALT' demesi +2 kaçak kattan, doğru); Emeği Geçenler tutarlı, taşma yok; ~89/100 (oyn. 22, tema 23, yarat. 17, görsel 13, teknik 14; E12'ye +1) · Zorunlu düzeltme yok · İsteğe bağlı: T36 trailer beyan cümlesi 'oynanış görüntülerinin', T37 gazete ':' → ';' (ikisi takım kararı); canlı ilk yükleme yavaş → TESLIM.md sunum notu · Sıradaki: takımdan T36/T37 kararı, /dondur

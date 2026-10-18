@@ -40,6 +40,7 @@ Formu temsilci doldurur ve 6 karakterli erişim kodunu kendisi girer. Kod hiçbi
 - Video (en fazla 1 dakika) arkada oynarken anlatılır; ek video süresi yok.
 - Jüri bu sırada oyunu oynayıp puanlıyor; soru-cevap yok.
 - Anlatım sırası: fikir ve temayla bağı (en önemlisi), nasıl oynandığı, en iyi an. Prova yapın.
+- Sunumdan önce oyunu (canlı site ya da `OYNA.html`) açıp ilk ekranı tıklayın (ses açılır) ve ana menüde bırakın: canlı sitenin ilk yüklemesi birkaç saniye sürüyor (eleştirmen 13). Kısa yolu prova edin: 3 dosya → "BÜYÜK DEPREM BU GECE OLSAYDI?" → gazete.
 
 ## Son kontrol
 
