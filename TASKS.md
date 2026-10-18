@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G64 [teknik] (sürüyor, Opus/high) Sonuç ekranında zarf da kabul edilmişse ret satırı "N zarfı geri çevirdin".
 
 ## Sırada
 

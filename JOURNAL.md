@@ -7,7 +7,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
 - Kontrol 2 (ara oyun testi): TAMAM (16 Ekim 23.53, geri bildirim işlendi)
 - Kontrol 3 (son teslim): BEKLİYOR
-- Son eleştirmen: 2026-10-18T03:47+03:00 (eleştirmen 11 sürüyor)
+- Son eleştirmen: 2026-10-18T03:48+03:00
 - Kullanım düzeyi: normal
 
 ## Günlük
@@ -285,3 +285,5 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 02:45 · Test (G63+G63b, opus/low, 4 koşu hatasız): Emeği Geçenler HD/720p baştan sona temiz, bütün yeni metinler ekranda, beş kategorinin araç satırları doğru (Metin'de Sonnet, Diğer'de Fable), ekran = README = AI_BEYAN üst bölümü; gerileme yok; teslim formu için kritik sorun kalmadı GEÇTİ · Karar: yayına
 - 02:46 · G63+G63b canlıda (60ca8b2; JS paketinde hash ve 'Oynanış için seçenekler', canlı smoke doğrulandı; son-saglam taşındı) · Emeği Geçenler ikinci denetim kapandı; teslim formu metni docs/AI_BEYAN.md üst bölümünde hazır · Açık teknik görev yok
 - 03:47 · Döngü adımı: durum 'Eleştirmen zamanı'; eleştirmen 11 (opus/high) başladı: dondurma sonrası gerileme taraması (G59–G63) · Kullanım %11 (5 sa), %46 (hafta)
+- 03:59 · Eleştirmen 11 (opus/high, 8 koşu hatasız): GERİLEME YOK; kısa yol (zarf al/geri ver/kusursuz), 5 günlük, inceleme (gün 1, 3, 5 başka bina), Emeği Geçenler, 720p temiz; ~87/100 (E10'un "zarf anında risk" eksiği kapandı) · Öneriler: 5 günlükte zarf kabul edilmişken "Rüşveti geri çevirdin" hiç almamış gibi okunuyor; açık klasör karotun İSTE/SAHA düğmelerini örtüyor (eski, gün 3+) · Sunum: zarf sırası rastgele, anlatım sıradan bağımsız olsun; video sabit tohumla
+- 03:59 · Karar (lider): G64 = kabul edilen zarf varken ret satırı "1 zarfı geri çevirdin" / "N zarfı geri çevirdin"; klasör örtmesine dokunulmaz (X ile kapanıyor, jüri yolunda yok) · G64 geliştiricide
