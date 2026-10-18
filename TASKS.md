@@ -9,8 +9,8 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 ## Şimdi
 
 - [ ] G69 [teknik] (sürüyor, Opus/high, repoya dokunmaz) Trailer: teslim/video/kagit-ustunde-trailer.mp4; oyunun kendi cümleleriyle ara kartlar, geçişler, yakınlaştırmalar, takımın müziği; ≤60 sn.
-- [ ] G67 [teknik] (sürüyor, Opus/high) Rapor kuralı GENEL sekmesine, metin "Gişeden getirilen rapor (karot ya da zemin etüdü) mühürsüz…"; 6. kural + dosyanın kendi karot ya da zemin etüdü kartı seçilince "Bu kural gişeden getirilen raporlar için" ipucu. Ayrıca oyun içinde (UI) sahte karot ve sahte zemin raporu inceleme modunda bulunabiliyor mu, İSTE inceleme modundayken basılırsa da, SOR çalışıyor mu doğrulanır; tutmazsa düzeltilir.
-- [ ] G68 [teknik] (sürüyor, Opus/high, G67 ile aynı çağrı) Ana menü müziği: takımın bestesi Maintheme.wav (FL Studio, hazır döngü/örnek ve AI yok, "takım" adıyla) menüde döngüyle çalar; OGG'ye çevrilir; beyan ve Emeği Geçenler güncellenir.
+- [ ] G67 [teknik] (bitti a7c7bbe, test sürüyor, Opus/low) Rapor kuralı GENEL sekmesine, metin "Gişeden getirilen rapor (karot ya da zemin etüdü) mühürsüz…"; 6. kural + dosyanın kendi karot ya da zemin etüdü kartı seçilince "Bu kural gişeden getirilen raporlar için" ipucu. Ayrıca oyun içinde (UI) sahte karot ve sahte zemin raporu inceleme modunda bulunabiliyor mu, İSTE inceleme modundayken basılırsa da, SOR çalışıyor mu doğrulanır; tutmazsa düzeltilir.
+- [ ] G68 [teknik] (bitti 4292360, test sürüyor, Opus/low) Ana menü müziği: takımın bestesi Maintheme.wav (FL Studio, hazır döngü/örnek ve AI yok, "takım" adıyla) menüde döngüyle çalar; OGG'ye çevrilir; beyan ve Emeği Geçenler güncellenir.
 
 ## Sırada
 
