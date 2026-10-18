@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G73 [teknik] (bitti 748478f, test sürüyor, Opus/low) Elle düzeltme her zaman kat sayısında (tuning elleKatOrani 0.7 → 1): sahte ruhsat hep kaçak katı saklar, İSTE ile gelen doğru ruhsat kaçak katı ortaya çıkarır; yıl düzeltmesi dosyada üretilmez.
 
 ## Sırada
 
@@ -79,6 +78,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G73 Elle düzeltme her zaman kat sayısında (elleKatOrani 1); doğru ruhsat kaçak katı ortaya çıkarır, GÜVENLİ yanlış (748478f, Opus/high; test GEÇTİ, Opus/low)
 - [x] G72 Geçersiz belge kuralı gün 5 metni 'Ruhsat elle düzeltilmiş ya da imzasızsa, ya da bir belgenin ada/parseli ruhsatla uyuşmuyorsa…'; ruhsattaki elle düzeltme 2. kuralla da kabul (ff2b8a5, Opus/high; test GEÇTİ, Opus/low)
 - [x] G71 Dosyanın kendi karot ve zemin etüdü kartlarına lab mührü, seçilemez süs (e653bfb, Opus/high; test GEÇTİ, Opus/low)
 - [x] G70 Yazı tiplerine 'tanıtım videosundaki ara kartlarda da kullanıldı', trailer elle beyan kaydı, sahte rapor SOR bahanesi ipucuyla uyumlu (8dc28f2, Opus/high; test GEÇTİ, Opus/low)
