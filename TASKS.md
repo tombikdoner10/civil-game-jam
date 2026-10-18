@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G71 [teknik] (sürüyor, Opus/high) Dosyanın kendi KAROT SONUCU ve ZEMİN ETÜDÜ kartlarına oyundaki lab mührü (muhurLab) basılır; seçilemez süs, değer/ada satırlarını örtmez, 'rapor yok' kartında ve saha notunda yok. Kural metni değişmez.
+- [ ] G71 [teknik] (bitti e653bfb, test G72 ile birlikte) Dosyanın kendi KAROT SONUCU ve ZEMİN ETÜDÜ kartlarına oyundaki lab mührü (muhurLab) basılır; seçilemez süs, değer/ada satırlarını örtmez, 'rapor yok' kartında ve saha notunda yok. Kural metni değişmez.
 
 ## Sırada
 
