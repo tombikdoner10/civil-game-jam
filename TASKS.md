@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G75 [teknik] (bitti 110a6a8, test sürüyor, Opus/low) Sahte rapor masadayken fişte 'Karot raporu yok' yerine 'Geçerli karot raporu yok' (zemin: 'Geçerli zemin etüdü yok'); Fable testi ORTA-1, takım kararı.
 
 ## Sırada
 
@@ -79,6 +78,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G75 Sahte rapor masadayken fişte 'Geçerli karot raporu yok' / 'Geçerli zemin etüdü yok' (110a6a8, Opus/high; test GEÇTİ, Opus/low)
 - [x] G74 Elle düzeltme itirafı 'Yılı biraz yeni gösterdik.' silindi; saha etiketi 'GERİ SIÇRAMA (R)' (a7c8443, Opus/high; test GEÇTİ, Opus/low)
 - [x] G73 Elle düzeltme her zaman kat sayısında (elleKatOrani 1); doğru ruhsat kaçak katı ortaya çıkarır, GÜVENLİ yanlış (748478f, Opus/high; test GEÇTİ, Opus/low)
 - [x] G72 Geçersiz belge kuralı gün 5 metni 'Ruhsat elle düzeltilmiş ya da imzasızsa, ya da bir belgenin ada/parseli ruhsatla uyuşmuyorsa…'; ruhsattaki elle düzeltme 2. kuralla da kabul (ff2b8a5, Opus/high; test GEÇTİ, Opus/low)
