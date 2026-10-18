@@ -732,6 +732,51 @@ for (let tohum = 1; tohum <= 60; tohum++) {
 }
 console.log('G17b (tohum 1-60, gün 1-5):', JSON.stringify(g17b));
 
+// ---- G73: dosyadaki elle düzeltme her zaman kat sayısında (takım kararı) ----
+// Yıl düzeltmesi karar kurallarında hiçbir şey saklamıyordu (doğru ruhsat gelince GÜVENLİ doğru sayılıyordu). Artık
+// düzeltme hep katta: doğru ruhsatta kaçak kat görünür, doğru damga GÜÇLENDİR ya da BOŞALT; GÜVENLİ yanlış.
+{
+  const g73 = { dosya: 0, gercekRuhsat: 0, guvenliYanlis: 0 };
+  for (let tohum = 1; tohum <= 200; tohum++) {
+    for (let g = HB.elleBaskaGun; g <= D.SON_GUN; g++) {
+      const o = new S.GunOturumu(g, tohum);
+      while (o.mevcut && !o.bitti) {
+        const b = o.mevcut;
+        const d = b.belgeler.ruhsat.duzeltme;
+        const e = `G73 t${tohum} g${g} ${b.id}`;
+        if (!d) {
+          o.damgala(R.dogruDamga(b, g));
+          continue;
+        }
+        g73.dosya++;
+        bak(d.alan === 'kat', `${e}: elle düzeltme ${d.alan} alanında`);
+        const dogruR = BLD.gecerliRuhsat(b.belgeler.ruhsat);
+        bak(dogruR.kat < b.belgeler.foto.gorunenKat, `${e}: doğru ruhsatta kaçak kat yok (${dogruR.kat}/${b.belgeler.foto.gorunenKat})`);
+        const gercekD = R.dogruDamga(b, g, { ruhsat: true });
+        // Başka eksik ya da geçersiz belge varsa İADE sürer; yoksa kaçak kat kuralıyla GÜÇLENDİR ya da BOŞALT.
+        const baskaEksik = R.gorunenKusurlar(b, g).some((k) => k.id !== 'elleDuzeltme' && k.ciddiyet === 'iade');
+        bak(gercekD === 'guclendir' || gercekD === 'bosalt' || (baskaEksik && gercekD === 'iade'), `${e}: doğru ruhsatla damga ${gercekD}`);
+        bak(!R.dogruDamgalar(b, g, { ruhsat: true }).includes('guvenli'), `${e}: doğru ruhsatla GÜVENLİ kabul`);
+        // Oturumda: bul, İSTE; doğru ruhsat geldiyse GÜVENLİ yanlış sayılır, gelmediyse asıl damga (İADE ya da BOŞALT) doğru.
+        o.incele(R.kanitOgeleri(R.gorunenKusurlar(b, g).find((k) => k.id === 'elleDuzeltme')));
+        const c = o.iste('ruhsat');
+        if (c?.tur === 'gercek') {
+          g73.gercekRuhsat++;
+          bak(c.rapor.ruhsat.kat === dogruR.kat && !c.rapor.ruhsat.duzeltme, `${e}: gelen ruhsat doğru değil`);
+          const s = o.damgala('guvenli');
+          bak(s && !s.dogru, `${e}: doğru ruhsattan sonra GÜVENLİ doğru sayıldı`);
+          if (s && !s.dogru) g73.guvenliYanlis++;
+        } else {
+          const s = o.damgala(R.dogruDamga(b, g));
+          bak(s && s.dogru, `${e}: doğru ruhsat gelmeden asıl damga yanlış`);
+        }
+      }
+    }
+  }
+  bak(g73.dosya > 50 && g73.gercekRuhsat > 0 && g73.guvenliYanlis === g73.gercekRuhsat, `G73 sayılar ${JSON.stringify(g73)}`);
+  console.log('G73 elle düzeltme hep katta (tohum 1-200, gün 5+):', JSON.stringify(g73));
+}
+
 // ---- G72: ruhsattaki elle düzeltme rapor kuralıyla da (takım kararı) ----
 // Düzeltilen alan + rapor kuralı = düzeltilen alan + geçersiz belge kuralı (ELLE DÜZELTİLMİŞ; SOR, İSTE aynı).
 // Düzeltilmemiş alan + rapor kuralı kusur değil. Rapor kuralının kusur listesi değişmez.

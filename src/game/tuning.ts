@@ -49,8 +49,11 @@ export const TUNING = {
   belgeHile: {
     imzaGun: 4,
     elleBaskaGun: 5,
-    /** Elle düzeltmede kat sayısı payı (kalanı yapım yılı). Kat düzeltmesi kaçak katı gizler. */
-    elleKatOrani: 0.7,
+    /**
+     * Elle düzeltmede kat sayısı payı (kalanı yapım yılı). Takım kararı (G73): her zaman kat; kat düzeltmesi kaçak katı
+     * gizler ve İSTE ile gelen doğru ruhsat onu ortaya çıkarır (yıl düzeltmesi karar kurallarında hiçbir şey saklamıyordu).
+     */
+    elleKatOrani: 1,
     /** Elle düzeltilmiş yapım yılı asıl yıldan kaç yıl ileri. */
     yilIleri: { min: 8, max: 20 },
     /** Başka binanın belgesinde (asıl binada saklı kusur yoksa) kötü değer görünme olasılığı. */
