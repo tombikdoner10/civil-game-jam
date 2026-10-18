@@ -41,7 +41,7 @@ export interface AiCredit {
 // Takım üyeleri (T32, G52, G56): adlar ve roller takımın yazdığı gibi. G56: roller Türkçe; Egemen'in adı ve rolü
 // takımın isteğiyle. Köşeli parantezli (yer tutucu) satırlar Emeği Geçenler'de gizlenir (CreditsScene).
 export const MEMBERS: Member[] = [
-  { name: 'Egemen AYVAZ', role: 'Takım Lideri' },
+  { name: 'Egemen Ayvaz', role: 'Takım Lideri' },
   { name: 'Deniz Demir', role: 'Oyun Testçisi ve Fikir Geliştirici' },
   { name: 'Ahmet Ata Tuncer', role: 'Ses Tasarımcısı ve Fikir Geliştirici' },
 ];

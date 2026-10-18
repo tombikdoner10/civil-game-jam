@@ -59,7 +59,7 @@ Tema açıklanmadan önceki son commit: `cc37c87` (`jam-oncesi-sablon` etiketi, 
 
 ## Takım
 
-Prompt Engineers: Egemen AYVAZ (Takım Lideri), Deniz Demir (Oyun Testçisi ve Fikir Geliştirici), Ahmet Ata Tuncer (Ses Tasarımcısı ve Fikir Geliştirici).
+Prompt Engineers: Egemen Ayvaz (Takım Lideri), Deniz Demir (Oyun Testçisi ve Fikir Geliştirici), Ahmet Ata Tuncer (Ses Tasarımcısı ve Fikir Geliştirici).
 
 ## Takımın kararları
 
