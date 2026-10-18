@@ -23,7 +23,7 @@ Kurallar: https://game.ktimo.com.tr/kurallar · Teslim ekranı: https://game.kti
   - Önce commit et. Dosya adında `-degisiklikli` yazıyorsa ZIP bir commit'le eşleşmiyor demektir.
 - Web oynama bağlantısı: GitHub Pages adresi; hesapsız açılmalı.
 - **Video dosyası:** En fazla 1 dakika, MP4. Oyun içi görüntü ya da trailer. Bağlantı değil, dosyanın kendisi yüklenir.
-  - **Takım kararı (18 Ekim):** Yüklenecek dosya `teslim/video/kagit-ustunde-trailer.mp4` (57,85 sn, 1920×1080, H.264 + AAC, takımın bestesi, 27,1 MB). Sade yedek: `kagit-ustunde-video.mp4` (sessiz). İkisi de repoda yok (`teslim/` git dışı); beyanda Diğer › yapay zekâ satırında yazılı.
+  - **Takım kararı (18 Ekim, 16.00):** Yüklenecek dosya `teslim/video/kagit-ustunde-trailer-v3.mp4` (59,10 sn, 1920×1080, H.264 + AAC, 50 MB): oynanış gün 1 → gün 5, deprem, gazete ve sonuç; müzik takımın güncellenmiş bestesi, kesmeler vuruşlara göre. Eski sürümler (kagit-ustunde-trailer.mp4, -v2, sade video) yüklenmez. Videolar repoda yok (`teslim/` git dışı); beyanda Diğer › yapay zekâ satırında yazılı. Form metinleri: `docs/TESLIM_FORMU.md`.
   - Kayıt: Windows'ta Win+Alt+R (Xbox Game Bar) ya da OBS.
   - Kırpma: Windows'taki Clipchamp ile 1 dakikanın altına indir, MP4 olarak dışa aktar.
   - Aynı video sunumda arkada oynayacak; trailer gibi kurgula.
