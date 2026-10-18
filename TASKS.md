@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G76 [teknik] (bitti 95416c2, test sürüyor, Opus/low) Zarf olasılığı kisi.zarf [0.3,0.3,0.35,0.35,0.6] → [0.3,0.3,0.25,0.25,0.3] (takım testi: çok zarf).
 
 ## Sırada
 
@@ -79,6 +78,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G76 Zarf olasılığı [0.3,0.3,0.25,0.25,0.3]; SOR zarfları gün 3-5'te 59/56/117 → 47/41/85 (95416c2, Opus/high; test GEÇTİ, Opus/low)
 - [x] G75 Sahte rapor masadayken fişte 'Geçerli karot raporu yok' / 'Geçerli zemin etüdü yok' (110a6a8, Opus/high; test GEÇTİ, Opus/low)
 - [x] G74 Elle düzeltme itirafı 'Yılı biraz yeni gösterdik.' silindi; saha etiketi 'GERİ SIÇRAMA (R)' (a7c8443, Opus/high; test GEÇTİ, Opus/low)
 - [x] G73 Elle düzeltme her zaman kat sayısında (elleKatOrani 1); doğru ruhsat kaçak katı ortaya çıkarır, GÜVENLİ yanlış (748478f, Opus/high; test GEÇTİ, Opus/low)
