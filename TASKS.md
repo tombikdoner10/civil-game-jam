@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G76 [teknik] (sürüyor, Opus/high) Zarf olasılığı kisi.zarf [0.3,0.3,0.35,0.35,0.6] → [0.3,0.3,0.25,0.25,0.3] (takım testi: çok zarf).
 
 ## Sırada
 
