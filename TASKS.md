@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G65 [teknik] (bitti 4a5044c, test sürüyor, Opus/low) Müfettiş gişede: zarf yakalanan günlerin sonunda müfettiş gişeye gelir, tek cümle söyler, zarfı alır ve gider (5–6 sn, geçilebilir); yakalanmayan günde yok. Takım kararı, özellik dondurmasına istisna.
 
 ## Sırada
 
@@ -75,6 +74,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G65 Müfettiş gişede: zarf yakalanan günün sonunda gelir, MÜFETTİŞ balonu, zarfa el koyar, geçilebilir (4a5044c, Opus/high; test GEÇTİ, 10 koşu)
 - [x] G64 Sonuçta zarf da kabul edildiyse ret satırı "N zarfı geri çevirdin" (fa90484, Opus/high; test GEÇTİ)
 - [x] G63b Hazır kaynak satırları ekran ve README'de birebir; Impact Sounds kilitli kaşe ve ev kalemi (f927c21, Opus/high; test GEÇTİ)
 - [x] G63 Emeği Geçenler ikinci denetim: Metin'e Sonnet 5.5, Diğer'e oynanış önerileri, ses metinleri, başlık (d6177b1, Opus/high; test GEÇTİ)
