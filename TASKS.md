@@ -39,8 +39,8 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Takım işleri
 
-- [ ] T36 [takım] (E13, isteğe bağlı, 15.00'ten önce) Trailer beyan cümlesinde "görüntülerin hepsi oyunun kendisi" → "oynanış görüntülerinin hepsi oyunun kendisi" (ara kartlar HTML ile üretildi; beyan kesinliği). Onaylanırsa docs/ai-ozet.json + beyan yeniden üretimi.
-- [ ] T37 [takım] (E13, isteğe bağlı) Gazetede güçlendirilen bina satırında ':' var ('Bina 02 ayakta: güçlendirme kararı verilmişti'), öbür satırlarda ';'. Değişsin mi?
+- [x] T36 [takım] YAPILDI (takım kararı 11.2x; lider beyanı yeniden üretti) Trailer beyan cümlesinde "görüntülerin hepsi oyunun kendisi" → "oynanış görüntülerinin hepsi oyunun kendisi" (ara kartlar HTML ile üretildi; beyan kesinliği). Onaylanırsa docs/ai-ozet.json + beyan yeniden üretimi.
+- [x] T37 [takım] KAPANDI (takım kararı: noktalama kalsın) Gazetede güçlendirilen bina satırında ':' var ('Bina 02 ayakta: güçlendirme kararı verilmişti'), öbür satırlarda ';'. Değişsin mi?
 - [x] T35 [takım] LİDER KARARI (16:23, G31): G42 metinleri ve fiyatları: hazırlık seçeneklerinin adları ve açıklamaları, fiyatlar, "Senin evin" sonuç cümleleri (ton: kurban yok, sayı yok); gerçek hazırlık bilgisini AFAD kaynaklarıyla doğrula.
 - [x] T32 [takım] Takım üyelerinin adları ve rolleri: Deniz Demir (Game Tester and Ideator), Ahmet Ata Tuncer (Sound Designer and Ideator); takım 17 Ekim 21.3x verdi → G52
 - [x] T31 [takım] LİDER KARARI (16:23, G31): ÖNCELİKLİ METİNLER (18.00; madde 4.3): oyun adı (config.ts TITLE), gazete adı ve şehir adı, çerçeve cümlesi (diyalog.ts CERCEVE), gün 1 kural notu (rules.ts), manşetler ve değerlendirmeler (gazete.ts; tekil/çoğul T30; kısa yol "senin binaların + sokak" G37), gün 1de görünen selam, damga tepkisi ve zarf cümleleri (diyalog-metin.ts). Diyalog taslaklarını okuyup seç/düzelt (T28). Bitince beyan "AI taslağı, takım düzenledi" olur (G31). G37 yeni yer tutucuları (yer-tutucu betiği görmüyor, elle bak): gazete.ts KISA_SENIN, KISA_SOKAK_COKEN, DEGERLENDIRME_ZARFLI; manşet ve değerlendirme kısa olursa büyük kalır.
