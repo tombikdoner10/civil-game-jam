@@ -8,7 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G64 [teknik] (sürüyor, Opus/high) Sonuç ekranında zarf da kabul edilmişse ret satırı "N zarfı geri çevirdin".
+- [ ] G64 [teknik] (bitti fa90484, test sürüyor, Opus/low) Sonuç ekranında zarf da kabul edilmişse ret satırı "N zarfı geri çevirdin".
 
 ## Sırada
 
