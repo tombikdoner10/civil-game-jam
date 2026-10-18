@@ -726,10 +726,64 @@ for (let tohum = 1; tohum <= 60; tohum++) {
   // Kural kitabı: gün 4'te imza, gün 5'te üç hile aynı satırda ve "YENİ".
   const kural = R.KURALLAR.find((k) => k.id === R.GECERSIZ_KURALI);
   bak(R.kuralMetni(kural, 4).includes('imzasız') && !R.kuralMetni(kural, 4).includes('elle'), 'gün 4 geçersiz belge kuralı metni');
-  bak(['elle', 'başka', 'imzasız', 'İADE'].every((x) => R.kuralMetni(kural, 5).includes(x)), 'gün 5 geçersiz belge kuralı metni');
+  // G72: gün 5 metni hangi belgeye bakılacağını söyler (ruhsat; ada/parsel öbür belgede).
+  bak(['ruhsat elle', 'imzasız', 'ada/parsel', 'İADE'].every((x) => R.kuralMetni(kural, 5).includes(x)), 'gün 5 geçersiz belge kuralı metni');
   bak(R.kuralYeni(kural, 4) && R.kuralYeni(kural, 5) && !R.kuralYeni(kural, 3), 'geçersiz belge kuralı YENİ günleri');
 }
 console.log('G17b (tohum 1-60, gün 1-5):', JSON.stringify(g17b));
+
+// ---- G72: ruhsattaki elle düzeltme rapor kuralıyla da (takım kararı) ----
+// Düzeltilen alan + rapor kuralı = düzeltilen alan + geçersiz belge kuralı (ELLE DÜZELTİLMİŞ; SOR, İSTE aynı).
+// Düzeltilmemiş alan + rapor kuralı kusur değil. Rapor kuralının kusur listesi değişmez.
+const g72 = { dosya: 0, rapor: 0, gecersiz: 0 };
+bak(R.KURALLAR.find((k) => k.id === R.RAPOR_KURALI).kusurlar.length === 0, 'G72: rapor kuralının kusur listesi değişti');
+for (let tohum = 1; tohum <= 60; tohum++) {
+  for (let g = HB.elleBaskaGun; g <= D.SON_GUN; g++) {
+    const o = new S.GunOturumu(g, tohum);
+    const ikiz = new S.GunOturumu(g, tohum);
+    while (o.mevcut && !o.bitti) {
+      const b = o.mevcut;
+      const d = R.dogruDamga(b, g);
+      const elle = R.gorunenKusurlar(b, g).find((k) => k.id === 'elleDuzeltme');
+      if (elle) {
+        const e = `G72 t${tohum} g${g} ${b.id}`;
+        const alan = b.belgeler.ruhsat.duzeltme.alan;
+        g72.dosya++;
+        const rapor = (a) => [
+          { belge: 'ruhsat', alan: a },
+          { belge: 'kural', alan: R.RAPOR_KURALI },
+        ];
+        // Düzeltilmemiş alanlar + rapor kuralı: kusur yok.
+        for (const a of ['kat', 'yil', 'muhur'].filter((x) => x !== alan)) {
+          const r = o.incele(rapor(a));
+          bak(r?.kusur?.id !== 'elleDuzeltme', `${e}: düzeltilmemiş ${a} + rapor kuralı elle düzeltme buldu`);
+        }
+        bak(!o.bulunanKusurlar.includes('elleDuzeltme'), `${e}: düzeltilmemiş alanla bulunan kaydı`);
+        // Düzeltilen alan + rapor kuralı: ELLE DÜZELTİLMİŞ, yeni, bulunan kaydı, SOR ve İSTE.
+        const r = o.incele(rapor(alan));
+        bak(r?.kusur?.id === 'elleDuzeltme' && r.yeni && r.kusur.ciddiyet === 'iade', `${e}: düzeltilen ${alan} + rapor kuralı elle düzeltme bulmadı`);
+        if (r?.kusur?.id === 'elleDuzeltme') g72.rapor++;
+        bak(o.bulunanKusurlar.includes('elleDuzeltme'), `${e}: rapor kuralıyla bulunan kaydı yok`);
+        bak(o.sorulabilir('elleDuzeltme') && o.isteAlani('elleDuzeltme') === 'ruhsat', `${e}: rapor kuralıyla SOR/İSTE yok`);
+        // Geçersiz belge kuralıyla gerileme yok.
+        const r2 = ikiz.incele([
+          { belge: 'ruhsat', alan },
+          { belge: 'kural', alan: R.GECERSIZ_KURALI },
+        ]);
+        bak(r2?.kusur?.id === 'elleDuzeltme' && r2.yeni, `${e}: geçersiz belge kuralıyla elle düzeltme bulunmadı`);
+        if (r2?.kusur?.id === 'elleDuzeltme') g72.gecersiz++;
+        bak(JSON.stringify(r?.kusur) === JSON.stringify(r2?.kusur), `${e}: iki kuralla bulunan kusur farklı`);
+        // Gişeden geçerli ruhsat geldiyse eski düzeltme kanıt sayılmaz.
+        const c = o.iste('ruhsat');
+        if (c?.tur === 'gercek') bak(o.incele(rapor(alan))?.kusur?.id !== 'elleDuzeltme', `${e}: geçerli ruhsattan sonra eski düzeltme kanıt`);
+      }
+      o.damgala(d);
+      ikiz.damgala(d);
+    }
+  }
+}
+bak(g72.dosya > 0 && g72.rapor === g72.dosya && g72.gecersiz === g72.dosya, `G72: elle düzeltmeli dosya sayımı ${JSON.stringify(g72)}`);
+console.log('G72 (tohum 1-60, gün 5+):', JSON.stringify(g72));
 
 // ---- G36: sahte ruhsat → İADE (takım kararı T29); bulunan / kusur sayımı ----
 // Sahte ruhsatın doğru damgası İADE (BOŞALT görünmüyorsa), GÜÇLENDİR yanlış; fiş "Doğrusu: İADE" ve gerekçede

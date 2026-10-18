@@ -176,7 +176,8 @@ export const KURALLAR: Kural[] = [
     ek: {
       gun: TUNING.belgeHile.elleBaskaGun,
       kusurlar: ['elleDuzeltme', 'baskaBina'],
-      metin: 'Kural: elle düzeltilmiş, başka binaya ait (ada/parsel) ya da imzasız belge geçersizdir: geçerlisini İSTE, gelmezse → İADE',
+      // G72 (takım kararı): hangi belgeye bakılacağı metinde açık (elle düzeltme ve imza ruhsatta, ada/parsel öbür belgede).
+      metin: 'Kural: ruhsat elle düzeltilmiş ya da imzasızsa, ya da bir belgenin ada/parseli ruhsatla uyuşmuyorsa geçersizdir: geçerlisini İSTE, gelmezse → İADE',
     },
   },
   { id: 'belge', ilkGun: 5, kusurlar: ['sahteBelge'], metin: 'Kural: ruhsat tarihi yapım yılından sonraysa bina ruhsatsızdır → İADE' },
@@ -535,7 +536,19 @@ export function kanitEslesir(k: KusurId | Kusur, secim: readonly SecimRef[]): bo
   return kanit.length === secim.length && kanit.every((x) => secim.some((s) => ayni(x, s)));
 }
 
+/**
+ * G72 (takım kararı): ruhsattaki elle düzeltme rapor kuralıyla da kanıtlanır ("elle düzeltilmişse sahtedir"; gişeden
+ * gelen elle düzeltilmiş belgede de iki kural geçer, session.sahteKaniti). Dar istisna: rapor kuralının kusur
+ * listesine eklenmez (gün planı, YENİ rozetleri ve klasör vurguları değişmesin).
+ */
+function raporKuraliylaElle(k: Kusur, secim: readonly SecimRef[]): boolean {
+  if (k.id !== 'elleDuzeltme') return false;
+  const kanit: SecimRef[] = [...k.kanit, { belge: 'kural', alan: RAPOR_KURALI }];
+  return kanit.length === secim.length && kanit.every((x) => secim.some((s) => ayni(x, s)));
+}
+
 /** Seçimin kanıtladığı, o gün görünen (kuralı gelmiş) kusur; yoksa null. */
 export function seciminKusuru(b: Bina, gun: number, secim: readonly SecimRef[]): Kusur | null {
-  return gorunenKusurlar(b, gun).find((k) => kanitEslesir(k, secim)) ?? null;
+  const gor = gorunenKusurlar(b, gun);
+  return gor.find((k) => kanitEslesir(k, secim)) ?? gor.find((k) => raporKuraliylaElle(k, secim)) ?? null;
 }
