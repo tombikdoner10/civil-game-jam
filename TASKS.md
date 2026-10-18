@@ -8,8 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G72 [teknik] (bitti ff2b8a5, test G71 ile birlikte) Geçersiz belge kuralının gün 5 metni (rules.ts ek.metin, takımın seçtiği metin): "Ruhsat elle düzeltilmiş ya da imzasızsa, ya da bir belgenin ada/parseli ruhsatla uyuşmuyorsa geçersizdir: geçerlisini İSTE, gelmezse → İADE". Klasörde taşma yok. Ek (takım kararı 11.4x): dosyanın kendi ruhsatındaki elle düzeltme (düzeltilen kat ya da yıl alanı) 2. kuralla (rapor kuralı) da kabul edilir, gişeden gelen elle düzeltmedeki gibi; sonuç aynı elleDuzeltme kusuru.
-- [ ] G71 [teknik] (bitti e653bfb, test G72 ile birlikte) Dosyanın kendi KAROT SONUCU ve ZEMİN ETÜDÜ kartlarına oyundaki lab mührü (muhurLab) basılır; seçilemez süs, değer/ada satırlarını örtmez, 'rapor yok' kartında ve saha notunda yok. Kural metni değişmez.
 
 ## Sırada
 
@@ -80,6 +78,8 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G72 Geçersiz belge kuralı gün 5 metni 'Ruhsat elle düzeltilmiş ya da imzasızsa, ya da bir belgenin ada/parseli ruhsatla uyuşmuyorsa…'; ruhsattaki elle düzeltme 2. kuralla da kabul (ff2b8a5, Opus/high; test GEÇTİ, Opus/low)
+- [x] G71 Dosyanın kendi karot ve zemin etüdü kartlarına lab mührü, seçilemez süs (e653bfb, Opus/high; test GEÇTİ, Opus/low)
 - [x] G70 Yazı tiplerine 'tanıtım videosundaki ara kartlarda da kullanıldı', trailer elle beyan kaydı, sahte rapor SOR bahanesi ipucuyla uyumlu (8dc28f2, Opus/high; test GEÇTİ, Opus/low)
 - [x] G68 Ana menü müziği: takımın bestesi (ana-menu.ogg, 249 KB) menüde döngüyle çalar, Ayarlar/Emeği Geçenler'de sürer, Oyna'da kısılıp durur (4292360, Opus/high; test GEÇTİ: lider JS kontrolüyle çalma, düzey 0,49, kısılma 0,179 ve durma doğrulandı)
 - [x] G67 Rapor kuralı GENEL'de, metin 'Gişeden getirilen rapor (karot ya da zemin etüdü)…', kendi kart + kural → ipucu; UI'da sahte karot ve zemin raporu bulunuyor, SOR çalışıyor (a7c7bbe, Opus/high; test GEÇTİ, Opus/low)
