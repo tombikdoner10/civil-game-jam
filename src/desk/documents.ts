@@ -430,6 +430,10 @@ function karot(k: Ctx): void {
     k.c.remove(o);
     k.c.alanEkle('mpa', o);
   }
+  // G71: dosyanın kendi raporu da lab mühürlü (mühürsüz olan yalnızca gişeden gelen sahte rapor). Seçilemez süs;
+  // en sonda çizilir (önceki çizimlerin rnd sırası değişmez). Yer: alt şerit, ada satırının etiketle sütun çizgisi
+  // arasındaki boşluğuna ve tablonun alt kenarına biner; değer yazılarının üstüne gelmez.
+  if (b.karot) muhurLab(t, 40, 48, rnd, PAL.lab);
 }
 
 function zemin(k: Ctx): void {
@@ -473,6 +477,9 @@ function zemin(k: Ctx): void {
     k.c.remove(o);
     k.c.alanEkle('rapor', o);
   }
+  // G71: lab mührü (seçilemez süs, en sonda). Yer: zemin türü bloğunun (y 37'ye kadar) altı, sondaj kesitinin solu,
+  // ada çizgisinin (y 51) üstü; yalnızca sahte satırların ucuna biner.
+  if (b.zemin) muhurLab(t, 50, 44, rnd, PAL.kirliBeyaz);
 }
 
 const CIZIM: Record<BelgeTuru, (k: Ctx) => void> = { ruhsat, foto, proje, vaziyet, karot, zemin };
