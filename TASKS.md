@@ -8,7 +8,6 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
-- [ ] G64 [teknik] (bitti fa90484, test sürüyor, Opus/low) Sonuç ekranında zarf da kabul edilmişse ret satırı "N zarfı geri çevirdin".
 
 ## Sırada
 
@@ -75,6 +74,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 
 ## Bitti
 
+- [x] G64 Sonuçta zarf da kabul edildiyse ret satırı "N zarfı geri çevirdin" (fa90484, Opus/high; test GEÇTİ)
 - [x] G63b Hazır kaynak satırları ekran ve README'de birebir; Impact Sounds kilitli kaşe ve ev kalemi (f927c21, Opus/high; test GEÇTİ)
 - [x] G63 Emeği Geçenler ikinci denetim: Metin'e Sonnet 5.5, Diğer'e oynanış önerileri, ses metinleri, başlık (d6177b1, Opus/high; test GEÇTİ)
 - [x] G62 Belge satırlarında etiket de seçilebilir (beton, zemin türü, getirilen rapor, kolon satırı) (f3340ed, Opus/high; test GEÇTİ)
