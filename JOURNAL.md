@@ -353,3 +353,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 14:31 · Karar (takım): G76 = zarf olasılığı [0.3,0.3,0.25,0.25,0.3] · Neden: takım testinde çok zarf; gün 1-2 (jüri yolu) aynı · G76 geliştirici (opus/high), 14.45'e kadar
 - 14:32 · G76 bitti (95416c2, opus/high): kisi.zarf [0.3,0.3,0.25,0.25,0.3]; adalet 598399/0; sorZarfGun [5,32,59,56,117] → [5,32,47,41,85] (gün 5 %27 az; lider tahmini 'yarıya' fazlaydı, pazarlıkçı payı 0.6 gün 5'te hâlâ yüksek); adalet'teki zarf sayısı kilidi yeni değerlere uyarlandı; kapsam ve sahte rapor garantisi, müfettiş denetimi 0 hata · Kısa test başlıyor
 - 14:35 · Test (G76, opus/low, teslim/test-a3e7aea) GEÇTİ: gün 1 kendiliğinden zarf ve kilit uyarısı, kısa yol depreme ve gazeteye kadar hatasız; gün 5 t19 masa hatasız · Sıradaki: yayın
+- 14:36 · Yayın: 37d9444 (G76 zarf olasılığı) canlıda, smoke hatasız, menüde 'sürüm 37d9444'; son-saglam taşındı · Açık teknik iş yok · Sıradaki: kullanıcı /dondur (15.00)
