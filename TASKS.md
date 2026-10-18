@@ -72,7 +72,7 @@ Görsel, ses, cila (takım paketleri onaylayınca)
 - [x] T11 [takım] LİDER KARARI (16:23, G31): Pencere sokağı, gişedeki siluet ve renk paleti onayı; uyarı fişi metinleri ("Doğru karar" / "Yanlış karar: doğrusu X" yer tutucu).
 - [x] T7 [takım] KAPANDI (11:11; 'yeni özellik yok' kararı gereği imar affı belgesi yok): Kararlar: imar affı belgesi olacak mı. (Deprem günü ve kaçak kat 21.49'da karara bağlandı.)
 - [x] T8 [takım] YAPILDI (Kontrol 2, 16 Ekim 23.53): Cumartesi 14.00 ara test: oyunu oyna, geri bildirim ver (Kontrol 2).
-- [ ] T9 [takım] Pazar: 1 dakikalık video (MP4) ve 3 dakikalık sunum.
+- [ ] T9 [takım] Pazar: 3 dakikalık sunum. (Video kararı verildi: teslimde trailer, teslim/video/kagit-ustunde-trailer.mp4.)
 
 ## Bitti
 
