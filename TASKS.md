@@ -8,6 +8,7 @@ Biçim: `- [ ] G12 [teknik] Kısa başlık: kabul ölçütü`
 
 ## Şimdi
 
+- [ ] G66 [teknik] (sürüyor, Opus/high) Tanıtım videosu (≤60 sn, MP4): otomatik oynanış kaydı ve kesme (ffmpeg, takım izniyle indirildi); AI beyanına "video" eklenir. T9'un video kısmı takım kararıyla Claude'a geçti.
 
 ## Sırada
 
