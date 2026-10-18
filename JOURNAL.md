@@ -7,7 +7,7 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - Kontrol 1 (konsept seçimi): TAMAM (16 Ekim 19.26)
 - Kontrol 2 (ara oyun testi): TAMAM (16 Ekim 23.53, geri bildirim işlendi)
 - Kontrol 3 (son teslim): BEKLİYOR
-- Son eleştirmen: 2026-10-18T11:16+03:00
+- Son eleştirmen: 2026-10-18T14:02+03:00
 - Kullanım düzeyi: normal
 
 ## Günlük
@@ -336,3 +336,4 @@ Proje hafızası: lider her döngü adımında bir satır ekler. `scripts/durum.
 - 13:17 · Takım dondurmadan önce bir tur daha oynuyor (canlı b1c7d47); bulgular gelince küçük düzeltme, son bulgu saati ~14.15 · Sıradaki: bulgular, sonra /dondur
 - 13:31 · Döngü adımı: takımın son tur testi sürüyor, açık teknik iş yok; dondurmaya 1,5 sa · Sıradaki: bulgular (~14.15), /dondur
 - 13:52 · Karar (takım, Egemen): dondurmadan önce tek seferlik Fable 5.1 (high) test oyuncusu + eleştirmen, baştan sona en küçük ayrıntıya kadar; .claude/settings.json availableModels'a fable geçici eklendi (commit'lenmez), ikisi bitince kaldırılacak; hedef teslim/test-1d24d96 (oyun kodu = canlı b1c7d47); rapor sınırı 14.20 · Neden: son tur öncesi farklı model gözüyle tam tarama
+- 14:01 · Eleştirmen 14 (Fable 5.1 high, tek seferlik, 2 koşu hatasız + kod okuması): GERİLEME YOK; ilk 30 sn net, zarf kapısı kaçırılamıyor; kural metinleri ile dogruDamga birebir; beyan tutarlı (Fable zaten Diğer'de); ~89–90/100 (oyn. 22, tema 23, yarat. 17, görsel 13, teknik 15) · Bulgular: (1) diyalog-metin.ts:437 itiraf 'Yılı biraz yeni gösterdik.' G73'ten beri yanlış (elle hep kat); (2) saha ibre etiketi 'GERİ TEPME (R)' → mühendis dili 'GERİ SIÇRAMA (R)'; (3) boşaltılmış ev + çanta ≥1 'Ailen su ve fenerle çıktı.' hafif tutarsız (dondurmaya bırak); (4) gün 5 ruhsatsız yapı İADE doğru ama depremde güçlendir ağırlığında sayılıyor (tasarım gerilimi, dokunma) · Sıradaki: 1-2 için takım kararı, Fable test oyuncusu raporu (14.20)
